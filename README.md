@@ -2,4 +2,6 @@
 
 # ai2svelte
 
-[Read more.](https://github.com/reuters-graphics/bluprint_graphics-kit/blob/master/docs/developers/ai.md)
+A port of ai2html for exporting Adobe Illustrator graphics as Svelte components.
+
+Read more about how to use it in the [graphics kit docs.](https://github.com/reuters-graphics/bluprint_graphics-kit/blob/master/docs/developers/ai.md)
