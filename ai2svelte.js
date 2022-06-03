@@ -3396,7 +3396,7 @@ function main() {
 
     var findWeight = function () {
       var weight = aifont.match(
-        /(semi-?bold|bold|black|extra?-light|light|regular|medium|ultra-?light)/gi
+        /(semi-?bold|bold|black|extra-?light|light|regular|medium|ultra-?light)/gi
       );
       if (weight && weights[weight[0].toLowerCase()]) {
         return weights[weight[0].toLowerCase()];
@@ -3409,7 +3409,7 @@ function main() {
       // Source has semibold/bold/black"It" name for italics
       // so source semibold italic shows up as Source-SemiBoldIt. weird.
       var style = aifont.match(
-        /(italic|(?:semi-?bold|bold|black|extra?-light|light|regular)it)/gi
+        /(italic|(?:semi-?bold|bold|black|extra-?light|light|regular)it)/gi
       );
       if (style) {
         return "italic";
