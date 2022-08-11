@@ -4611,7 +4611,7 @@ function main() {
 
   // Create an <img> tag for the artboard image
   function generateImageHtml(imgFile, imgId, imgClass, imgStyle, ab, settings) {
-    var imgDir = "{ basePath }/" + settings.image_source_path,
+    var imgDir = "{ basePath }" + settings.image_source_path,
       imgAlt = encodeHtmlEntities(settings.image_alt_text || ""),
       html,
       src;
@@ -5184,7 +5184,7 @@ function main() {
     var svelteJS = "<script>\r\t";
 
 
-    svelteJS += "export let basePath = '.';\r";
+    svelteJS += "export let basePath = './';\r";
 
     svelteJS += "\tlet width = null;\r";
     // add prop for onmount function that defaults to noop
