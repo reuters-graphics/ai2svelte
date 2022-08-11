@@ -985,7 +985,7 @@ function main() {
     if (!String(app.activeDocument.fullName)) {
       error(
         "Ai2html is unable to run because Illustrator is confused by this document's file path." +
-          " Does the path contain any forward slashes or other unusual characters?"
+        " Does the path contain any forward slashes or other unusual characters?"
       );
     }
     if (!String(app.activeDocument.path)) {
@@ -1318,8 +1318,8 @@ function main() {
   function firstBy(f1, f2) {
     var compare = f2
       ? function (a, b) {
-          return f1(a, b) || f2(a, b);
-        }
+        return f1(a, b) || f2(a, b);
+      }
       : f1;
     compare.thenBy = function (f) {
       return firstBy(compare, f);
@@ -1644,8 +1644,8 @@ function main() {
       if (outputFolderCreated) {
         message(
           "The " +
-            nickname +
-            " folder did not exist, so the folder was created."
+          nickname +
+          " folder did not exist, so the folder was created."
         );
       } else {
         warn(
@@ -1854,7 +1854,7 @@ function main() {
         app.textFonts.getByName("NYTFranklin-Medium") &&
         app.textFonts.getByName("NYTCheltenham-Medium")
       );
-    } catch (e) {}
+    } catch (e) { }
     return found;
   }
 
@@ -1957,7 +1957,7 @@ function main() {
     ) {
       warn(
         'Unsupported "responsiveness" setting: ' +
-          (settings.responsiveness || "[]")
+        (settings.responsiveness || "[]")
       );
     }
   }
@@ -2103,17 +2103,17 @@ function main() {
         Date.prototype.toJSON = function () {
           return isFinite(this.valueOf())
             ? this.getUTCFullYear() +
-                "-" +
-                f(this.getUTCMonth() + 1) +
-                "-" +
-                f(this.getUTCDate()) +
-                "T" +
-                f(this.getUTCHours()) +
-                ":" +
-                f(this.getUTCMinutes()) +
-                ":" +
-                f(this.getUTCSeconds()) +
-                "Z"
+            "-" +
+            f(this.getUTCMonth() + 1) +
+            "-" +
+            f(this.getUTCDate()) +
+            "T" +
+            f(this.getUTCHours()) +
+            ":" +
+            f(this.getUTCMinutes()) +
+            ":" +
+            f(this.getUTCSeconds()) +
+            "Z"
             : null;
         };
         Boolean.prototype.toJSON = this_value;
@@ -2128,13 +2128,13 @@ function main() {
         rx_escapable.lastIndex = 0;
         return rx_escapable.test(string)
           ? '"' +
-              string.replace(rx_escapable, function (a) {
-                var c = meta[a];
-                return typeof c === "string"
-                  ? c
-                  : "\\u" + ("0000" + a.charCodeAt(0).toString(16)).slice(-4);
-              }) +
-              '"'
+          string.replace(rx_escapable, function (a) {
+            var c = meta[a];
+            return typeof c === "string"
+              ? c
+              : "\\u" + ("0000" + a.charCodeAt(0).toString(16)).slice(-4);
+          }) +
+          '"'
           : '"' + string + '"';
       }
       function str(key, holder) {
@@ -2178,8 +2178,8 @@ function main() {
                 partial.length === 0
                   ? "[]"
                   : gap
-                  ? "[\n" + gap + partial.join(",\n" + gap) + "\n" + mind + "]"
-                  : "[" + partial.join(",") + "]";
+                    ? "[\n" + gap + partial.join(",\n" + gap) + "\n" + mind + "]"
+                    : "[" + partial.join(",") + "]";
               gap = mind;
               return v;
             }
@@ -2208,8 +2208,8 @@ function main() {
               partial.length === 0
                 ? "{}"
                 : gap
-                ? "{\n" + gap + partial.join(",\n" + gap) + "\n" + mind + "}"
-                : "{" + partial.join(",") + "}";
+                  ? "{\n" + gap + partial.join(",\n" + gap) + "\n" + mind + "}"
+                  : "{" + partial.join(",") + "}";
             gap = mind;
             return v;
         }
@@ -3153,8 +3153,8 @@ function main() {
     ) {
       warnOnce(
         "Found a <" +
-          tagName +
-          "> tag. Try using Illustrator formatting instead."
+        tagName +
+        "> tag. Try using Illustrator formatting instead."
       );
     }
     return tagName ? straightenCurlyQuotesInsideAngleBrackets(str) : str;
@@ -3307,8 +3307,8 @@ function main() {
       if (pdata.aiStyle.blendMode && !pdata.cssStyle["mix-blend-mode"]) {
         warnOnce(
           "Missing a rule for converting " +
-            pdata.aiStyle.blendMode +
-            " to CSS."
+          pdata.aiStyle.blendMode +
+          " to CSS."
         );
       }
     }
@@ -3325,9 +3325,9 @@ function main() {
       if (range.aiStyle.aifont && !range.cssStyle["font-family"]) {
         warnOnce(
           "Missing a rule for converting font: " +
-            range.aiStyle.aifont +
-            ". Sample text: " +
-            truncateString(range.text, 35),
+          range.aiStyle.aifont +
+          ". Sample text: " +
+          truncateString(range.text, 35),
           range.aiStyle.aifont
         );
       }
@@ -3768,7 +3768,7 @@ function main() {
     if (scaleX != 100 || scaleY != 100) {
       warn(
         "Vertical or horizontal text scaling will be lost. Affected text: " +
-          truncateString(textFrame.contents, 35)
+        truncateString(textFrame.contents, 35)
       );
     }
 
@@ -4592,8 +4592,8 @@ function main() {
     ) {
       warnOnce(
         "An artboard contains a raster image -- consider exporting to jpg instead of " +
-          formats[0] +
-          "."
+        formats[0] +
+        "."
       );
     }
 
@@ -4611,7 +4611,7 @@ function main() {
 
   // Create an <img> tag for the artboard image
   function generateImageHtml(imgFile, imgId, imgClass, imgStyle, ab, settings) {
-    var imgDir = "{ assets }/" + settings.image_source_path,
+    var imgDir = "{ basePath }/" + settings.image_source_path,
       imgAlt = encodeHtmlEntities(settings.image_alt_text || ""),
       html,
       src;
@@ -4690,8 +4690,8 @@ function main() {
     if (pixels > warnThreshold) {
       warn(
         "An output image contains ~" +
-          Math.round(pixels / 1e6) +
-          " million pixels -- this may cause problems on mobile devices"
+        Math.round(pixels / 1e6) +
+        " million pixels -- this may cause problems on mobile devices"
       );
     }
     return k;
@@ -4736,8 +4736,8 @@ function main() {
         imageScale = MAX_JPG_SCALE;
         warn(
           imgPath.split("/").pop() +
-            " was output at a smaller size than desired because of a limit on jpg exports in Illustrator." +
-            " If the file needs to be larger, change the image format to png which does not appear to have limits."
+          " was output at a smaller size than desired because of a limit on jpg exports in Illustrator." +
+          " If the file needs to be larger, change the image format to png which does not appear to have limits."
         );
       }
       fileType = ExportType.JPEG;
@@ -4765,8 +4765,8 @@ function main() {
   //   smaller SVG output.
   function copyArtboardForImageExport(ab, masks, layers) {
     var layerMasks = filter(masks, function (o) {
-        return !!o.layer;
-      }),
+      return !!o.layer;
+    }),
       artboardBounds = ab.artboardRect,
       sourceLayers = layers || toArray(doc.layers),
       destLayer = doc.layers.add(),
@@ -5183,11 +5183,9 @@ function main() {
     //
     var svelteJS = "<script>\r\t";
 
-    if (settings.graphicskit != "yes") {
-      svelteJS += "const assets = '.';\r";
-    } else {
-      svelteJS += "import { assets } from '$app/paths';\r";
-    }
+
+    svelteJS += "export let basePath = '.';\r";
+
     svelteJS += "\tlet width = null;\r";
     // add prop for onmount function that defaults to noop
     svelteJS += "import { onMount } from 'svelte';\n";
@@ -5216,7 +5214,7 @@ function main() {
   // generate the media query block of css by using artboard widths and pre defined breakpoints.
   function generateMediaQueries() {
     // the array to contain the final media queries (which we will later join to form the css text)
-    var mQ = [];
+    var mQ = []; asse
     // hardcoded breakpoints.
     var breakPoints = [575, 765, 992, 1300];
 
