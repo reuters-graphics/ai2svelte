@@ -4611,7 +4611,7 @@ function main() {
 
   // Create an <img> tag for the artboard image
   function generateImageHtml(imgFile, imgId, imgClass, imgStyle, ab, settings) {
-    var imgDir = "{ assetsPath }" + settings.image_source_path,
+    var imgDir = "{ assetsPath.replace(new RegExp('/([^/.]+)$'), '/$1/') }" + settings.image_source_path,
       imgAlt = encodeHtmlEntities(settings.image_alt_text || ""),
       html,
       src;
