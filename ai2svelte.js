@@ -3371,6 +3371,7 @@ function main() {
 
     var fontFamilies = {
       arial: "Arial, sans-serif",
+      freight: "FreightTextPro,Georgia,serif",
       georgia: 'Georgia, "Times New Roman", Times, serif',
       source:
         '"Source Sans Pro", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Helvetica, Arial, sans-serif',
@@ -3418,7 +3419,7 @@ function main() {
     };
 
     var findFamily = function () {
-      var family = aifont.match(/(source|knowledge|menlo|arial|georgia|)/gi);
+      var family = aifont.match(/(source|knowledge|menlo|arial|georgia|freight|)/gi);
       if (family && fontFamilies[family[0].toLowerCase()]) {
         return fontFamilies[family[0].toLowerCase()];
       }
