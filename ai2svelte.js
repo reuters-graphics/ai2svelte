@@ -47,7 +47,7 @@ function main() {
   // - Update the version number in package.json
   // - Add an entry to CHANGELOG.md
   // - Run 'npm publish' to create a new GitHub release
-  var scriptVersion = "0.100.0";
+  var scriptVersion = "0.101.0";
 
   // ================================================
   // ai2html and config settings
@@ -57,8 +57,6 @@ function main() {
   // the .ai document and settings containing in ai2html-config.json files
   var defaultSettings = {
     settings_version: scriptVersion,
-    create_promo_image: false,
-    promo_image_width: 1024,
     image_format: ["auto"], // Options: auto, png, png24, jpg, svg
     write_image_files: true,
     responsiveness: "fixed", // Options: fixed, dynamic
@@ -72,8 +70,6 @@ function main() {
     image_source_path: null,
     image_alt_text: "",
     cache_bust_token: null, // Append a token to the url of image urls: ?v=<cache_bust_token>
-    create_config_file: false,
-    config_file_path: "",
     local_preview_template: "",
     png_transparent: false,
     png_number_of_colors: 128, // Number of colors in 8-bit PNG image (1-256)
@@ -93,18 +89,22 @@ function main() {
     show_completion_dialog_box: true,
     clickable_link: "", // Add a URL to make the entire graphic a clickable link
     last_updated_text: "",
-    headline: "",
-    leadin: "",
-    summary: "",
-    notes: "",
-    sources: "",
-    credit: "",
     graphicskit: "yes",
     // removed most NYT-specific settings from default settings, including:
     //   page_template, publish_system, environment, show_in_compatible_apps,
     //   display_for_promotion_only, constrain_width_to_text_column,
     //   compatibility, interactive_size, scoop_publish_fields, scoop_asset_id,
     //   scoop_username, scoop_slug, scoop_external_edit_key
+    // headline: "",
+    // leadin: "",
+    // summary: "",
+    // notes: "",
+    // sources: "",
+    // credit: "",
+    // create_config_file: false,
+    // config_file_path: "",
+    // create_promo_image: false,
+    // promo_image_width: 1024,
 
     // List of settings to include in the "ai2html-settings" text block
     settings_block: [
@@ -118,622 +118,617 @@ function main() {
       "local_preview_template",
       "png_number_of_colors",
       "jpg_quality",
-      "headline",
-      "leadin",
-      "notes",
-      "sources",
-      "credit",
     ],
 
     // list of settings to include in the config.yml file
-    config_file: [
-      "headline",
-      "leadin",
-      "summary",
-      "notes",
-      "sources",
-      "credit",
-    ],
+    // config_file: [
+    //   "headline",
+    //   "leadin",
+    //   "summary",
+    //   "notes",
+    //   "sources",
+    //   "credit",
+    // ],
 
     // rules for converting AI fonts to CSS
     // rules from external files are merged into this list
-    fonts: [
-      {
-        aifont: "ArialMT",
-        family: "arial,helvetica,sans-serif",
-        weight: "",
-        style: "",
-      },
-      {
-        aifont: "Arial-BoldMT",
-        family: "arial,helvetica,sans-serif",
-        weight: "bold",
-        style: "",
-      },
-      {
-        aifont: "Arial-ItalicMT",
-        family: "arial,helvetica,sans-serif",
-        weight: "",
-        style: "italic",
-      },
-      {
-        aifont: "Arial-BoldItalicMT",
-        family: "arial,helvetica,sans-serif",
-        weight: "bold",
-        style: "italic",
-      },
-      {
-        aifont: "Georgia",
-        family: "georgia,'times new roman',times,serif",
-        weight: "",
-        style: "",
-      },
-      {
-        aifont: "Georgia-Bold",
-        family: "georgia,'times new roman',times,serif",
-        weight: "bold",
-        style: "",
-      },
-      {
-        aifont: "Georgia-Italic",
-        family: "georgia,'times new roman',times,serif",
-        weight: "",
-        style: "italic",
-      },
-      {
-        aifont: "Georgia-BoldItalic",
-        family: "georgia,'times new roman',times,serif",
-        weight: "bold",
-        style: "italic",
-      },
-      {
-        aifont: "Source Sans Pro Light",
-        family: "arial,helvetica,sans-serif",
-        weight: "light",
-        style: "",
-      },
-      {
-        aifont: "Source Sans Pro Semibold",
-        family: "arial,helvetica,sans-serif",
-        weight: "semibold",
-        style: "",
-      },
-    ],
+    // fonts: [
+    //   {
+    //     aifont: "ArialMT",
+    //     family: "arial,helvetica,sans-serif",
+    //     weight: "",
+    //     style: "",
+    //   },
+    //   {
+    //     aifont: "Arial-BoldMT",
+    //     family: "arial,helvetica,sans-serif",
+    //     weight: "bold",
+    //     style: "",
+    //   },
+    //   {
+    //     aifont: "Arial-ItalicMT",
+    //     family: "arial,helvetica,sans-serif",
+    //     weight: "",
+    //     style: "italic",
+    //   },
+    //   {
+    //     aifont: "Arial-BoldItalicMT",
+    //     family: "arial,helvetica,sans-serif",
+    //     weight: "bold",
+    //     style: "italic",
+    //   },
+    //   {
+    //     aifont: "Georgia",
+    //     family: "georgia,'times new roman',times,serif",
+    //     weight: "",
+    //     style: "",
+    //   },
+    //   {
+    //     aifont: "Georgia-Bold",
+    //     family: "georgia,'times new roman',times,serif",
+    //     weight: "bold",
+    //     style: "",
+    //   },
+    //   {
+    //     aifont: "Georgia-Italic",
+    //     family: "georgia,'times new roman',times,serif",
+    //     weight: "",
+    //     style: "italic",
+    //   },
+    //   {
+    //     aifont: "Georgia-BoldItalic",
+    //     family: "georgia,'times new roman',times,serif",
+    //     weight: "bold",
+    //     style: "italic",
+    //   },
+    //   {
+    //     aifont: "Source Sans Pro Light",
+    //     family: "arial,helvetica,sans-serif",
+    //     weight: "light",
+    //     style: "",
+    //   },
+    //   {
+    //     aifont: "Source Sans Pro Semibold",
+    //     family: "arial,helvetica,sans-serif",
+    //     weight: "semibold",
+    //     style: "",
+    //   },
+    // ],
 
     // Width ranges for responsive breakpoints (obsolete, will be removed)
-    breakpoints: [
-      { name: "xsmall", lowerLimit: 0, upperLimit: 180 },
-      { name: "small", lowerLimit: 180, upperLimit: 300 },
-      { name: "smallplus", lowerLimit: 300, upperLimit: 460 },
-      { name: "submedium", lowerLimit: 460, upperLimit: 600 },
-      { name: "medium", lowerLimit: 600, upperLimit: 720 },
-      { name: "large", lowerLimit: 720, upperLimit: 945 },
-      { name: "xlarge", lowerLimit: 945, upperLimit: 1050 },
-      { name: "xxlarge", lowerLimit: 1050, upperLimit: 1600 },
-    ],
+    // breakpoints: [
+    //   { name: "xsmall", lowerLimit: 0, upperLimit: 180 },
+    //   { name: "small", lowerLimit: 180, upperLimit: 300 },
+    //   { name: "smallplus", lowerLimit: 300, upperLimit: 460 },
+    //   { name: "submedium", lowerLimit: 460, upperLimit: 600 },
+    //   { name: "medium", lowerLimit: 600, upperLimit: 720 },
+    //   { name: "large", lowerLimit: 720, upperLimit: 945 },
+    //   { name: "xlarge", lowerLimit: 945, upperLimit: 1050 },
+    //   { name: "xxlarge", lowerLimit: 1050, upperLimit: 1600 },
+    // ],
   };
 
-  // These settings override the default settings in NYT mode
-  var nytOverrideSettings = {
-    html_output_path: "../src/",
-    image_output_path: "../public/_assets/",
-    config_file_path: "../config.yml",
-    use_lazy_loader: true,
-    include_resizer_script: true,
-    credit: "By The New York Times",
-    page_template: "vi-article-embed",
-    publish_system: "scoop",
-
-    // NYT-specific settings (not present in default settings)
-    environment: "production",
-    show_in_compatible_apps: true,
-    display_for_promotion_only: false,
-    constrain_width_to_text_column: false,
-    compatibility: "inline",
-    size: "full", // changed from "medium" to "full"
-    min_width: 280, // added as workaround for a scoop bug affecting ai2html-type graphics
-    scoop_publish_fields: true,
-    scoop_asset_id: "",
-    scoop_username: "",
-    scoop_slug: "",
-    scoop_external_edit_key: "",
-
-    settings_block: [
-      "settings_version",
-      "image_format",
-      "write_image_files",
-      "responsiveness",
-      "max_width",
-      "output",
-      "png_number_of_colors",
-      "jpg_quality",
-      "use_lazy_loader",
-      "show_completion_dialog_box",
-      "last_updated_text",
-      "headline",
-      "leadin",
-      "summary",
-      "notes",
-      "sources",
-      "credit",
-      "show_in_compatible_apps",
-      "display_for_promotion_only",
-      "constrain_width_to_text_column",
-      "size",
-      "scoop_asset_id",
-      "scoop_username",
-      "scoop_slug",
-      "scoop_external_edit_key",
-    ],
-
-    config_file: [
-      "last_updated_text",
-      "headline",
-      "leadin",
-      "summary",
-      "notes",
-      "sources",
-      "credit",
-      "page_template",
-      "publish_system",
-      "environment",
-      "show_in_compatible_apps",
-      "display_for_promotion_only",
-      "constrain_width_to_text_column",
-      "compatibility",
-      "size",
-      "scoop_publish_fields",
-      "scoop_asset_id",
-      "scoop_username",
-      "scoop_slug",
-      "scoop_external_edit_key",
-    ],
-
-    fonts: [
-      // vshift shifts text vertically, to compensate for vertical misalignment caused
-      // by a difference between vertical placement in Illustrator (of a system font) and
-      // browsers (of the web font equivalent). vshift values are percentage of font size. Positive
-      // values correspond to a downward shift.
-      // Franklin
-      {
-        aifont: "NYTFranklin-Light",
-        family: "nyt-franklin,arial,helvetica,sans-serif",
-        weight: "300",
-        style: "",
-        vshift: "8%",
-      },
-      {
-        aifont: "NYTFranklin-Medium",
-        family: "nyt-franklin,arial,helvetica,sans-serif",
-        weight: "500",
-        style: "",
-        vshift: "8%",
-      },
-      {
-        aifont: "NYTFranklin-SemiBold",
-        family: "nyt-franklin,arial,helvetica,sans-serif",
-        weight: "600",
-        style: "",
-        vshift: "8%",
-      },
-      {
-        aifont: "NYTFranklin-Semibold",
-        family: "nyt-franklin,arial,helvetica,sans-serif",
-        weight: "600",
-        style: "",
-        vshift: "8%",
-      },
-      {
-        aifont: "NYTFranklinSemiBold-Regular",
-        family: "nyt-franklin,arial,helvetica,sans-serif",
-        weight: "600",
-        style: "",
-        vshift: "8%",
-      },
-      {
-        aifont: "NYTFranklin-SemiboldItalic",
-        family: "nyt-franklin,arial,helvetica,sans-serif",
-        weight: "600",
-        style: "italic",
-        vshift: "8%",
-      },
-      {
-        aifont: "NYTFranklin-Bold",
-        family: "nyt-franklin,arial,helvetica,sans-serif",
-        weight: "700",
-        style: "",
-        vshift: "8%",
-      },
-      {
-        aifont: "NYTFranklin-LightItalic",
-        family: "nyt-franklin,arial,helvetica,sans-serif",
-        weight: "300",
-        style: "italic",
-        vshift: "8%",
-      },
-      {
-        aifont: "NYTFranklin-MediumItalic",
-        family: "nyt-franklin,arial,helvetica,sans-serif",
-        weight: "500",
-        style: "italic",
-        vshift: "8%",
-      },
-      {
-        aifont: "NYTFranklin-BoldItalic",
-        family: "nyt-franklin,arial,helvetica,sans-serif",
-        weight: "700",
-        style: "italic",
-        vshift: "8%",
-      },
-      {
-        aifont: "NYTFranklin-ExtraBold",
-        family: "nyt-franklin,arial,helvetica,sans-serif",
-        weight: "800",
-        style: "",
-        vshift: "8%",
-      },
-      {
-        aifont: "NYTFranklin-ExtraBoldItalic",
-        family: "nyt-franklin,arial,helvetica,sans-serif",
-        weight: "800",
-        style: "italic",
-        vshift: "8%",
-      },
-      {
-        aifont: "NYTFranklin-Headline",
-        family: "nyt-franklin,arial,helvetica,sans-serif",
-        weight: "bold",
-        style: "",
-        vshift: "8%",
-      },
-      {
-        aifont: "NYTFranklin-HeadlineItalic",
-        family: "nyt-franklin,arial,helvetica,sans-serif",
-        weight: "bold",
-        style: "italic",
-        vshift: "8%",
-      },
-      // Chelt.
-      {
-        aifont: "NYTCheltenham-ExtraLight",
-        family: "nyt-cheltenham,georgia,serif",
-        weight: "200",
-        style: "",
-      },
-      {
-        aifont: "NYTCheltenhamExtLt-Regular",
-        family: "nyt-cheltenham,georgia,serif",
-        weight: "200",
-        style: "",
-      },
-      {
-        aifont: "NYTCheltenham-Light",
-        family: "nyt-cheltenham,georgia,serif",
-        weight: "300",
-        style: "",
-      },
-      {
-        aifont: "NYTCheltenhamLt-Regular",
-        family: "nyt-cheltenham,georgia,serif",
-        weight: "300",
-        style: "",
-      },
-      {
-        aifont: "NYTCheltenham-LightSC",
-        family: "nyt-cheltenham,georgia,serif",
-        weight: "300",
-        style: "",
-      },
-      {
-        aifont: "NYTCheltenham-Book",
-        family: "nyt-cheltenham,georgia,serif",
-        weight: "400",
-        style: "",
-      },
-      {
-        aifont: "NYTCheltenhamBook-Regular",
-        family: "nyt-cheltenham,georgia,serif",
-        weight: "400",
-        style: "",
-      },
-      {
-        aifont: "NYTCheltenham-Wide",
-        family: "nyt-cheltenham,georgia,serif",
-        weight: "",
-        style: "",
-      },
-      {
-        aifont: "NYTCheltenhamMedium-Regular",
-        family: "nyt-cheltenham,georgia,serif",
-        weight: "500",
-        style: "",
-      },
-      {
-        aifont: "NYTCheltenham-Medium",
-        family: "nyt-cheltenham,georgia,serif",
-        weight: "500",
-        style: "",
-      },
-      {
-        aifont: "NYTCheltenham-Bold",
-        family: "nyt-cheltenham,georgia,serif",
-        weight: "700",
-        style: "",
-      },
-      {
-        aifont: "NYTCheltenham-BoldCond",
-        family: "nyt-cheltenham,georgia,serif",
-        weight: "bold",
-        style: "",
-      },
-      {
-        aifont: "NYTCheltenhamCond-BoldXC",
-        family: "nyt-cheltenham-extra-cn-bd,georgia,serif",
-        weight: "bold",
-        style: "",
-      },
-      {
-        aifont: "NYTCheltenham-BoldExtraCond",
-        family: "nyt-cheltenham,georgia,serif",
-        weight: "bold",
-        style: "",
-      },
-      {
-        aifont: "NYTCheltenham-ExtraBold",
-        family: "nyt-cheltenham,georgia,serif",
-        weight: "bold",
-        style: "",
-      },
-      {
-        aifont: "NYTCheltenham-ExtraLightIt",
-        family: "nyt-cheltenham,georgia,serif",
-        weight: "",
-        style: "italic",
-      },
-      {
-        aifont: "NYTCheltenham-ExtraLightItal",
-        family: "nyt-cheltenham,georgia,serif",
-        weight: "",
-        style: "italic",
-      },
-      {
-        aifont: "NYTCheltenham-LightItalic",
-        family: "nyt-cheltenham,georgia,serif",
-        weight: "",
-        style: "italic",
-      },
-      {
-        aifont: "NYTCheltenham-BookItalic",
-        family: "nyt-cheltenham,georgia,serif",
-        weight: "",
-        style: "italic",
-      },
-      {
-        aifont: "NYTCheltenham-WideItalic",
-        family: "nyt-cheltenham,georgia,serif",
-        weight: "",
-        style: "italic",
-      },
-      {
-        aifont: "NYTCheltenham-MediumItalic",
-        family: "nyt-cheltenham,georgia,serif",
-        weight: "",
-        style: "italic",
-      },
-      {
-        aifont: "NYTCheltenham-BoldItalic",
-        family: "nyt-cheltenham,georgia,serif",
-        weight: "700",
-        style: "italic",
-      },
-      {
-        aifont: "NYTCheltenham-ExtraBoldItal",
-        family: "nyt-cheltenham,georgia,serif",
-        weight: "bold",
-        style: "italic",
-      },
-      {
-        aifont: "NYTCheltenham-ExtraBoldItalic",
-        family: "nyt-cheltenham,georgia,serif",
-        weight: "bold",
-        style: "italic",
-      },
-      {
-        aifont: "NYTCheltenhamSH-Regular",
-        family: "nyt-cheltenham-sh,nyt-cheltenham,georgia,serif",
-        weight: "400",
-        style: "",
-      },
-      {
-        aifont: "NYTCheltenhamSH-Italic",
-        family: "nyt-cheltenham-sh,nyt-cheltenham,georgia,serif",
-        weight: "400",
-        style: "italic",
-      },
-      {
-        aifont: "NYTCheltenhamSH-Bold",
-        family: "nyt-cheltenham-sh,nyt-cheltenham,georgia,serif",
-        weight: "700",
-        style: "",
-      },
-      {
-        aifont: "NYTCheltenhamSH-BoldItalic",
-        family: "nyt-cheltenham-sh,nyt-cheltenham,georgia,serif",
-        weight: "700",
-        style: "italic",
-      },
-      {
-        aifont: "NYTCheltenhamWide-Regular",
-        family: "nyt-cheltenham,georgia,serif",
-        weight: "500",
-        style: "",
-      },
-      {
-        aifont: "NYTCheltenhamWide-Italic",
-        family: "nyt-cheltenham,georgia,serif",
-        weight: "500",
-        style: "italic",
-      },
-      // Imperial
-      {
-        aifont: "NYTImperial-Regular",
-        family: "nyt-imperial,georgia,serif",
-        weight: "400",
-        style: "",
-      },
-      {
-        aifont: "NYTImperial-Italic",
-        family: "nyt-imperial,georgia,serif",
-        weight: "400",
-        style: "italic",
-      },
-      {
-        aifont: "NYTImperial-Semibold",
-        family: "nyt-imperial,georgia,serif",
-        weight: "600",
-        style: "",
-      },
-      {
-        aifont: "NYTImperial-SemiboldItalic",
-        family: "nyt-imperial,georgia,serif",
-        weight: "600",
-        style: "italic",
-      },
-      {
-        aifont: "NYTImperial-Bold",
-        family: "nyt-imperial,georgia,serif",
-        weight: "700",
-        style: "",
-      },
-      {
-        aifont: "NYTImperial-BoldItalic",
-        family: "nyt-imperial,georgia,serif",
-        weight: "700",
-        style: "italic",
-      },
-      // Others
-      {
-        aifont: "NYTKarnakText-Regular",
-        family: "nyt-karnak-display-130124,georgia,serif",
-        weight: "400",
-        style: "",
-      },
-      {
-        aifont: "NYTKarnakDisplay-Regular",
-        family: "nyt-karnak-display-130124,georgia,serif",
-        weight: "400",
-        style: "",
-      },
-      {
-        aifont: "NYTStymieLight-Regular",
-        family: "nyt-stymie,arial,helvetica,sans-serif",
-        weight: "300",
-        style: "",
-      },
-      {
-        aifont: "NYTStymieMedium-Regular",
-        family: "nyt-stymie,arial,helvetica,sans-serif",
-        weight: "500",
-        style: "",
-      },
-      {
-        aifont: "StymieNYT-Light",
-        family: "nyt-stymie,arial,helvetica,sans-serif",
-        weight: "300",
-        style: "",
-      },
-      {
-        aifont: "StymieNYT-LightPhoenetic",
-        family: "nyt-stymie,arial,helvetica,sans-serif",
-        weight: "300",
-        style: "",
-      },
-      {
-        aifont: "StymieNYT-Lightitalic",
-        family: "nyt-stymie,arial,helvetica,sans-serif",
-        weight: "300",
-        style: "italic",
-      },
-      {
-        aifont: "StymieNYT-Medium",
-        family: "nyt-stymie,arial,helvetica,sans-serif",
-        weight: "500",
-        style: "",
-      },
-      {
-        aifont: "StymieNYT-MediumItalic",
-        family: "nyt-stymie,arial,helvetica,sans-serif",
-        weight: "500",
-        style: "italic",
-      },
-      {
-        aifont: "StymieNYT-Bold",
-        family: "nyt-stymie,arial,helvetica,sans-serif",
-        weight: "700",
-        style: "",
-      },
-      {
-        aifont: "StymieNYT-BoldItalic",
-        family: "nyt-stymie,arial,helvetica,sans-serif",
-        weight: "700",
-        style: "italic",
-      },
-      {
-        aifont: "StymieNYT-ExtraBold",
-        family: "nyt-stymie,arial,helvetica,sans-serif",
-        weight: "700",
-        style: "",
-      },
-      {
-        aifont: "StymieNYT-ExtraBoldText",
-        family: "nyt-stymie,arial,helvetica,sans-serif",
-        weight: "700",
-        style: "",
-      },
-      {
-        aifont: "StymieNYT-ExtraBoldTextItal",
-        family: "nyt-stymie,arial,helvetica,sans-serif",
-        weight: "700",
-        style: "italic",
-      },
-      {
-        aifont: "StymieNYTBlack-Regular",
-        family: "nyt-stymie,arial,helvetica,sans-serif",
-        weight: "700",
-        style: "",
-      },
-      {
-        aifont: "StymieBT-ExtraBold",
-        family: "nyt-stymie,arial,helvetica,sans-serif",
-        weight: "700",
-        style: "",
-      },
-      {
-        aifont: "Stymie-Thin",
-        family: "nyt-stymie,arial,helvetica,sans-serif",
-        weight: "300",
-        style: "",
-      },
-      {
-        aifont: "Stymie-UltraLight",
-        family: "nyt-stymie,arial,helvetica,sans-serif",
-        weight: "300",
-        style: "",
-      },
-      {
-        aifont: "NYTMagSans-Regular",
-        family: "'nyt-mag-sans',arial,helvetica,sans-serif",
-        weight: "500",
-        style: "",
-      },
-      {
-        aifont: "NYTMagSans-Bold",
-        family: "'nyt-mag-sans',arial,helvetica,sans-serif",
-        weight: "700",
-        style: "",
-      },
-    ],
-  };
+    // These settings override the default settings in NYT mode
+    // var nytOverrideSettings = {
+    //   html_output_path: "../src/",
+    //   image_output_path: "../public/_assets/",
+    //   config_file_path: "../config.yml",
+    //   use_lazy_loader: true,
+    //   include_resizer_script: true,
+    //   credit: "By The New York Times",
+    //   page_template: "vi-article-embed",
+    //   publish_system: "scoop",
+  
+    //   // NYT-specific settings (not present in default settings)
+    //   environment: "production",
+    //   show_in_compatible_apps: true,
+    //   display_for_promotion_only: false,
+    //   constrain_width_to_text_column: false,
+    //   compatibility: "inline",
+    //   size: "full", // changed from "medium" to "full"
+    //   min_width: 280, // added as workaround for a scoop bug affecting ai2html-type graphics
+    //   scoop_publish_fields: true,
+    //   scoop_asset_id: "",
+    //   scoop_username: "",
+    //   scoop_slug: "",
+    //   scoop_external_edit_key: "",
+  
+    //   settings_block: [
+    //     "settings_version",
+    //     "image_format",
+    //     "write_image_files",
+    //     "responsiveness",
+    //     "max_width",
+    //     "output",
+    //     "png_number_of_colors",
+    //     "jpg_quality",
+    //     "use_lazy_loader",
+    //     "show_completion_dialog_box",
+    //     "last_updated_text",
+    //     "headline",
+    //     "leadin",
+    //     "summary",
+    //     "notes",
+    //     "sources",
+    //     "credit",
+    //     "show_in_compatible_apps",
+    //     "display_for_promotion_only",
+    //     "constrain_width_to_text_column",
+    //     "size",
+    //     "scoop_asset_id",
+    //     "scoop_username",
+    //     "scoop_slug",
+    //     "scoop_external_edit_key",
+    //   ],
+  
+    //   config_file: [
+    //     "last_updated_text",
+    //     "headline",
+    //     "leadin",
+    //     "summary",
+    //     "notes",
+    //     "sources",
+    //     "credit",
+    //     "page_template",
+    //     "publish_system",
+    //     "environment",
+    //     "show_in_compatible_apps",
+    //     "display_for_promotion_only",
+    //     "constrain_width_to_text_column",
+    //     "compatibility",
+    //     "size",
+    //     "scoop_publish_fields",
+    //     "scoop_asset_id",
+    //     "scoop_username",
+    //     "scoop_slug",
+    //     "scoop_external_edit_key",
+    //   ],
+  
+    //   fonts: [
+    //     // vshift shifts text vertically, to compensate for vertical misalignment caused
+    //     // by a difference between vertical placement in Illustrator (of a system font) and
+    //     // browsers (of the web font equivalent). vshift values are percentage of font size. Positive
+    //     // values correspond to a downward shift.
+    //     // Franklin
+    //     {
+    //       aifont: "NYTFranklin-Light",
+    //       family: "nyt-franklin,arial,helvetica,sans-serif",
+    //       weight: "300",
+    //       style: "",
+    //       vshift: "8%",
+    //     },
+    //     {
+    //       aifont: "NYTFranklin-Medium",
+    //       family: "nyt-franklin,arial,helvetica,sans-serif",
+    //       weight: "500",
+    //       style: "",
+    //       vshift: "8%",
+    //     },
+    //     {
+    //       aifont: "NYTFranklin-SemiBold",
+    //       family: "nyt-franklin,arial,helvetica,sans-serif",
+    //       weight: "600",
+    //       style: "",
+    //       vshift: "8%",
+    //     },
+    //     {
+    //       aifont: "NYTFranklin-Semibold",
+    //       family: "nyt-franklin,arial,helvetica,sans-serif",
+    //       weight: "600",
+    //       style: "",
+    //       vshift: "8%",
+    //     },
+    //     {
+    //       aifont: "NYTFranklinSemiBold-Regular",
+    //       family: "nyt-franklin,arial,helvetica,sans-serif",
+    //       weight: "600",
+    //       style: "",
+    //       vshift: "8%",
+    //     },
+    //     {
+    //       aifont: "NYTFranklin-SemiboldItalic",
+    //       family: "nyt-franklin,arial,helvetica,sans-serif",
+    //       weight: "600",
+    //       style: "italic",
+    //       vshift: "8%",
+    //     },
+    //     {
+    //       aifont: "NYTFranklin-Bold",
+    //       family: "nyt-franklin,arial,helvetica,sans-serif",
+    //       weight: "700",
+    //       style: "",
+    //       vshift: "8%",
+    //     },
+    //     {
+    //       aifont: "NYTFranklin-LightItalic",
+    //       family: "nyt-franklin,arial,helvetica,sans-serif",
+    //       weight: "300",
+    //       style: "italic",
+    //       vshift: "8%",
+    //     },
+    //     {
+    //       aifont: "NYTFranklin-MediumItalic",
+    //       family: "nyt-franklin,arial,helvetica,sans-serif",
+    //       weight: "500",
+    //       style: "italic",
+    //       vshift: "8%",
+    //     },
+    //     {
+    //       aifont: "NYTFranklin-BoldItalic",
+    //       family: "nyt-franklin,arial,helvetica,sans-serif",
+    //       weight: "700",
+    //       style: "italic",
+    //       vshift: "8%",
+    //     },
+    //     {
+    //       aifont: "NYTFranklin-ExtraBold",
+    //       family: "nyt-franklin,arial,helvetica,sans-serif",
+    //       weight: "800",
+    //       style: "",
+    //       vshift: "8%",
+    //     },
+    //     {
+    //       aifont: "NYTFranklin-ExtraBoldItalic",
+    //       family: "nyt-franklin,arial,helvetica,sans-serif",
+    //       weight: "800",
+    //       style: "italic",
+    //       vshift: "8%",
+    //     },
+    //     {
+    //       aifont: "NYTFranklin-Headline",
+    //       family: "nyt-franklin,arial,helvetica,sans-serif",
+    //       weight: "bold",
+    //       style: "",
+    //       vshift: "8%",
+    //     },
+    //     {
+    //       aifont: "NYTFranklin-HeadlineItalic",
+    //       family: "nyt-franklin,arial,helvetica,sans-serif",
+    //       weight: "bold",
+    //       style: "italic",
+    //       vshift: "8%",
+    //     },
+    //     // Chelt.
+    //     {
+    //       aifont: "NYTCheltenham-ExtraLight",
+    //       family: "nyt-cheltenham,georgia,serif",
+    //       weight: "200",
+    //       style: "",
+    //     },
+    //     {
+    //       aifont: "NYTCheltenhamExtLt-Regular",
+    //       family: "nyt-cheltenham,georgia,serif",
+    //       weight: "200",
+    //       style: "",
+    //     },
+    //     {
+    //       aifont: "NYTCheltenham-Light",
+    //       family: "nyt-cheltenham,georgia,serif",
+    //       weight: "300",
+    //       style: "",
+    //     },
+    //     {
+    //       aifont: "NYTCheltenhamLt-Regular",
+    //       family: "nyt-cheltenham,georgia,serif",
+    //       weight: "300",
+    //       style: "",
+    //     },
+    //     {
+    //       aifont: "NYTCheltenham-LightSC",
+    //       family: "nyt-cheltenham,georgia,serif",
+    //       weight: "300",
+    //       style: "",
+    //     },
+    //     {
+    //       aifont: "NYTCheltenham-Book",
+    //       family: "nyt-cheltenham,georgia,serif",
+    //       weight: "400",
+    //       style: "",
+    //     },
+    //     {
+    //       aifont: "NYTCheltenhamBook-Regular",
+    //       family: "nyt-cheltenham,georgia,serif",
+    //       weight: "400",
+    //       style: "",
+    //     },
+    //     {
+    //       aifont: "NYTCheltenham-Wide",
+    //       family: "nyt-cheltenham,georgia,serif",
+    //       weight: "",
+    //       style: "",
+    //     },
+    //     {
+    //       aifont: "NYTCheltenhamMedium-Regular",
+    //       family: "nyt-cheltenham,georgia,serif",
+    //       weight: "500",
+    //       style: "",
+    //     },
+    //     {
+    //       aifont: "NYTCheltenham-Medium",
+    //       family: "nyt-cheltenham,georgia,serif",
+    //       weight: "500",
+    //       style: "",
+    //     },
+    //     {
+    //       aifont: "NYTCheltenham-Bold",
+    //       family: "nyt-cheltenham,georgia,serif",
+    //       weight: "700",
+    //       style: "",
+    //     },
+    //     {
+    //       aifont: "NYTCheltenham-BoldCond",
+    //       family: "nyt-cheltenham,georgia,serif",
+    //       weight: "bold",
+    //       style: "",
+    //     },
+    //     {
+    //       aifont: "NYTCheltenhamCond-BoldXC",
+    //       family: "nyt-cheltenham-extra-cn-bd,georgia,serif",
+    //       weight: "bold",
+    //       style: "",
+    //     },
+    //     {
+    //       aifont: "NYTCheltenham-BoldExtraCond",
+    //       family: "nyt-cheltenham,georgia,serif",
+    //       weight: "bold",
+    //       style: "",
+    //     },
+    //     {
+    //       aifont: "NYTCheltenham-ExtraBold",
+    //       family: "nyt-cheltenham,georgia,serif",
+    //       weight: "bold",
+    //       style: "",
+    //     },
+    //     {
+    //       aifont: "NYTCheltenham-ExtraLightIt",
+    //       family: "nyt-cheltenham,georgia,serif",
+    //       weight: "",
+    //       style: "italic",
+    //     },
+    //     {
+    //       aifont: "NYTCheltenham-ExtraLightItal",
+    //       family: "nyt-cheltenham,georgia,serif",
+    //       weight: "",
+    //       style: "italic",
+    //     },
+    //     {
+    //       aifont: "NYTCheltenham-LightItalic",
+    //       family: "nyt-cheltenham,georgia,serif",
+    //       weight: "",
+    //       style: "italic",
+    //     },
+    //     {
+    //       aifont: "NYTCheltenham-BookItalic",
+    //       family: "nyt-cheltenham,georgia,serif",
+    //       weight: "",
+    //       style: "italic",
+    //     },
+    //     {
+    //       aifont: "NYTCheltenham-WideItalic",
+    //       family: "nyt-cheltenham,georgia,serif",
+    //       weight: "",
+    //       style: "italic",
+    //     },
+    //     {
+    //       aifont: "NYTCheltenham-MediumItalic",
+    //       family: "nyt-cheltenham,georgia,serif",
+    //       weight: "",
+    //       style: "italic",
+    //     },
+    //     {
+    //       aifont: "NYTCheltenham-BoldItalic",
+    //       family: "nyt-cheltenham,georgia,serif",
+    //       weight: "700",
+    //       style: "italic",
+    //     },
+    //     {
+    //       aifont: "NYTCheltenham-ExtraBoldItal",
+    //       family: "nyt-cheltenham,georgia,serif",
+    //       weight: "bold",
+    //       style: "italic",
+    //     },
+    //     {
+    //       aifont: "NYTCheltenham-ExtraBoldItalic",
+    //       family: "nyt-cheltenham,georgia,serif",
+    //       weight: "bold",
+    //       style: "italic",
+    //     },
+    //     {
+    //       aifont: "NYTCheltenhamSH-Regular",
+    //       family: "nyt-cheltenham-sh,nyt-cheltenham,georgia,serif",
+    //       weight: "400",
+    //       style: "",
+    //     },
+    //     {
+    //       aifont: "NYTCheltenhamSH-Italic",
+    //       family: "nyt-cheltenham-sh,nyt-cheltenham,georgia,serif",
+    //       weight: "400",
+    //       style: "italic",
+    //     },
+    //     {
+    //       aifont: "NYTCheltenhamSH-Bold",
+    //       family: "nyt-cheltenham-sh,nyt-cheltenham,georgia,serif",
+    //       weight: "700",
+    //       style: "",
+    //     },
+    //     {
+    //       aifont: "NYTCheltenhamSH-BoldItalic",
+    //       family: "nyt-cheltenham-sh,nyt-cheltenham,georgia,serif",
+    //       weight: "700",
+    //       style: "italic",
+    //     },
+    //     {
+    //       aifont: "NYTCheltenhamWide-Regular",
+    //       family: "nyt-cheltenham,georgia,serif",
+    //       weight: "500",
+    //       style: "",
+    //     },
+    //     {
+    //       aifont: "NYTCheltenhamWide-Italic",
+    //       family: "nyt-cheltenham,georgia,serif",
+    //       weight: "500",
+    //       style: "italic",
+    //     },
+    //     // Imperial
+    //     {
+    //       aifont: "NYTImperial-Regular",
+    //       family: "nyt-imperial,georgia,serif",
+    //       weight: "400",
+    //       style: "",
+    //     },
+    //     {
+    //       aifont: "NYTImperial-Italic",
+    //       family: "nyt-imperial,georgia,serif",
+    //       weight: "400",
+    //       style: "italic",
+    //     },
+    //     {
+    //       aifont: "NYTImperial-Semibold",
+    //       family: "nyt-imperial,georgia,serif",
+    //       weight: "600",
+    //       style: "",
+    //     },
+    //     {
+    //       aifont: "NYTImperial-SemiboldItalic",
+    //       family: "nyt-imperial,georgia,serif",
+    //       weight: "600",
+    //       style: "italic",
+    //     },
+    //     {
+    //       aifont: "NYTImperial-Bold",
+    //       family: "nyt-imperial,georgia,serif",
+    //       weight: "700",
+    //       style: "",
+    //     },
+    //     {
+    //       aifont: "NYTImperial-BoldItalic",
+    //       family: "nyt-imperial,georgia,serif",
+    //       weight: "700",
+    //       style: "italic",
+    //     },
+    //     // Others
+    //     {
+    //       aifont: "NYTKarnakText-Regular",
+    //       family: "nyt-karnak-display-130124,georgia,serif",
+    //       weight: "400",
+    //       style: "",
+    //     },
+    //     {
+    //       aifont: "NYTKarnakDisplay-Regular",
+    //       family: "nyt-karnak-display-130124,georgia,serif",
+    //       weight: "400",
+    //       style: "",
+    //     },
+    //     {
+    //       aifont: "NYTStymieLight-Regular",
+    //       family: "nyt-stymie,arial,helvetica,sans-serif",
+    //       weight: "300",
+    //       style: "",
+    //     },
+    //     {
+    //       aifont: "NYTStymieMedium-Regular",
+    //       family: "nyt-stymie,arial,helvetica,sans-serif",
+    //       weight: "500",
+    //       style: "",
+    //     },
+    //     {
+    //       aifont: "StymieNYT-Light",
+    //       family: "nyt-stymie,arial,helvetica,sans-serif",
+    //       weight: "300",
+    //       style: "",
+    //     },
+    //     {
+    //       aifont: "StymieNYT-LightPhoenetic",
+    //       family: "nyt-stymie,arial,helvetica,sans-serif",
+    //       weight: "300",
+    //       style: "",
+    //     },
+    //     {
+    //       aifont: "StymieNYT-Lightitalic",
+    //       family: "nyt-stymie,arial,helvetica,sans-serif",
+    //       weight: "300",
+    //       style: "italic",
+    //     },
+    //     {
+    //       aifont: "StymieNYT-Medium",
+    //       family: "nyt-stymie,arial,helvetica,sans-serif",
+    //       weight: "500",
+    //       style: "",
+    //     },
+    //     {
+    //       aifont: "StymieNYT-MediumItalic",
+    //       family: "nyt-stymie,arial,helvetica,sans-serif",
+    //       weight: "500",
+    //       style: "italic",
+    //     },
+    //     {
+    //       aifont: "StymieNYT-Bold",
+    //       family: "nyt-stymie,arial,helvetica,sans-serif",
+    //       weight: "700",
+    //       style: "",
+    //     },
+    //     {
+    //       aifont: "StymieNYT-BoldItalic",
+    //       family: "nyt-stymie,arial,helvetica,sans-serif",
+    //       weight: "700",
+    //       style: "italic",
+    //     },
+    //     {
+    //       aifont: "StymieNYT-ExtraBold",
+    //       family: "nyt-stymie,arial,helvetica,sans-serif",
+    //       weight: "700",
+    //       style: "",
+    //     },
+    //     {
+    //       aifont: "StymieNYT-ExtraBoldText",
+    //       family: "nyt-stymie,arial,helvetica,sans-serif",
+    //       weight: "700",
+    //       style: "",
+    //     },
+    //     {
+    //       aifont: "StymieNYT-ExtraBoldTextItal",
+    //       family: "nyt-stymie,arial,helvetica,sans-serif",
+    //       weight: "700",
+    //       style: "italic",
+    //     },
+    //     {
+    //       aifont: "StymieNYTBlack-Regular",
+    //       family: "nyt-stymie,arial,helvetica,sans-serif",
+    //       weight: "700",
+    //       style: "",
+    //     },
+    //     {
+    //       aifont: "StymieBT-ExtraBold",
+    //       family: "nyt-stymie,arial,helvetica,sans-serif",
+    //       weight: "700",
+    //       style: "",
+    //     },
+    //     {
+    //       aifont: "Stymie-Thin",
+    //       family: "nyt-stymie,arial,helvetica,sans-serif",
+    //       weight: "300",
+    //       style: "",
+    //     },
+    //     {
+    //       aifont: "Stymie-UltraLight",
+    //       family: "nyt-stymie,arial,helvetica,sans-serif",
+    //       weight: "300",
+    //       style: "",
+    //     },
+    //     {
+    //       aifont: "NYTMagSans-Regular",
+    //       family: "'nyt-mag-sans',arial,helvetica,sans-serif",
+    //       weight: "500",
+    //       style: "",
+    //     },
+    //     {
+    //       aifont: "NYTMagSans-Bold",
+    //       family: "'nyt-mag-sans',arial,helvetica,sans-serif",
+    //       weight: "700",
+    //       style: "",
+    //     },
+    //   ],
+    // };
 
   // ================================================
   // Constant data
@@ -939,7 +934,6 @@ function main() {
   var textFramesToUnhide = [];
   var objectsToRelock = [];
 
-  var scriptEnvironment = "";
   var docSettings;
   var fonts;
   var textBlockData;
@@ -1067,11 +1061,12 @@ function main() {
       ((+new Date() - startTime) / 1000).toFixed(1),
       "seconds"
     );
-    var promptForPromo =
-      isTrue(docSettings.write_image_files) &&
-      isTrue(docSettings.create_promo_image);
-    var showPromo = showCompletionAlert(promptForPromo);
-    if (showPromo) createPromoImage(docSettings);
+    showCompletionAlert();
+    // var promptForPromo =
+    //   isTrue(docSettings.write_image_files) &&
+    //   isTrue(docSettings.create_promo_image);
+    // var showPromo = showCompletionAlert(promptForPromo);
+    // if (showPromo) createPromoImage(docSettings);
   }
 
   // =================================
@@ -1152,9 +1147,9 @@ function main() {
         imageData.html +
         textData.html +
         "\t</div>\r";
-      if (isTrue(settings.include_resizer_widths)) {
-        artboardContent.html += "{/if}";
-      }
+      // if (isTrue(settings.include_resizer_widths)) {
+      //   artboardContent.html += "{/if}";
+      // }
 
       artboardContent.css += generateArtboardCss(
         activeArtboard,
@@ -1186,13 +1181,13 @@ function main() {
     // Post-output operations
     //=====================================
 
-    if (isTrue(settings.create_config_file)) {
-      // Write configuration file with graphic metadata
-      var yamlPath = docPath + (settings.config_file_path || "config.yml"),
-        yamlStr = generateYamlFileContent(settings);
-      checkForOutputFolder(yamlPath.replace(/[^\/]+$/, ""), "configFileFolder");
-      saveTextFile(yamlPath, yamlStr);
-    }
+    // if (isTrue(settings.create_config_file)) {
+    //   // Write configuration file with graphic metadata
+    //   var yamlPath = docPath + (settings.config_file_path || "config.yml"),
+    //     yamlStr = generateYamlFileContent(settings);
+    //   checkForOutputFolder(yamlPath.replace(/[^\/]+$/, ""), "configFileFolder");
+    //   saveTextFile(yamlPath, yamlStr);
+    // }
 
     if (settings.cache_bust_token) {
       incrementCacheBustToken(settings);
@@ -1847,16 +1842,16 @@ function main() {
     });
   }
 
-  function detectTimesFonts() {
-    var found = false;
-    try {
-      found = !!(
-        app.textFonts.getByName("NYTFranklin-Medium") &&
-        app.textFonts.getByName("NYTCheltenham-Medium")
-      );
-    } catch (e) { }
-    return found;
-  }
+  // function detectTimesFonts() {
+  //   var found = false;
+  //   try {
+  //     found = !!(
+  //       app.textFonts.getByName("NYTFranklin-Medium") &&
+  //       app.textFonts.getByName("NYTCheltenham-Medium")
+  //     );
+  //   } catch (e) { }
+  //   return found;
+  // }
 
   function getScriptDirectory() {
     return new File($.fileName).parent;
@@ -1919,9 +1914,9 @@ function main() {
     var settings = extend({}, defaultSettings); // copy default settings
 
     // Apply NYT settings if applicable
-    if (detectTimesFonts()) {
-      importNewYorkTimesSettings(settings);
-    }
+    // if (detectTimesFonts()) {
+    //   importNewYorkTimesSettings(settings);
+    // }
 
     // merge external settings into @settings
     extendSettings(settings, readExternalSettings());
@@ -1962,61 +1957,61 @@ function main() {
     }
   }
 
-  function importNewYorkTimesSettings(settings) {
-    var configFilePath = docPath + "../config.yml";
+  // function importNewYorkTimesSettings(settings) {
+  //   var configFilePath = docPath + "../config.yml";
 
-    // Check that we are in an NYT Preview project
-    // If not, give NYT users the option of continuing with non-NYT settings
-    if (!fileExists(configFilePath)) {
-      if (
-        !confirm(
-          "You seem to be running ai2html outside of NYT Preview.\nContinue in non-Preview mode?",
-          true
-        )
-      ) {
-        error(
-          "Make sure your Illustrator file is inside the \u201Cai\u201D folder of a Preview project."
-        );
-      }
-      return;
-    }
+  //   // Check that we are in an NYT Preview project
+  //   // If not, give NYT users the option of continuing with non-NYT settings
+  //   if (!fileExists(configFilePath)) {
+  //     if (
+  //       !confirm(
+  //         "You seem to be running ai2html outside of NYT Preview.\nContinue in non-Preview mode?",
+  //         true
+  //       )
+  //     ) {
+  //       error(
+  //         "Make sure your Illustrator file is inside the \u201Cai\u201D folder of a Preview project."
+  //       );
+  //     }
+  //     return;
+  //   }
 
-    // TODO: consider applying in non-Preview mode
-    extendSettings(settings, nytOverrideSettings);
+  //   // TODO: consider applying in non-Preview mode
+  //   extendSettings(settings, nytOverrideSettings);
 
-    scriptEnvironment = "nyt-preview";
-    var yamlConfig = readYamlConfigFile(configFilePath) || {};
-    settings.project_type =
-      yamlConfig.project_type == "ai2html" ? "ai2html" : "";
-    if (
-      !folderExists(docPath + "../public/") ||
-      (settings.project_type != "ai2html" && !folderExists(docPath + "../src/"))
-    ) {
-      error(
-        "Your Preview project may be missing a \u201Cpublic\u201D or a \u201Csrc\u201D folder."
-      );
-    }
+    // scriptEnvironment = "nyt-preview";
+  //   var yamlConfig = readYamlConfigFile(configFilePath) || {};
+  //   settings.project_type =
+  //     yamlConfig.project_type == "ai2html" ? "ai2html" : "";
+  //   if (
+  //     !folderExists(docPath + "../public/") ||
+  //     (settings.project_type != "ai2html" && !folderExists(docPath + "../src/"))
+  //   ) {
+  //     error(
+  //       "Your Preview project may be missing a \u201Cpublic\u201D or a \u201Csrc\u201D folder."
+  //     );
+  //   }
 
-    if (yamlConfig.scoop_slug) {
-      settings.scoop_slug_from_config_yml = yamlConfig.scoop_slug;
-    }
+  //   if (yamlConfig.scoop_slug) {
+  //     settings.scoop_slug_from_config_yml = yamlConfig.scoop_slug;
+  //   }
 
-    // Read .git/config file to get preview slug
-    var gitConfig = readGitConfigFile(docPath + "../.git/config") || {};
-    if (gitConfig.url) {
-      settings.preview_slug = gitConfig.url
-        .replace(/^[^:]+:/, "")
-        .replace(/\.git$/, "");
-    }
+  //   // Read .git/config file to get preview slug
+  //   var gitConfig = readGitConfigFile(docPath + "../.git/config") || {};
+  //   if (gitConfig.url) {
+  //     settings.preview_slug = gitConfig.url
+  //       .replace(/^[^:]+:/, "")
+  //       .replace(/\.git$/, "");
+  //   }
 
-    settings.image_source_path = "_assets/";
-    if (settings.project_type == "ai2html") {
-      settings.html_output_path = "/../public/";
-      settings.image_output_path = "_assets/";
-      settings.create_config_file = true;
-      settings.create_promo_image = true;
-    }
-  }
+  //   settings.image_source_path = "_assets/";
+  //   if (settings.project_type == "ai2html") {
+  //     settings.html_output_path = "/../public/";
+  //     settings.image_output_path = "_assets/";
+  //     settings.create_config_file = true;
+  //     settings.create_promo_image = true;
+  //   }
+  // }
 
   function extendSettings(settings, moreSettings) {
     var tmp = settings.fonts || [];
@@ -2419,31 +2414,37 @@ function main() {
   }
 
   // Show alert or prompt; return true if promo image should be generated
-  function showCompletionAlert(showPrompt) {
+  function showCompletionAlert() {
     var rule = "\n================\n";
-    var alertText, alertHed, makePromo;
+    var alertText, alertHed;
 
     if (errors.length > 0) {
       alertHed = "The Script Was Unable to Finish";
-    } else if (scriptEnvironment == "nyt-preview") {
-      alertHed = "Actually, that\u2019s not half bad :)"; // &rsquo;
-    } else {
+    } 
+    // else if (scriptEnvironment == "nyt-preview") {
+    //   alertHed = "Actually, that\u2019s not half bad :)"; // &rsquo;
+    // } 
+    else {
       alertHed = "Nice work!";
     }
     alertText = makeList(errors, "Error", "Errors");
     alertText += makeList(warnings, "Warning", "Warnings");
     alertText += makeList(feedback, "Information", "Information");
     alertText += "\n";
-    if (showPrompt) {
-      alertText += rule + "Generate promo image?";
-      // confirm(<msg>, false) makes "Yes" the default (at Baden's request).
-      makePromo = confirm(alertHed + alertText, false);
-    } else {
-      alertText += rule + "ai2html-nyt5 v" + scriptVersion;
-      alertText += "\n\n" + testStr + "\n\n";
-      alert(alertHed + alertText);
-      makePromo = false;
-    }
+    alertText += rule + "ai2html-nyt5 v" + scriptVersion;
+    alertText += "\n\n" + testStr + "\n\n";
+    alert(alertHed + alertText);
+
+    // if (showPrompt) {
+    //   alertText += rule + "Generate promo image?";
+    //   // confirm(<msg>, false) makes "Yes" the default (at Baden's request).
+    //   makePromo = confirm(alertHed + alertText, false);
+    // } else {
+    //   alertText += rule + "ai2html-nyt5 v" + scriptVersion;
+    //   alertText += "\n\n" + testStr + "\n\n";
+    //   alert(alertHed + alertText);
+    //   makePromo = false;
+    // }
 
     function makeList(items, singular, plural) {
       var list = "";
@@ -2455,7 +2456,7 @@ function main() {
       }
       return list;
     }
-    return makePromo;
+    // return makePromo;
   }
 
   function restoreDocumentState() {
@@ -4254,15 +4255,15 @@ function main() {
     return uniqName;
   }
 
-  function getPromoImageFormat(ab, settings) {
-    var fmt = settings.image_format[0];
-    if (fmt == "svg" || !fmt) {
-      fmt = "png";
-    } else {
-      fmt = resolveArtboardImageFormat(fmt, ab);
-    }
-    return fmt;
-  }
+  // function getPromoImageFormat(ab, settings) {
+  //   var fmt = settings.image_format[0];
+  //   if (fmt == "svg" || !fmt) {
+  //     fmt = "png";
+  //   } else {
+  //     fmt = resolveArtboardImageFormat(fmt, ab);
+  //   }
+  //   return fmt;
+  // }
 
   // setting: value from ai2html settings (e.g. 'auto' 'png')
   function resolveArtboardImageFormat(setting, ab) {
@@ -4659,23 +4660,23 @@ function main() {
   }
 
   // Create a promo image from the largest usable artboard
-  function createPromoImage(settings) {
-    var abIndex = findLargestArtboard();
-    if (abIndex == -1) return; // TODO: show error
-    var ab = doc.artboards[abIndex],
-      format = getPromoImageFormat(ab, settings),
-      imgFile = getImageFileName(getDocumentName() + "-promo", format),
-      outputPath = docPath + imgFile,
-      opts = {
-        image_width: settings.promo_image_width || 1024,
-        jpg_quality: settings.jpg_quality,
-        png_number_of_colors: settings.png_number_of_colors,
-        png_transparent: false,
-      };
-    doc.artboards.setActiveArtboardIndex(abIndex);
-    exportRasterImage(outputPath, ab, format, opts);
-    alert("Promo image created\nLocation: " + outputPath);
-  }
+  // function createPromoImage(settings) {
+  //   var abIndex = findLargestArtboard();
+  //   if (abIndex == -1) return; // TODO: show error
+  //   var ab = doc.artboards[abIndex],
+  //     format = getPromoImageFormat(ab, settings),
+  //     imgFile = getImageFileName(getDocumentName() + "-promo", format),
+  //     outputPath = docPath + imgFile,
+  //     opts = {
+  //       image_width: settings.promo_image_width || 1024,
+  //       jpg_quality: settings.jpg_quality,
+  //       png_number_of_colors: settings.png_number_of_colors,
+  //       png_transparent: false,
+  //     };
+  //   doc.artboards.setActiveArtboardIndex(abIndex);
+  //   exportRasterImage(outputPath, ab, format, opts);
+  //   alert("Promo image created\nLocation: " + outputPath);
+  // }
 
   // Returns 1 or 2 (corresponding to standard pixel scale and 'retina' pixel scale)
   // format: png, png24 or jpg
@@ -5042,29 +5043,20 @@ function main() {
   function generateArtboardDiv(ab, settings) {
     var id = nameSpace + getArtboardFullName(ab, settings);
     var classname = nameSpace + "artboard";
-    var widthRange = getArtboardWidthRange(ab, settings);
-    var visibleRange = getArtboardVisibilityRange(ab, settings);
+    // var widthRange = getArtboardWidthRange(ab, settings);
+    // var visibleRange = getArtboardVisibilityRange(ab, settings);
     var abBox = convertAiBounds(ab.artboardRect);
     var aspectRatio = abBox.width / abBox.height;
-    var inlineStyle = "";
-    var inlineSpacerStyle = "";
+    var inlineStyle = "display: none;";
+    // var inlineSpacerStyle = "";
     var html = "";
+    var aspectRatio = '';
 
-    // Set height of dynamic artboards using vertical padding as a %, to preserve aspect ratio.
-    inlineSpacerStyle =
-      "padding: 0 0 " + formatCssPct(abBox.height, abBox.width) + " 0;";
+    // // Set height of dynamic artboards using vertical padding as a %, to preserve aspect ratio.
+    // inlineSpacerStyle =
+    // "padding: 0 0 " + formatCssPct(abBox.height, abBox.width) + " 0;";
 
-    if (visibleRange[1] < Infinity) {
-      html +=
-        "{#if width && ( width >= " +
-        visibleRange[0] +
-        " && width <" +
-        (Number(visibleRange[1]) + 1) +
-        ")}";
-    } else {
-      html += "{#if width && (width >= " + visibleRange[0] + ")}";
-    }
-    //}
+    aspectRatio = "aspect-ratio: " + (abBox.width / abBox.height )+ ";";
 
     html +=
       '\t<div id="' +
@@ -5073,15 +5065,16 @@ function main() {
       classname +
       '" style="' +
       inlineStyle +
+      aspectRatio +
       '"';
     html += ">\r";
-    // add spacer div
-    html += '<div style="' + inlineSpacerStyle + '"></div>\n';
+    // // add spacer div
+    // html += '<div style="' + inlineSpacerStyle + '"></div>\n';
     return html;
   }
 
   function generateArtboardCss(ab, textClasses, settings) {
-    var visibleRange = getArtboardVisibilityRange(ab, settings);
+    // var visibleRange = getArtboardVisibilityRange(ab, settings);
 
     var t3 = "\t",
       t4 = t3 + "\t",
@@ -5144,39 +5137,62 @@ function main() {
     // css += t3 + "box-sizing: border-box;";
     // css += blockEnd;
 
+    // add container queries for each artboard
     css +=
       blockStart + "." + nameSpace + "aiPointText p { white-space: nowrap; }\r";
+
+      css += blockStart + "{\r";
+      css += "container-type: inline-size;\r";
+
+      forEachUsableArtboard(function (ab, abIndex) {
+        var id = nameSpace + getArtboardFullName(ab, settings);
+        var visibleRange = getArtboardVisibilityRange(ab, settings);
+
+        if (visibleRange[1] < Infinity) {
+          css += "@container (min-width:" + visibleRange[0] + "px) and (max-width: " + visibleRange[1] + "px) {\r";
+        } else {
+          css += "@container (min-width:" + visibleRange[0] + "px) {\r";
+        }
+
+        css += "#" + id + " {\r";
+        css += "display: block !important;\r";
+        css += "}\r";
+        css += "}\r";
+      });
+
+      css += "}\r";
+
     return css;
   }
 
   // Create a settings file (optimized for the NYT Scoop CMS)
-  function generateYamlFileContent(settings) {
-    var range = getWidthRangeForConfig(settings);
-    var lines = [];
-    lines.push("ai2html_version: " + scriptVersion);
-    lines.push("project_type: " + settings.project_type);
-    lines.push("tags: ai2html");
-    lines.push("min_width: " + range[0]);
-    lines.push("max_width: " + range[1]);
+  // function generateYamlFileContent(settings) {
+  //   var range = getWidthRangeForConfig(settings);
+  //   var lines = [];
+  //   lines.push("ai2html_version: " + scriptVersion);
+  //   lines.push("project_type: " + settings.project_type);
+  //   lines.push("tags: ai2html");
+  //   lines.push("min_width: " + range[0]);
+  //   lines.push("max_width: " + range[1]);
 
-    forEach(settings.config_file, function (key) {
-      var value = trim(String(settings[key]));
-      var useQuotes = value === "" || /\s/.test(value);
-      if (key == "show_in_compatible_apps") {
-        // special case: this setting takes quoted 'yes' or 'no'
-        useQuotes = true; // assuming value is 'yes' or 'no';
-        value = isTrue(value) ? "yes" : "no";
-      }
-      if (useQuotes) {
-        value = JSON.stringify(value); // wrap in quotes and escape internal quotes
-      } else if (isTrue(value) || isFalse(value)) {
-        // use standard values for boolean settings
-        value = isTrue(value) ? "true" : "false";
-      }
-      lines.push(key + ": " + value);
-    });
-    return lines.join("\n");
-  }
+  //   forEach(settings.config_file, function (key) {
+  //     var value = trim(String(settings[key]));
+  //     var useQuotes = value === "" || /\s/.test(value);
+  //     if (key == "show_in_compatible_apps") {
+  //       // special case: this setting takes quoted 'yes' or 'no'
+  //       useQuotes = true; // assuming value is 'yes' or 'no';
+  //       value = isTrue(value) ? "yes" : "no";
+  //     }
+  //     if (useQuotes) {
+  //       value = JSON.stringify(value); // wrap in quotes and escape internal quotes
+  //     } else if (isTrue(value) || isFalse(value)) {
+  //       // use standard values for boolean settings
+  //       value = isTrue(value) ? "true" : "false";
+  //     }
+  //     lines.push(key + ": " + value);
+  //   });
+  //   return lines.join("\n");
+  // }
 
   function getResizerScript(containerId, settings) {
     // The resizer function is embedded in the HTML page -- external variables must
@@ -5184,13 +5200,13 @@ function main() {
     //
     var svelteJS = "<script>\r\t";
 
+    // svelteJS += "export let assetsPath = './';\r";
+    svelteJS += "let { assetsPath = '/', onAiMounted = () => {} } = $props();\r";
 
-    svelteJS += "export let assetsPath = './';\r";
-
-    svelteJS += "\tlet width = null;\r";
+    // svelteJS += "\tlet width = null;\r";
     // add prop for onmount function that defaults to noop
     svelteJS += "import { onMount } from 'svelte';\n";
-    svelteJS += "export let onAiMounted = () => {};\r";
+    // svelteJS += "export let onAiMounted = () => {};\r";
     svelteJS += "onMount(() => {\r  onAiMounted();\r});\r";
 
     svelteJS += "\r</script>\r";
@@ -5213,131 +5229,131 @@ function main() {
   }
 
   // generate the media query block of css by using artboard widths and pre defined breakpoints.
-  function generateMediaQueries() {
-    // the array to contain the final media queries (which we will later join to form the css text)
-    var mQ = []; asse
-    // hardcoded breakpoints.
-    var breakPoints = [575, 765, 992, 1300];
+  // function generateMediaQueries() {
+  //   // the array to contain the final media queries (which we will later join to form the css text)
+  //   var mQ = []; asse
+  //   // hardcoded breakpoints.
+  //   var breakPoints = [575, 765, 992, 1300];
 
-    var widthToSize = {
-      320: "xs",
-      510: "sm",
-      690: "md",
-      920: "lg",
-    };
+  //   var widthToSize = {
+  //     320: "xs",
+  //     510: "sm",
+  //     690: "md",
+  //     920: "lg",
+  //   };
 
-    var existingSizes = {
-      xl: false,
-      lg: false,
-      md: false,
-      sm: false,
-      xs: false,
-    };
+  //   var existingSizes = {
+  //     xl: false,
+  //     lg: false,
+  //     md: false,
+  //     sm: false,
+  //     xs: false,
+  //   };
 
-    //
+  //   //
 
-    // get sizes and names of artboards
-    // i don't understand how but: illustrator returns units in points. i can get artboard dimensions by (x2-x1, y2-y1). BUT the values that gives me are the same absolute numbers as in pixels while working IN illustrator without any conversions.
-    // I feel like there can be edge cases here which will need conversions from points to pixels but not sure what?
-    forEach(doc.artboards, function (artboard) {
-      var rect = artboard.artboardRect;
-      var artboardSize = [rect[2] - rect[0], rect[3] - rect[1]];
-      // sometimes weird decimals happen in javascript
-      artboardSize[0] = Math.ceil(artboardSize[0]);
+  //   // get sizes and names of artboards
+  //   // i don't understand how but: illustrator returns units in points. i can get artboard dimensions by (x2-x1, y2-y1). BUT the values that gives me are the same absolute numbers as in pixels while working IN illustrator without any conversions.
+  //   // I feel like there can be edge cases here which will need conversions from points to pixels but not sure what?
+  //   forEach(doc.artboards, function (artboard) {
+  //     var rect = artboard.artboardRect;
+  //     var artboardSize = [rect[2] - rect[0], rect[3] - rect[1]];
+  //     // sometimes weird decimals happen in javascript
+  //     artboardSize[0] = Math.ceil(artboardSize[0]);
 
-      // testStr += artboardSize[0] + ", "
-      var artboardObj = {
-        name: artboard.name,
-        width: artboardSize[0],
-        height: artboardSize[1],
-      };
-      // xl artboard
-      if (artboardSize[0] > 920) {
-        existingSizes["xl"] = artboardObj;
-      } else {
-        // will crash if someone changed the sizes of the 4 basic artboards.
-        // they had it coming
-        existingSizes[widthToSize[artboardSize[0]]] = artboardObj;
-      }
-    });
+  //     // testStr += artboardSize[0] + ", "
+  //     var artboardObj = {
+  //       name: artboard.name,
+  //       width: artboardSize[0],
+  //       height: artboardSize[1],
+  //     };
+  //     // xl artboard
+  //     if (artboardSize[0] > 920) {
+  //       existingSizes["xl"] = artboardObj;
+  //     } else {
+  //       // will crash if someone changed the sizes of the 4 basic artboards.
+  //       // they had it coming
+  //       existingSizes[widthToSize[artboardSize[0]]] = artboardObj;
+  //     }
+  //   });
 
-    if (!existingSizes["xs"]) {
-      warn(
-        "NO XS ARTBOARD. Your 'art' is probably trash on the phone. But go ahead, make 60% of our users cringe."
-      );
-    }
+  //   if (!existingSizes["xs"]) {
+  //     warn(
+  //       "NO XS ARTBOARD. Your 'art' is probably trash on the phone. But go ahead, make 60% of our users cringe."
+  //     );
+  //   }
 
-    // if there are less than 5 artboards, means something was deleted
-    // if "00" signifies removed artboard(s)
-    // xs 00 md lg 00 -> xs xs md lg lg
-    // 00 sm md lg xl -> sm sm md lg xl
-    // 00 00 md lg 00 -> md md md lg lg
-    // xs 00 00 lg xl -> xs xs xs lg xl
+  //   // if there are less than 5 artboards, means something was deleted
+  //   // if "00" signifies removed artboard(s)
+  //   // xs 00 md lg 00 -> xs xs md lg lg
+  //   // 00 sm md lg xl -> sm sm md lg xl
+  //   // 00 00 md lg 00 -> md md md lg lg
+  //   // xs 00 00 lg xl -> xs xs xs lg xl
 
-    // traverse the existingSizes in reverse order of sizes (note that the keys for that are already reversed)
-    // keep storing "missing artboards" by comparing width to the widthToSize variable above.
-    // upon hitting a non missing artboard, fill out all the gaps by this artboard
-    // if you reach the beginning of the array before hitting an artboards, and you have gaps left in your stack, fill them out with the last present artboard
-    var lastExistingArtboard = null;
-    var missingStack = [];
-    for (size in existingSizes) {
-      if (!existingSizes[size]) {
-        missingStack.push(size);
-      }
+  //   // traverse the existingSizes in reverse order of sizes (note that the keys for that are already reversed)
+  //   // keep storing "missing artboards" by comparing width to the widthToSize variable above.
+  //   // upon hitting a non missing artboard, fill out all the gaps by this artboard
+  //   // if you reach the beginning of the array before hitting an artboards, and you have gaps left in your stack, fill them out with the last present artboard
+  //   var lastExistingArtboard = null;
+  //   var missingStack = [];
+  //   for (size in existingSizes) {
+  //     if (!existingSizes[size]) {
+  //       missingStack.push(size);
+  //     }
 
-      // if not missing, clear the stack
-      if (existingSizes[size]) {
-        // testStr += missingStack + "\n"
-        lastExistingArtboard = size;
-        forEach(missingStack, function (missing) {
-          existingSizes[missing] = existingSizes[lastExistingArtboard];
-        });
-        missingStack = [];
-      }
-    }
+  //     // if not missing, clear the stack
+  //     if (existingSizes[size]) {
+  //       // testStr += missingStack + "\n"
+  //       lastExistingArtboard = size;
+  //       forEach(missingStack, function (missing) {
+  //         existingSizes[missing] = existingSizes[lastExistingArtboard];
+  //       });
+  //       missingStack = [];
+  //     }
+  //   }
 
-    // testStr += "\n"
-    // if stack still has elements, fill them out
-    if (missingStack.length > 0) {
-      forEach(missingStack, function (missing) {
-        existingSizes[missing] = existingSizes[lastExistingArtboard];
-      });
-    }
+  //   // testStr += "\n"
+  //   // if stack still has elements, fill them out
+  //   if (missingStack.length > 0) {
+  //     forEach(missingStack, function (missing) {
+  //       existingSizes[missing] = existingSizes[lastExistingArtboard];
+  //     });
+  //   }
 
-    var sizes = map(["xl", "lg", "md", "sm", "xs"], function (size) {
-      return existingSizes[size];
-    });
+  //   var sizes = map(["xl", "lg", "md", "sm", "xs"], function (size) {
+  //     return existingSizes[size];
+  //   });
 
-    testStr +=
-      "Final artboards: " +
-      map(sizes, function (size) {
-        return size.name;
-      });
+  //   testStr +=
+  //     "Final artboards: " +
+  //     map(sizes, function (size) {
+  //       return size.name;
+  //     });
 
-    // sort in increasing order of width
-    sizes.sort(function (a, b) {
-      return a.width - b.width;
-    });
+  //   // sort in increasing order of width
+  //   sizes.sort(function (a, b) {
+  //     return a.width - b.width;
+  //   });
 
-    // some functions for generating "units" of css
-    // slice breakpoints array to the number of breaks we'll need
-    breakPoints = breakPoints.slice(0, sizes.length - 1);
+  //   // some functions for generating "units" of css
+  //   // slice breakpoints array to the number of breaks we'll need
+  //   breakPoints = breakPoints.slice(0, sizes.length - 1);
 
-    // css to select a board
-    function selectBoard(nm) {
-      return "\t\t#g-{{project_name}}-" + nm;
-    }
+  //   // css to select a board
+  //   function selectBoard(nm) {
+  //     return "\t\t#g-{{project_name}}-" + nm;
+  //   }
 
-    // selects multiple boards by calling selectBoard
-    function selectBoards(boards) {
-      return map(boards, function (b) {
-        return selectBoard(b.name);
-      }).join(",\n");
-    }
+  //   // selects multiple boards by calling selectBoard
+  //   function selectBoards(boards) {
+  //     return map(boards, function (b) {
+  //       return selectBoard(b.name);
+  //     }).join(",\n");
+  //   }
 
-    // reverse the array because it has the smallest to largest media queries but should be the other way. And join.
-    return mQ.reverse().join("\n");
-  }
+  //   // reverse the array because it has the smallest to largest media queries but should be the other way. And join.
+  //   return mQ.reverse().join("\n");
+  // }
 
   function addCustomContent(content, customBlocks) {
     // var mQ = generateMediaQueries();
@@ -5391,16 +5407,16 @@ function main() {
       doc.name +
       " -->\r";
 
-    if (scriptEnvironment == "nyt-preview") {
-      commentBlock += "<!-- preview: " + settings.preview_slug + " -->\r";
-    }
-    if (settings.scoop_slug_from_config_yml) {
-      commentBlock +=
-        "<!-- scoop: " + settings.scoop_slug_from_config_yml + " -->\r";
-    }
+    // if (scriptEnvironment == "nyt-preview") {
+    //   commentBlock += "<!-- preview: " + settings.preview_slug + " -->\r";
+    // }
+    // if (settings.scoop_slug_from_config_yml) {
+    //   commentBlock +=
+    //     "<!-- scoop: " + settings.scoop_slug_from_config_yml + " -->\r";
+    // }
 
     // HTML
-    html = '<div id="' + containerId + '" bind:clientWidth={width}>\r';
+    html = '<div id="' + containerId + '">\r';
     if (linkSrc) {
       // optional link around content
       html +=
@@ -5457,4 +5473,5 @@ function main() {
     }
   }
 } // end main() function definition
+
 main();
