@@ -1,5 +1,6 @@
 <script lang="ts">
-  import { onMount } from "svelte";
+  import { onMount, untrack } from "svelte";
+  import { get } from "svelte/store";
   import { os, path } from "../lib/cep/node";
   import {
     csi,
@@ -8,20 +9,27 @@
     subscribeBackgroundColor,
     evalTS,
   } from "../lib/utils/bolt";
+  import { isAppRunning } from "../lib/utils/bolt";
+  import unescapeJs from "unescape-js";
   import "../index.scss";
   import "./main.scss";
-  let backgroundColor: string = $state("#282c34");
+  import {
+    settingsObject,
+    styles,
+    updateInProgress,
+    isCEP,
+    snippets,
+  } from "./stores";
+  import { convertStringToObject, parseSnippetSettings } from "./Tabs/utils";
+  import tippy from "tippy.js";
+  import type { Style } from "./stores";
 
-  import viteLogo from "../assets/vite.svg";
-  import svelteLogo from "../assets/svelte.svg";
-  import tsLogo from "../assets/typescript.svg";
-  import sassLogo from "../assets/sass.svg";
-  import nodeJs from "../assets/node-js.svg";
-  import adobe from "../assets/adobe.svg";
-  import bolt from "../assets/bolt-cep.svg";
+  import TabBar from "./TabBar.svelte";
+  import Home from "./Tabs/Home.svelte";
+  import Components from "./Tabs/Components.svelte";
+  import Extras from "./Tabs/Extras.svelte";
 
-  let count: number = $state(0);
-  let double: number = $derived(count * 2);
+  let activeTab: string = $state("HOME");
 
   //* Demonstration of Traditional string eval-based ExtendScript Interaction
   const jsxTest = () => {
@@ -50,6 +58,9 @@
     evalTS("helloError", "test").catch((e) => {
       console.log("there was an error", e);
     });
+    // evalTS("helloWorld").then((res) => {
+    //   console.log(typeof res, res);
+    // });
   };
 
   const nodeTest = () => {
@@ -60,76 +71,113 @@
     );
   };
 
-  onMount(() => {
-    if (window.cep) {
-      console.log(window.cep);
-      subscribeBackgroundColor((c: string) => (backgroundColor = c));
+  $effect(() => {
+    if (csi && window.cep) {
+      untrack(() => {
+        csi.addEventListener("documentAfterActivate", (e) => {
+          fetchSettings();
+        });
+
+        csi.addEventListener("selectionAfterChange", (e) => {
+          console.log(e);
+        });
+      });
     }
   });
+
+  $effect.pre(() => {
+    if (activeTab) {
+      if (window.cep) {
+        updateInProgress.set(true);
+        fetchSettings();
+      }
+    }
+  });
+
+  async function fetchSettings() {
+    const settings = await evalTS("fetchAiSettings", "ai2html-settings");
+    updateSettingsStore(settings);
+
+    const styles = await evalTS("fetchAiSettings", "shadow-settings");
+    updateStylesStore(styles);
+
+    const snippets = await evalTS("fetchAiSettings", "snippet-settings");
+    updateSnippetsStore(snippets);
+
+    updateInProgress.set(false);
+  }
+
+  onMount(() => {
+    isCEP.set(window.cep);
+    if (get(isCEP)) {
+      fetchSettings();
+    }
+    tippy("[data-tippy-content]", {
+      theme: "dark",
+      arrow: false,
+      placement: "top",
+      delay: [500, null],
+    });
+  });
+
+  function updateSettingsStore(str: string) {
+    const updatedString = str.replace("ai2html-settings", "").trim();
+    settingsObject.set(
+      JSON.parse(JSON.stringify(convertStringToObject(updatedString))),
+    );
+  }
+
+  function updateStylesStore(str: string) {
+    const updatedString = str.replace("shadow-settings", "").trim();
+    const obj: Record<string, Style> = {};
+
+    const sheet = new CSSStyleSheet();
+    sheet.replaceSync(updatedString);
+
+    Array.from(sheet.cssRules).forEach((style) => {
+      if (style.type === CSSRule.STYLE_RULE) {
+        const styleRule = style as CSSStyleRule;
+        const regex = `${styleRule.selectorText} \\{([^}]*)\\}`;
+        const regexPattern = new RegExp(regex);
+        const t =
+          updatedString.match(regexPattern)?.[1]?.replaceAll("\t", "").trim() ??
+          "";
+        const allStyles = t
+          .split(";")
+          .filter((x) => !["", " ", null, undefined].includes(x))
+          .map((x) => x.trim());
+
+        const shadowNameRegex = new RegExp(`@includes shadow-([^(]*)(.*)`);
+        const matchedStyle = allStyles
+          .findLast((x: string) => x.match(/@includes shadow-*/g))
+          ?.match(shadowNameRegex);
+        const shadowName =
+          matchedStyle && matchedStyle[1] ? matchedStyle[1] : "";
+
+        obj[styleRule.selectorText] = {
+          styles: allStyles,
+          shadowName: shadowName,
+        };
+      }
+    });
+
+    styles.set(obj);
+  }
+
+  function updateSnippetsStore(str: string) {
+    snippets.set(parseSnippetSettings(unescapeJs(str)));
+    console.log(get(snippets));
+  }
 </script>
 
-<div class="app" style="background-color: {backgroundColor};">
-  <header class="app-header">
-    <img src={bolt} class="icon" alt="" />
-    <div class="stack-icons">
-      <div>
-        <img src={viteLogo} alt="" />
-        Vite
-      </div>
-      +
-      <div>
-        <img src={svelteLogo} alt="" />
-        Svelte
-      </div>
-      +
-      <div>
-        <img src={tsLogo} alt="" />
-        TypeScript
-      </div>
-      +
-      <div>
-        <img src={sassLogo} alt="" />
-        Sass
-      </div>
-    </div>
-    <div class="button-group">
-      <button onclick={() => (count += 1)}>Count is: {count}</button>
-      <button onclick={nodeTest}>
-        <img class="icon-button" src={nodeJs} alt="" />
-      </button>
-      <button onclick={jsxTest}>
-        <img class="icon-button" src={adobe} alt="" />
-      </button>
-      <button onclick={jsxTestTS}>Ts</button>
-    </div>
+<div class="app">
+  <TabBar bind:activeLabel={activeTab} />
 
-    <p>
-      Edit <code>main.svelte</code> and save to test HMR updates.{JSON.stringify(
-        window.cep,
-      )}
-    </p>
-    <p>
-      <button
-        onclick={() =>
-          openLinkInBrowser("https://github.com/hyperbrew/bolt-cep")}
-      >
-        Bolt Docs
-      </button>
-      |
-      <button onclick={() => openLinkInBrowser("https://svelte.dev/docs")}>
-        Svelte Docs
-      </button>
-      |
-      <button
-        onclick={() =>
-          openLinkInBrowser("https://vitejs.dev/guide/features.html")}
-      >
-        Vite Docs
-      </button>
-    </p>
-  </header>
+  {#if activeTab === "HOME"}
+    <Home />
+  {:else if activeTab === "COMPONENTS"}
+    <Components />
+  {:else if activeTab === "EXTRAS"}
+    <Extras />
+  {/if}
 </div>
-
-<style lang="scss">
-  @use "../variables.scss" as *;
-</style>

@@ -1,0 +1,52 @@
+{
+    "image_format": {
+        "options": [
+            "jpg",
+            "png",
+            "png24",
+            "svg"
+        ]
+    },
+    "responsiveness": {
+        "options": [
+            "dynamic",
+            "fixed"
+        ]
+    },
+    "output": {
+        "options": [
+            "one-file",
+            "multiple-files"
+        ]
+    },
+    "html_output_path": "../src/lib/ai2svelte/",
+    "html_output_extension": {
+        "options": [
+            ".svelte",
+            ".html"
+        ]
+    },
+    "image_output_path": "../../statics/images/graphics/",
+    "image_source_path": "images/graphics/",
+    "png_transparent": {
+        "options": [
+            "yes",
+            "no"
+        ]
+    },
+    "png_number_of_colors": 256,
+    "jpg_quality": 90,
+    "graphicskit": {
+        "options": [
+            "yes",
+            "no"
+        ]
+    },
+    "inline_svg": {
+        "options": [
+            "true",
+            "false"
+        ]
+    },
+    "max-width": null
+}

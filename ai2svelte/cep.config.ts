@@ -1,4 +1,4 @@
-import { CEP_Config } from "vite-cep-plugin";
+import type { CEP_Config } from "vite-cep-plugin";
 import { version } from "./package.json";
 
 const config: CEP_Config = {
@@ -28,24 +28,14 @@ const config: CEP_Config = {
     {
       mainPath: "./main/index.html",
       name: "main",
-      panelDisplayName: "ai2svelte-new", 
+      panelDisplayName: "ai2svelte", 
       autoVisible: true,
       width: 300,
       height: 350,
       minWidth: 40,
       minHeight: 40,
-      maxWidth: 400,
-      maxHeight: 400,
-    },
-    {
-      mainPath: "./settings/index.html",
-      name: "settings",
-      panelDisplayName: "ai2svelte-settings", 
-      autoVisible: true,
-      width: 300,
-      height: 350,
-      minWidth: 40,
-      minHeight: 40,
+      maxWidth: 960,
+      maxHeight: 960,
     },
   ],
   build: {
