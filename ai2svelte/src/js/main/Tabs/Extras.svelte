@@ -32,6 +32,8 @@
 
     let initialLoad = $state(false);
 
+    let editableCssString: string = $state("");
+
     let cssString: string = $derived.by(() => {
         // don't update while its fetching settings from AI
         if (!$updateInProgress) {
@@ -55,6 +57,11 @@
         return "";
     });
 
+    // Sync the derived cssString to the editable version when styles change
+    $effect(() => {
+        editableCssString = cssString;
+    });
+
     type ShadowItem = {
         id: string;
         shadow: string;
@@ -64,7 +71,7 @@
     let allShadows: ShadowItem[] = $state([]);
 
     $effect(() => {
-        if (initialLoad && cssString) {
+        if (initialLoad && editableCssString) {
             initialLoad = false;
         }
     });
@@ -140,30 +147,51 @@
         }
     }
 
+    function processCSS(s) {
+        switch (s.type) {
+            case "decl":
+                return `${s.prop} : ${s.value}`;
+                break;
+
+            case "atrule":
+                return `@${s.name} ${s.params}`;
+                break;
+
+            case "rule":
+                const styles = s.nodes.map((x) => processCSS(x)).join(";\n");
+                const str = `${s.selector} {
+    ${styles};
+}`;
+                return str;
+                break;
+
+            default:
+                return "";
+                break;
+        }
+    }
+
     function updateStyle(string: string) {
         console.log("updating styles", string);
         let obj;
 
+        console.log(postcss.parse(string, { parser: scss }));
+
         obj = postcss.parse(string, { parser: scss }).nodes.map((x) => {
             return {
                 selector: x.selector,
-                styles: x.nodes.map((s) =>
-                    s.type == "decl"
-                        ? `${s.prop} : ${s.value}`
-                        : s.type == "atrule"
-                          ? `@${s.name} ${s.params}`
-                          : "",
-                ),
+                styles: x.nodes.map((s) => processCSS(s)),
             };
         });
 
-        const styleObject = {};
-
+        const newStyles = { ...$styles };
         obj.forEach((x) => {
-            $styles[x.selector] = {
+            newStyles[x.selector] = {
                 styles: x.styles,
             };
         });
+        styles.set(newStyles);
+        console.log($styles);
     }
 
     function changeSpecimen() {
@@ -234,7 +262,8 @@
                     onRemove={(e) => {
                         delete $styles[selector];
                         $styles = $styles;
-                        shadowSelector = Object.keys($styles).at(-1) || "";
+                        shadowSelector =
+                            Object.keys($styles).at(-1) || ".g-text";
                     }}
                 />
             {/each}
@@ -340,7 +369,13 @@
         {/each}
     </div>
 
-    <CmTextArea bind:value={cssString} type="css" />
+    <CmTextArea
+        bind:value={editableCssString}
+        type="css"
+        onUpdate={(e: Event) => {
+            updateStyle(editableCssString);
+        }}
+    />
 </div>
 
 <style lang="scss">

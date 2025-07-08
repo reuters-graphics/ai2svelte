@@ -15,11 +15,16 @@
     interface Props {
         value: string;
         type: string;
+        onUpdate: (event: Event) => void;
     }
 
-    let { value = $bindable(), type = "yaml" }: Props = $props();
+    let {
+        value = $bindable(),
+        type = "yaml",
+        onUpdate = $bindable(),
+    }: Props = $props();
 
-    let isFocused: boolean = $state();
+    let isFocused: boolean = $state(false);
 
     onMount(() => {
         editor = new EditorView({
@@ -34,6 +39,7 @@
                 EditorView.domEventHandlers({
                     input: (e, v) => {
                         value = editor?.state.doc.toString();
+                        onUpdate(e);
                     },
                     focusin: (e, v) => {
                         isFocused = true;

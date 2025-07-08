@@ -151,7 +151,11 @@
                 in:fly={{ y: -50, duration: 300 }}
                 out:fly={{ y: 50, duration: 300 }}
             >
-                <CmTextArea bind:value={yamlString} />
+                <CmTextArea
+                    type="text"
+                    value={yamlString}
+                    onUpdate={(e) => {}}
+                />
             </div>
         {/if}
     </div>
