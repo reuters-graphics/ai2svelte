@@ -8,6 +8,7 @@
     import Select from "../Components/Select.svelte";
     import Dropdown from "../Components/Dropdown.svelte";
     import CmTextArea from "../Components/CMTextArea.svelte";
+    import { initTippy } from "./utils";
 
     interface AiSettingOption {
         options: string[];
@@ -31,18 +32,7 @@
 
     let activeFormat: string = $state("");
     let uiContent: HTMLElement | undefined = $state();
-    let uiContentHeight: number = $state(1);
     let codeContent: HTMLElement | undefined = $state();
-    let codeContentHeight: number = $state(1);
-    let activeHeight: number | undefined = $derived.by(() => {
-        if (activeFormat === "ui") {
-            // offset some to allow dropdown menus
-            return uiContentHeight * 1.5;
-        } else if (activeFormat === "code") {
-            return codeContentHeight;
-        }
-    });
-
     let yamlString: string = $derived.by(() => {
         return Object.keys($settingsObject)
             .filter((key) => $settingsObject[key] !== null)
@@ -107,15 +97,12 @@
         bind:activeValue={activeFormat}
     />
 
-    <hr />
-
-    <div id="content" style="height: {activeHeight}px;">
+    <div id="content">
         {#if activeFormat === "ui"}
             <div
                 id="ui-form"
                 class="options content-item"
                 bind:this={uiContent}
-                bind:clientHeight={uiContentHeight}
                 in:fly={{ y: -50, duration: 300 }}
                 out:fly={{ y: 50, duration: 300 }}
             >
@@ -146,8 +133,8 @@
         {:else if activeFormat === "code"}
             <div
                 id="aisettings-textarea"
+                class="content-item"
                 bind:this={codeContent}
-                bind:clientHeight={codeContentHeight}
                 in:fly={{ y: -50, duration: 300 }}
                 out:fly={{ y: 50, duration: 300 }}
             >

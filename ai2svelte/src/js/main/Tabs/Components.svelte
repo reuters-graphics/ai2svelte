@@ -4,21 +4,11 @@
     import { evalTS } from "../../lib/utils/bolt";
 
     import { snippets } from "../stores";
-    import { basicSetup } from "codemirror";
-    import { EditorView, keymap } from "@codemirror/view";
-    import { indentWithTab } from "@codemirror/commands";
-    import { json } from "@codemirror/lang-json";
-    import { oneDark } from "@codemirror/theme-one-dark";
-    import { myTheme } from "./utils";
 
     import unescapeJs from "unescape-js";
 
     import SectionTitle from "../Components/SectionTitle.svelte";
-
-    type ContentElements =
-        | HTMLInputElement
-        | HTMLSelectElement
-        | HTMLTextAreaElement;
+    import CmTextArea from "../Components/CMTextArea.svelte";
 
     let allowedComponents = [
         "BeforeAfter",
@@ -38,24 +28,22 @@
         "Video",
     ];
 
-    let activeFormat: string = $state("");
+    let activeTab: string = $state("");
 
     let uiContent: HTMLElement | undefined = $state();
     let uiContentHeight: number = $state(1);
     let codeContent: HTMLElement | undefined = $state();
     let codeContentHeight: number = $state(400);
     let activeHeight: number | undefined = $derived.by(() => {
-        if (activeFormat === "UI") {
+        if (activeTab === "UI") {
             return uiContentHeight;
-        } else if (activeFormat === "CODE") {
+        } else if (activeTab === "CODE") {
             return codeContentHeight;
         }
     });
     let focusedOption: HTMLElement | undefined | null = $state();
 
-    let editor: Element = $state();
-
-    let view;
+    let yamlString: string = $state("");
 
     $effect(() => {
         let temp = "";
@@ -65,30 +53,10 @@
             temp += ": ";
             temp += $snippets[key];
         });
-        if (editor) {
-            view = new EditorView({
-                doc: `${temp}`,
-                parent: editor,
-                extensions: [
-                    basicSetup,
-                    json(),
-                    keymap.of([indentWithTab]),
-                    oneDark,
-                    myTheme,
-                    EditorView.domEventHandlers({
-                        input: (e, v) => {
-                            // updateStyle(view.state.doc.toString());
-                        },
-                    }),
-                ],
-            });
-
-            console.log(view);
-        }
     });
 
     onMount(() => {
-        activeFormat = "UI";
+        activeTab = "ui";
     });
 
     // // handles clicks to change ui format
@@ -96,115 +64,12 @@
         e.preventDefault();
         if (e.target && e.target instanceof HTMLElement) {
             const targetElement = e.target.innerText;
-            activeFormat = targetElement;
-            if (activeFormat === "UI") {
+            activeTab = targetElement;
+            if (activeTab === "ui") {
                 // compileSettings();
             }
         }
     }
-
-    // // converts string in textarea to js object
-    // function convertStringToObject(s: string) {
-    //     const obj: { [key: string]: unknown } = {};
-    //     s.trim()
-    //         .split("\n")
-    //         .forEach((line) => {
-    //             const [key, ...rest] = line.split(":");
-    //             if (key && rest.length) {
-    //                 let value: unknown = rest.join(":").trim();
-    //                 // Try to convert to number if possible
-    //                 if (parseInt(value as string)) {
-    //                     value = Number(value);
-    //                 }
-    //                 obj[key.trim()] = value;
-    //             }
-    //         });
-    //     return obj;
-    // }
-
-    // // handles text change in textarea
-    // function handleTextChange(e: Event) {
-    //     e.preventDefault();
-
-    //     if (e.target && e.target instanceof HTMLTextAreaElement) {
-    //         const settingsText = e.target.value;
-    //         $settingsObject = convertStringToObject(settingsText);
-    //     }
-    // }
-
-    // // compiles text from text area into settingsObject
-    // function compileSettings() {
-    //     const formElement = document.querySelector("#ui-form");
-    //     const labels = formElement?.querySelectorAll("label");
-
-    //     labels?.forEach((label) => {
-    //         const key = label.getAttribute("for");
-
-    //         const inputElement = document.querySelector("#" + key) as
-    //             | HTMLInputElement
-    //             | HTMLSelectElement
-    //             | null;
-    //         const val = inputElement ? inputElement.value : null;
-
-    //         if (key) {
-    //             $settingsObject[key] = val;
-    //         }
-    //     });
-    // }
-
-    // function isContentElement(
-    //     element: HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement,
-    // ) {
-    //     return (
-    //         element instanceof HTMLInputElement ||
-    //         element instanceof HTMLSelectElement ||
-    //         element instanceof HTMLTextAreaElement
-    //     );
-    // }
-
-    // function handleBlur(e: Event, toParent: boolean = true) {
-    //     const target = e.target as ContentElements;
-    //     if (target && isContentElement(target)) {
-    //         if (toParent) {
-    //             target.parentElement?.classList.remove("focused");
-    //         } else {
-    //             target.classList.remove("focused");
-    //         }
-
-    //         const settingsString = compileSettingsString();
-
-    //         evalTS("updateAiSettings", settingsString);
-    //     }
-    // }
-
-    // function handleFocus(e: Event, toParent: boolean = true) {
-    //     const target = e.target as ContentElements;
-    //     if (target && isContentElement(target)) {
-    //         if (toParent) {
-    //             target.parentElement?.classList.add("focused");
-    //         } else {
-    //             target.classList.add("focused");
-    //         }
-    //     }
-    // }
-
-    // function handleInput(e: Event, key: string) {
-    //     const target = e.target as ContentElements;
-    //     if (target && isContentElement(target)) {
-    //         $settingsObject[key] = target.value;
-    //     }
-    // }
-
-    // function compileSettingsString() {
-    //     const str =
-    //         "ai2html-settings\r" +
-    //         Object.keys($settingsObject)
-    //             .filter((key) => $settingsObject[key] !== null)
-    //             .map((key) => `${key}: ${$settingsObject[key]}`)
-    //             .join("\n")
-    //             .trim();
-    //     return str;
-    // }
 
     function handleSnippet(e: Event) {
         const target = e.target;
@@ -218,7 +83,7 @@
 
 {#snippet formatChoice(name: string)}
     <label
-        class="format-button {activeFormat == name ? 'active' : null}"
+        class="format-button {activeTab == name ? 'active' : null}"
         onclick={(e) => handleClick(e)}
         for={"format-" + name}
     >
@@ -227,7 +92,7 @@
             name="format-choice"
             id={"format-" + name}
             value={name}
-            checked={activeFormat == name}
+            checked={activeTab == name}
         />{name}
     </label>
 {/snippet}
@@ -238,18 +103,55 @@
     >
 {/snippet}
 
-<div class="tab-content">
+<div class="tab-content" in:fly={{ y: -50, duration: 300 }}>
     <div class="chips-container">
         {#each allowedComponents as component}
             {@render chip(component)}
         {/each}
     </div>
 
-    <SectionTitle title="Properties" labels={["ui", "code"]} />
+    <SectionTitle
+        title="Properties"
+        labels={["ui", "code"]}
+        bind:activeValue={activeTab}
+    />
 
-    <hr />
+    {#if activeTab == "ui"}
+        <p>ui</p>
+    {:else if activeTab == "code"}
+        <div
+            id="snippetsettings-textarea"
+            bind:this={codeContent}
+            bind:clientHeight={codeContentHeight}
+            in:fly={{ y: -50, duration: 300 }}
+            out:fly={{ y: 50, duration: 300 }}
+        >
+            <CmTextArea
+                type="text"
+                value={yamlString}
+                onUpdate={(e: Event) => {}}
+            />
+        </div>
+    {/if}
 </div>
 
 <style lang="scss">
     @use "../../variables.scss" as *;
+
+    .tab-content {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+        overflow: hidden;
+    }
+
+    #snippetsettings-textarea {
+        width: 100%;
+        background-color: $color-charcoal-dark;
+        box-sizing: border-box;
+        padding: 0.75rem;
+        border: unset;
+        border-radius: 8px;
+        height: auto;
+    }
 </style>

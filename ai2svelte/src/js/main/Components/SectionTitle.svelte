@@ -18,12 +18,15 @@
     <Selector {labels} bind:value={activeValue} />
 </div>
 
+<hr />
+
 <style lang="scss">
     @use "../../variables.scss" as *;
 
     hr {
         width: 100%;
         border: 1px solid $color-charcoal-light;
+        margin: 0;
     }
 
     .section {

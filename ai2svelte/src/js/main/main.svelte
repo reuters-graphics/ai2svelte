@@ -20,8 +20,11 @@
     isCEP,
     snippets,
   } from "./stores";
-  import { convertStringToObject, parseSnippetSettings } from "./Tabs/utils";
-  import tippy from "tippy.js";
+  import {
+    convertStringToObject,
+    parseSnippetSettings,
+    initTippy,
+  } from "./Tabs/utils";
   import type { Style } from "./stores";
 
   import TabBar from "./TabBar.svelte";
@@ -108,10 +111,13 @@
   }
 
   onMount(() => {
+    initTippy();
+
     isCEP.set(window.cep);
     if (get(isCEP)) {
       fetchSettings();
     }
+
     tippy("[data-tippy-content]", {
       theme: "dark",
       arrow: false,
