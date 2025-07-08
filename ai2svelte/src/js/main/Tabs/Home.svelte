@@ -40,6 +40,7 @@
             .join("\n")
             .trim();
     });
+    let editableYamlString: string = $state("");
 
     $effect(() => {
         if (AiSettings) {
@@ -60,8 +61,9 @@
         }
     });
 
+    // Sync the derived yamlString to the editable version when styles change
     $effect(() => {
-        settingsObject.set(convertStringToObject(yamlString));
+        editableYamlString = yamlString;
     });
 
     onMount(() => {
@@ -78,13 +80,14 @@
                 if (key && rest.length) {
                     let value: unknown = rest.join(":").trim();
                     // Try to convert to number if possible
-                    if (parseInt(value as string)) {
-                        value = Number(value);
-                    }
+                    // if (parseInt(value as string)) {
+                    //     value = Number(value);
+                    // }
                     obj[key.trim()] = value;
                 }
             });
-        return obj;
+
+        settingsObject.set(obj);
     }
 </script>
 
@@ -140,8 +143,10 @@
             >
                 <CmTextArea
                     type="text"
-                    value={yamlString}
-                    onUpdate={(e) => {}}
+                    bind:value={editableYamlString}
+                    onUpdate={(e) => {
+                        convertStringToObject(editableYamlString);
+                    }}
                 />
             </div>
         {/if}
