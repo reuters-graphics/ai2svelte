@@ -5,13 +5,17 @@
     import { settingsObject } from "../stores";
     import { evalTS } from "../../lib/utils/bolt";
     import SectionTitle from "../Components/SectionTitle.svelte";
-    import Select from "../Components/Select.svelte";
-    import Dropdown from "../Components/Dropdown.svelte";
+    import Input from "../Components/Input.svelte";
     import CmTextArea from "../Components/CMTextArea.svelte";
     import { initTippy } from "./utils";
 
+    import Range from "../Components/InputRange.svelte";
+
     interface AiSettingOption {
         options: string[];
+        type: string;
+        value: string | number | null;
+        description: string;
     }
 
     interface AiSettings {
@@ -49,11 +53,7 @@
 
                 Object.keys(AiSettings).forEach((key) => {
                     const typedKey = key as keyof typeof AiSettings;
-                    if ((AiSettings[typedKey] as AiSettingOption)?.options) {
-                        obj[key] = (
-                            AiSettings[typedKey] as AiSettingOption
-                        ).options[0];
-                    }
+                    obj[key] = (AiSettings[typedKey] as AiSettingOption).value;
                 });
 
                 settingsObject.set(JSON.parse(JSON.stringify(obj)));
@@ -92,7 +92,24 @@
 </script>
 
 <div class="tab-content">
-    <button id="hero-button">Run ai2svelte</button>
+    <!-- <Select label="Range" type="range" value={20} /> -->
+    <Range value={20} />
+
+    <button
+        id="hero-button"
+        onclick={(e) => {
+            console.log($settingsObject);
+            evalTS("setVariable", "msg", $settingsObject);
+        }}>Store</button
+    >
+
+    <button
+        id="hero-button"
+        onclick={async (e) => {
+            const t = await evalTS("getVariable", "msg");
+            console.log(t);
+        }}>Retrieve</button
+    >
 
     <SectionTitle
         title={"Settings"}
@@ -110,23 +127,35 @@
                 out:fly={{ y: 50, duration: 300 }}
             >
                 {#if $settingsObject}
-                    {#each Object.keys($settingsObject) as key}
+                    {#each Object.keys($settingsObject) as key, index}
                         <div class="ai-setting">
-                            {#if (AiSettings[key as keyof AiSettings] as AiSettingOption)?.options !== undefined}
-                                <Select
+                            {#if (AiSettings[key as keyof AiSettings] as AiSettingOption)?.type == "select"}
+                                <Input
                                     label={key}
                                     options={(
                                         AiSettings[
                                             key as keyof AiSettings
                                         ] as AiSettingOption
                                     ).options}
+                                    bind:value={$settingsObject[key] as string}
+                                    delay={index * 30}
+                                />
+                            {:else if (AiSettings[key as keyof AiSettings] as AiSettingOption)?.type == "range"}
+                                <Input
+                                    label={key}
                                     bind:value={$settingsObject[key]}
+                                    start={AiSettings[key].start}
+                                    end={AiSettings[key].end}
+                                    type="range"
+                                    delay={index * 30}
                                 />
                             {:else}
-                                <Select
+                                <!-- avoid condition here to allow any keys from Code section as text input -->
+                                <Input
                                     label={key}
                                     bind:value={$settingsObject[key]}
                                     type="text"
+                                    delay={index * 30}
                                 />
                             {/if}
                         </div>
@@ -160,7 +189,6 @@
         display: flex;
         flex-direction: column;
         gap: 16px;
-        overflow: hidden;
     }
 
     #hero-button {

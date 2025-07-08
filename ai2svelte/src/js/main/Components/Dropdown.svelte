@@ -1,13 +1,15 @@
 <script lang="ts">
     import { fly, slide } from "svelte/transition";
 
-    interface Props {
-        options: Array<string>;
+    export interface DropdownProps {
+        options?: Array<string>;
         value: string;
     }
 
-    let { options = [], value = $bindable("Select some option") }: Props =
-        $props();
+    let {
+        options = [],
+        value = $bindable("Select some option"),
+    }: DropdownProps = $props();
 
     let parentContainer: HTMLElement | undefined = $state();
     let hoveredElement: HTMLElement | undefined = $state();

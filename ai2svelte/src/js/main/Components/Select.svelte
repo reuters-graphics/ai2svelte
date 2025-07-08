@@ -27,6 +27,8 @@
             type="text"
             bind:value
         />
+    {:else if type == "range"}
+        <input type="range" class="option-range" bind:value />
     {/if}
 </div>
 

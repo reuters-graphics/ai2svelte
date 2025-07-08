@@ -117,10 +117,13 @@
     />
 
     {#if activeTab == "ui"}
-        <p>ui</p>
+        <div class="content-item">
+            <p>ui</p>
+        </div>
     {:else if activeTab == "code"}
         <div
             id="snippetsettings-textarea"
+            class="content-item"
             bind:this={codeContent}
             bind:clientHeight={codeContentHeight}
             in:fly={{ y: -50, duration: 300 }}
