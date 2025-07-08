@@ -39,6 +39,7 @@
             chaserElement instanceof HTMLElement
         ) {
             chaserElement.style.top = "0px";
+            chaserElement.style.height = "unset";
         }
     });
 </script>
@@ -152,6 +153,9 @@
         padding: 0.25rem;
         border-radius: 12px;
         z-index: 3;
+        box-shadow:
+            0 0 16px rgba(0, 0, 0, 0.2),
+            0 0 4px rgba(0, 0, 0, 0.1);
     }
 
     ul {
