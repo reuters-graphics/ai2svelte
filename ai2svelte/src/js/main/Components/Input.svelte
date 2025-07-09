@@ -87,7 +87,7 @@
         border-radius: 8px;
         flex-grow: 1;
         transition: 0.2s ease;
-        background-color: $color-charcoal-dark;
+        background-color: var(--color-primary);
         border: unset;
         width: 100%;
     }
@@ -97,14 +97,12 @@
             opacity: 0.5;
         }
 
-        .option-select {
-            opacity: 0.7;
+        .hidden {
+            opacity: 0.5;
         }
 
-        .hidden {
-            // --dragging: 0.5;
-            // opacity: var(--dragging);
-            opacity: 0.5;
+        :global(.option-text) {
+            opacity: 1;
         }
     }
 
@@ -113,7 +111,7 @@
     }
 
     .option-container:focus-within {
-        box-shadow: inset 0 0 0 2px $accent;
+        box-shadow: inset 0 0 0 2px var(--color-accent-primary);
     }
 
     .label-container {
@@ -125,84 +123,21 @@
         top: 0;
         left: 0;
         text-transform: uppercase;
-        font-size: $font-size-xs;
-        font-family: "Geist Mono";
+        font-size: var(--font-size-sm);
         font-weight: 400;
-        color: $color-white;
+        color: var(--color-text);
         opacity: 0.3;
         user-select: none;
         cursor: default;
-        transition: 0.3s ease;
+        @include animation-default;
     }
 
     .hidden {
-        transition: 0.3s ease;
+        @include animation-default;
         position: relative;
     }
 
     .visible {
         position: relative;
-    }
-
-    .option-select {
-        cursor: pointer;
-        background-color: transparent;
-        font-size: $font-size-sm;
-        font-family: "Geist Mono";
-        font-weight: 500;
-        color: $color-white;
-        opacity: 0.5;
-        border: unset;
-        padding: 0px;
-        padding-right: 0.5rem;
-        margin-left: 0px;
-        transition: 0.2s ease;
-    }
-
-    .option-select {
-        &,
-        &::picker(select) {
-            appearance: base-select;
-            // background-color: red;
-        }
-    }
-
-    .option-select::picker-icon {
-        color: $color-charcoal-lightest;
-        transition: 0.2s rotate;
-    }
-
-    .option-select:open::picker-icon {
-        rotate: 180deg;
-    }
-
-    .option:hover {
-        cursor: pointer;
-        background-color: $accent;
-
-        .option-title {
-            opacity: 0.5;
-        }
-
-        .option-select {
-            opacity: 0.7;
-        }
-    }
-
-    .option {
-        background-color: $color-charcoal-light;
-        color: $color-charcoal-lightest;
-        padding-inline: unset;
-        transition: 0.2s ease;
-    }
-
-    .option:hover,
-    .option:focus {
-        background-color: $color-charcoal-lighter;
-        color: $color-white;
-    }
-
-    .option::checkmark {
-        content: "";
     }
 </style>

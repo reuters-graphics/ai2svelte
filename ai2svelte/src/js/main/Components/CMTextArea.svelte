@@ -68,8 +68,6 @@
 <div class="cm-codeeditor" bind:this={editorEle}></div>
 
 <style lang="scss">
-    @use "../../variables.scss" as *;
-
     .cm-codeeditor {
         width: 100%;
         position: relative;

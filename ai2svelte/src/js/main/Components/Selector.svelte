@@ -49,17 +49,17 @@
     }
 
     .radio-button {
-        font-family: "Geist Mono";
-        font-size: $font-size-sm;
+        font-size: var(--font-size-base);
         font-weight: 600;
         opacity: 0.3;
         border: unset;
         background-color: unset;
-        color: $color-white;
+        color: var(--color-text);
         padding: 0;
         margin: 0;
         text-transform: uppercase;
-        transition: 0.3s opacity ease;
+        user-select: none;
+        @include animation-default;
     }
 
     .radio-button:hover {

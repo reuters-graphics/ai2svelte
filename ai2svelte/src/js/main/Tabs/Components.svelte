@@ -139,8 +139,6 @@
 </div>
 
 <style lang="scss">
-    @use "../../variables.scss" as *;
-
     .tab-content {
         display: flex;
         flex-direction: column;
@@ -150,7 +148,7 @@
 
     #snippetsettings-textarea {
         width: 100%;
-        background-color: $color-charcoal-dark;
+        background-color: var(--color-primary);
         box-sizing: border-box;
         padding: 0.75rem;
         border: unset;

@@ -30,7 +30,7 @@
   import TabBar from "./TabBar.svelte";
   import Home from "./Tabs/Home.svelte";
   import Components from "./Tabs/Components.svelte";
-  import Extras from "./Tabs/Extras.svelte";
+  import CSS from "./Tabs/CSS.svelte";
 
   let activeTab: string = $state("HOME");
 
@@ -183,7 +183,7 @@
     <Home />
   {:else if activeTab === "COMPONENTS"}
     <Components />
-  {:else if activeTab === "EXTRAS"}
-    <Extras />
+  {:else if activeTab === "CSS"}
+    <CSS />
   {/if}
 </div>

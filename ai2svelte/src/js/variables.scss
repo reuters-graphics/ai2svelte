@@ -14,11 +14,13 @@ $error: #ed553b;
 
 $accent: #dc4300;
 $accent-dark: #241E1C;
+
 $color-charcoal: #1E1E1E;
 $color-charcoal-dark: #171717;
 $color-charcoal-light: #292929;
 $color-charcoal-lighter: #353535;
 $color-charcoal-lightest: #626262;
+
 $color-silver: #a3a3a3;
 $color-gray: #808080;
 $color-black: #000000;
@@ -29,3 +31,24 @@ $font-size-xs: clamp(0.89rem, -0.08vw + 0.91rem, 0.84rem);
 $font-size-sm: clamp(1rem, 0.08vw + 0.98rem, 1.05rem);
 $font-size-base: clamp(1.13rem, 0.31vw + 1.06rem, 1.31rem);
 $font-size-lg: clamp(1.27rem, 0.63vw + 1.14rem, 1.64rem);
+
+// _theme-tokens.scss
+$light-theme: (
+  primary: #007bff,
+  secondary: #6c757d,
+  background: #ffffff,
+  text: #212529,
+  border: #dee2e6
+);
+
+$dark-theme: (
+  primary: #0d6efd,
+  secondary: #6c757d,
+  background: #121212,
+  text: #ffffff,
+  border: #333333
+);
+
+@mixin animation-default($property: all) {
+  transition: 0.3s $property ease;
+}

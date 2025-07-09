@@ -49,27 +49,27 @@
         display: flex;
         flex-direction: row;
         align-items: center;
-        background-color: $color-charcoal-lighter;
+        background-color: var(--color-tertiary);
         border-radius: 24px;
         gap: 8px;
         padding: 0.5rem 0.75rem;
         cursor: pointer;
+        @include animation-default;
 
         p {
-            color: $color-white;
-            font-size: $font-size-xs;
-            // text-transform: uppercase;
+            color: var(--color-text);
+            font-size: var(--font-size-xs);
             font-weight: 600;
             opacity: 0.5;
-            transition: 0.3s ease;
+            @include animation-default;
         }
 
         svg {
             width: 16px;
             aspect-ratio: 1;
-            fill: $color-white;
+            fill: var(--color-white);
             opacity: 0.5;
-            transition: 0.3s ease;
+            @include animation-default;
         }
 
         svg:hover {
@@ -85,7 +85,7 @@
     }
 
     .active {
-        background-color: $accent;
+        background-color: var(--color-accent-primary);
 
         p {
             opacity: 1 !important;

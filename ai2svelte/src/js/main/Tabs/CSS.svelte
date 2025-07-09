@@ -15,10 +15,11 @@
     import scss from "postcss-scss";
 
     import SectionTabBar from "../Components/SectionTabBar.svelte";
-    import Select from "../Components/Select.svelte";
+    // import Select from "../Components/Select.svelte";
     import ShadowCard from "../Components/ShadowCard.svelte";
     import CmTextArea from "../Components/CMTextArea.svelte";
     import Pill from "../Components/Pill.svelte";
+    import Input from "../Components/Input.svelte";
 
     let activeTab = $state("");
 
@@ -346,7 +347,7 @@
         </div>
     </SectionTabBar>
 
-    <Select label="Shadow identifier" type="text" bind:value={shadowSelector} />
+    <Input label="Shadow identifier" type="text" bind:value={shadowSelector} />
 
     <div class="shadow-container">
         {#each allShadows as shadow, index (shadow.id)}
@@ -365,6 +366,7 @@
                     allShadows = [...allShadows];
                     updateStyles(shadow.dataName, shadow.active);
                 }}
+                delay={index * 20}
             />
         {/each}
     </div>
@@ -419,91 +421,6 @@
         #replace-image:hover,
         #replace-specimen:hover {
             filter: brightness(1.5);
-        }
-
-        /* COLOR PICKER */
-        :global {
-            .color-picker {
-                width: 24px !important;
-                height: 24px !important;
-                display: flex;
-
-                label {
-                    margin: 0 !important;
-                }
-
-                .container {
-                    width: 24px;
-                    height: 24px;
-                }
-            }
-
-            div[aria-label="color picker"] {
-                border-radius: 8px !important;
-                padding: 0 !important;
-                // display: flex !important;
-                // flex-direction: column !important;
-
-                div.picker {
-                    border-radius: 8px 8px 0px 0px;
-
-                    div.picker-indicator {
-                        background-color: var(--picker-color);
-                        border: 2px solid white;
-                    }
-                }
-
-                div.h {
-                    margin: 0 !important;
-                    padding: 0 !important;
-                    // width: 100%;
-
-                    div.slider {
-                        width: var(--picker-width) !important;
-                        max-width: unset !important;
-                        margin: 0;
-                        ---thumb-size: 24px !important;
-
-                        div.thumb {
-                            position: absolute;
-                            border: unset;
-                            box-shadow:
-                                0px 0px 4px black,
-                                0px 0px 4px black;
-                        }
-                    }
-
-                    div.track {
-                        border: unset !important;
-                        border-radius: 0 !important;
-                    }
-                }
-
-                div.text-input {
-                    margin: 0 !important;
-                    padding: 0 !important;
-
-                    * {
-                        margin: 0 !important;
-                        padding: 0 !important;
-                        border-radius: 0 !important;
-                    }
-
-                    button {
-                        display: block;
-                        border-radius: 0px 0px 8px 8px !important;
-                    }
-
-                    span.appear {
-                        background-color: var(--cp-input-color) !important;
-                    }
-                }
-            }
-
-            div[aria-label="color picker"].is-open {
-                display: flex !important;
-                flex-direction: column !important;
-            }
         }
     }
 

@@ -102,7 +102,7 @@
         position: absolute;
         top: 0px;
         opacity: 0.5;
-        transition: 0.3s ease;
+        @include animation-default;
     }
 
     .hidden {
@@ -112,7 +112,7 @@
 
     .chevron {
         opacity: 0.3;
-        transition: 0.3s ease;
+        @include animation-default;
     }
 
     .selected-option {
@@ -124,21 +124,17 @@
         background-color: transparent;
         padding: 0px;
         padding-right: 12px;
-        transition: 0.3s ease;
         border-radius: 8px;
         cursor: pointer;
+        @include animation-default;
 
         p {
-            font-family: "Geist Mono";
-            font-size: $font-size-sm;
+            font-size: var(--font-size-base);
             font-weight: 500;
-            color: $color-white;
         }
     }
 
     .selected-option:hover {
-        background-color: $color-charcoal-dark;
-
         .dropdown-value {
             opacity: 0.7;
         }
@@ -148,7 +144,7 @@
         position: absolute;
         top: calc(100% + 8px);
         width: 100%;
-        background-color: $color-charcoal-light;
+        background-color: var(--color-secondary);
         backdrop-filter: blur(4px);
         padding: 0.25rem;
         border-radius: 12px;
@@ -177,7 +173,7 @@
             width: 100%;
             opacity: 0.5;
             padding: 8px;
-            transition: 0.3s ease;
+            @include animation-default;
         }
     }
 
@@ -188,7 +184,7 @@
     }
 
     li[data-active="true"] {
-        color: $color-white;
+        color: var(--color-white);
 
         button {
             opacity: 1 !important;
@@ -198,11 +194,11 @@
     .li-selector {
         position: absolute;
         width: 100%;
-        background-color: $color-charcoal;
+        background-color: var(--color-primary);
         border-radius: 8px;
         top: 0px;
         z-index: 3;
         color: transparent;
-        transition: 0.3s ease;
+        @include animation-default;
     }
 </style>

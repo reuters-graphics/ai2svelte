@@ -7,7 +7,6 @@
     import SectionTitle from "../Components/SectionTitle.svelte";
     import Input from "../Components/Input.svelte";
     import CmTextArea from "../Components/CMTextArea.svelte";
-    import { initTippy } from "./utils";
 
     import Range from "../Components/InputRange.svelte";
 
@@ -183,8 +182,6 @@
 </div>
 
 <style lang="scss">
-    @use "../../variables.scss" as *;
-
     .tab-content {
         display: flex;
         flex-direction: column;
@@ -194,12 +191,10 @@
     #hero-button {
         cursor: pointer;
         padding: 1rem;
-        background-color: $accent;
+        background-color: var(--color-accent-primary);
         border: unset;
         border-radius: 4px;
-        color: white;
-        font-size: 1rem;
-        font-family: "Geist Mono";
+        font-size: var(--font-size-s);
         font-weight: 500;
         text-transform: uppercase;
         letter-spacing: 0.2rem;
@@ -225,8 +220,7 @@
 
     #aisettings-textarea {
         width: 100%;
-        background-color: $color-charcoal-dark;
-        box-sizing: border-box;
+        background-color: var(--color-primary);
         padding: 0.75rem;
         border: unset;
         border-radius: 8px;

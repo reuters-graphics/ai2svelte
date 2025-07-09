@@ -35,7 +35,7 @@
                 0,
                 1,
             );
-            const val = Math.floor((progress.current * length) / stepper);
+            const val = Math.floor((progress.target * length) / stepper);
             value = parseInt(Math.floor(stepper * val).toFixed(0));
         }
     }
@@ -86,11 +86,10 @@
     .range {
         width: 100%;
         min-width: 120px;
-        background-color: $color-charcoal-dark;
+        background-color: transparent;
         border-radius: 8px;
         position: relative;
         cursor: pointer;
-        // background-color: $accent;
     }
 
     .range:hover {
@@ -106,31 +105,29 @@
         // transform: translate(4px, -50%);
         width: 100%;
         height: 100%; // padding from parent
-        background-color: $color-white;
+        background-color: var(--color-invert);
         border-radius: 4px;
         pointer-events: none;
     }
 
     .bg {
-        background-color: $color-charcoal-light;
+        background-color: var(--color-secondary);
     }
 
     .range-value {
         position: absolute;
         top: 50%;
-        color: $color-charcoal-lighter;
         z-index: 2;
         pointer-events: none;
         user-select: none;
         opacity: 0.5;
-        transition:
-            0.3s transform ease,
-            0.3s opacity ease;
-        font-size: $font-size-xs;
+        font-size: var(--font-size-base);
+        @include animation-default(transform);
+        @include animation-default(opacity);
     }
 
     .pseudo {
-        font-size: $font-size-sm;
+        font-size: var(--font-size-base);
         opacity: 0;
         user-select: none;
     }

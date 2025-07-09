@@ -15,12 +15,11 @@
     .option-text {
         background-color: transparent;
         border: unset;
-        color: $color-white;
-        font-family: "Geist Mono";
-        font-size: $font-size-sm;
-        caret-color: $accent;
+        color: var(--color-text);
+        font-size: var(--font-size-base);
+        caret-color: var(--color-accent-primary);
         opacity: 0.5;
-        transition: 0.2s ease;
+        @include animation-default;
     }
 
     .option-text:focus {

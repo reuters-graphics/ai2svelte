@@ -28,19 +28,10 @@
 <style lang="scss">
     @use "../../variables.scss" as *;
 
-    hr {
-        width: 100%;
-        border: 1px solid $color-charcoal-light;
-    }
-
     .section {
         display: flex;
         flex-direction: row;
         justify-content: space-between;
         width: 100%;
-    }
-
-    .title {
-        font-size: $font-size-sm;
     }
 </style>
