@@ -13,3 +13,9 @@ artboards and layers can hold everything after colon as abSettings
 ab:1200 -> 1200 gets set as minwidth
 ab:fixed,prop,467,999 -> sets minwidth:999 and artboard fixed. rest of the things get ignored
 ab:image_only -> discards text inside the artboard in the final output
+
+
+layer:svg -> exports as svg
+layer:div -> separate element that can scale
+layer:symbol -> separate element that cannot scale
+layer:png -> separate element comprising of just png image

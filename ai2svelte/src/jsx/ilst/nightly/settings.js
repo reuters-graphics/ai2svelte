@@ -21,7 +21,6 @@ export let defaultSettings = {
   "use_lazy_loader": true,
   "include_resizer_widths": true,
   "include_resizer_css": true, // container-query resizing
-  "include_resizer_script": false,
   "inline_svg": false, // Embed background image SVG in HTML instead of loading a file
   "svg_id_prefix": "", // Prefix SVG ids with a string to disambiguate from other ids on the page
   "svg_embed_images": false,

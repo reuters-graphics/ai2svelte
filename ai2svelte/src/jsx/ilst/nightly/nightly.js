@@ -187,11 +187,6 @@ try {
   docSlug = docSettings.project_name || makeDocumentSlug(getRawDocumentName());
   nameSpace = docSettings.namespace || nameSpace;
 
-  // TO COMMENT
-  if (!textBlockData.settings && isTrue(docSettings.create_settings_block)) {
-    createSettingsBlock(docSettings);
-  }
-
   progressBar = new ProgressBar({name: 'ai2svelte progress', steps: calcProgressBarSteps()});
   validateArtboardNames(docSettings); // warn about duplicate artboard names
 
@@ -674,44 +669,6 @@ function cleanCodeBlock(type, raw) {
     clean = stripTag('style', clean);
   }
   return clean;
-}
-
-
-// REMOVE THIS
-function createSettingsBlock(settings) {
-  var bounds      = getAllArtboardBounds();
-  var fontSize    = 15;
-  var leading     = 19;
-  var extraLines  = 6;
-  var width       = 400;
-  var left        = bounds[0] - width - 50;
-  var top         = bounds[1];
-  var settingsLines = ["ai2html-settings"];
-  var layer, rect, textArea, height;
-
-  forEach(settings.settings_block, function(key) {
-    settingsLines.push(key + ": " + settings[key]);
-  });
-
-  try {
-    layer = doc.layers.getByName("ai2html-settings");
-    layer.locked = false;
-  } catch(e) {
-    layer = doc.layers.add();
-    layer.zOrder(ZOrderMethod.BRINGTOFRONT);
-    layer.name  = "ai2html-settings";
-  }
-
-  height = leading * (settingsLines.length + extraLines);
-  rect = layer.pathItems.rectangle(top, left, width, height);
-  textArea = layer.textFrames.areaText(rect);
-  textArea.textRange.autoLeading = false;
-  textArea.textRange.characterAttributes.leading = leading;
-  textArea.textRange.characterAttributes.size = fontSize;
-  textArea.contents = settingsLines.join('\n');
-  textArea.name = 'ai2html-settings';
-  message("A settings text block was created to the left of all your artboards.");
-  return textArea;
 }
 
 function parseSettingsEntry(str) {
@@ -2242,6 +2199,7 @@ function exportSymbols(lyr, ab, masks, opts) {
   var items = [];
   var abBox = convertAiBounds(ab.artboardRect);
   var html = '';
+  var tagPrefix = opts.tagPrefix || 'symbol';
   forLayer(lyr);
 
   function forLayer(lyr) {
@@ -2277,7 +2235,7 @@ function exportSymbols(lyr, ab, masks, opts) {
     item.hidden = true;
   }
   if (html) {
-    html = '\t\t<div class="' + nameSpace + 'symbol-layer ' + nameSpace + getLayerName(lyr) + '">' + html + '\r\t\t</div>\r';
+    html = '\t\t<div class="' + nameSpace + tagPrefix + '-layer ' + nameSpace + getLayerName(lyr) + '">' + html + '\r\t\t</div>\r';
   }
   return {
     html: html,
@@ -2493,23 +2451,16 @@ function convertArtItems(activeArtboard, textFrames, masks, settings) {
     }
   }
 
-  // WIP
-  // forEach(findTaggedLayers('svg-symbol'), function(lyr) {
-  //   var obj = exportSvgSymbols(lyr, activeArtboard, masks);
-  //   html += obj.html;
-  //   hiddenItems = hiddenItems.concat(obj.items);
-  // });
-
   // Symbols in :symbol layers are not scaled
   forEach(findTaggedLayers('symbol'), function(lyr) {
-    var obj = exportSymbols(lyr, activeArtboard, masks, {scaled: false});
+    var obj = exportSymbols(lyr, activeArtboard, masks, {scaled: false, tagPrefix: 'symbol'});
     html += obj.html;
     hiddenItems = hiddenItems.concat(obj.items);
   });
 
   // Symbols in :div layers are scaled
   forEach(findTaggedLayers('div'), function(lyr) {
-    var obj = exportSymbols(lyr, activeArtboard, masks, {scaled: true});
+    var obj = exportSymbols(lyr, activeArtboard, masks, {scaled: true, tagPrefix: 'div'});
     html += obj.html;
     hiddenItems = hiddenItems.concat(obj.items);
   });
@@ -2598,7 +2549,10 @@ function exportImage(imgName, format, ab, masks, layer, settings) {
   var created, html;
 
   imgClass += ' ' + nameSpace + 'aiImg';
+
   if (format == 'svg') {
+    imgClass += ' ' + nameSpace + 'svg-layer';
+
     if (layer) {
       svgInlineStyle = getLayerOpacityCSS(layer);
       svgLayersArg = [layer];
@@ -2764,15 +2718,7 @@ function generateImageHtml(imgFile, imgId, imgClass, imgStyle, ab, settings) {
   if (imgStyle) {
     html += ' style="' + imgStyle + '"';
   }
-  // Use JS lazy loading if the resizer script is enabled
-  if (isTrue(settings.use_lazy_loader) &&
-    isTrue(settings.include_resizer_script) &&
-    !isTrue(settings.include_resizer_css)) {
-    html += ' data-src="' + src + '"';
-    // placeholder while image loads
-    // (<img> element requires a src attribute, according to spec.)
-    src = 'data:image/gif;base64,R0lGODlhCgAKAIAAAB8fHwAAACH5BAEAAAAALAAAAAAKAAoAAAIIhI+py+0PYysAOw==';
-  } else if (isTrue(settings.use_lazy_loader)) {
+  if (isTrue(settings.use_lazy_loader)) {
     // native lazy loading seems to work well -- images aren't loaded when
     // hidden or far from the viewport.
     html += ' loading="lazy"';
@@ -3132,8 +3078,7 @@ function generateArtboardDiv(ab, group, settings) {
 
   html += '\t<div id="' + id + '" class="' + classname + '" style="' + inlineStyle + '"';
   html += ' data-aspect-ratio="' + roundTo(aspectRatio, 3) + '"';
-  if (isTrue(settings.include_resizer_widths) ||
-    isTrue(settings.include_resizer_script)) {
+  if (isTrue(settings.include_resizer_widths)) {
     html += ' data-min-width="' + visibleRange[0] + '"';
     if (visibleRange[1] < Infinity) {
       html +=  ' data-max-width="' + visibleRange[1] + '"';
@@ -3444,13 +3389,6 @@ function generateOutputHtml(content, group, settings) {
   }
 
   progressBar.setTitle('Writing HTML output...');
-
-  if (isTrue(settings.include_resizer_script)
-    // resizer CSS overrides the script setting
-    && !isTrue(settings.include_resizer_css)) {
-    responsiveJs  = getResizerScript(containerId);
-    containerClasses += ' ai2html-responsive';
-  }
 
   commentBlock = '<!-- Generated by ai2html v' + scriptVersion + ' - ' +
     getDateTimeStamp() + ' -->\r' + '<!-- ai file: ' + doc.name + ' -->\r';
