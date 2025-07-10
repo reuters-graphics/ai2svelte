@@ -7,6 +7,7 @@
 
     import unescapeJs from "unescape-js";
 
+    import Chip from "../Components/Chip.svelte";
     import SectionTitle from "../Components/SectionTitle.svelte";
     import CmTextArea from "../Components/CMTextArea.svelte";
 
@@ -81,22 +82,6 @@
     }
 </script>
 
-{#snippet formatChoice(name: string)}
-    <label
-        class="format-button {activeTab == name ? 'active' : null}"
-        onclick={(e) => handleClick(e)}
-        for={"format-" + name}
-    >
-        <input
-            type="radio"
-            name="format-choice"
-            id={"format-" + name}
-            value={name}
-            checked={activeTab == name}
-        />{name}
-    </label>
-{/snippet}
-
 {#snippet chip(name: string)}
     <button class="chip" data-name={name} onclick={(e) => handleSnippet(e)}
         >{name}</button
@@ -104,38 +89,20 @@
 {/snippet}
 
 <div class="tab-content" in:fly={{ y: -50, duration: 300 }}>
-    <div class="chips-container">
-        {#each allowedComponents as component}
-            {@render chip(component)}
-        {/each}
+    <div
+        id="snippetsettings-textarea"
+        class="content-item"
+        bind:this={codeContent}
+        bind:clientHeight={codeContentHeight}
+        in:fly={{ y: -50, duration: 300 }}
+        out:fly={{ y: 50, duration: 300 }}
+    >
+        <CmTextArea
+            type="text"
+            value={yamlString}
+            onUpdate={(e: Event) => {}}
+        />
     </div>
-
-    <SectionTitle
-        title="Properties"
-        labels={["ui", "code"]}
-        bind:activeValue={activeTab}
-    />
-
-    {#if activeTab == "ui"}
-        <div class="content-item">
-            <p>ui</p>
-        </div>
-    {:else if activeTab == "code"}
-        <div
-            id="snippetsettings-textarea"
-            class="content-item"
-            bind:this={codeContent}
-            bind:clientHeight={codeContentHeight}
-            in:fly={{ y: -50, duration: 300 }}
-            out:fly={{ y: 50, duration: 300 }}
-        >
-            <CmTextArea
-                type="text"
-                value={yamlString}
-                onUpdate={(e: Event) => {}}
-            />
-        </div>
-    {/if}
 </div>
 
 <style lang="scss">

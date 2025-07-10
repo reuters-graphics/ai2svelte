@@ -105,7 +105,7 @@
         // transform: translate(4px, -50%);
         width: 100%;
         height: 100%; // padding from parent
-        background-color: var(--color-invert);
+        background-color: var(--color-accent-primary);
         border-radius: 4px;
         pointer-events: none;
     }

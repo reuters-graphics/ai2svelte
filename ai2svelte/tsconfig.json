@@ -2,7 +2,11 @@
   "compilerOptions": {
     "target": "ESNext",
     "useDefineForClassFields": true,
-    "lib": ["DOM", "DOM.Iterable", "ESNext"],
+    "lib": [
+      "DOM",
+      "DOM.Iterable",
+      "ESNext"
+    ],
     "allowJs": false,
     "skipLibCheck": true,
     "esModuleInterop": false,
@@ -17,9 +21,15 @@
     "jsx": "preserve",
     "verbatimModuleSyntax": true,
     "paths": {
-      "@esTypes/*": ["./src/jsx"]
+      "@esTypes/*": [
+        "./src/jsx"
+      ]
     }
   },
-  "include": ["./src"],
-  "exclude": ["./src/jsx"]
+  "include": [
+    "./src"
+  ],
+  "exclude": [
+    "./src/jsx"
+  ]
 }

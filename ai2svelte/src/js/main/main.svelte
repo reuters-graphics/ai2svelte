@@ -31,6 +31,7 @@
   import Home from "./Tabs/Home.svelte";
   import Components from "./Tabs/Components.svelte";
   import CSS from "./Tabs/CSS.svelte";
+  import Preview from "./Tabs/Preview.svelte";
 
   let activeTab: string = $state("HOME");
 
@@ -185,5 +186,7 @@
     <Components />
   {:else if activeTab === "CSS"}
     <CSS />
+  {:else if activeTab === "PREVIEW"}
+    <Preview />
   {/if}
 </div>

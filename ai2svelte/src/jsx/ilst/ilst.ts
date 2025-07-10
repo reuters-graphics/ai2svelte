@@ -1,8 +1,8 @@
-import { main } from './ai2svelteNightly';
 import { updateSettings, fetchSettings } from "./updateSettings";
 import { fetchSelectors } from "./fetchSelectors";
 import { addSnippet } from "./addSnippet";
 import { storeHiddenData, getHiddenData } from './dataOperations';
+import { main } from './nightly/nightly';
 
 export const updateAiSettings = (settingsObj: string, str: string) => {
   if(app) {
@@ -37,5 +37,11 @@ export const setVariable = (key, value) => {
 export const getVariable = (key) => {
   if(app) {
     return getHiddenData(key);
+  }
+}
+
+export const runNightly = () => {
+  if (app) {
+    main();
   }
 }

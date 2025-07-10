@@ -6,13 +6,13 @@ $accent-secondary: #241E1C;
 
 // backgrounds
 $dark-theme: (
-    background: #1E1E1E,
-    primary: #171717,
+  background: hsl(0, 0%, 9%),
+    primary: hsl(0, 0%, 12%),
     secondary: #292929,
     tertiary: #353535,
     quaternary: #626262,
 
-    invert: #909090,
+    invert: #dc4300,
 
     accent-primary: #dc4300,
     accent-secondary: #241E1C,

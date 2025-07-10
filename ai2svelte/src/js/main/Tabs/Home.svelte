@@ -91,8 +91,12 @@
 </script>
 
 <div class="tab-content">
-    <!-- <Select label="Range" type="range" value={20} /> -->
-    <Range value={20} />
+    <button
+        id="hero-button"
+        onclick={(e) => {
+            evalTS("runNightly");
+        }}>Run Nightly</button
+    >
 
     <button
         id="hero-button"
