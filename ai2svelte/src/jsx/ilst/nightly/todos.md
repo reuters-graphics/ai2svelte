@@ -11,6 +11,10 @@ ai2html container queries don't have importants
 
 need to have required settings block un-deletable in plugin
 
+replace ai2html-settings namespace (ai2html-) with ai2svelte
+
+
+
 artboards and layers can hold everything after colon as abSettings
 ab:1200 -> 1200 gets set as minwidth
 ab:fixed,prop,467,999 -> sets minwidth:999 and artboard fixed. rest of the things get ignored

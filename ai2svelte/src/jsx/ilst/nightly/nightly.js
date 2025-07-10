@@ -31,8 +31,7 @@
 // - Go to the folder containing your Illustrator file. Inside will be a folder called ai2html-output.
 // - Open the html files in your browser to preview your output.
 
-// These are base settings that are overridden by text block settings in
-// the .ai document and settings contained in ai2html-config.json files
+// These are base settings used in the script
 import { defaultSettings } from "./settings";
 
 import { caps, align, blendModes, cssTextStyleProperties, cssPrecision } from './cssStyles';
@@ -151,28 +150,28 @@ if (runningInNode()) {
 
 try {
   if (!isTestedIllustratorVersion(app.version)) {
-    warn('Ai2html has not been tested on this version of Illustrator.');
+    warn('ai2svelte has not been tested on this version of Illustrator.');
   }
   if (!app.documents.length) {
     error('No documents are open');
   }
 
   if (!String(app.activeDocument.fullName)) {
-    error('Ai2html is unable to run because Illustrator is confused by this document\'s file path.' +
+    error('ai2svelte is unable to run because Illustrator is confused by this document\'s file path.' +
       ' Does the path contain any forward slashes or other unusual characters?');
   }
   if (!String(app.activeDocument.path)) {
     error('You need to save your Illustrator file before running this script');
   }
   if (app.activeDocument.documentColorSpace != DocumentColorSpace.RGB) {
-    error('You should change the document color mode to "RGB" before running ai2html (File>Document Color Mode>RGB Color).');
+    error('You should change the document color mode to "RGB" before running ai2svelte (File>Document Color Mode>RGB Color).');
   }
   if (app.activeDocument.activeLayer.name == 'Isolation Mode') {
-    error('Ai2html is unable to run because the document is in Isolation Mode.');
+    error('ai2svelte is unable to run because the document is in Isolation Mode.');
   }
   if (app.activeDocument.activeLayer.name == '<Opacity Mask>' && app.activeDocument.layers.length == 1) {
     // TODO: find a better way to detect this condition (mask can be renamed)
-    error('Ai2html is unable to run because you are editing an Opacity Mask.');
+    error('ai2svelte is unable to run because you are editing an Opacity Mask.');
   }
 
   // initialize script settings
@@ -228,7 +227,7 @@ if (errors.length > 0) {
 
 
 // =================================
-// ai2html render function
+// ai2svelte render function
 // =================================
 
 function renderDocument(settings, textBlockContent) {
@@ -328,7 +327,7 @@ function renderArtboardGroup(group, masks, settings, textBlockContent) {
 
 
 // =====================================
-// ai2html specific utility functions
+// ai2svelte specific utility functions
 // =====================================
 
 function calcProgressBarSteps() {
@@ -454,7 +453,7 @@ function unlockContainer(o) {
 
 
 // ==================================
-// ai2html program state and settings
+// ai2svelte program state and settings
 // ==================================
 
 function runningInNode() {
@@ -554,7 +553,7 @@ function validateArtboardNames(settings) {
 // formatted text blocks
 // INSTEAD pass value using object
 function initSpecialTextBlocks() {
-  const rxp = /^ai2html-(css|js|html|settings|text|html-before|html-after)\s*$/;
+  const rxp = /^ai2svelte-(css|js|html|settings|text|html-before|html-after)\s*$/;
   let settings = null;
   let code = {};
   
@@ -569,22 +568,22 @@ function initSpecialTextBlocks() {
     if (!type) return; // not a special block
     if (objectIsHidden(thisFrame)) {
       if (type == 'settings') {
-        error('Found a hidden ai2html-settings text block. Either delete or hide this settings block.');
+        error('Found a hidden ai2svelte-settings text block. Either delete or hide this settings block.');
       }
       warn('Skipping a hidden ' +  match[0] + ' settings block.');
       return;
     }
     lines = stringToLines(thisFrame.contents);
     lines.shift(); // remove header
-    // Reset the name of any non-settings text boxes with name ai2html-settings
-    if (type != 'settings' && thisFrame.name == 'ai2html-settings') {
+    // Reset the name of any non-settings text boxes with name ai2svelte-settings
+    if (type != 'settings' && thisFrame.name == 'ai2svelte-settings') {
       thisFrame.name = '';
     }
     if (type == 'settings' || type == 'text') {
       settings = settings || {};
       if (type == 'settings') {
         // set name of settings block, so it can be found later using getByName()
-        thisFrame.name = 'ai2html-settings';
+        thisFrame.name = 'ai2svelte-settings';
       }
       parseSettingsEntries(lines, settings);
 
@@ -612,7 +611,7 @@ function initSpecialTextBlocks() {
   return {code: code, settings: settings};
 }
 
-// Derive ai2html program settings by merging default settings and overrides.
+// Derive ai2svelte program settings by merging default settings and overrides.
 function initDocumentSettings(textBlockSettings) {
   var settings = extend({}, defaultSettings); // copy default settings
 
@@ -678,7 +677,7 @@ function parseSettingsEntry(str) {
   return [match[1], straightenCurlyQuotesInsideAngleBrackets(match[2])];
 }
 
-// Add ai2html settings from a text block to a settings object
+// Add ai2svelte settings from a text block to a settings object
 function parseSettingsEntries(entries, settings) {
   forEach(entries, function(str) {
     var match = parseSettingsEntry(str);
@@ -725,7 +724,7 @@ function showCompletionAlert() {
   alertText += makeList(feedback, "Information", "Information");
   alertText += "\n";
   
-  alertText += rule + "ai2html v" + scriptVersion;
+  alertText += rule + "ai2svelte v" + scriptVersion;
   alert(alertHed + alertText);
   function makeList(items, singular, plural) {
     var list = "";
@@ -792,7 +791,7 @@ function ProgressBar(opts) {
 }
 
 // ======================================
-// ai2html AI document reading functions
+// ai2svelte AI document reading functions
 // ======================================
 
 // Convert bounds coordinates (e.g. artboardRect, geometricBounds) to CSS-style coords
@@ -854,22 +853,6 @@ function getDocumentArtboardName(ab) {
   return getDocumentSlug() + "-" + getArtboardName(ab);
 }
 
-// return coordinates of bounding box of all artboards
-function getAllArtboardBounds() {
-  var rect, bounds;
-  for (var i=0, n=doc.artboards.length; i<n; i++) {
-    rect = doc.artboards[i].artboardRect;
-    if (i === 0) {
-      bounds = rect;
-    } else {
-      bounds = [
-        Math.min(rect[0], bounds[0]), Math.max(rect[1], bounds[1]),
-        Math.max(rect[2], bounds[2]), Math.min(rect[3], bounds[3])];
-    }
-  }
-  return bounds;
-}
-
 // return the effective width of an artboard (the actual width, overridden by optional setting)
 function getArtboardWidth(ab) {
   var abSettings = getArtboardSettings(ab);
@@ -914,7 +897,7 @@ function parseObjectName(name) {
   var settingsStr = (/:(.*)/.exec(name) || [])[1] || "";
   var settings = {};
   // parse old-style width declaration
-  var widthStr = (/^ai2html-(\d+)/.exec(name) || [])[1];
+  var widthStr = (/^ai2svelte-(\d+)/.exec(name) || [])[1];
   if (widthStr) {
     settings.width = parseFloat(widthStr);
   }
@@ -1229,7 +1212,7 @@ function storeSelectedItems(obj, selection) {
 }
 
 // ==============================
-// ai2html text functions
+// ai2svelte text functions
 // ==============================
 
 function textIsRotated(textFrame) {
@@ -1635,7 +1618,7 @@ function deriveTextStyleCss(frameData) {
       return "";
     };
 
-    // the ai2html script automatically handles empty keys here and shows them on the final alert. so we don't need to worry about fallback fonts. (unless we want specific fallback fonts)
+    // the ai2svelte script automatically handles empty keys here and shows them on the final alert. so we don't need to worry about fallback fonts. (unless we want specific fallback fonts)
     return {
       aifont: aifont,
       family: findFamily(),
@@ -2070,7 +2053,7 @@ function convertAreaTextPath(frame) {
 
 
 // =================================
-// ai2html symbol functions
+// ai2svelte symbol functions
 // =================================
 
 // Return inline CSS for styling a single symbol
@@ -2376,7 +2359,7 @@ function getCircleData(points) {
 
 
 // =================================
-// ai2html image functions
+// ai2svelte image functions
 // =================================
 
 function getArtboardImageName(ab, settings) {
@@ -2401,7 +2384,7 @@ function uniqAssetName(name, names) {
   return uniqName;
 }
 
-// setting: value from ai2html settings (e.g. 'auto' 'png')
+// setting: value from ai2svelte settings (e.g. 'auto' 'png')
 function resolveArtboardImageFormat(setting, ab) {
   var fmt;
   if (setting == 'auto') {
@@ -3045,7 +3028,7 @@ function injectCSSinSVG(content, css) {
 }
 
 // ===================================
-// ai2html output generation functions
+// ai2svelte output generation functions
 // ===================================
 
 function generateArtboardDiv(ab, group, settings) {
@@ -3173,7 +3156,7 @@ function generatePageCss(containerId, group, settings) {
   }
 
   if (settings.clickable_link !== '') {
-    css += formatCssRule(blockStart + ' .' + nameSpace + 'ai2htmlLink',
+    css += formatCssRule(blockStart + ' .' + nameSpace + 'ai2svelteLink',
       {display: 'block'});
   }
 
@@ -3199,152 +3182,6 @@ function generatePageCss(containerId, group, settings) {
   css += formatCssRule(blockStart + ' .' + nameSpace + 'aiPointText p',
     {'white-space': 'nowrap'});
   return css;
-}
-
-function getResizerScript(containerId) {
-  // The resizer function is embedded in the HTML page -- external variables must
-  // be passed in.
-  //
-  // TODO: Consider making artboard images position:absolute and setting
-  //   height as a padding % (calculated from the aspect ratio of the graphic).
-  //   This will correctly set the initial height of the graphic before
-  //   an image is loaded.
-  //
-  var resizer = function (containerId, opts) {
-    var nameSpace = opts.namespace || '';
-    var containers = findContainers(containerId);
-    containers.forEach(resize);
-
-    function resize(container) {
-      var onResize = throttle(update, 200);
-      var waiting = !!window.IntersectionObserver;
-      var observer;
-      update();
-
-      document.addEventListener('DOMContentLoaded', update);
-      window.addEventListener('resize', onResize);
-
-      // NYT Scoop-specific code
-      if (opts.setup) {
-        opts.setup(container).on('cleanup', cleanup);
-      }
-
-      function cleanup() {
-        document.removeEventListener('DOMContentLoaded', update);
-        window.removeEventListener('resize', onResize);
-        if (observer) observer.disconnect();
-      }
-
-      function update() {
-        var artboards = selectChildren('.' + nameSpace + 'artboard[data-min-width]', container),
-            width = Math.round(container.getBoundingClientRect().width);
-
-        // Set artboard visibility based on container width
-        artboards.forEach(function(el) {
-          var minwidth = el.getAttribute('data-min-width'),
-              maxwidth = el.getAttribute('data-max-width');
-          if (+minwidth <= width && (+maxwidth >= width || maxwidth === null)) {
-            if (!waiting) {
-              selectChildren('.' + nameSpace + 'aiImg', el).forEach(updateImgSrc);
-              selectChildren('video', el).forEach(updateVideoSrc);
-            }
-            el.style.display = 'block';
-          } else {
-            el.style.display = 'none';
-          }
-        });
-
-        // Initialize lazy loading on first call
-        if (waiting && !observer) {
-          if (elementInView(container)) {
-            waiting = false;
-            update();
-          } else {
-            observer = new IntersectionObserver(onIntersectionChange, {rootMargin: "800px"});
-            observer.observe(container);
-          }
-        }
-      }
-
-      function onIntersectionChange(entries) {
-        // There may be multiple entries relating to the same container
-        // (captured at different times)
-        var isIntersecting = entries.reduce(function(memo, entry) {
-          return memo || entry.isIntersecting;
-        }, false);
-        if (isIntersecting) {
-          waiting = false;
-          // update: don't remove -- we need the observer to trigger an update
-          // when a hidden map becomes visible after user interaction
-          // (e.g. when an accordion menu or tab opens)
-          // observer.disconnect();
-          // observer = null;
-          update();
-        }
-      }
-    }
-
-    function findContainers(id) {
-      // support duplicate ids on the page
-      return selectChildren('.ai2html-responsive', document).filter(function(el) {
-        if (el.getAttribute('id') != id) return false;
-        if (el.classList.contains('ai2html-resizer')) return false;
-        el.classList.add('ai2html-resizer');
-        return true;
-      });
-    }
-
-    // Replace blank placeholder image with actual image
-    function updateImgSrc(img) {
-      var src = img.getAttribute('data-src');
-      if (src && img.getAttribute('src') != src) {
-        img.setAttribute('src', src);
-      }
-    }
-
-    function updateVideoSrc(el) {
-      var src = el.getAttribute('data-src');
-      if (src && !el.hasAttribute('src')) {
-        el.setAttribute('src', src);
-      }
-    }
-
-    function elementInView(el) {
-      var bounds = el.getBoundingClientRect();
-      return bounds.top < window.innerHeight && bounds.bottom > 0;
-    }
-
-    function selectChildren(selector, parent) {
-      return parent ? Array.prototype.slice.call(parent.querySelectorAll(selector)) : [];
-    }
-
-    // based on underscore.js
-    function throttle(func, wait) {
-      var timeout = null, previous = 0;
-      function run() {
-          previous = Date.now();
-          timeout = null;
-          func();
-      }
-      return function() {
-        var remaining = wait - (Date.now() - previous);
-        if (remaining <= 0 || remaining > wait) {
-          clearTimeout(timeout);
-          run();
-        } else if (!timeout) {
-          timeout = setTimeout(run, remaining);
-        }
-      };
-    }
-  };
-
-  var optStr = '{namespace: "' + nameSpace + '", setup: window.setupInteractive || window.getComponent}';
-
-  // convert resizer function to JS source code
-  var resizerJs = '(' +
-    trim(resizer.toString().replace(/ {2}/g, '\t')) + // indent with tabs
-    ')("' + containerId + '", ' + optStr + ');';
-  return '<script type="text/javascript">\r\t' + resizerJs + '\r</script>\r';
 }
 
 function addTextBlockContent(output, content) {
@@ -3377,7 +3214,7 @@ function generateOutputHtml(content, group, settings) {
   var altTextId = containerId + '-img-desc';
   var textForFile, html, js, css, commentBlock;
   var htmlFileDestinationFolder, htmlFileDestination;
-  var containerClasses = 'ai2html';
+  var containerClasses = 'ai2svelte';
 
   // accessibility features
   var ariaAttrs = '';
@@ -3390,7 +3227,7 @@ function generateOutputHtml(content, group, settings) {
 
   progressBar.setTitle('Writing HTML output...');
 
-  commentBlock = '<!-- Generated by ai2html v' + scriptVersion + ' - ' +
+  commentBlock = '<!-- Generated by ai2svelte v' + scriptVersion + ' - ' +
     getDateTimeStamp() + ' -->\r' + '<!-- ai file: ' + doc.name + ' -->\r';
 
   if (settings.preview_slug) {
@@ -3409,7 +3246,7 @@ function generateOutputHtml(content, group, settings) {
   }
   if (linkSrc) {
     // optional link around content
-    html += '\t<a class="' + nameSpace + 'ai2htmlLink" href="' + linkSrc + '">\r';
+    html += '\t<a class="' + nameSpace + 'ai2svelteLink" href="' + linkSrc + '">\r';
   }
   html += content.html;
   if (linkSrc) {
@@ -3418,7 +3255,7 @@ function generateOutputHtml(content, group, settings) {
   html += '</div>\r';
 
   // CSS
-  css = '<style media="screen,print">\r' +
+  css = '<style lang="scss">\r' +
     generatePageCss(containerId, group, settings) +
     content.css +
     '\r</style>\r';
@@ -3427,7 +3264,7 @@ function generateOutputHtml(content, group, settings) {
   js = content.js + responsiveJs;
 
   textForFile =  '\r' + commentBlock + css + '\r' + html + '\r' + js +
-     '<!-- End ai2html' + ' - ' + getDateTimeStamp() + ' -->\r';
+     '<!-- End ai2svelte' + ' - ' + getDateTimeStamp() + ' -->\r';
 
   textForFile = applyTemplate(textForFile, settings);
   htmlFileDestinationFolder = docPath + settings.html_output_path;
