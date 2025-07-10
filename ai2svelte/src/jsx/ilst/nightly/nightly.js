@@ -42,18 +42,14 @@ import {
   shiftBounds,
   clearMatrixShift,
   folderExists,
-  fileExists,
   deleteFile,
   parseKeyValueString,
   readFile,
-  readTextFile,
   saveTextFile,
   checkForOutputFolder
 } from './aiUtils';
 
 import {
-  basicCharacterReplacements,
-  extraCharacterReplacements,
   forEach,
   map,
   filter,
@@ -62,7 +58,6 @@ import {
   contains,
   some,
   extend,
-  forEachProperty,
   objectDiff,
   arraySubtract,
   toArray,
@@ -74,7 +69,6 @@ import {
   makeKeyword,
   encodeHtmlEntities,
   cleanHtmlText,
-  replaceChars,
   straightenCurlyQuotesInsideAngleBrackets,
   straightenCurlyQuotes,
   findHtmlTag,
@@ -382,6 +376,7 @@ function concatMessages(args) {
         });
       } catch(e) {
         msg += String(arg);
+        msg += String(e);
       }
     } else {
       msg += arg;
@@ -1019,14 +1014,6 @@ function getSortedArtboardInfo(artboards, settings) {
     });
   });
   arr.sort(function(a, b) {return a.effectiveWidth - b.effectiveWidth;});
-  return arr;
-}
-
-function findUsableArtboards() {
-  var arr = [];
-  forEachUsableArtboard(function(ab) {
-    arr.push(ab);
-  });
   return arr;
 }
 
@@ -2220,11 +2207,6 @@ function exportSymbolAsHtml(item, geometries, abBox, opts) {
       getBasicSymbolCss(geom, style, abBox, opts) + '></div>';
   }
   return html;
-}
-
-
-function testEmptyArtboard(ab) {
-  return !testLayerArtboardIntersection(null, ab);
 }
 
 function testLayerArtboardIntersection(lyr, ab) {
