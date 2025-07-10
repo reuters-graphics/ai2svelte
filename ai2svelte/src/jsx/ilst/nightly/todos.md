@@ -5,3 +5,11 @@ check for REMOVE THIS, INSTEAD, TO COMMENT
 
 feature : get all texts inside plugin...update texts from inside plugin
 
+ai2html doesn't care about layer ordering
+
+ai2html container queries don't have importants
+
+artboards and layers can hold everything after colon as abSettings
+ab:1200 -> 1200 gets set as minwidth
+ab:fixed,prop,467,999 -> sets minwidth:999 and artboard fixed. rest of the things get ignored
+ab:image_only -> discards text inside the artboard in the final output

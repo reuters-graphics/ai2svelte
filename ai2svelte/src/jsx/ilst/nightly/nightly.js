@@ -37,6 +37,59 @@ import { defaultSettings } from "./settings";
 
 import { caps, align, blendModes, cssTextStyleProperties, cssPrecision } from './cssStyles';
 
+import {
+  testBoundsIntersection,
+  shiftBounds,
+  clearMatrixShift,
+  folderExists,
+  fileExists,
+  deleteFile,
+  parseKeyValueString,
+  readFile,
+  readTextFile,
+  saveTextFile,
+  checkForOutputFolder
+} from './aiUtils';
+
+import {
+  basicCharacterReplacements,
+  extraCharacterReplacements,
+  forEach,
+  map,
+  filter,
+  indexOf,
+  find,
+  contains,
+  some,
+  extend,
+  forEachProperty,
+  objectDiff,
+  arraySubtract,
+  toArray,
+  firstBy,
+  trim,
+  stringToLines,
+  zeroPad,
+  truncateString,
+  makeKeyword,
+  encodeHtmlEntities,
+  cleanHtmlText,
+  replaceChars,
+  straightenCurlyQuotesInsideAngleBrackets,
+  straightenCurlyQuotes,
+  findHtmlTag,
+  addEnclosingTag,
+  stripTag,
+  roundTo,
+  getDateTimeStamp,
+  formatCssRule,
+  getCssColor,
+  testSimilarBounds,
+  applyTemplate,
+  pathJoin,
+  pathSplit
+} from './utils';
+
 export function main() {
 // Enclosing scripts in a named function (and not an anonymous, self-executing
 // function) has been recommended as a way to minimise intermittent "MRAP" errors.
@@ -52,14 +105,6 @@ export function main() {
 // - Run 'npm publish' to create a new GitHub release
 const scriptVersion = '0.123.1';
 
-// ================================================
-// Constant data
-// ================================================
-
-// html entity substitution
-const basicCharacterReplacements = [["\x26","&amp;"], ["\x22","&quot;"], ["\x3C","&lt;"], ["\x3E","&gt;"]];
-const extraCharacterReplacements = [["\xA0","&nbsp;"], ["\xA1","&iexcl;"], ["\xA2","&cent;"], ["\xA3","&pound;"], ["\xA4","&curren;"], ["\xA5","&yen;"], ["\xA6","&brvbar;"], ["\xA7","&sect;"], ["\xA8","&uml;"], ["\xA9","&copy;"], ["\xAA","&ordf;"], ["\xAB","&laquo;"], ["\xAC","&not;"], ["\xAD","&shy;"], ["\xAE","&reg;"], ["\xAF","&macr;"], ["\xB0","&deg;"], ["\xB1","&plusmn;"], ["\xB2","&sup2;"], ["\xB3","&sup3;"], ["\xB4","&acute;"], ["\xB5","&micro;"], ["\xB6","&para;"], ["\xB7","&middot;"], ["\xB8","&cedil;"], ["\xB9","&sup1;"], ["\xBA","&ordm;"], ["\xBB","&raquo;"], ["\xBC","&frac14;"], ["\xBD","&frac12;"], ["\xBE","&frac34;"], ["\xBF","&iquest;"], ["\xD7","&times;"], ["\xF7","&divide;"], ["\u0192","&fnof;"], ["\u02C6","&circ;"], ["\u02DC","&tilde;"], ["\u2002","&ensp;"], ["\u2003","&emsp;"], ["\u2009","&thinsp;"], ["\u200C","&zwnj;"], ["\u200D","&zwj;"], ["\u200E","&lrm;"], ["\u200F","&rlm;"], ["\u2013","&ndash;"], ["\u2014","&mdash;"], ["\u2018","&lsquo;"], ["\u2019","&rsquo;"], ["\u201A","&sbquo;"], ["\u201C","&ldquo;"], ["\u201D","&rdquo;"], ["\u201E","&bdquo;"], ["\u2020","&dagger;"], ["\u2021","&Dagger;"], ["\u2022","&bull;"], ["\u2026","&hellip;"], ["\u2030","&permil;"], ["\u2032","&prime;"], ["\u2033","&Prime;"], ["\u2039","&lsaquo;"], ["\u203A","&rsaquo;"], ["\u203E","&oline;"], ["\u2044","&frasl;"], ["\u20AC","&euro;"], ["\u2111","&image;"], ["\u2113",""], ["\u2116",""], ["\u2118","&weierp;"], ["\u211C","&real;"], ["\u2122","&trade;"], ["\u2135","&alefsym;"], ["\u2190","&larr;"], ["\u2191","&uarr;"], ["\u2192","&rarr;"], ["\u2193","&darr;"], ["\u2194","&harr;"], ["\u21B5","&crarr;"], ["\u21D0","&lArr;"], ["\u21D1","&uArr;"], ["\u21D2","&rArr;"], ["\u21D3","&dArr;"], ["\u21D4","&hArr;"], ["\u2200","&forall;"], ["\u2202","&part;"], ["\u2203","&exist;"], ["\u2205","&empty;"], ["\u2207","&nabla;"], ["\u2208","&isin;"], ["\u2209","&notin;"], ["\u220B","&ni;"], ["\u220F","&prod;"], ["\u2211","&sum;"], ["\u2212","&minus;"], ["\u2217","&lowast;"], ["\u221A","&radic;"], ["\u221D","&prop;"], ["\u221E","&infin;"], ["\u2220","&ang;"], ["\u2227","&and;"], ["\u2228","&or;"], ["\u2229","&cap;"], ["\u222A","&cup;"], ["\u222B","&int;"], ["\u2234","&there4;"], ["\u223C","&sim;"], ["\u2245","&cong;"], ["\u2248","&asymp;"], ["\u2260","&ne;"], ["\u2261","&equiv;"], ["\u2264","&le;"], ["\u2265","&ge;"], ["\u2282","&sub;"], ["\u2283","&sup;"], ["\u2284","&nsub;"], ["\u2286","&sube;"], ["\u2287","&supe;"], ["\u2295","&oplus;"], ["\u2297","&otimes;"], ["\u22A5","&perp;"], ["\u22C5","&sdot;"], ["\u2308","&lceil;"], ["\u2309","&rceil;"], ["\u230A","&lfloor;"], ["\u230B","&rfloor;"], ["\u2329","&lang;"], ["\u232A","&rang;"], ["\u25CA","&loz;"], ["\u2660","&spades;"], ["\u2663","&clubs;"], ["\u2665","&hearts;"], ["\u2666","&diams;"]];
-
 
 // ================================
 // Global variable declarations
@@ -68,19 +113,22 @@ const extraCharacterReplacements = [["\xA0","&nbsp;"], ["\xA1","&iexcl;"], ["\xA
 var nameSpace = 'g-';
 
 // vars to hold warnings and informational messages at the end
-const feedback = [];
-const warnings = [];
-const errors   = [];
-const oneTimeWarnings = [];
-const startTime = +new Date();
+let feedback = [];
+let warnings = [];
+let errors   = [];
+let oneTimeWarnings = [];
+let startTime = +new Date();
 
-const textFramesToUnhide = [];
-const objectsToRelock = [];
+let textFramesToUnhide = [];
+let objectsToRelock = [];
 
 let docSettings;
 let textBlockData;
 let doc, docPath, docSlug, docIsSaved;
 let progressBar;
+let JSON;
+
+initJSON();
 
 // Simple interface to help find performance bottlenecks. Usage:
 // T.start('<label>');
@@ -209,7 +257,7 @@ function renderDocument(settings, textBlockContent) {
     error('No usable artboards were found');
   }
 
-  groups.forEach(group => {
+  forEach(groups, function(group) {
     // TODO: consider if we want to add custom text block code to
     // each output file. CSS and possibly JS could possibly be added to just one
     // file.s=
@@ -229,17 +277,9 @@ function renderArtboardGroup(group, masks, settings, textBlockContent) {
     var abIndex = findArtboardIndex(activeArtboard);
     var abSettings = getArtboardSettings(activeArtboard);
     var docArtboardName = getDocumentArtboardName(activeArtboard);
-    var textFrames, textData, imageData, specialData;
+    var textFrames, textData, imageData;
 
     doc.artboards.setActiveArtboardIndex(abIndex);
-
-    // detect videos and other special layers
-    specialData = convertSpecialLayers(activeArtboard, settings);
-    if (specialData) {
-      forEach(specialData.layers, function(lyr) {
-        lyr.visible = false;
-      });
-    }
 
     // ========================
     // Convert text objects
@@ -261,22 +301,13 @@ function renderArtboardGroup(group, masks, settings, textBlockContent) {
     // Generate artboard image(s)
     // ==========================
 
+    // capture artboard image
+    // processes svg, div, png tagged layers
     if (isTrue(settings.write_image_files)) {
       progressBar.setTitle(docArtboardName + ': Capturing image...');
       imageData = convertArtItems(activeArtboard, textFrames, masks, settings);
     } else {
       imageData = {html: ''};
-    }
-
-    if (specialData) {
-      imageData.html = specialData.video + specialData.html_before +
-        imageData.html + specialData.html_after;
-      forEach(specialData.layers, function(lyr) {
-        lyr.visible = true;
-      });
-      if (specialData.video && !isTrue(settings.png_transparent)) {
-        warn('Background videos may be covered up without png_transparent:true');
-      }
     }
 
     progressBar.step();
@@ -292,12 +323,7 @@ function renderArtboardGroup(group, masks, settings, textBlockContent) {
        '\t</div>\r';
 
     var abStyles = textData.styles;
-    if (specialData && specialData.video) {
-      // make videos tap/clickable (so they can be played manually if autoplay
-      // is disabled, e.g. in mobile low-power mode).
-      abStyles.push('> div { pointer-events: none; }\r');
-      abStyles.push('> img { pointer-events: none; }\r');
-    }
+
     output.css += generateArtboardCss(activeArtboard, group, abStyles, settings);
 
   }); // end artboard loop
@@ -310,435 +336,6 @@ function renderArtboardGroup(group, masks, settings, textBlockContent) {
   generateOutputHtml(output, group, settings);
 
 } // end render()
-
-// =================================
-// JS utility functions
-// =================================
-
-function forEach(arr, cb) {
-  for (var i=0, n=arr.length; i<n; i++) {
-    cb(arr[i], i);
-  }
-}
-
-function map(arr, cb) {
-  var arr2 = [];
-  for (var i=0, n=arr.length; i<n; i++) {
-    arr2.push(cb(arr[i], i));
-  }
-  return arr2;
-}
-
-function filter(arr, test) {
-  var filtered = [];
-  for (var i=0, n=arr.length; i<n; i++) {
-    if (test(arr[i], i)) {
-      filtered.push(arr[i]);
-    }
-  }
-  return filtered;
-}
-
-// obj: value or test function
-function indexOf(arr, obj) {
-  var test = typeof obj == 'function' ? obj : null;
-  for (var i=0, n=arr.length; i<n; i++) {
-    if (test ? test(arr[i]) : arr[i] === obj) {
-      return i;
-    }
-  }
-  return -1;
-}
-
-function find(arr, obj) {
-  var i = indexOf(arr, obj);
-  return i == -1 ? null : arr[i];
-}
-
-function contains(arr, obj) {
-  return indexOf(arr, obj) >= 0;
-}
-
-// alias for contains() with function arg
-function some(arr, cb) {
-  return indexOf(arr, cb) >= 0;
-}
-
-// Return new object containing properties of a that are missing or different in b
-// Return null if output object would be empty
-// a, b: JS objects
-function objectDiff(a, b) {
-  var diff = null;
-  for (var k in a) {
-    if (a[k] != b[k] && a.hasOwnProperty(k)) {
-      diff = diff || {};
-      diff[k] = a[k];
-    }
-  }
-  return diff;
-}
-
-// return elements in array "a" but not in array "b"
-function arraySubtract(a, b) {
-  var diff = [],
-      alen = a.length,
-      blen = b.length,
-      i, j;
-  for (i=0; i<alen; i++) {
-    diff.push(a[i]);
-    for (j=0; j<blen; j++) {
-      if (a[i] === b[j]) {
-        diff.pop();
-        break;
-      }
-    }
-  }
-  return diff;
-}
-
-// multiple key sorting function based on https://github.com/Teun/thenBy.js
-// first by length of name, then by population, then by ID
-// data.sort(
-//     firstBy(function (v1, v2) { return v1.name.length - v2.name.length; })
-//     .thenBy(function (v1, v2) { return v1.population - v2.population; })
-//     .thenBy(function (v1, v2) { return v1.id - v2.id; });
-// );
-function firstBy(f1, f2) {
-  var compare = f2 ? function(a, b) {return f1(a, b) || f2(a, b);} : f1;
-  compare.thenBy = function(f) {return firstBy(compare, f);};
-  return compare;
-}
-
-// Remove whitespace from beginning and end of a string
-function trim(s) {
-  return s.replace(/^[\s\uFEFF\xA0\x03]+|[\s\uFEFF\xA0\x03]+$/g, '');
-}
-
-// splits a string into non-empty lines
-function stringToLines(str) {
-  var empty = /^\s*$/;
-  return filter(str.split(/[\r\n\x03]+/), function(line) {
-    return !empty.test(line);
-  });
-}
-
-function zeroPad(val, digits) {
-  var str = String(val);
-  while (str.length < digits) str = '0' + str;
-  return str;
-}
-
-function truncateString(str, maxlen, useEllipsis) {
-  // TODO: add ellipsis, truncate at word boundary
-  if (str.length > maxlen) {
-    str = str.substr(0, maxlen);
-    if (useEllipsis) str += '...';
-  }
-  return str;
-}
-
-function makeKeyword(text) {
-  return text.replace( /[^A-Za-z0-9_-]+/g , '_' );
-}
-
-// TODO: don't convert ampersand in pre-existing entities (e.g. "&quot;" -> "&amp;quot;")
-function encodeHtmlEntities(text) {
-  return replaceChars(text, basicCharacterReplacements.concat(extraCharacterReplacements));
-}
-
-function cleanHtmlText(text) {
-  // Characters "<>& are not replaced
-  return replaceChars(text, extraCharacterReplacements);
-}
-
-function replaceChars(str, replacements) {
-  var charCode;
-  for (var i=0, n=replacements.length; i < n; i++) {
-    charCode = replacements[i];
-    if (str.indexOf(charCode[0]) > -1) {
-      str = str.replace(new RegExp(charCode[0],'g'), charCode[1]);
-    }
-  }
-  return str;
-}
-
-function straightenCurlyQuotesInsideAngleBrackets(text) {
-  // This function's purpose is to fix quoted properties in HTML tags that were
-  // typed into text blocks (Illustrator tends to automatically change single
-  // and double quotes to curly quotes).
-  // thanks to jashkenas
-  // var quoteFinder = /[\u201C‘’\u201D]([^\n]*?)[\u201C‘’\u201D]/g;
-  var tagFinder = /<[^\n]+?>/g;
-  return text.replace(tagFinder, function(tag){
-    return straightenCurlyQuotes(tag);
-  });
-}
-
-function straightenCurlyQuotes(str) {
-  return str.replace( /[\u201C\u201D]/g , '"' ).replace( /[‘’]/g , "'" );
-}
-
-// Not very robust -- good enough for printing a warning
-function findHtmlTag(str) {
-  var match;
-  if (str.indexOf('<') > -1) { // bypass regex check
-    match = /<(\w+)[^>]*>/.exec(str);
-  }
-  return match ? match[1] : null;
-}
-
-function addEnclosingTag(tagName, str) {
-  var openTag = '<' + tagName;
-  var closeTag = '</' + tagName + '>';
-  if ((new RegExp(openTag)).test(str) === false) {
-    str = openTag + '>\r' + str;
-  }
-  if ((new RegExp(closeTag)).test(str) === false) {
-    str = str + '\r' + closeTag;
-  }
-  return str;
-}
-
-function stripTag(tagName, str) {
-  var open = new RegExp('<' + tagName + '[^>]*>', 'g');
-  var close = new RegExp('</' + tagName + '>', 'g');
-  return str.replace(open, '').replace(close, '');
-}
-
-// precision: number of decimals in rounded number
-function roundTo(number, precision) {
-  var d = Math.pow(10, precision || 0);
-  return Math.round(number * d) / d;
-}
-
-function getDateTimeStamp() {
-  var d     = new Date();
-  var year  = d.getFullYear();
-  var date  = zeroPad(d.getDate(),2);
-  var month = zeroPad(d.getMonth() + 1,2);
-  var hour  = zeroPad(d.getHours(),2);
-  var min   = zeroPad(d.getMinutes(),2);
-  return year + '-' + month + '-' + date + ' ' + hour + ':' + min;
-}
-
-function formatCssRule(selector, obj) {
-  var css = selector + ' {\r';
-  for (var k in obj) {
-    css += '\t' + k + ':' + obj[k]+ ';\r';
-  }
-  css += '}\r';
-  return css;
-}
-
-function getCssColor(r, g, b, opacity) {
-  var col, o;
-  if (opacity > 0 && opacity < 100) {
-    o = roundTo(opacity / 100, 2);
-    col = 'rgba(' + r + ',' + g + ',' + b + ',' + o + ')';
-  } else {
-    col = 'rgb(' + r + ',' + g + ',' + b + ')';
-  }
-  return col;
-}
-
-// Test if two rectangles are the same, to within a given tolerance
-// a, b: two arrays containing AI rectangle coordinates
-// maxOffs: maximum pixel deviation on any side
-function testSimilarBounds(a, b, maxOffs) {
-  if (maxOffs >= 0 === false) maxOffs = 1;
-  for (var i=0; i<4; i++) {
-    if (Math.abs(a[i] - b[i]) > maxOffs) return false;
-  }
-  return true;
-}
-
-// Apply very basic string substitution to a template
-function applyTemplate(template, replacements) {
-  var keyExp = '([_a-zA-Z][\\w-]*)';
-  var mustachePattern = new RegExp('\\{\\{\\{? *' + keyExp + ' *\\}\\}\\}?','g');
-  var ejsPattern = new RegExp('<%=? *' + keyExp + ' *%>','g');
-  var replace = function(match, name) {
-    var lcname = name.toLowerCase();
-    if (name in replacements) return replacements[name];
-    if (lcname in replacements) return replacements[lcname];
-    return match;
-  };
-  return template.replace(mustachePattern, replace).replace(ejsPattern, replace);
-}
-
-// Similar to Node.js path.join()
-function pathJoin() {
-  var path = '';
-  forEach(arguments, function(arg) {
-    if (!arg) return;
-    arg = String(arg);
-    arg = arg.replace(/^\/+/, '').replace(/\/+$/, '');
-    if (path.length > 0) {
-      path += '/';
-    }
-    path += arg;
-  });
-  return path;
-}
-
-// Split a full path into directory and filename parts
-function pathSplit(path) {
-  var parts = path.split('/');
-  var filename = parts.pop();
-  return [parts.join('/'), filename];
-}
-
-
-// ======================================
-// Illustrator specific utility functions
-// ======================================
-
-// a, b: coordinate arrays, as from <PathItem>.geometricBounds
-function testBoundsIntersection(a, b) {
-  return a[2] >= b[0] && b[2] >= a[0] && a[3] <= b[1] && b[3] <= a[1];
-}
-
-function shiftBounds(bnds, dx, dy) {
-  return [bnds[0] + dx, bnds[1] + dy, bnds[2] + dx, bnds[3] + dy];
-}
-
-function clearMatrixShift(m) {
-  return app.concatenateTranslationMatrix(m, -m.mValueTX, -m.mValueTY);
-}
-
-function folderExists(path) {
-  return new Folder(path).exists;
-}
-
-function fileExists(path) {
-  return new File(path).exists;
-}
-
-function deleteFile(path) {
-  var file = new File(path);
-  if (file.exists) {
-    file.remove();
-  }
-}
-
-function readYamlConfigFile(path) {
-  return fileExists(path) ? parseYaml(readTextFile(path)) : null;
-}
-
-function parseKeyValueString(str, o) {
-  var dqRxp = /^"(?:[^"\\]|\\.)*"$/;
-  var parts = str.split(':');
-  var k, v;
-  if (parts.length > 1) {
-    k = trim(parts.shift());
-    v = trim(parts.join(':'));
-    if (dqRxp.test(v)) {
-      v = JSON.parse(v); // use JSON library to parse quoted strings
-    }
-    o[k] = v;
-  }
-}
-
-// Very simple Yaml parsing. Does not implement nested properties, arrays and other features
-// (This is adequate for reading a few top-level properties from NYT's config.yml file)
-function parseYaml(str) {
-  // TODO: strip comments // var comment = /\s*/
-  var o = {};
-  var lines = stringToLines(str);
-  for (var i = 0; i < lines.length; i++) {
-    parseKeyValueString(lines[i], o);
-  }
-  return o;
-}
-
-// TODO: improve
-// (currently ignores bracketed sections of the config file)
-function readGitConfigFile(path) {
-  var file = new File(path);
-  var o = null;
-  var parts;
-  if (file.exists) {
-    o = {};
-    file.open('r');
-    while(!file.eof) {
-      parts = file.readln().split('=');
-      if (parts.length > 1) {
-        o[trim(parts[0])] = trim(parts[1]);
-      }
-    }
-    file.close();
-  }
-  return o;
-}
-
-function readFile(fpath, enc) {
-  var content = null;
-  var file = new File(fpath);
-  if (file.exists) {
-    if (enc) {
-      file.encoding = enc;
-    }
-    file.open('r');
-    if (file.error) {
-      // (on macos) restricted permissions will cause an error here
-      warn('Unable to open ' + file.fsName + ': [' + file.error + ']');
-      return null;
-    }
-    content = file.read();
-    file.close();
-    // (on macos) 'file.length' triggers a file operation that returns -1 if unable to access file
-    if (!content && (file.length > 0 || file.length == -1)) {
-      warn('Unable to read from ' + file.fsName + ' (reported size: ' + file.length + ' bytes)');
-    }
-  } else {
-    warn(fpath + ' could not be found.');
-  }
-  return content;
-}
-
-function readTextFile(fpath) {
-  // This function used to use File#eof and File#readln(), but
-  // that failed to read the last line when missing a final newline.
-  return readFile(fpath, 'UTF-8') || '';
-}
-
-function readJSONFile(fpath) {
-  var content = readTextFile(fpath);
-  var json = null;
-  if (!content) {
-    // removing for now to avoid double warnings
-    // warn('Unable to read contents of file: ' + fpath);
-    return {};
-  }
-  try {
-    json = JSON.parse(content);
-  } catch(e) {
-    error('Error parsing JSON from ' + fpath + ': [' + e.message + ']');
-  }
-  return json;
-}
-
-function saveTextFile(dest, contents) {
-  var fd = new File(dest);
-  fd.open('w', 'TEXT', 'TEXT');
-  fd.lineFeed = 'Unix';
-  fd.encoding = 'UTF-8';
-  fd.writeln(contents);
-  fd.close();
-}
-
-function checkForOutputFolder(folderPath, nickname) {
-  var outputFolder = new Folder( folderPath );
-  if (!outputFolder.exists) {
-    var outputFolderCreated = outputFolder.create();
-    if (outputFolderCreated) {
-      message('The ' + nickname + ' folder did not exist, so the folder was created.');
-    } else {
-      warn('The ' + nickname + ' folder did not exist and could not be created.');
-    }
-  }
-}
-
 
 
 // =====================================
@@ -824,7 +421,7 @@ function isFalse(val) {
 }
 
 function unlockObjects() {
-  doc.layers.forEach(layer => unlockContainer(layer));
+  forEach(doc.layers, unlockContainer);
 }
 
 function unlockObject(obj) {
@@ -859,10 +456,9 @@ function unlockContainer(o) {
   }
 
   // recursively unlock sub-layers and groups
-  o.groupItems.forEach(item => unlockContainer(item));
-  
+  forEach(o.groupItems, unlockContainer);
   if (o.typename == 'Layer') {
-    o.layers.forEach(layer => unlockContainer(layer));
+    forEach(o.layers, unlockContainer);
   }
 }
 
@@ -890,8 +486,6 @@ function exportFunctionsForTesting() {
     folderExists,
     formatCss,
     getCssColor,
-    readGitConfigFile,
-    readYamlConfigFile,
     applyTemplate,
     cleanHtmlText,
     encodeHtmlEntities,
@@ -907,7 +501,7 @@ function exportFunctionsForTesting() {
     uniqAssetName,
     replaceSvgIds,
     compareVersions
-  ].forEach((f) => {
+  ].forEach(function(f) {
     module.exports[f.name] = f;
   });
 }
@@ -918,31 +512,29 @@ function isTestedIllustratorVersion(version) {
 }
 
 function groupArtboardsForOutput(settings) {
-  let groups = [];
-   ab = doc.artboards[i];
-
-   doc.artboards.filter(ab => {!/^-/.test(ab.name)}).forEach(ab => {
-      let group, groupName;
-      if (settings.output == 'one-file') {
-        // single-file output: artboards share a single group
-        groupName = getRawDocumentName();
-        group = groups[0];
-      } else {
-        // multiple-file output: artboards are grouped by name
-        groupName = getDocumentArtboardName(ab);
-        group = find(groups, function(o) {
-          o.name == groupName;
-        });
-      }
-      if (!group) {
-        group = {
-          groupName: groupName,
-          artboards: []
-        };
-        groups.push(group);
-      }
-      group.artboards.push(ab);
-   });
+  var groups = [];
+  forEachUsableArtboard(function(ab) {
+    var group, groupName;
+    if (settings.output == 'one-file') {
+      // single-file output: artboards share a single group
+      groupName = getRawDocumentName();
+      group = groups[0];
+    } else {
+      // multiple-file output: artboards are grouped by name
+      groupName = getDocumentArtboardName(ab);
+      group = find(groups, function(o) {
+        o.name == groupName;
+      });
+    }
+    if (!group) {
+      group = {
+        groupName: groupName,
+        artboards: []
+      };
+      groups.push(group);
+    }
+    group.artboards.push(ab);
+  });
 
   return groups;
 }
@@ -952,7 +544,7 @@ function validateArtboardNames(settings) {
   var names = [];
   forEachUsableArtboard(function(ab) {
     var name = getArtboardName(ab);
-    var isDupe = names.includes(name);
+    var isDupe = contains(names, name);
     if (isDupe) {
       // kludge: modify settings if same-name artboards are found
       // (used to prevent duplicate image names)
@@ -966,10 +558,6 @@ function validateArtboardNames(settings) {
     }
     names.push(name);
   });
-}
-
-function getScriptDirectory() {
-  return new File($.fileName).parent;
 }
 
 // Import program settings and custom html, css and js code from specially
@@ -1036,7 +624,7 @@ function initSpecialTextBlocks() {
 
 // Derive ai2html program settings by merging default settings and overrides.
 function initDocumentSettings(textBlockSettings) {
-  var settings = {...defaultSettings}; // copy default settings
+  var settings = extend({}, defaultSettings); // copy default settings
 
   // merge settings from text block
   // TODO: consider parsing strings to booleans when relevant, (e.g. "false" -> false)
@@ -1069,30 +657,11 @@ function compareVersions(a, b) {
   return (diff < 0 && -1) || (diff > 0 && 1) || 0;
 }
 
-function detectAiFolder() {
-  return /\/ai\/?$/.test(docPath);
-}
-
-function detectConfigYml() {
-  return fileExists(docPath + '../config.yml');
-}
-
-function stripSettingsFileComments(str) {
-  var rxp = /\/\/.*/g;
-  return str.replace(rxp, '');
-}
-
-// Expects that @path points to a text file containing a JavaScript object
-// with settings to override the default ai2html settings.
-function readSettingsFile(path) {
-  var o = {}, str;
-  try {
-    str = stripSettingsFileComments(readTextFile(path));
-    o = JSON.parse(str);
-  } catch(e) {
-    warn('Error reading settings file ' + path + ': [' + e.message + ']');
-  }
-  return o;
+function initJSON() {
+  // Minified json2.js from https://github.com/douglascrockford/JSON-js
+  // This code is in the public domain.
+  // eslint-disable-next-line
+  if(typeof JSON!=="object"){JSON={}}(function(){"use strict";var rx_one=/^[\],:{}\s]*$/;var rx_two=/\\(?:["\\\/bfnrt]|u[0-9a-fA-F]{4})/g;var rx_three=/"[^"\\\n\r]*"|true|false|null|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?/g;var rx_four=/(?:^|:|,)(?:\s*\[)+/g;var rx_escapable=/[\\"\u0000-\u001f\u007f-\u009f\u00ad\u0600-\u0604\u070f\u17b4\u17b5\u200c-\u200f\u2028-\u202f\u2060-\u206f\ufeff\ufff0-\uffff]/g;var rx_dangerous=/[\u0000\u00ad\u0600-\u0604\u070f\u17b4\u17b5\u200c-\u200f\u2028-\u202f\u2060-\u206f\ufeff\ufff0-\uffff]/g;function f(n){return n<10?"0"+n:n}function this_value(){return this.valueOf()}if(typeof Date.prototype.toJSON!=="function"){Date.prototype.toJSON=function(){return isFinite(this.valueOf())?this.getUTCFullYear()+"-"+f(this.getUTCMonth()+1)+"-"+f(this.getUTCDate())+"T"+f(this.getUTCHours())+":"+f(this.getUTCMinutes())+":"+f(this.getUTCSeconds())+"Z":null};Boolean.prototype.toJSON=this_value;Number.prototype.toJSON=this_value;String.prototype.toJSON=this_value}var gap;var indent;var meta;var rep;function quote(string){rx_escapable.lastIndex=0;return rx_escapable.test(string)?'"'+string.replace(rx_escapable,function(a){var c=meta[a];return typeof c==="string"?c:"\\u"+("0000"+a.charCodeAt(0).toString(16)).slice(-4)})+'"':'"'+string+'"'}function str(key,holder){var i;var k;var v;var length;var mind=gap;var partial;var value=holder[key];if(value&&typeof value==="object"&&typeof value.toJSON==="function"){value=value.toJSON(key)}if(typeof rep==="function"){value=rep.call(holder,key,value)}switch(typeof value){case"string":return quote(value);case"number":return isFinite(value)?String(value):"null";case"boolean":case"null":return String(value);case"object":if(!value){return"null"}gap+=indent;partial=[];if(Object.prototype.toString.apply(value)==="[object Array]"){length=value.length;for(i=0;i<length;i+=1){partial[i]=str(i,value)||"null"}v=partial.length===0?"[]":gap?"[\n"+gap+partial.join(",\n"+gap)+"\n"+mind+"]":"["+partial.join(",")+"]";gap=mind;return v}if(rep&&typeof rep==="object"){length=rep.length;for(i=0;i<length;i+=1){if(typeof rep[i]==="string"){k=rep[i];v=str(k,value);if(v){partial.push(quote(k)+(gap?": ":":")+v)}}}}else{for(k in value){if(Object.prototype.hasOwnProperty.call(value,k)){v=str(k,value);if(v){partial.push(quote(k)+(gap?": ":":")+v)}}}}v=partial.length===0?"{}":gap?"{\n"+gap+partial.join(",\n"+gap)+"\n"+mind+"}":"{"+partial.join(",")+"}";gap=mind;return v}}if(typeof JSON.stringify!=="function"){meta={"\b":"\\b","\t":"\\t","\n":"\\n","\f":"\\f","\r":"\\r",'"':'\\"',"\\":"\\\\"};JSON.stringify=function(value,replacer,space){var i;gap="";indent="";if(typeof space==="number"){for(i=0;i<space;i+=1){indent+=" "}}else if(typeof space==="string"){indent=space}rep=replacer;if(replacer&&typeof replacer!=="function"&&(typeof replacer!=="object"||typeof replacer.length!=="number")){throw new Error("JSON.stringify")}return str("",{"":value})}}if(typeof JSON.parse!=="function"){JSON.parse=function(text,reviver){var j;function walk(holder,key){var k;var v;var value=holder[key];if(value&&typeof value==="object"){for(k in value){if(Object.prototype.hasOwnProperty.call(value,k)){v=walk(value,k);if(v!==undefined){value[k]=v}else{delete value[k]}}}}return reviver.call(holder,key,value)}text=String(text);rx_dangerous.lastIndex=0;if(rx_dangerous.test(text)){text=text.replace(rx_dangerous,function(a){return"\\u"+("0000"+a.charCodeAt(0).toString(16)).slice(-4)})}if(rx_one.test(text.replace(rx_two,"@").replace(rx_three,"]").replace(rx_four,""))){j=eval("("+text+")");return typeof reviver==="function"?walk({"":j},""):j}throw new SyntaxError("JSON.parse")}}})(); // jshint ignore:line
 }
 
 // Clean the contents of custom JS, CSS and HTML blocks
@@ -1148,32 +717,6 @@ function createSettingsBlock(settings) {
   textArea.name = 'ai2html-settings';
   message("A settings text block was created to the left of all your artboards.");
   return textArea;
-}
-
-// Update an entry in the settings text block (or add a new entry if not found)
-function updateSettingsEntry(key, value) {
-  var block = doc.textFrames.getByName('ai2html-settings');
-  var entry = key + ': ' + value;
-  var updated = false;
-  var lines;
-  if (!block) return;
-  lines = stringToLines(block.contents);
-  // one alternative to splitting contents into lines is to iterate
-  //   over paragraphs, but an error is thrown when accessing an empty pg
-  forEach(lines, function(line, i) {
-    var data = parseSettingsEntry(line);
-    if (!updated && data && data[0] == key) {
-      lines[i] = entry;
-      updated = true;
-    }
-  });
-  if (!updated) {
-    // entry not found; adding new entry at the top of the list,
-    // so it will be visible if the content overflows the text frame
-    lines.splice(1, 0, entry);
-  }
-  docIsSaved = false; // doc has changed, need to save
-  block.contents = lines.join('\n');
 }
 
 function parseSettingsEntry(str) {
@@ -1411,22 +954,6 @@ function getArtboardWidthRange(ab, group, settings) {
   return visibleRange;
 }
 
-// Get [min, max] width range for the graphic (for optional config.yml output)
-function getWidthRangeForConfig(settings) {
-  var info = getSortedArtboardInfo(findUsableArtboards(), settings);
-  var minAB = info[0];
-  var maxAB = info[info.length - 1];
-  var min, max;
-  if (!minAB || !maxAB) return [0, 0];
-  min = settings.min_width || minAB.effectiveWidth;
-  if (maxAB.responsiveness == 'dynamic') {
-    max = settings.max_width || Math.max(maxAB.effectiveWidth, 1600);
-  } else {
-    max = maxAB.effectiveWidth;
-  }
-  return [min, max];
-}
-
 // Parse data that is encoded in a name
 // This data is appended to the name of an object (layer or artboard).
 // Examples: Artboard1:600,fixed  Layer1:svg  Layer2:png
@@ -1515,21 +1042,6 @@ function forEachUsableArtboard(cb) {
 
 function findArtboardIndex(ab) {
   return indexOf(doc.artboards, ab);
-}
-
-// Returns id of artboard with largest area (for promo image)
-function findLargestArtboard() {
-  var largestId = -1;
-  var largestArea = 0;
-  forEachUsableArtboard(function(ab, i) {
-    var info = convertAiBounds(ab.artboardRect);
-    var area = info.width * info.height;
-    if (area > largestArea) {
-      largestId = i;
-      largestArea = area;
-    }
-  });
-  return largestId;
 }
 
 function findLayers(layers, test) {
@@ -1639,7 +1151,7 @@ function getComputedOpacity(obj) {
 
 // Return array of layer objects, including both PageItems and sublayers, in z order
 function getSortedLayerItems(lyr) {
-  var items = [...lyr.pageItems, ...lyr.layers];
+  var items = toArray(lyr.pageItems).concat(toArray(lyr.layers));
   if (lyr.layers.length > 0 && lyr.pageItems.length > 0) {
     // only need to sort if layer contains both layers and page objects
     items.sort(function(a, b) {
@@ -1670,7 +1182,7 @@ function findCommonAncestorLayer(items) {
       item;
   for (let i=0, n=items.length; i<n; i++) {
     item = items[i];
-    if (item.parent.typename != 'Layer' || layers.includes(item.parent)) {
+    if (item.parent.typename != 'Layer' || contains(layers, item.parent)) {
       continue;
     }
     // remember layer, to avoid redundant searching (is this worthwhile?)
@@ -1707,15 +1219,14 @@ function findMasks() {
   // JS API does not support finding masks -- need to call a menu command for this
   // Assumes clipping paths have been unlocked
   app.executeMenuCommand('Clipping Masks menu item');
-  allMasks = [...doc.selection];
+  allMasks = toArray(doc.selection);
   clearSelection();
-  relevantMasks = allMasks.filter(x => maskIsRelevant(x));
-
+  relevantMasks = filter(allMasks, maskIsRelevant);
   // Lock all masks; then unlock each mask in turn and identify its contents.
-  allMasks.forEach(mask => {mask.locked = true});
-
-  relevantMasks.forEach(mask => {
-    let obj = {mask: mask};
+  forEach(allMasks, function(mask) {mask.locked = true;});
+  forEach(relevantMasks, function(mask) {
+    var obj = {mask: mask};
+    var selection, item;
 
     // Select items in this mask
     mask.locked = false;
@@ -1728,7 +1239,7 @@ function findMasks() {
 
     // stash both objects and textframes
     // (optimization -- addresses poor performance when many objects are masked)
-    // //  obj.items = [...doc.selection] || []); // Stash masked items
+    // //  obj.items = toArray(doc.selection || []); // Stash masked items
     storeSelectedItems(obj, doc.selection || []);
 
     if (mask.parent.typename == "GroupItem") {
@@ -1756,16 +1267,21 @@ function findMasks() {
   });
 
   // restore masks to unlocked state
-  allMasks.forEach(mask => {mask.locked = false;});
+  forEach(allMasks, function(mask) {mask.locked = false;});
   return found;
 }
 
 function storeSelectedItems(obj, selection) {
-  let items = obj.items = [];
-  let texts = obj.textframes = [];
-
-  items = [...selection];
-  texts = selection.filter(x => x.typename == 'TextFrame');
+  var items = obj.items = [];
+  var texts = obj.textframes = [];
+  var item;
+  for (var i=0, n=selection.length; i<n; i++) {
+    item = selection[i];
+    items[i] = item; // faster than push() in this JS engine
+    if (item.typename == 'TextFrame') {
+      texts.push(item);
+    }
+  }
 }
 
 // ==============================
@@ -2046,10 +1562,10 @@ function deriveTextStyleCss(frameData) {
   // initialize the base <p> style to be equal to the most common pg style
   if (pgStyles.length > 0) {
     pgStyles.sort(compareCharCount);
-    baseStyle = {...baseStyle, ...pgStyles[0].cssStyle};
+    extend(baseStyle, pgStyles[0].cssStyle);
   }
   // override certain base style properties with default values
-  baseStyle = {...baseStyle, ...defaultCssStyle};
+  extend(baseStyle, defaultCssStyle);
   return baseStyle;
 
   function compareCharCount(a, b) {
@@ -2062,7 +1578,7 @@ function deriveTextStyleCss(frameData) {
       // add most common char style to the pg style, to avoid applying
       // <span> tags to all the text in the paragraph
       currCharStyles.sort(compareCharCount);
-      pdata.aiStyle = {...pdata.aiStyle, ...currCharStyles[0].aiStyle};
+      extend(pdata.aiStyle, currCharStyles[0].aiStyle);
     }
     pdata.cssStyle = analyzeTextStyle(pdata.aiStyle, pdata.text, pgStyles);
     if (pdata.aiStyle.blendMode && !pdata.cssStyle['mix-blend-mode']) {
@@ -2976,62 +2492,6 @@ function artboardContainsVisibleRasterImage(ab) {
   return contains(doc.placedItems, test) || contains(doc.rasterItems, test);
 }
 
-function convertSpecialLayers(activeArtboard, settings) {
-  var data = {
-    layers: [],
-    html_before: '',
-    html_after: '',
-    video: ''
-  };
-  forEach(findTaggedLayers('video'), function(lyr) {
-    if (objectIsHidden(lyr)) return;
-    var str = getSpecialLayerText(lyr, activeArtboard);
-    if (!str) return;
-    var html = makeVideoHtml(str, settings);
-    if (!html) {
-      warn('Invalid video URL: ' + str);
-    } else {
-      data.video = html;
-    }
-    data.layers.push(lyr);
-  });
-  forEach(findTaggedLayers('html-before'), function(lyr) {
-    if (objectIsHidden(lyr)) return;
-    var str = getSpecialLayerText(lyr, activeArtboard);
-    if (!str) return;
-    data.layers.push(lyr);
-    data.html_before = str;
-  });
-  forEach(findTaggedLayers('html-after'), function(lyr) {
-    if (objectIsHidden(lyr)) return;
-    var str = getSpecialLayerText(lyr, activeArtboard);
-    if (!str) return;
-    data.layers.push(lyr);
-    data.html_after = str;
-  });
-  return data.layers.length === 0 ? null : data;
-}
-
-function makeVideoHtml(url, settings) {
-  url = trim(url);
-  if (!/^https:/.test(url) || !/\.mp4$/.test(url)) {
-    return '';
-  }
-  var srcName = isTrue(settings.use_lazy_loader) ? 'data-src' : 'src';
-  return '<video ' + srcName + '="' + url + '" autoplay muted loop playsinline style="top:0; width:100%; object-fit:contain; position:absolute"></video>';
-}
-
-function getSpecialLayerText(lyr, ab) {
-  var text = '';
-  forEach(lyr.textFrames, eachFrame);
-  function eachFrame(frame) {
-    if (testBoundsIntersection(frame.visibleBounds, ab.artboardRect)) {
-      text = frame.contents;
-    }
-  }
-  return text;
-}
-
 // Generate images and return HTML embed code
 function convertArtItems(activeArtboard, textFrames, masks, settings) {
   var imgName = getArtboardImageName(activeArtboard, settings);
@@ -3086,7 +2546,7 @@ function convertArtItems(activeArtboard, textFrames, masks, settings) {
   // Embed images tagged :png as separate images
   // Inside this function, layers are hidden and unhidden as needed
   forEachImageLayer('png', function(lyr) {
-    var opts = {...settings, ...{png_transparent: true}};
+    var opts = extend({}, settings, {png_transparent: true});
     var name = getLayerImageName(lyr, activeArtboard, settings);
     var fmt = contains(settings.image_format || [], 'png24') ? 'png24' : 'png';
     // This test prevents empty images, but is expensive when a layer contains many art objects...
@@ -3150,7 +2610,8 @@ function exportImage(imgName, format, ab, masks, layer, settings) {
   var imgClass = imgId.replace(/-[1-9][0-9]+-/, '-');
   // all images are now absolutely positioned (before, artboard images were
   // position:static to set the artboard height)
-  var inlineSvg = isTrue(settings.inline_svg) || (layer && parseObjectName(layer.name).inline);
+  var check = (layer && parseObjectName(layer.name).inline);
+  var inlineSvg = isTrue(settings.inline_svg) || check;
   var svgInlineStyle, svgLayersArg;
   var created, html;
 
@@ -3429,7 +2890,7 @@ function makeTmpDocument(doc, ab) {
 function copyArtboardForImageExport(ab, masks, items) {
   var layerMasks = filter(masks, function(o) {return !!o.layer;}),
       artboardBounds = ab.artboardRect,
-      sourceItems = items || [...doc.layers],
+      sourceItems = items || toArray(doc.layers),
       destLayer = doc.layers.add(),
       destGroup = doc.groupItems.add(),
       itemCount = 0,
@@ -3469,7 +2930,7 @@ function copyArtboardForImageExport(ab, masks, items) {
     // TODO: consider checking all item types
     // TODO: consider checking subgroups (recursively)
     // FIX: convert group.textFrames to array to avoid runtime error 'No such element' in forEach()
-    forEach([...group.textFrames], removeItemIfHidden);
+    forEach(toArray(group.textFrames), removeItemIfHidden);
   }
 
   function removeItemIfHidden(item) {
