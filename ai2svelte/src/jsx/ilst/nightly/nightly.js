@@ -3173,7 +3173,10 @@ function generatePageCss(containerId, group, settings) {
     position: 'absolute',
     top: '0',
     display: 'block',
-    width: '100% !important'
+    width: '100% !important',
+    height: '100%',
+    "background-size": 'contain',
+    "background-repeat": 'no-repeat'
   });
 
   css += formatCssRule(blockStart + ' .' + getSymbolClass(),

@@ -247,7 +247,7 @@ function getDateTimeStamp() {
 function formatCssRule(selector, obj) {
   var css = selector + ' {\r';
   for (var k in obj) {
-    css += '\t' + k + ':' + obj[k]+ ';\r';
+    css += '\t' + k + ': ' + obj[k]+ ';\r';
   }
   css += '}\r';
   return css;
