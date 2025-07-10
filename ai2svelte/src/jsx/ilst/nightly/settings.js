@@ -29,20 +29,4 @@ export let defaultSettings = {
   "testing_mode": false,  // Render text in both bg image and HTML to test HTML text placement
   "show_completion_dialog_box": true,
   "clickable_link": "",  // Add a URL to make the entire graphic a clickable link
-
-  // List of settings to include in the "ai2html-settings" text block
-  "settings_block": [
-    "settings_version",
-    "image_format",
-    "responsiveness",
-    "include_resizer_css",
-    // "use_lazy_loader",
-    "output",
-    "html_output_path",
-    // "html_output_extension", // removed from settings block in v0.115.6
-    "image_output_path",
-    "image_source_path",
-    "png_number_of_colors",
-    "jpg_quality",
-  ]
 };
