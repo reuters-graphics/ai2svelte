@@ -12,7 +12,6 @@ export let defaultSettings = {
   "image_output_path": "ai2html-output/",
   "image_source_path": "",
   "image_alt_text": "", // Generally, use alt_text instead
-  "create_settings_block": true, // Create a text block in the AI doc with common settings
   "png_transparent": false,
   "png_number_of_colors": 128, // Number of colors in 8-bit PNG image (1-256)
   "jpg_quality": 60,
