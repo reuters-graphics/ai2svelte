@@ -8,14 +8,13 @@
     import { evalTS } from "../../lib/utils/bolt";
     import shadows, { cheeses } from "./shadows";
     import { initTippy } from "./utils";
-    import { styles, updateInProgress, isCEP } from "../stores";
+    import { styles, stylesString, updateInProgress, isCEP } from "../stores";
     import type { Style } from "../stores";
     import ColorPicker from "svelte-awesome-color-picker";
     import postcss from "postcss";
     import scss from "postcss-scss";
 
     import SectionTabBar from "../Components/SectionTabBar.svelte";
-    // import Select from "../Components/Select.svelte";
     import ShadowCard from "../Components/ShadowCard.svelte";
     import CmTextArea from "../Components/CMTextArea.svelte";
     import Pill from "../Components/Pill.svelte";
@@ -29,7 +28,7 @@
     let backdrop: string | undefined = $state();
     let fillColor: string = $state("#ffffff");
     let shadowColor: string = $state("#000000");
-    let shadowSelector: string = $state(".g-text");
+    let shadowSelector: string = $state(`p[class^="g-pstyle"]`);
 
     let initialLoad = $state(false);
 
@@ -61,6 +60,7 @@
     // Sync the derived cssString to the editable version when styles change
     $effect(() => {
         editableCssString = cssString;
+        $stylesString = cssString;
     });
 
     type ShadowItem = {
@@ -264,7 +264,8 @@
                         delete $styles[selector];
                         $styles = $styles;
                         shadowSelector =
-                            Object.keys($styles).at(-1) || ".g-text";
+                            Object.keys($styles).at(-1) ||
+                            `p[class^="g-pstyle"]`;
                     }}
                 />
             {/each}

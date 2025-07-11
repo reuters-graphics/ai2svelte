@@ -32,7 +32,7 @@
 // - Open the html files in your browser to preview your output.
 
 // These are base settings used in the script
-import { defaultSettings } from "./settings";
+import { defaultSettings, placeholderSettings } from "./settings";
 
 import { caps, align, blendModes, cssTextStyleProperties, cssPrecision } from './cssStyles';
 
@@ -44,8 +44,7 @@ import {
   deleteFile,
   parseKeyValueString,
   readFile,
-  saveTextFile,
-  checkForOutputFolder
+  saveTextFile
 } from './aiUtils';
 
 import {
@@ -83,7 +82,7 @@ import {
   pathSplit
 } from './utils';
 
-export function main() {
+export function main(settingsArg) {
 // Enclosing scripts in a named function (and not an anonymous, self-executing
 // function) has been recommended as a way to minimise intermittent "MRAP" errors.
 // (This advice may be superstitious, need more evidence to decide.)
@@ -179,8 +178,8 @@ try {
   docPath = doc.path + '/';
   docIsSaved = doc.saved;
 
-  // TO COMMENT
-  textBlockData = initSpecialTextBlocks();
+  textBlockData = initSettings(settingsArg);
+
 
   docSettings = initDocumentSettings(textBlockData.settings); // refer to settings.json for arg
   docSlug = docSettings.project_name || makeDocumentSlug(getRawDocumentName());
@@ -225,6 +224,8 @@ if (errors.length > 0) {
   showCompletionAlert();
 }
 
+doc.selection = null;
+
 
 // =================================
 // ai2svelte render function
@@ -255,6 +256,10 @@ function renderDocument(settings, textBlockContent) {
   //=====================================
   // Post-output operations
   //=====================================
+  if (doc.selection && doc.selection.typename) {
+    clearSelection();
+    doc.selection = null;
+  }
 }
 
 // render a group of artboards and save to a file
@@ -313,7 +318,6 @@ function renderArtboardGroup(group, masks, settings, textBlockContent) {
     var abStyles = textData.styles;
 
     output.css += generateArtboardCss(activeArtboard, group, abStyles, settings);
-
   }); // end artboard loop
 
   //=====================================
@@ -329,6 +333,18 @@ function renderArtboardGroup(group, masks, settings, textBlockContent) {
 // =====================================
 // ai2svelte specific utility functions
 // =====================================
+
+function checkForOutputFolder(folderPath, nickname) {
+  var outputFolder = new Folder( folderPath );
+  if (!outputFolder.exists) {
+    var outputFolderCreated = outputFolder.create();
+    if (outputFolderCreated) {
+      message('The ' + nickname + ' folder did not exist, so the folder was created.');
+    } else {
+      warn('The ' + nickname + ' folder did not exist and could not be created.');
+    }
+  }
+}
 
 function calcProgressBarSteps() {
   var n = 0;
@@ -549,66 +565,23 @@ function validateArtboardNames(settings) {
   });
 }
 
-// Import program settings and custom html, css and js code from specially
-// formatted text blocks
-// INSTEAD pass value using object
-function initSpecialTextBlocks() {
-  const rxp = /^ai2svelte-(css|js|html|settings|text|html-before|html-after)\s*$/;
-  let settings = null;
-  let code = {};
+function initSettings(settingsObj) {
+  // if for any reasons, settingsArg is empty, 
+  // pass default settings
+  if(!settingsObj.settings) {
+    warn("No settings found, passed default settings.");
+    var defSettings = {
+      settings: placeholderSettings,
+      code: settingsObj.code || {}
+    };
+    return defSettings;
+  }
   
-  forEach(doc.textFrames, function(thisFrame) {
-    // var contents = thisFrame.contents; // caused MRAP error in AI 2017
-    var type = null;
-    var match, lines;
-    if (thisFrame.lines.length > 1) {
-      match = rxp.exec(thisFrame.lines[0].contents);
-      type = match ? match[1] : null;
-    }
-    if (!type) return; // not a special block
-    if (objectIsHidden(thisFrame)) {
-      if (type == 'settings') {
-        error('Found a hidden ai2svelte-settings text block. Either delete or hide this settings block.');
-      }
-      warn('Skipping a hidden ' +  match[0] + ' settings block.');
-      return;
-    }
-    lines = stringToLines(thisFrame.contents);
-    lines.shift(); // remove header
-    // Reset the name of any non-settings text boxes with name ai2svelte-settings
-    if (type != 'settings' && thisFrame.name == 'ai2svelte-settings') {
-      thisFrame.name = '';
-    }
-    if (type == 'settings' || type == 'text') {
-      settings = settings || {};
-      if (type == 'settings') {
-        // set name of settings block, so it can be found later using getByName()
-        thisFrame.name = 'ai2svelte-settings';
-      }
-      parseSettingsEntries(lines, settings);
-
-    } else { // import custom js, css and html blocks
-      code[type] = code[type] || [];
-      code[type].push(cleanCodeBlock(type, lines.join('\r')));
-    }
-    if (objectOverlapsAnArtboard(thisFrame)) {
-      // An error will be thrown if trying to hide a text frame inside a
-      // locked layer. Solution: unlock any locked parent layers.
-      if (objectIsLocked(thisFrame)) {
-        unlockObject(thisFrame);
-      }
-      hideTextFrame(thisFrame);
-    }
-  });
-
-  var htmlBlockCount = (code.html || []).length + (code['html-before'] || []).length +
-    (code['html-after'] || []).length;
-  if (code.css)  {message("Custom CSS blocks: " + code.css.length);}
-  // if (code.html) {message("Custom HTML blocks: " + code.html.length);}
-  if (htmlBlockCount > 0) {message("Custom HTML blocks: " + htmlBlockCount);}
-  if (code.js)   {message("Custom JS blocks: " + code.js.length);}
-
-  return {code: code, settings: settings};
+  // convert image_format arg to array
+  if (settingsObj.settings["image_format"]) {
+      settingsObj.settings["image_format"] = parseAsArray(settingsObj.settings["image_format"]);
+      return settingsObj;
+  }
 }
 
 // Derive ai2svelte program settings by merging default settings and overrides.
@@ -668,40 +641,6 @@ function cleanCodeBlock(type, raw) {
     clean = stripTag('style', clean);
   }
   return clean;
-}
-
-function parseSettingsEntry(str) {
-  var entryRxp = /^([\w-]+)\s*:\s*(.*)$/;
-  var match = entryRxp.exec(trim(str));
-  if (!match) return null;
-  return [match[1], straightenCurlyQuotesInsideAngleBrackets(match[2])];
-}
-
-// Add ai2svelte settings from a text block to a settings object
-function parseSettingsEntries(entries, settings) {
-  forEach(entries, function(str) {
-    var match = parseSettingsEntry(str);
-    var key, value;
-    if (!match) {
-      if (str) warn("Malformed setting, skipping: " + str);
-      return;
-    }
-    key   = match[0];
-    value = match[1];
-    if (key == 'output') {
-      // replace values from old versions of script with current values
-      if (value == 'one-file-for-all-artboards' || value == 'preview-one-file') {
-        value = 'one-file';
-      }
-      if (value == 'one-file-per-artboard' || value == 'preview-multiple-files') {
-        value = 'multiple-files';
-      }
-    }
-    if (key == "image_format") {
-      value = parseAsArray(value);
-    }
-    settings[key] = value;
-  });
 }
 
 function parseAsArray(str) {
@@ -2510,7 +2449,7 @@ function convertArtItems(activeArtboard, textFrames, masks, settings) {
     // This test prevents empty images, but is expensive when a layer contains many art objects...
     // consider only testing if an option is set by the user.
     if (testLayerArtboardIntersection(lyr, activeArtboard)) {
-      var pngHtml = exportImage(name, fmt, activeArtboard, null, null, opts) + + "\r";
+      var pngHtml = exportImage(name, fmt, activeArtboard, null, null, opts) + "\r";
       layerHtml.push({
         z: lyrZ,
         html: pngHtml
@@ -3318,7 +3257,7 @@ function generatePageCss(containerId, group, settings) {
 
 function addTextBlockContent(output, content) {
   if (content.css) {
-    output.css += '\r/* Custom CSS */\r' + content.css.join('\r') + '\r';
+    output.css += '\r/* Custom CSS */\r' + content.css + '\r';
   }
   if (content['html-before']) {
     output.html += '<!-- Custom HTML -->\r' + content['html-before'].join('\r') + '\r' + output.html + '\r';
@@ -3383,13 +3322,6 @@ function generateOutputHtml(content, group, settings) {
   commentBlock = '<!-- Generated by ai2svelte v' + scriptVersion + ' - ' +
     getDateTimeStamp() + ' -->\r' + '<!-- ai file: ' + doc.name + ' -->\r';
 
-  if (settings.preview_slug) {
-    commentBlock += '<!-- preview: ' + settings.preview_slug + ' -->\r';
-  }
-  if (settings.scoop_slug_from_config_yml) {
-    commentBlock += '<!-- scoop: ' + settings.scoop_slug_from_config_yml + ' -->\r';
-  }
-
   // SCRIPT
   html = generateSvelteScript();
 
@@ -3404,7 +3336,9 @@ function generateOutputHtml(content, group, settings) {
     // optional link around content
     html += '\t<a class="' + nameSpace + 'ai2svelteLink" href="' + linkSrc + '">\r';
   }
+
   html += content.html;
+
   if (linkSrc) {
     html += '\t</a>\r';
   }

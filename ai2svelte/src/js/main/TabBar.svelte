@@ -20,7 +20,7 @@
 
     onMount(() => {
         setTimeout(() => {
-            const firstLabel = document.querySelector("#label1");
+            const firstLabel = document.querySelector("#label-Home");
             if (firstLabel instanceof HTMLElement) {
                 activeTab = firstLabel;
             }
@@ -37,30 +37,29 @@
     });
 </script>
 
-{#snippet tab(label: string, checked: boolean, id: number)}
+{#snippet tab(label: string, checked: boolean)}
     <input
         type="radio"
         name="tab"
-        id={"tab" + id}
+        id={"tab-" + label}
         {checked}
         oninput={(e) => handleClick(e)}
     />
     <label
         class="tab"
         data-active={activeTab?.innerText == label.toUpperCase()}
-        id={"label" + id}
-        for={"tab" + id}>{label}</label
+        id={"label-" + label}
+        for={"tab-" + label}>{label}</label
     >
 {/snippet}
 
 <div class="tabs">
     <div class="container">
         <div class="tab-items">
-            {@render tab("Home", true, 1)}
-            {@render tab("Components", false, 2)}
-            {@render tab("CSS", false, 3)}
-            {@render tab("Preview", false, 4)}
-            {@render tab("About", false, 5)}
+            {@render tab("Home", true)}
+            {@render tab("CSS", false)}
+            {@render tab("Preview", false)}
+            {@render tab("About", false)}
         </div>
         <div class="theme-configs">
             <ThemeSwitcher />

@@ -75,15 +75,6 @@
         "end": 100,
         "value": 90
     },
-    "graphicskit": {
-        "type": "select",
-        "description": "description",
-        "value": "yes",
-        "options": [
-            "yes",
-            "no"
-        ]
-    },
     "inline_svg": {
         "type": "select",
         "description": "description",

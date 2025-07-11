@@ -29,3 +29,18 @@ export let defaultSettings = {
   "show_completion_dialog_box": true,
   "clickable_link": "",  // Add a URL to make the entire graphic a clickable link
 };
+
+export let placeholderSettings = {
+    "image_format": ["jpg"],
+    "responsiveness": "dynamic",
+    "output": "one-file",
+    "html_output_path": "../src/lib/ai2svelte/",
+    "html_output_extension": ".svelte",
+    "image_output_path": "../../statics/images/graphics/",
+    "image_source_path": "images/graphics/",
+    "png_transparent": "yes",
+    "png_number_of_colors": 256,
+    "jpg_quality": 90,
+    "inline_svg": "true",
+    "max_width": null
+};

@@ -29,7 +29,6 @@
 
   import TabBar from "./TabBar.svelte";
   import Home from "./Tabs/Home.svelte";
-  import Components from "./Tabs/Components.svelte";
   import CSS from "./Tabs/CSS.svelte";
   import Preview from "./Tabs/Preview.svelte";
 
@@ -99,14 +98,14 @@
   });
 
   async function fetchSettings() {
-    const settings = await evalTS("fetchAiSettings", "ai2html-settings");
-    updateSettingsStore(settings);
+    // const settings = await evalTS("fetchAiSettings", "ai2html-settings");
+    // updateSettingsStore(settings);
 
-    const styles = await evalTS("fetchAiSettings", "shadow-settings");
-    updateStylesStore(styles);
+    // const styles = await evalTS("fetchAiSettings", "shadow-settings");
+    // updateStylesStore(styles);
 
-    const snippets = await evalTS("fetchAiSettings", "snippet-settings");
-    updateSnippetsStore(snippets);
+    // const snippets = await evalTS("fetchAiSettings", "snippet-settings");
+    // updateSnippetsStore(snippets);
 
     updateInProgress.set(false);
   }
@@ -182,8 +181,6 @@
 
   {#if activeTab === "HOME"}
     <Home />
-  {:else if activeTab === "COMPONENTS"}
-    <Components />
   {:else if activeTab === "CSS"}
     <CSS />
   {:else if activeTab === "PREVIEW"}

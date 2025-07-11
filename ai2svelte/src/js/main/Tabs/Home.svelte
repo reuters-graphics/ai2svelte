@@ -2,13 +2,11 @@
     import { onMount, untrack } from "svelte";
     import AiSettings from "../ai-settings.json";
     import { fly } from "svelte/transition";
-    import { settingsObject } from "../stores";
+    import { settingsObject, stylesString } from "../stores";
     import { evalTS } from "../../lib/utils/bolt";
     import SectionTitle from "../Components/SectionTitle.svelte";
     import Input from "../Components/Input.svelte";
     import CmTextArea from "../Components/CMTextArea.svelte";
-
-    import Range from "../Components/InputRange.svelte";
 
     interface AiSettingOption {
         options: string[];
@@ -94,7 +92,10 @@
     <button
         id="hero-button"
         onclick={(e) => {
-            evalTS("runNightly");
+            evalTS("runNightly", {
+                settings: $settingsObject,
+                code: { css: $stylesString },
+            });
         }}>Run Nightly</button
     >
 

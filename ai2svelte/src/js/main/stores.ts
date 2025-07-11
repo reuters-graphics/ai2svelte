@@ -18,6 +18,8 @@ const testStyle = {
 
 export const styles: Writable<Record<string, Style>> = writable({});
 
+export const stylesString: Writable<string> = writable('');
+
 export const updateInProgress: Writable<boolean> = writable(false);
 
 export const isCEP: Writable<boolean> = writable(false);

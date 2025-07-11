@@ -40,8 +40,8 @@ export const getVariable = (key) => {
   }
 }
 
-export const runNightly = () => {
+export const runNightly = (settings) => {
   if (app) {
-    main();
+    main(settings);
   }
 }
