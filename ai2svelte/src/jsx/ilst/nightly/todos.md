@@ -13,7 +13,9 @@ need to have required settings block un-deletable in plugin
 
 replace ai2html-settings namespace (ai2html-) with ai2svelte
 
+think of adding gif as lazy loading?
 
+scaled and unscaled snippets?
 
 artboards and layers can hold everything after colon as abSettings
 ab:1200 -> 1200 gets set as minwidth

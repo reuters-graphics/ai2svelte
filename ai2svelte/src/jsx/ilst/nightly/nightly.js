@@ -2137,14 +2137,21 @@ function exportSymbolAsHtml(item, geometries, abBox, opts) {
   var style = getBasicSymbolStyle(item);
   var properties = item.name ? 'data-name="' + makeKeyword(item.name) + '" ' : '';
   var geom, x, y;
+  var innerBlock = opts.innerBlock || "";
+  var symbolClass = getSymbolClass();
+
+  if(opts.tagPrefix == 'snippet') {
+    symbolClass += " " + nameSpace + 'aiSnippet';
+  }
+
   for (var i=0; i<geometries.length; i++) {
     geom = geometries[i];
     // make center coords relative to top,left of artboard
     x = geom.center[0] - abBox.left;
     y = -geom.center[1] - abBox.top;
     geom.center = [x, y];
-    html += '\r\t\t\t' + '<div class="' + getSymbolClass() + '" ' + properties +
-      getBasicSymbolCss(geom, style, abBox, opts) + '></div>';
+    html += '\r\t\t\t' + '<div class="' + symbolClass + '" ' + properties +
+      getBasicSymbolCss(geom, style, abBox, opts) + '>\r' + innerBlock + '\r</div>';
   }
   return html;
 }
@@ -2201,6 +2208,7 @@ function exportSymbols(lyr, ab, masks, opts) {
 
   function forPageItem(item) {
     var singleGeom, geometries;
+
     if (item.hidden || item.guides || !testBoundsIntersection(item.visibleBounds, ab.artboardRect)) return;
     // try to convert to circle or rectangle
     // note: filled shapes aren't necessarily closed
@@ -2213,13 +2221,27 @@ function exportSymbols(lyr, ab, masks, opts) {
       geometries = getLineGeometry(item.pathPoints);
     }
     if (!geometries) return; // item is not convertible to an HTML symbol
+
+    var innerBlock = "";
+
+    if (tagPrefix == 'snippet') {     
+        innerBlock += "{@render " + opts.prop + "?.()}";
+
+        opts.innerBlock = innerBlock;
+    }
+
     html += exportSymbolAsHtml(item, geometries, abBox, opts);
     items.push(item);
-    item.hidden = true;
+
+    if(tagPrefix != 'snippet') {
+        item.hidden = true;
+    }
   }
+
   if (html) {
     html = '\t\t<div class="' + nameSpace + tagPrefix + '-layer ' + nameSpace + getLayerName(lyr) + '">' + html + '\r\t\t</div>\r';
   }
+
   return {
     html: html,
     items: items
@@ -2426,6 +2448,13 @@ function convertArtItems(activeArtboard, textFrames, masks, settings) {
   var hiddenLayers = [];
   var i;
 
+  // holds layer's HTML code in a separate array
+  // to avoid layer order in final HTML
+  // by default, layers are ordered as
+  // :symbol, :div, :svg, :png, :block
+  // this does not allow higher z-indexed svg layer on top of block layer
+  var layerHtml = [];
+
   checkForOutputFolder(getImageFolder(settings), 'image_output_path');
 
   if (hideTextFrames) {
@@ -2435,25 +2464,37 @@ function convertArtItems(activeArtboard, textFrames, masks, settings) {
   }
 
   // Symbols in :symbol layers are not scaled
-  forEach(findTaggedLayers('symbol'), function(lyr) {
-    var obj = exportSymbols(lyr, activeArtboard, masks, {scaled: false, tagPrefix: 'symbol'});
-    html += obj.html;
-    hiddenItems = hiddenItems.concat(obj.items);
-  });
+    forEach(findTaggedLayers("symbol"), function (lyr) {
+      var obj = exportSymbols(lyr, activeArtboard, masks, { scaled: false, tagPrefix: 'symbol'});
+      var lyrZ = lyr.zOrderPosition;
+      layerHtml.push({
+        z: lyrZ,
+        html: obj.html + "\r"
+      });
+      hiddenItems = hiddenItems.concat(obj.items);
+    });
 
-  // Symbols in :div layers are scaled
-  forEach(findTaggedLayers('div'), function(lyr) {
-    var obj = exportSymbols(lyr, activeArtboard, masks, {scaled: true, tagPrefix: 'div'});
-    html += obj.html;
-    hiddenItems = hiddenItems.concat(obj.items);
-  });
+    // Symbols in :div layers are scaled
+    forEach(findTaggedLayers("div"), function (lyr) {
+      var obj = exportSymbols(lyr, activeArtboard, masks, { scaled: true, tagPrefix: 'div' });
+      var lyrZ = lyr.zOrderPosition;
+      layerHtml.push({
+        z: lyrZ,
+        html: obj.html + "\r"
+      });
+      hiddenItems = hiddenItems.concat(obj.items);
+    });
 
   forEach(findTaggedLayers('svg'), function(lyr) {
     var uniqName = uniqAssetName(getLayerImageName(lyr, activeArtboard, settings), uniqNames);
-    var layerHtml = exportImage(uniqName, 'svg', activeArtboard, masks, lyr, settings);
-    if (layerHtml) {
+    var svgHtml = exportImage(uniqName, 'svg', activeArtboard, masks, lyr, settings);
+    var lyrZ = lyr.zOrderPosition;
+    if (svgHtml) {
       uniqNames.push(uniqName);
-      html += layerHtml;
+      layerHtml.push({
+        z: lyrZ,
+        html: svgHtml + "\r"
+      });
     }
     lyr.visible = false;
     hiddenLayers.push(lyr);
@@ -2465,15 +2506,53 @@ function convertArtItems(activeArtboard, textFrames, masks, settings) {
     var opts = extend({}, settings, {png_transparent: true});
     var name = getLayerImageName(lyr, activeArtboard, settings);
     var fmt = contains(settings.image_format || [], 'png24') ? 'png24' : 'png';
+    var lyrZ = lyr.zOrderPosition;
     // This test prevents empty images, but is expensive when a layer contains many art objects...
     // consider only testing if an option is set by the user.
     if (testLayerArtboardIntersection(lyr, activeArtboard)) {
-      html = exportImage(name, fmt, activeArtboard, null, null, opts) + html;
+      var pngHtml = exportImage(name, fmt, activeArtboard, null, null, opts) + + "\r";
+      layerHtml.push({
+        z: lyrZ,
+        html: pngHtml
+      });
     }
     hiddenLayers.push(lyr); // need to unhide this layer later, after base image is captured
   });
+
+  docSettings.snippetProps = [];
+
+    forEach(findSnippets('snippet').reverse(), function (lyr) {
+      var lyrZ = lyr.zOrderPosition;
+      var snippetProp = lyr.name.match(new RegExp(/(.*):snippet/))[1];
+
+      docSettings.snippetProps.push(snippetProp);
+
+        var obj = exportSymbols(lyr, activeArtboard, masks, {
+          scaled: true,
+          tagPrefix: 'snippet',
+          prop: snippetProp
+        });
+
+        layerHtml.push({
+          z: lyrZ,
+          html: obj.html + "\r"
+        });
+
+        lyr.visible = false;
+        hiddenLayers.push(lyr);
+    });
+
+    var sortedLayerHtml = layerHtml.sort(function (a, b) {
+        return a.z - b.z;
+      });
+
+    var accumulatedHTML = map(sortedLayerHtml, function (layer) {
+      return layer.html;
+    });
+
+
   // placing ab image before other elements
-  html = captureArtboardImage(imgName, activeArtboard, masks, settings) + html;
+  html = captureArtboardImage(imgName, activeArtboard, masks, settings) + accumulatedHTML.join('');
   // unhide hidden layers (if any)
   forEach(hiddenLayers, function(lyr) {
     lyr.visible = true;
@@ -2492,6 +2571,18 @@ function convertArtItems(activeArtboard, textFrames, masks, settings) {
   });
 
   return {html: html};
+}
+
+// collects all the :tag layers
+function findSnippets(tag) {
+    var layers = [];
+    var regex = new RegExp('^.+:' + tag + '$');
+    for(var i = 0; i < doc.layers.length; i++) {
+      if(doc.layers[i].name.match(regex)) {
+        layers.push(doc.layers[i]);
+      }
+    }
+    return layers;
 }
 
 function findTaggedLayers(tag) {
@@ -2689,26 +2780,42 @@ function captureArtboardImage(imgName, ab, masks, settings) {
   return imgHtml;
 }
 
-
 // Create an <img> tag for the artboard image
 function generateImageHtml(imgFile, imgId, imgClass, imgStyle, ab, settings) {
-  var imgDir = settings.image_source_path,
-      imgAlt = encodeHtmlEntities(settings.image_alt_text || ''),
-      html, src;
+    var imgDir =
+        "{ assetsPath.replace(new RegExp('/([^/.]+)$'), '/$1/') || '/' }" +
+        settings.image_source_path,
+      imgAlt = encodeHtmlEntities(settings.image_alt_text || ""),
+      html,
+      src;
+      
+    src = pathJoin(imgDir, imgFile);
 
-  src = imgDir ? pathJoin(imgDir, imgFile) : imgFile;
-  html = '\t\t<img id="' + imgId + '" class="' + imgClass + '" alt="' + imgAlt + '"';
-  if (imgStyle) {
-    html += ' style="' + imgStyle + '"';
+    html =
+      '\t\t<div id="' +
+      imgId +
+      '" class="' +
+      imgClass +
+      '" alt="' +
+      imgAlt +
+      '"';
+    html += ' style="';
+    if (imgStyle) {
+      html += imgStyle + ";";
+    }
+
+    html += "background-image: url(" + src + ');"';
+
+    if (isTrue(settings.use_lazy_loader)) {
+      // native lazy loading seems to work well -- images aren't loaded when
+      // hidden or far from the viewport.
+      html += ' loading="lazy"';
+    }
+
+    html += "></div>";
+
+    return html;
   }
-  if (isTrue(settings.use_lazy_loader)) {
-    // native lazy loading seems to work well -- images aren't loaded when
-    // hidden or far from the viewport.
-    html += ' loading="lazy"';
-  }
-  html += ' src="' + src + '"/>\r';
-  return html;
-}
 
 // Returns 1 or 2 (corresponding to standard pixel scale and 'retina' pixel scale)
 // format: png, png24 or jpg
@@ -3039,7 +3146,6 @@ function generateArtboardDiv(ab, group, settings) {
   var abBox = convertAiBounds(ab.artboardRect);
   var aspectRatio = abBox.width / abBox.height;
   var inlineStyle = '';
-  var inlineSpacerStyle = '';
   var html = '';
 
   // Set size of graphic using inline CSS
@@ -3048,16 +3154,15 @@ function generateArtboardDiv(ab, group, settings) {
     // inlineSpacerStyle += "width:" + abBox.width + "px; height:" + abBox.height + "px;";
     inlineStyle += 'width:' + abBox.width + 'px; height:' + abBox.height + 'px;';
   } else {
-    // Set height of dynamic artboards using vertical padding as a %, to preserve aspect ratio.
-    inlineSpacerStyle = 'padding: 0 0 ' + formatCssPct(abBox.height, abBox.width) + ' 0;';
     if (widthRange[0] > 0) {
       inlineStyle += 'min-width: ' + widthRange[0] + 'px;';
     }
     if (widthRange[1] < Infinity) {
       inlineStyle += 'max-width: ' + widthRange[1] + 'px;';
-      inlineStyle += 'max-height: ' + Math.round(widthRange[1] / aspectRatio) + 'px';
     }
   }
+
+  inlineStyle += "aspect-ratio: " + abBox.width / abBox.height + ";";
 
   html += '\t<div id="' + id + '" class="' + classname + '" style="' + inlineStyle + '"';
   html += ' data-aspect-ratio="' + roundTo(aspectRatio, 3) + '"';
@@ -3068,8 +3173,6 @@ function generateArtboardDiv(ab, group, settings) {
     }
   }
   html += '>\r';
-  // add spacer div
-  html += '\t\t<div style="' + inlineSpacerStyle + '"></div>\n';
   return html;
 }
 
@@ -3119,6 +3222,27 @@ function generateContainerQueryCss(ab, abId, group, settings) {
   css += formatCssRule(abId, { display: isSmallest ? 'none' : 'block' });
   css += '}\r';
   return css;
+}
+
+// css for snippets to occupy only the space inside the box
+// adds object-fit cover for html image and video snippets
+function snippetCss() {
+    var css = "";
+    css += ".g-aiSnippet {\r";
+    css += ":global {";
+    css += "* { \r";
+    css += "width: 100%; \r";
+    css += "height: 100%; \r";
+    css += "padding: 0; \r";
+    css += "margin: 0; \r";
+    css += "}\r";
+    css += "img, video {\r";
+    css += "object-fit: cover;\r";
+    css += "}\r";
+    css += "}\r";
+    css += "}\r";
+
+    return css;
 }
 
 // Get CSS styles that are common to all generated content
@@ -3184,6 +3308,11 @@ function generatePageCss(containerId, group, settings) {
 
   css += formatCssRule(blockStart + ' .' + nameSpace + 'aiPointText p',
     {'white-space': 'nowrap'});
+
+  if (docSettings.snippetProps) {
+    css += snippetCss();
+  }
+
   return css;
 }
 
@@ -3207,13 +3336,34 @@ function addTextBlockContent(output, content) {
   }
 }
 
+// generates <script> code
+function generateSvelteScript() {
+  var script = "<script>\r\t";
+
+  script += "let { assetsPath = '/', onAiMounted = () => {}";
+
+    if(docSettings.snippetProps) {
+      script += ", " + docSettings.snippetProps.join(", ");
+    }
+
+    script +=  " } = $props();\r";
+
+  // add prop for onmount function that defaults to noop
+  script += "import { onMount } from 'svelte';\n";
+  script += "onMount(() => {\r  onAiMounted();\r});\r";
+
+  script += "\r</script>\r";
+
+  return script;
+}
+
 
 // Wrap content HTML in a <div>, add styles and resizer script, write to a file
 function generateOutputHtml(content, group, settings) {
   var pageName = group.groupName;
   var linkSrc = settings.clickable_link || '';
-  var responsiveJs = '';
   var containerId = getGroupContainerId(pageName);
+  var responsiveJs = '';
   var altTextId = containerId + '-img-desc';
   var textForFile, html, js, css, commentBlock;
   var htmlFileDestinationFolder, htmlFileDestination;
@@ -3240,8 +3390,11 @@ function generateOutputHtml(content, group, settings) {
     commentBlock += '<!-- scoop: ' + settings.scoop_slug_from_config_yml + ' -->\r';
   }
 
+  // SCRIPT
+  html = generateSvelteScript();
+
   // HTML
-  html = '<div id="' + containerId + '" class="' + containerClasses + '"' + ariaAttrs + '>\r';
+  html += '<div id="' + containerId + '" class="' + containerClasses + '"' + ariaAttrs + '>\r';
 
   if (settings.alt_text) {
     html += '<div class="' + nameSpace + 'aiAltText" id="' + altTextId + '">' +
