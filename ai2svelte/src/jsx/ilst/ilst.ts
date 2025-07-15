@@ -4,6 +4,7 @@ import { addSnippet } from "./addSnippet";
 import { storeHiddenData, getHiddenData } from './dataOperations';
 import { main } from './nightly/nightly';
 import { getDocPath, createFolder, createFile } from "./ilstUtils";
+import { csi } from "../../js/lib/utils/bolt";
 
 export const updateAiSettings = (settingsObj: string, str: string) => {
   if(app) {
@@ -43,6 +44,24 @@ export const getVariable = (key) => {
 
 export const runNightly = (settings) => {
   if (app) {
+    main(settings);
+  }
+}
+
+export const runPreview = (settings, path) => {
+  if(app) {
+    createFolder(path);
+
+    settings.settings.isPreview = true;
+    settings.settings.html_output_path = path;
+    settings.settings.html_output_extension = ".svelte";
+    settings.settings.image_output_path = path;
+    settings.settings.image_source_path = "";
+    settings.settings.include_resizer_css = false;
+    settings.settings.project_name = "preview";
+
+    // alert(JSON.stringify(settings));
+
     main(settings);
   }
 }

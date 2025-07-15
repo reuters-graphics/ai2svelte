@@ -8,7 +8,6 @@
     import { evalTS } from "../../lib/utils/bolt";
     import shadows, { cheeses } from "./shadows";
     import animations from "./animations.json";
-    import { initTippy } from "./utils";
     import { styles, stylesString, updateInProgress, isCEP } from "../stores";
     import type { Style } from "../stores";
     import ColorPicker from "svelte-awesome-color-picker";
@@ -101,8 +100,6 @@
     });
 
     onMount(async () => {
-        initTippy();
-
         allShadows = [...shadows].map((x) => ({
             id: x.id,
             shadow: x.shadow,
@@ -401,7 +398,6 @@
             <button
                 id="replace-image"
                 onclick={changeBackdrop}
-                data-tippy-content="Change backdrop"
                 aria-label="Change backdrop"
             >
                 <img
@@ -413,7 +409,6 @@
             <button
                 id="replace-specimen"
                 onclick={changeSpecimen}
-                data-tippy-content="Change type specimen"
                 aria-label="Change type specimen"
             >
                 <img
@@ -422,10 +417,7 @@
                     alt="Change type specimen"
                 />
             </button>
-            <div
-                data-tippy-content="Fill color"
-                style="--picker-color: {fillColor};"
-            >
+            <div style="--picker-color: {fillColor};">
                 <ColorPicker
                     position="responsive"
                     label=""
@@ -444,10 +436,7 @@
                     --cp-input-color="#292929"
                 />
             </div>
-            <div
-                data-tippy-content="Shadow color"
-                style="--picker-color: {shadowColor};"
-            >
+            <div style="--picker-color: {shadowColor};">
                 <ColorPicker
                     position="responsive"
                     label=""

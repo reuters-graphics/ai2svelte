@@ -113,6 +113,7 @@ let startTime = +new Date();
 
 let textFramesToUnhide = [];
 let objectsToRelock = [];
+let previewImageImports = [];
 
 let docSettings;
 let textBlockData;
@@ -313,6 +314,11 @@ function renderArtboardGroup(group, masks, settings, textBlockContent) {
        imageData.html +
        textData.html +
        '\t</div>\r';
+
+    if(!settings.include_resizer_css) {
+      output.html += "{/if}";
+    }
+  
 
     var abStyles = textData.styles;
 
@@ -522,12 +528,10 @@ function groupArtboardsForOutput(settings) {
     if (settings.output == 'one-file') {
       // single-file output: artboards share a single group
       groupName = getRawDocumentName();
-      alert(groupName);
       group = groups[0];
     } else {
       // multiple-file output: artboards are grouped by name
       groupName = getDocumentArtboardName(ab);
-      alert(groupName);
       group = find(groups, function(o) {
         o.name == groupName;
       });
@@ -2534,7 +2538,11 @@ function findTaggedLayers(tag) {
 
 function getImageFolder(settings) {
   // return pathJoin(docPath, settings.html_output_path, settings.image_output_path);
-  return pathJoin(docPath, settings.image_output_path);
+  if(settings.isPreview) {
+    return settings.image_output_path;
+  } else {
+    return pathJoin(docPath, settings.image_output_path);
+  }
 }
 
 function getImageFileName(name, fmt) {
@@ -2722,14 +2730,26 @@ function captureArtboardImage(imgName, ab, masks, settings) {
 
 // Create an <img> tag for the artboard image
 function generateImageHtml(imgFile, imgId, imgClass, imgStyle, ab, settings) {
-    var imgDir =
+    var imgDir;
+
+    imgDir =
         "{ assetsPath.replace(new RegExp('/([^/.]+)$'), '/$1/') || '/' }" +
-        settings.image_source_path,
-      imgAlt = encodeHtmlEntities(settings.image_alt_text || ""),
+        settings.image_source_path;
+
+    var imgAlt = encodeHtmlEntities(settings.image_alt_text || ""),
       html,
       src;
       
-    src = pathJoin(imgDir, imgFile);
+    if(settings.isPreview) {
+      // preview-xs.jpg -> {previewXS}
+      var grps = imgFile.match(/(.*)-(.*)\..*/);
+      var importName = `${grps[1]}${grps[2].toString().toUpperCase()}`;
+      src = `{${importName}}`;
+
+      previewImageImports.push(`import ${importName} from './${imgFile}';`);
+    } else {
+      src = pathJoin(imgDir, imgFile);
+    }
 
     html =
       '\t\t<div id="' +
@@ -3104,6 +3124,21 @@ function generateArtboardDiv(ab, group, settings) {
 
   inlineStyle += "aspect-ratio: " + abBox.width / abBox.height + ";";
 
+  if(!settings.include_resizer_css) {
+    if (visibleRange[1] < Infinity) {
+      html +=
+        "{#if width && ( width >= " +
+        visibleRange[0] +
+        " && width <" +
+        (Number(visibleRange[1]) + 1) +
+        ")}";
+    } else {
+      html += "{#if width && (width >= " + visibleRange[0] + ")}";
+    }
+
+    html += "\n\r";
+  }
+
   html += '\t<div id="' + id + '" class="' + classname + '" style="' + inlineStyle + '"';
   html += ' data-aspect-ratio="' + roundTo(aspectRatio, 3) + '"';
   if (isTrue(settings.include_resizer_widths)) {
@@ -3288,6 +3323,14 @@ function generateSvelteScript() {
 
     script +=  " } = $props();\r";
 
+  if(!settingsArg.settings.include_resizer_css) {
+    script +=  "let width = $state(100);\n\r";
+    
+    for(let i = 0; i < previewImageImports.length; i++) {
+      script += previewImageImports[i] + "\n\r";
+    }
+  }
+
   // add prop for onmount function that defaults to noop
   script += "import { onMount } from 'svelte';\n";
   script += "onMount(() => {\r  onAiMounted();\r});\r";
@@ -3300,7 +3343,7 @@ function generateSvelteScript() {
 
 // Wrap content HTML in a <div>, add styles and resizer script, write to a file
 function generateOutputHtml(content, group, settings) {
-  var pageName = group.groupName;
+  var pageName = settings.project_name || group.groupName;
   var linkSrc = settings.clickable_link || '';
   var containerId = getGroupContainerId(pageName);
   var responsiveJs = '';
@@ -3327,7 +3370,7 @@ function generateOutputHtml(content, group, settings) {
   html = generateSvelteScript();
 
   // HTML
-  html += '<div id="' + containerId + '" class="' + containerClasses + '"' + ariaAttrs + '>\r';
+  html += '<div id="' + containerId + '" class="' + containerClasses + '"' + ariaAttrs + (settings.include_resizer_css ? '' : 'bind:clientWidth={width}') + '>\r';
 
   if (settings.alt_text) {
     html += '<div class="' + nameSpace + 'aiAltText" id="' + altTextId + '">' +
@@ -3358,7 +3401,14 @@ function generateOutputHtml(content, group, settings) {
      '<!-- End ai2svelte' + ' - ' + getDateTimeStamp() + ' -->\r';
 
   textForFile = applyTemplate(textForFile, settings);
-  htmlFileDestinationFolder = docPath + settings.html_output_path;
+
+  if(settings.isPreview == true) {
+    // previews should be stored in extension directory
+    htmlFileDestinationFolder = settings.html_output_path;
+  } else {
+    htmlFileDestinationFolder = docPath + settings.html_output_path;
+  }
+
   checkForOutputFolder(htmlFileDestinationFolder, 'html_output_path');
   htmlFileDestination = htmlFileDestinationFolder + pageName + settings.html_output_extension;
 

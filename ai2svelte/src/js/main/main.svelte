@@ -10,7 +10,6 @@
     evalTS,
   } from "../lib/utils/bolt";
   import { isAppRunning } from "../lib/utils/bolt";
-  import unescapeJs from "unescape-js";
   import "../index.scss";
   import "./main.scss";
   import {
@@ -20,11 +19,7 @@
     isCEP,
     snippets,
   } from "./stores";
-  import {
-    convertStringToObject,
-    parseSnippetSettings,
-    initTippy,
-  } from "./Tabs/utils";
+  import { convertStringToObject, parseSnippetSettings } from "./Tabs/utils";
   import type { Style } from "./stores";
 
   import TabBar from "./TabBar.svelte";
@@ -61,19 +56,10 @@
   }
 
   onMount(() => {
-    initTippy();
-
     isCEP.set(window.cep);
     if (get(isCEP)) {
       fetchSettings();
     }
-
-    tippy("[data-tippy-content]", {
-      theme: "dark",
-      arrow: false,
-      placement: "top",
-      delay: [500, null],
-    });
   });
 
   function updateSettingsStore(str: string) {

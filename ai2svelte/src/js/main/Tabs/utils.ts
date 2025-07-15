@@ -1,6 +1,5 @@
 import { slide } from "svelte/transition";
 import type { SlideParams } from "svelte/transition";
-import tippy from "tippy.js";
 import { EditorView } from "@codemirror/view";
 
 export function fadeSlide(node: HTMLElement, options: SlideParams) {
@@ -31,15 +30,6 @@ export function convertStringToObject(s: string) {
             });
         return obj;
     }
-
-export function initTippy() {
-    tippy("[data-tippy-content]", {
-      theme: "dark",
-      arrow: false,
-      placement: "top",
-      delay: [500, null],
-    });
-}
 
 export function parseSnippetSettings(settingsText: string) {
     // Handle both Windows (\r\n) and Unix (\n) line endings\

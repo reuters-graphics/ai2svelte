@@ -71,10 +71,7 @@
         </div>
         <div class="theme-configs">
             <ThemeSwitcher bind:theme />
-            <div
-                data-tippy-content="Fill color"
-                style="--picker-color: {accentColor};"
-            >
+            <div style="--picker-color: {accentColor};">
                 <ColorPicker
                     position="responsive"
                     label=""

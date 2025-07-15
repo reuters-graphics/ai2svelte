@@ -34,8 +34,8 @@ const config: CEP_Config = {
       height: 350,
       minWidth: 40,
       minHeight: 40,
-      maxWidth: 960,
-      maxHeight: 960,
+      maxWidth: 1600,
+      maxHeight: 1080,
     },
   ],
   build: {

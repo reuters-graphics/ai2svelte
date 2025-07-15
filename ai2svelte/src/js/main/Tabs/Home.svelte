@@ -8,6 +8,7 @@
     import Input from "../Components/Input.svelte";
     import CmTextArea from "../Components/CMTextArea.svelte";
     import { allSettings } from "../utils/allSettings";
+    import { csi } from "../../lib/utils/bolt";
 
     interface AiSettingOption {
         options: string[];
@@ -109,10 +110,18 @@
     <button
         id="hero-button"
         onclick={(e) => {
-            console.log($settingsObject);
-            evalTS("setVariable", "ai-settings", $settingsObject);
-            evalTS("setVariable", "css-settings", $stylesString);
-        }}>Save Settings</button
+            console.log("running preview");
+            const extensionPath = csi.getSystemPath("extension");
+            const writablePath = extensionPath + "/writable/";
+            evalTS(
+                "runPreview",
+                {
+                    settings: $settingsObject,
+                    code: { css: $stylesString },
+                },
+                writablePath,
+            );
+        }}>Run Preview</button
     >
 
     <SectionTitle
