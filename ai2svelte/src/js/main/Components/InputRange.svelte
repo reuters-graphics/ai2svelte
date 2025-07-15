@@ -73,8 +73,8 @@
         0.5
             ? 'calc(8px)'
             : 'calc(-100% - 8px)'}); color: {progress.current < 0.5
-            ? 'white'
-            : 'black'}; opacity: {dragging ? 0 : 0.5};"
+            ? 'var(--color-text)'
+            : 'var(--color-invert)'}; opacity: {dragging ? 0 : 0.5};"
     >
         {value}
     </p>

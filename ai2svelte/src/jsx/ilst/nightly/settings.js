@@ -12,9 +12,9 @@ export let defaultSettings = {
   "image_output_path": "ai2html-output/",
   "image_source_path": "",
   "image_alt_text": "", // Generally, use alt_text instead
-  "png_transparent": false,
-  "png_number_of_colors": 128, // Number of colors in 8-bit PNG image (1-256)
-  "jpg_quality": 60,
+  "png_transparent": true,
+  "png_number_of_colors": 256, // Number of colors in 8-bit PNG image (1-256)
+  "jpg_quality": 90,
   "center_html_output": true,
   "use_2x_images_if_possible": true,
   "use_lazy_loader": true,

@@ -100,6 +100,7 @@
 
     .dropdown-value {
         position: absolute;
+        color: var(--color-text);
         top: 0px;
         opacity: 0.5;
         @include animation-default;
@@ -122,6 +123,7 @@
         justify-content: space-between;
         border: unset;
         background-color: transparent;
+        color: var(--color-text);
         padding: 0px;
         padding-right: 12px;
         border-radius: 8px;
@@ -170,6 +172,8 @@
 
         button {
             all: unset;
+            box-sizing: border-box;
+            display: block;
             width: 100%;
             opacity: 0.5;
             padding: 8px;
@@ -184,7 +188,7 @@
     }
 
     li[data-active="true"] {
-        color: var(--color-white);
+        color: var(--color-text);
 
         button {
             opacity: 1 !important;
@@ -194,7 +198,7 @@
     .li-selector {
         position: absolute;
         width: 100%;
-        background-color: var(--color-primary);
+        background-color: var(--color-tertiary);
         border-radius: 8px;
         top: 0px;
         z-index: 3;

@@ -2,7 +2,6 @@ import { slide } from "svelte/transition";
 import type { SlideParams } from "svelte/transition";
 import tippy from "tippy.js";
 import { EditorView } from "@codemirror/view";
-import unescapeJs from 'unescape-js';
 
 export function fadeSlide(node: HTMLElement, options: SlideParams) {
 		const slideTrans = slide(node, options)
@@ -82,7 +81,6 @@ export function parseSnippetSettings(settingsText: string) {
 export const myTheme = EditorView.theme(
             {
                 "&": {
-                    fontSize: "0.85rem",
                     backgroundColor: "transparent !important",
                     border: "unset !important",
                 },
@@ -91,6 +89,7 @@ export const myTheme = EditorView.theme(
                 },
                 ".cm-scroller": {
                     fontFamily: "inherit",
+                    overflow: "auto"
                 },
                 "&.cm-focused .cm-cursor": {
                     borderLeftColor: "#dc4300 !important",
@@ -98,22 +97,30 @@ export const myTheme = EditorView.theme(
                 },
                 ".cm-gutters": {
                     backgroundColor: "#ffffff00 !important",
+                    color: "var(--color-text) !important"
                 },
                 ".cm-selectionBackground": {
-                    backgroundColor: "#dc430022 !important",
+                    backgroundColor: "color-mix(in srgb, var(--color-text) 10%, transparent) !important",
                 },
-                ".cm-content, .cm-gutter": { minHeight: "200px" },
+                ".cm-content, .cm-gutter": { minHeight: "200px", height: "100%" },
                 ".cm-line": {
                     fontSize: "clamp(0.89rem, -0.08vw + 0.91rem, 0.84rem) !important",
                     lineHeight: "150% !important"
                 },
                 ".cm-gutterElement": {
                     fontSize: "clamp(0.89rem, -0.08vw + 0.91rem, 0.84rem) !important",
-                    lineHeight: "150% !important"
+                    lineHeight: "150% !important",
+                    opacity: "0.25 !important"
                 },
-                ".ͼv": {
-                    // color: "#ffffff77 !important"
-                }
+                ".cm-activeLineGutter": {
+                    backgroundColor: "transparent !important",
+                    color: "var(--color-text) !important",
+                    opacity: "1 !important"
+                },
+                ".cm-activeLine": {
+                    backgroundColor: "transparent !important",
+                    boxShadow: "0 -0.5px 0 0 #80808055, 0 0.5px 0 0 #80808055"
+                },
             },
             { dark: true },
         );

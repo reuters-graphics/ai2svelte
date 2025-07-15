@@ -7,6 +7,7 @@
     import SectionTitle from "../Components/SectionTitle.svelte";
     import Input from "../Components/Input.svelte";
     import CmTextArea from "../Components/CMTextArea.svelte";
+    import { allSettings } from "../utils/allSettings";
 
     interface AiSettingOption {
         options: string[];
@@ -44,7 +45,7 @@
     let editableYamlString: string = $state("");
 
     $effect(() => {
-        if (AiSettings) {
+        if (Object.keys($settingsObject).length == 0 && AiSettings) {
             untrack(() => {
                 const obj = JSON.parse(JSON.stringify(AiSettings));
 
@@ -85,6 +86,11 @@
             });
 
         settingsObject.set(obj);
+
+        if (window.cep) {
+            evalTS("setVariable", "ai-settings", $settingsObject);
+            evalTS("setVariable", "css-settings", $stylesString);
+        }
     }
 </script>
 
@@ -96,6 +102,7 @@
                 settings: $settingsObject,
                 code: { css: $stylesString },
             });
+            evalTS("setVariable", "ai-settings", $settingsObject);
         }}>Run Nightly</button
     >
 
@@ -103,16 +110,9 @@
         id="hero-button"
         onclick={(e) => {
             console.log($settingsObject);
-            evalTS("setVariable", "msg", $settingsObject);
-        }}>Store</button
-    >
-
-    <button
-        id="hero-button"
-        onclick={async (e) => {
-            const t = await evalTS("getVariable", "msg");
-            console.log(t);
-        }}>Retrieve</button
+            evalTS("setVariable", "ai-settings", $settingsObject);
+            evalTS("setVariable", "css-settings", $stylesString);
+        }}>Save Settings</button
     >
 
     <SectionTitle
@@ -169,18 +169,21 @@
         {:else if activeFormat === "code"}
             <div
                 id="aisettings-textarea"
-                class="content-item"
+                class="content-item code-editor"
                 bind:this={codeContent}
                 in:fly={{ y: -50, duration: 300 }}
                 out:fly={{ y: 50, duration: 300 }}
             >
-                <CmTextArea
-                    type="text"
-                    bind:value={editableYamlString}
-                    onUpdate={(e) => {
-                        convertStringToObject(editableYamlString);
-                    }}
-                />
+                {#if allSettings}
+                    <CmTextArea
+                        type="yaml"
+                        bind:textValue={editableYamlString}
+                        onUpdate={(e: string) => {
+                            convertStringToObject(e);
+                        }}
+                        autoCompletionTokens={allSettings}
+                    />
+                {/if}
             </div>
         {/if}
     </div>
@@ -196,6 +199,7 @@
     #hero-button {
         cursor: pointer;
         padding: 1rem;
+        color: var(--color-white);
         background-color: var(--color-accent-primary);
         border: unset;
         border-radius: 4px;
@@ -221,14 +225,5 @@
     .ai-setting {
         flex-grow: 1;
         transition: 0.3s ease;
-    }
-
-    #aisettings-textarea {
-        width: 100%;
-        background-color: var(--color-primary);
-        padding: 0.75rem;
-        border: unset;
-        border-radius: 8px;
-        height: auto;
     }
 </style>

@@ -84,7 +84,7 @@
             "false"
         ]
     },
-    "max-width": {
+    "max_width": {
         "type": "text",
         "description": "description",
         "value": null

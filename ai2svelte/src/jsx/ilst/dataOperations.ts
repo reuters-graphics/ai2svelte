@@ -5,12 +5,14 @@ if ( ExternalObject.AdobeXMPScript == undefined ) {
 // Corrected XMP implementation
 export function storeHiddenData(key, value) {
     try {
-        var xmp = app.activeDocument.XMPString;
+        var doc = app.activeDocument;
+
+        var xmp = doc.XMPString;
         var xmpMeta = new XMPMeta(xmp);
         
         // Define namespace and prefix
-        var namespace = "http://yourcompany.com/yourplugin/1.0/";
-        var prefix = "yourplugin";
+        var namespace = "reuters-graphics";
+        var prefix = "ai2svelte-companion";
         
         // Register the namespace BEFORE using it
         XMPMeta.registerNamespace(namespace, prefix);
@@ -19,7 +21,22 @@ export function storeHiddenData(key, value) {
         xmpMeta.setProperty(namespace, key, JSON.stringify(value));
         
         // Save back to document
-        app.activeDocument.XMPString = xmpMeta.serialize();
+        doc.XMPString = xmpMeta.serialize();
+
+        // Minimal artboard change
+        var artboard = doc.artboards[0];
+        var originalRect = artboard.artboardRect;
+        
+        // Make tiny change and revert
+        artboard.artboardRect = [
+            originalRect[0], 
+            originalRect[1], 
+            originalRect[2] + 0.001, 
+            originalRect[3]
+        ];
+        artboard.artboardRect = originalRect;
+        
+        doc.save();
         
         return true;
     } catch (e) {
@@ -30,11 +47,13 @@ export function storeHiddenData(key, value) {
 
 export function getHiddenData(key) {
     try {
-        var xmp = app.activeDocument.XMPString;
+        var doc = app.activeDocument;
+
+        var xmp = doc.XMPString;
         var xmpMeta = new XMPMeta(xmp);
         
-        var namespace = "http://yourcompany.com/yourplugin/1.0/";
-        var prefix = "yourplugin";
+        var namespace = "reuters-graphics";
+        var prefix = "ai2svelte-companion";
         
         // Register namespace again for reading
         XMPMeta.registerNamespace(namespace, prefix);

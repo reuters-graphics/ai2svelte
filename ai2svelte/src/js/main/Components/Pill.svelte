@@ -49,7 +49,7 @@
         display: flex;
         flex-direction: row;
         align-items: center;
-        background-color: var(--color-tertiary);
+        background-color: var(--color-secondary);
         border-radius: 24px;
         gap: 8px;
         padding: 0.5rem 0.75rem;
@@ -67,13 +67,11 @@
         svg {
             width: 16px;
             aspect-ratio: 1;
-            fill: var(--color-white);
-            opacity: 0.5;
+            fill: var(--color-tertiary);
             @include animation-default;
         }
 
         svg:hover {
-            opacity: 1;
             rotate: 90deg;
         }
     }
@@ -87,7 +85,12 @@
     .active {
         background-color: var(--color-accent-primary);
 
+        svg {
+            fill: var(--color-white);
+        }
+
         p {
+            color: var(--color-white);
             opacity: 1 !important;
         }
     }

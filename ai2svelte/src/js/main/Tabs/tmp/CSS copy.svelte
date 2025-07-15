@@ -7,7 +7,6 @@
     import { fly, scale, slide } from "svelte/transition";
     import { evalTS } from "../../lib/utils/bolt";
     import shadows, { cheeses } from "./shadows";
-    import animations from "./animations.json";
     import { initTippy } from "./utils";
     import { styles, stylesString, updateInProgress, isCEP } from "../stores";
     import type { Style } from "../stores";
@@ -20,7 +19,6 @@
     import CmTextArea from "../Components/CMTextArea.svelte";
     import Pill from "../Components/Pill.svelte";
     import Input from "../Components/Input.svelte";
-    import AnimationCard from "../Components/AnimationCard.svelte";
 
     let activeTab = $state("");
 
@@ -40,40 +38,38 @@
 
     let cssString: string = $derived.by(() => {
         // don't update while its fetching settings from AI
-        if (!$updateInProgress) {
-            const keys = Object.keys($styles);
-            // let string = "shadow-settings\n";
-            let string = "";
+        // if (!$updateInProgress) {
+        //     const keys = Object.keys($styles);
+        //     // let string = "shadow-settings\n";
+        //     let string = "";
 
-            keys.forEach((key) => {
-                string += key + " {\n\t";
-                string += ($styles[key]?.join(";\n\t") || "") + ";";
-                string += "\n}\n";
-            });
+        //     keys.forEach((key) => {
+        //         string += key + " {\n\t";
+        //         string += ($styles[key]?.join(";\n\t") || "") + ";";
+        //         string += "\n}\n";
+        //     });
 
-            if ($isCEP) {
-                evalTS("updateAiSettings", "shadow-settings", string);
-            }
-            return string;
-        }
+        //     // console.log("updated cssString");
+
+        //     if ($isCEP) {
+        //         evalTS("updateAiSettings", "shadow-settings", string);
+        //     }
+        //     return string;
+        // }
         return "";
     });
 
+    // Sync the derived cssString to the editable version when styles change
     $effect(() => {
         editableCssString = cssString;
+        const allMixinIncludes = generateAllMixins();
+        $stylesString = allMixinIncludes + "\n" + cssString;
     });
 
-    // Sync the derived cssString to the editable version when styles change
-    // $effect(() => {
-    //     editableCssString = cssString;
-    //     const allMixinIncludes = generateAllMixins();
-    //     $stylesString = allMixinIncludes + "\n" + cssString;
-    // });
-
-    // $effect(() => {
-    //     console.log("editable:", editableCssString);
-    //     updateStyle(editableCssString);
-    // });
+    $effect(() => {
+        console.log("editable:", editableCssString);
+        updateStyle(editableCssString);
+    });
 
     type ShadowItem = {
         id: string;
@@ -82,17 +78,6 @@
         dataName: string;
     };
     let allShadows: ShadowItem[] = $state([]);
-
-    type AnimationItem = {
-        name: string;
-        usage: string;
-        active: boolean;
-        def: string;
-        value: string;
-        candidate: string;
-    };
-
-    let allAnimations: AnimationItem[] = $state([]);
 
     $effect(() => {
         if (initialLoad && editableCssString) {
@@ -108,15 +93,6 @@
             shadow: x.shadow,
             active: false,
             dataName: "",
-        }));
-
-        allAnimations = [...animations].map((x) => ({
-            name: x.name,
-            usage: x.usage,
-            active: false,
-            def: x.def,
-            value: x.value,
-            candidate: x.candidate,
         }));
 
         activeTab = "shadows";
@@ -251,28 +227,24 @@
         }
     }
 
-    // parses css into object
     function updateStyle(string: string) {
         let obj;
 
-        // console.log(postcss.parse(string, { parser: scss }));
+        console.log(postcss.parse(string, { parser: scss }));
 
-        try {
-            obj = postcss.parse(string, { parser: scss }).nodes.map((x) => {
-                return {
-                    selector: x.selector,
-                    styles: x.nodes.map((s) => processCSS(s)),
-                };
-            });
+        obj = postcss.parse(string, { parser: scss }).nodes.map((x) => {
+            return {
+                selector: x.selector,
+                styles: x.nodes.map((s) => processCSS(s)),
+            };
+        });
 
-            const newStyles = { ...$styles };
-            obj.forEach((x) => {
-                newStyles[x.selector] = x.styles;
-            });
-            styles.set(newStyles);
-        } catch (error) {
-            // ignore errors cause user might still be typing the style
-        }
+        const newStyles = { ...$styles };
+        obj.forEach((x) => {
+            newStyles[x.selector] = x.styles;
+        });
+        styles.set(newStyles);
+        console.log($styles);
     }
 
     function changeSpecimen() {
@@ -286,41 +258,13 @@
         specimenWeight = ((specimenWeight + 50) % 900) + 50;
     }
 
-    function updateAnimations(
-        animationUsage: string,
-        animationDefinition: string,
-        operation: boolean,
-    ) {
-        const defPlusUsage =
-            "/* " + animationDefinition + " */\n\t" + animationUsage;
-
-        if (operation) {
-            if (!$styles[shadowSelector]) {
-                $styles[shadowSelector] = [];
-            }
-
-            $styles[shadowSelector].push(defPlusUsage);
-        } else {
-            const index: number = $styles[shadowSelector].findIndex(
-                (x) => x == defPlusUsage,
-            );
-            $styles[shadowSelector].splice(index, 1);
-        }
-
-        if ($styles[shadowSelector].length == 0) {
-            delete $styles[shadowSelector];
-        }
-
-        $styles = $styles;
-    }
-
     function updateStyles(shadowName: string, operation: boolean) {
         const shadowString: string =
             "@include shadow-" + shadowName + "(" + shadowColor + ")";
 
         // true to add
         // false to remove
-        if (operation) {
+        if (operation == true) {
             if (!$styles[shadowSelector]) {
                 $styles[shadowSelector] = [];
             }
@@ -337,6 +281,7 @@
         }
 
         $styles = $styles;
+        console.log($styles);
     }
 
     function clearShadowSelection() {
@@ -346,20 +291,6 @@
 
             if ($styles[shadowSelector]) {
                 if ($styles[shadowSelector].includes(shadowMixin)) {
-                    x.active = true;
-                } else {
-                    x.active = false;
-                }
-            } else {
-                x.active = false;
-            }
-        });
-
-        allAnimations.forEach((x) => {
-            const defPlusUsage = "/* " + x.def + " */\n\t" + x.usage;
-
-            if ($styles[shadowSelector]) {
-                if ($styles[shadowSelector].includes(defPlusUsage)) {
                     x.active = true;
                 } else {
                     x.active = false;
@@ -469,69 +400,42 @@
         </div>
     </SectionTabBar>
 
-    <Input label="Identifier" type="text" bind:value={shadowSelector} />
+    <Input label="Shadow identifier" type="text" bind:value={shadowSelector} />
 
-    {#if activeTab == "shadows"}
-        <div class="shadow-container">
-            {#each allShadows as shadow, index (shadow.id)}
-                <ShadowCard
-                    name={shadow.id}
-                    shadow={shadow.shadow}
-                    {specimen}
-                    {specimenWeight}
-                    {backdrop}
-                    {shadowColor}
-                    {fillColor}
-                    bind:active={shadow.active}
-                    bind:dataName={shadow.dataName}
-                    onChange={(e: Event) => {
-                        allShadows[index].active = shadow.active;
-                        allShadows = [...allShadows];
-                        updateStyles(shadow.dataName, shadow.active);
-                    }}
-                    delay={index * 20}
-                />
-            {/each}
-        </div>
-    {:else if activeTab == "animations"}
-        <div class="shadow-container">
-            {#each allAnimations as animation, index}
-                <AnimationCard
-                    name={animation.name}
-                    animation={animation.usage}
-                    definition={animation.def}
-                    bind:active={animation.active}
-                    propValue={animation.value}
-                    candidate={animation.candidate}
-                    onChange={(e: Event) => {
-                        allAnimations[index].active = animation.active;
-                        allAnimations = [...allAnimations];
-                        updateAnimations(
-                            animation.usage,
-                            animation.def,
-                            animation.active,
-                        );
-                    }}
-                    delay={index * 20}
-                />
-            {/each}
-        </div>
-    {/if}
-
-    <div class="code-editor">
-        <CmTextArea
-            bind:textValue={editableCssString}
-            type="css"
-            onUpdate={(e: string) => {
-                updateStyle(e);
-            }}
-        />
+    <div class="shadow-container">
+        {#each allShadows as shadow, index (shadow.id)}
+            <ShadowCard
+                name={shadow.id}
+                shadow={shadow.shadow}
+                {specimen}
+                {specimenWeight}
+                {backdrop}
+                {shadowColor}
+                {fillColor}
+                bind:active={shadow.active}
+                bind:dataName={shadow.dataName}
+                onChange={(e: Event) => {
+                    allShadows[index].active = shadow.active;
+                    allShadows = [...allShadows];
+                    updateStyles(shadow.dataName, shadow.active);
+                }}
+                delay={index * 20}
+            />
+        {/each}
     </div>
+
+    <CmTextArea
+        bind:textValue={editableCssString}
+        type="css"
+        onUpdate={(e: string) => {
+            console.log("arg", e);
+            updateStyle(e);
+        }}
+    />
 </div>
 
 <style lang="scss">
     @use "../shadows.scss" as *;
-    @use "../animations.scss" as *;
 
     .shadow-content {
         display: flex;

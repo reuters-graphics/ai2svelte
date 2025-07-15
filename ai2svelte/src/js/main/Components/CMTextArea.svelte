@@ -1,46 +1,125 @@
 <script lang="ts">
     import { myTheme } from "../Tabs/utils";
     import { basicSetup } from "codemirror";
+    import { Compartment } from "@codemirror/state";
     import { EditorView, keymap } from "@codemirror/view";
     import type { EditorViewConfig } from "@codemirror/view";
-    import { indentWithTab } from "@codemirror/commands";
+    import { autocompletion } from "@codemirror/autocomplete";
+    import {
+        indentWithTab,
+        insertNewlineAndIndent,
+    } from "@codemirror/commands";
     import { css } from "@codemirror/lang-css";
     import { yaml } from "@codemirror/lang-yaml";
-    import { oneDark } from "@codemirror/theme-one-dark";
+    import { StreamLanguage } from "@codemirror/language";
+    import { properties } from "@codemirror/legacy-modes/mode/properties";
+    import { vsCodeDark, vsCodeLight } from "@fsegurai/codemirror-theme-bundle";
+    import { json } from "@codemirror/lang-json";
     import { onMount } from "svelte";
+    import { userTheme } from "../stores";
 
     let editorEle: HTMLElement | undefined = $state();
-    let editor: EditorView | undefined = $state();
 
     interface Props {
-        value: string;
+        editor?: EditorView;
+        textValue: string;
         type: string;
-        onUpdate: (event: Event) => void;
+        onUpdate: (value: string) => void;
+        autoCompletionTokens?: { label: string; type: string; info: string }[];
     }
 
+    interface tokenType {
+        label: string;
+        type: string;
+        info: string;
+    }
+    type tokenTypeArray = tokenType[];
+
     let {
-        value = $bindable(),
+        editor = $bindable(),
+        textValue = $bindable(),
         type = "yaml",
         onUpdate = $bindable(),
+        autoCompletionTokens,
     }: Props = $props();
 
     let isFocused: boolean = $state(false);
 
+    const themeConfig = new Compartment();
+
+    let customCompletions: (context: any) => { from: any; options: any } | null;
+
+    function setupAutoCompletions(tokens: tokenTypeArray) {
+        // Create completion source
+        customCompletions = (context) => {
+            let word = context.matchBefore(/\w*/);
+            if (!word || (word.from == word.to && !context.explicit)) {
+                return null;
+            }
+
+            return {
+                from: word.from,
+                options: tokens.map((token) => ({
+                    label: token.label,
+                    type: token.type,
+                    info: token.info,
+                })),
+            };
+        };
+    }
+
+    function getTheme(theme: string) {
+        const palette = theme == "dark" ? vsCodeDark : vsCodeLight;
+        return palette;
+    }
+
+    function changeTheme(theme: string) {
+        editor?.dispatch({
+            effects: themeConfig.reconfigure([getTheme(theme)]),
+        });
+    }
+
+    $effect(() => {
+        if ($userTheme) {
+            changeTheme($userTheme);
+        }
+    });
+
     onMount(() => {
+        if (autoCompletionTokens) {
+            setupAutoCompletions(autoCompletionTokens);
+        }
+
+        const updateListener = EditorView.updateListener.of((update) => {
+            if (!update.docChanged) return;
+
+            const userInput = update.transactions[0].annotations.some((x) =>
+                x.value.toString().match(/input/),
+            );
+
+            if (update.state.doc.toString() !== textValue && userInput) {
+                textValue = update.state.doc.toString();
+                onUpdate(update.state.doc.toString());
+            }
+        });
+
+        const theme = document.documentElement.getAttribute("data-theme");
+
         editor = new EditorView({
-            doc: value,
+            doc: textValue,
             parent: editorEle,
             extensions: [
+                updateListener,
                 basicSetup,
-                keymap.of([indentWithTab]),
-                type == "yaml" ? yaml() : css(),
-                oneDark,
+                keymap.of([
+                    indentWithTab,
+                    { key: "Enter", run: insertNewlineAndIndent },
+                ]),
+                type == "yaml" ? [StreamLanguage.define(properties)] : css(),
+                autocompletion({ override: [customCompletions] }),
+                themeConfig.of([getTheme($userTheme)]),
                 myTheme,
                 EditorView.domEventHandlers({
-                    input: (e, v) => {
-                        value = editor?.state.doc.toString();
-                        onUpdate(e);
-                    },
                     focusin: (e, v) => {
                         isFocused = true;
                     },
@@ -53,12 +132,13 @@
     });
 
     $effect(() => {
-        if (editor && !isFocused) {
-            editor.dispatch({
+        if (textValue !== editor?.state.doc.toString() && !isFocused) {
+            console.log("updated programmatically");
+            editor?.dispatch({
                 changes: {
                     from: 0,
                     to: editor.state.doc.length,
-                    insert: value,
+                    insert: textValue,
                 },
             });
         }
@@ -71,6 +151,13 @@
     .cm-codeeditor {
         width: 100%;
         position: relative;
-        min-height: 20rem;
+        height: 20rem;
+        background-color: var(--color-primary);
+        border-radius: 8px;
+        overflow: hidden;
+
+        :global(.cm-editor) {
+            height: 100% !important;
+        }
     }
 </style>

@@ -3,11 +3,15 @@
     import ThemeSwitcher from "./Components/ThemeSwitcher.svelte";
     import ColorPicker from "svelte-awesome-color-picker";
 
+    import { userTheme } from "./stores";
+
     let { activeLabel = $bindable() } = $props();
 
     let accentColor: string = $state("#dc4300");
 
     let activeTab: HTMLElement | undefined = $state();
+
+    let theme = $state($userTheme);
 
     function handleClick(e: Event) {
         if (e.target && e.target instanceof HTMLElement) {
@@ -34,6 +38,10 @@
                 accentColor,
             );
         }
+    });
+
+    $effect(() => {
+        $userTheme = theme;
     });
 </script>
 
@@ -62,7 +70,7 @@
             {@render tab("About", false)}
         </div>
         <div class="theme-configs">
-            <ThemeSwitcher />
+            <ThemeSwitcher bind:theme />
             <div
                 data-tippy-content="Fill color"
                 style="--picker-color: {accentColor};"
@@ -112,6 +120,7 @@
 
     .tab[data-active="true"] {
         background-color: var(--color-accent-primary);
+        color: var(--color-white);
     }
 
     .container {

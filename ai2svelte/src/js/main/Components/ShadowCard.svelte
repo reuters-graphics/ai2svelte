@@ -70,7 +70,7 @@
             </p>
             <p
                 class="card-specimen"
-                style="text-shadow: {shadowModified}; color: {fillColor};"
+                style="{shadowModified}; color: {fillColor};"
                 style:font-weight={specimenWeight}
             >
                 {specimen}
@@ -88,6 +88,7 @@
         padding: 0.75rem;
         position: relative;
         width: 100%;
+        cursor: pointer;
     }
 
     .focused {
@@ -104,7 +105,7 @@
     .card-title {
         font-family: "Geist Mono";
         font-size: var(--font-size-base);
-        color: var(--color-text);
+        color: var(--color-white);
         text-align: left;
         text-transform: uppercase;
         filter: drop-shadow(0px 0px 1px var(--color-black))

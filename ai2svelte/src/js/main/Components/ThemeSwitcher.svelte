@@ -1,5 +1,9 @@
 <script lang="ts">
-    let { theme = "dark" } = $props();
+    interface Prop {
+        theme?: string;
+    }
+
+    let { theme = $bindable("dark") } = $props();
 
     $effect(() => {
         if (theme && document) {
@@ -43,7 +47,7 @@
         height: 24px;
         width: 48px;
         padding: 4px;
-        background-color: var(--color-tertiary);
+        background-color: var(--color-secondary);
         border-radius: 24px;
     }
 

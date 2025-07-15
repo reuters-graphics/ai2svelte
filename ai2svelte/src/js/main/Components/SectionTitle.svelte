@@ -3,19 +3,23 @@
 
     interface Props {
         title: string;
-        labels: Array<string>;
+        labels?: Array<string>;
+        activeValue?: string;
     }
 
     let {
         title = "title",
-        labels = ["label1", "label2"],
+        labels,
         activeValue = $bindable(),
-    } = $props();
+    }: Props = $props();
 </script>
 
 <div class="section">
     <p class="title">{title}</p>
-    <Selector {labels} bind:value={activeValue} />
+
+    {#if labels}
+        <Selector {labels} bind:value={activeValue} />
+    {/if}
 </div>
 
 <hr />
