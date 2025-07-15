@@ -206,7 +206,7 @@ if (docIsSaved) {
   // saved flag (the document goes to unsaved state during the script,
   // because of unlocking / relocking of objects
   doc.saved = true;
-} else if (errors.length === 0) {
+} else if (errors.length === 0 && !settings.isPreview) {
   var saveOptions = new IllustratorSaveOptions();
   saveOptions.pdfCompatible = false;
   doc.saveAs(new File(docPath + doc.name), saveOptions);

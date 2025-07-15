@@ -125,7 +125,6 @@
         background-color: transparent;
         color: var(--color-text);
         padding: 0px;
-        padding-right: 12px;
         border-radius: 8px;
         cursor: pointer;
         @include animation-default;

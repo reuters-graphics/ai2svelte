@@ -28,6 +28,7 @@ export let defaultSettings = {
   "testing_mode": false,  // Render text in both bg image and HTML to test HTML text placement
   "show_completion_dialog_box": true,
   "clickable_link": "",  // Add a URL to make the entire graphic a clickable link
+  "isPreview": false  // internal flag for preview
 };
 
 export let placeholderSettings = {
@@ -42,5 +43,6 @@ export let placeholderSettings = {
     "png_number_of_colors": 256,
     "jpg_quality": 90,
     "inline_svg": "true",
-    "max_width": null
+    "max_width": null,
+    "isPreview": false
 };

@@ -1,3 +1,6 @@
+<!-- compare datetimes and run script only if ai is modified -->
+<!-- show snippet name instead of generic 'snippet' -->
+
 <script lang="ts">
     import { onMount } from "svelte";
     import { settingsObject, stylesString } from "../stores";
@@ -6,6 +9,11 @@
     import { csi } from "../../lib/utils/bolt";
     import { Spring } from "svelte/motion";
     import { evalTS } from "../../lib/utils/bolt";
+    // @ts-ignore - Since HostAdapter isn't explicitly typed, linting throws an error we'll ignore
+    import {
+        AIEventAdapter,
+        AIEvent,
+    } from "../../../public/BoltHostAdapter.js";
 
     let PreviewComponent = $state();
 
@@ -19,6 +27,16 @@
 
         if (window.cep) {
             getSvelteFile();
+
+            // const adapter = AIEventAdapter.getInstance();
+            // adapter.addEventListener(
+            //     AIEvent.ART_SELECTION_CHANGED,
+            //     async (e: any) => {
+            //         console.log("Host Adapter triggered:");
+            //         console.log(e);
+            //     },
+            // );
+            // console.log(AIEventAdapter);
         }
     });
 

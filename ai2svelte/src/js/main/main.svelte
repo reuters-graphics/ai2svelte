@@ -21,6 +21,8 @@
   } from "./stores";
   import { convertStringToObject, parseSnippetSettings } from "./Tabs/utils";
   import type { Style } from "./stores";
+  // @ts-ignore - Since HostAdapter isn't explicitly typed, linting throws an error we'll ignore
+  import { AIEventAdapter, AIEvent } from "../../public/BoltHostAdapter.js";
 
   import TabBar from "./TabBar.svelte";
   import Home from "./Tabs/Home.svelte";
@@ -55,10 +57,22 @@
     updateInProgress.set(false);
   }
 
+  // fires every time document is changed
+  // used to handle stale previews
+  function setDocChangeEventListener() {
+    const adapter = AIEventAdapter.getInstance();
+    adapter.addEventListener(AIEvent.ART_SELECTION_CHANGED, async (e: any) => {
+      console.log("Host Adapter triggered:");
+      console.log(e);
+    });
+    console.log(AIEventAdapter);
+  }
+
   onMount(() => {
     isCEP.set(window.cep);
     if (get(isCEP)) {
       fetchSettings();
+      setDocChangeEventListener();
     }
   });
 
