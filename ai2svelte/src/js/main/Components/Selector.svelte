@@ -1,17 +1,22 @@
 <script lang="ts">
+    import { tooltip } from "svooltip";
+    import { tooltipSettings } from "../utils/utils";
+
     interface Props {
         labels: Array<string>;
         value: string;
+        tooltipDescription: Array<string>;
     }
 
     let {
         labels = ["text", "text"],
         value = $bindable(),
+        tooltipDescription = ["", ""],
         ...rest
     }: Props = $props();
 </script>
 
-{#snippet button(label: string)}
+{#snippet button(label: string, tooltipDescription: string)}
     <button
         type="button"
         class="radio-button"
@@ -19,6 +24,10 @@
         aria-pressed={value == label}
         onclick={() => (value = label)}
         {...rest}
+        use:tooltip={{
+            ...tooltipSettings,
+            content: tooltipDescription,
+        }}
     >
         <input
             type="radio"
@@ -34,8 +43,8 @@
 {/snippet}
 
 <div class="radio-group">
-    {#each labels as label}
-        {@render button(label)}
+    {#each labels as label, index}
+        {@render button(label, tooltipDescription[index])}
     {/each}
 </div>
 

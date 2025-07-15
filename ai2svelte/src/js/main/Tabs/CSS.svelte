@@ -9,10 +9,11 @@
     import shadows, { cheeses } from "./shadows";
     import animations from "./animations.json";
     import { styles, stylesString, updateInProgress, isCEP } from "../stores";
-    import type { Style } from "../stores";
     import ColorPicker from "svelte-awesome-color-picker";
     import postcss from "postcss";
     import scss from "postcss-scss";
+    import { tooltip } from "svooltip";
+    import { tooltipSettings } from "../utils/utils";
 
     import SectionTabBar from "../Components/SectionTabBar.svelte";
     import ShadowCard from "../Components/ShadowCard.svelte";
@@ -392,6 +393,7 @@
 
     <SectionTabBar
         labels={["shadows", "animations"]}
+        tooltipDescription={["Add shadows", "Add animations"]}
         bind:activeValue={activeTab}
     >
         <div id="extra-configs">
@@ -399,6 +401,10 @@
                 id="replace-image"
                 onclick={changeBackdrop}
                 aria-label="Change backdrop"
+                use:tooltip={{
+                    ...tooltipSettings,
+                    content: "Change backdrop",
+                }}
             >
                 <img
                     style="width: 24px;"
@@ -410,6 +416,10 @@
                 id="replace-specimen"
                 onclick={changeSpecimen}
                 aria-label="Change type specimen"
+                use:tooltip={{
+                    ...tooltipSettings,
+                    content: "Change type specimen",
+                }}
             >
                 <img
                     style="width: 24px;"
@@ -417,7 +427,13 @@
                     alt="Change type specimen"
                 />
             </button>
-            <div style="--picker-color: {fillColor};">
+            <div
+                style="--picker-color: {fillColor};"
+                use:tooltip={{
+                    ...tooltipSettings,
+                    content: "Fill color (view only)",
+                }}
+            >
                 <ColorPicker
                     position="responsive"
                     label=""
@@ -436,7 +452,13 @@
                     --cp-input-color="#292929"
                 />
             </div>
-            <div style="--picker-color: {shadowColor};">
+            <div
+                style="--picker-color: {shadowColor};"
+                use:tooltip={{
+                    ...tooltipSettings,
+                    content: "Shadow color",
+                }}
+            >
                 <ColorPicker
                     position="responsive"
                     label=""

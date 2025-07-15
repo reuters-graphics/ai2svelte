@@ -1,6 +1,8 @@
 <script lang="ts">
     import { onMount } from "svelte";
     import { Spring } from "svelte/motion";
+    import { tooltip } from "svooltip";
+    import { tooltipSettings } from "../utils/utils";
 
     interface Props {
         children?: unknown;
@@ -71,6 +73,11 @@
             }}
             onmousemove={(e) => handleResize(e)}
             style="cursor: {draggingY ? 'grabbing' : 'grab'};"
+            use:tooltip={{
+                ...tooltipSettings,
+                placement: "bottom",
+                content: "Resize height",
+            }}
         >
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
                 ><path
@@ -89,6 +96,11 @@
         }}
         onmousemove={(e) => handleResize(e)}
         style="cursor: {draggingX ? 'grabbing' : 'grab'};"
+        use:tooltip={{
+            ...tooltipSettings,
+            placement: "right",
+            content: "Resize width",
+        }}
     >
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
             ><path

@@ -1374,7 +1374,7 @@
   dependencies:
     "@floating-ui/utils" "^0.2.10"
 
-"@floating-ui/dom@^1.7.2":
+"@floating-ui/dom@^1.6.13", "@floating-ui/dom@^1.7.2":
   version "1.7.2"
   resolved "https://registry.npmjs.org/@floating-ui/dom/-/dom-1.7.2.tgz"
   integrity sha512-7cfaOQuCS27HD7DX+6ib2OrnW+b4ZBwDNnCcT0uTyidcmyWb03FnQqJybDBoCnpdxwBSfA94UAYlRCt7mV+TbA==
@@ -6475,6 +6475,13 @@ svelte@^5.33.14:
     locate-character "^3.0.0"
     magic-string "^0.30.11"
     zimmerframe "^1.1.2"
+
+svooltip@^0.9.0:
+  version "0.9.0"
+  resolved "https://registry.npmjs.org/svooltip/-/svooltip-0.9.0.tgz"
+  integrity sha512-vBQZRj4xf+eLMMXSutyGQuZ1wJDzj39AQZotvoBajWKiDGBT11oL+/nX3hHj0QuS9K8oXVqdNqevfqFTKziE8A==
+  dependencies:
+    "@floating-ui/dom" "^1.6.13"
 
 syntax-error@^1.1.1:
   version "1.4.0"

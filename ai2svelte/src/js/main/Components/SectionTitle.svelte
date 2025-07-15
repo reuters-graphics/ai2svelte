@@ -5,11 +5,13 @@
         title: string;
         labels?: Array<string>;
         activeValue?: string;
+        tooltipDescription?: Array<string>;
     }
 
     let {
         title = "title",
         labels,
+        tooltipDescription,
         activeValue = $bindable(),
     }: Props = $props();
 </script>
@@ -18,7 +20,7 @@
     <p class="title">{title}</p>
 
     {#if labels}
-        <Selector {labels} bind:value={activeValue} />
+        <Selector {labels} bind:value={activeValue} {tooltipDescription} />
     {/if}
 </div>
 

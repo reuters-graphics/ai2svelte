@@ -1,14 +1,9 @@
 <script lang="ts">
-    import { onMount, untrack } from "svelte";
-
+    import { onMount } from "svelte";
     import { settingsObject } from "../stores";
-
     import PreviewFrame from "../Components/PreviewFrame.svelte";
-
     import BirdStats from "../example/ai2svelte/bird-stats.svelte";
-
     import { csi } from "../../lib/utils/bolt";
-
     import { Spring } from "svelte/motion";
 
     let PreviewComponent = $state();

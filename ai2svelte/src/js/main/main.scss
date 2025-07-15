@@ -2,6 +2,8 @@
 
 @use './shadows.scss' as *;
 
+@use "svooltip/styles.css" as *; // Include default styling
+
 
 body {
     padding: 1rem;

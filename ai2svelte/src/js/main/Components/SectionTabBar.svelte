@@ -5,18 +5,20 @@
     interface Props {
         labels: Array<string>;
         activeValue: string;
+        tooltipDescription?: Array<string>;
         children: Snippet;
     }
 
     let {
         labels = ["label1", "label2"],
+        tooltipDescription = ["", ""],
         activeValue = $bindable(),
         children,
     }: Props = $props();
 </script>
 
 <div class="section">
-    <Selector {labels} bind:value={activeValue} />
+    <Selector {labels} bind:value={activeValue} {tooltipDescription} />
 
     {#if children}
         {@render children()}

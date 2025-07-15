@@ -1,9 +1,12 @@
 <script lang="ts">
+    import { tooltip } from "svooltip";
+    import { tooltipSettings } from "../utils/utils";
+
     interface Prop {
         theme?: string;
     }
 
-    let { theme = $bindable("dark") } = $props();
+    let { theme = $bindable("dark") }: Prop = $props();
 
     $effect(() => {
         if (theme && document) {
@@ -17,6 +20,10 @@
     aria-label="Toggle theme"
     data-value={theme}
     onclick={(e) => (theme = theme == "dark" ? "light" : "dark")}
+    use:tooltip={{
+        ...tooltipSettings,
+        content: "Change to " + (theme == "dark" ? "light" : "dark") + " theme",
+    }}
 >
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
         <g class="icon">

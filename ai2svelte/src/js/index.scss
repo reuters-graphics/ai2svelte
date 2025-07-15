@@ -2,6 +2,10 @@
 @use "./variables.scss" as *;
 @use './fonts.scss' as *;
 
+:root {
+  --svooltip-arrow-size: 0px;
+}
+
 *,
 *::before,
 *::after {

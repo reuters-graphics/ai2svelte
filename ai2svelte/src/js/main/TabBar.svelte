@@ -2,6 +2,8 @@
     import { onMount } from "svelte";
     import ThemeSwitcher from "./Components/ThemeSwitcher.svelte";
     import ColorPicker from "svelte-awesome-color-picker";
+    import { tooltip } from "svooltip";
+    import { tooltipSettings } from "./utils/utils";
 
     import { userTheme } from "./stores";
 
@@ -55,6 +57,7 @@
     />
     <label
         class="tab"
+        use:tooltip={{ ...tooltipSettings, content: label }}
         data-active={activeTab?.innerText == label.toUpperCase()}
         id={"label-" + label}
         for={"tab-" + label}>{label}</label
@@ -71,7 +74,13 @@
         </div>
         <div class="theme-configs">
             <ThemeSwitcher bind:theme />
-            <div style="--picker-color: {accentColor};">
+            <div
+                style="--picker-color: {accentColor};"
+                use:tooltip={{
+                    ...tooltipSettings,
+                    content: "Change theme",
+                }}
+            >
                 <ColorPicker
                     position="responsive"
                     label=""

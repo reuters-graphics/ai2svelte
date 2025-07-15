@@ -66,7 +66,7 @@
     });
 
     onMount(() => {
-        activeFormat = "ui";
+        activeFormat = "UI";
     });
 
     // converts string in textarea to js object
@@ -126,12 +126,13 @@
 
     <SectionTitle
         title={"Settings"}
-        labels={["ui", "code"]}
+        labels={["UI", "Code"]}
+        tooltipDescription={["Simplified settings", "Advanced settings"]}
         bind:activeValue={activeFormat}
     />
 
     <div id="content">
-        {#if activeFormat === "ui"}
+        {#if activeFormat === "UI"}
             <div
                 id="ui-form"
                 class="options content-item"
@@ -175,7 +176,7 @@
                     {/each}
                 {/if}
             </div>
-        {:else if activeFormat === "code"}
+        {:else if activeFormat === "Code"}
             <div
                 id="aisettings-textarea"
                 class="content-item code-editor"
