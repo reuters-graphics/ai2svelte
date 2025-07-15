@@ -1,10 +1,11 @@
 <script lang="ts">
     import { onMount } from "svelte";
-    import { settingsObject } from "../stores";
+    import { settingsObject, stylesString } from "../stores";
     import PreviewFrame from "../Components/PreviewFrame.svelte";
     import BirdStats from "../example/ai2svelte/bird-stats.svelte";
     import { csi } from "../../lib/utils/bolt";
     import { Spring } from "svelte/motion";
+    import { evalTS } from "../../lib/utils/bolt";
 
     let PreviewComponent = $state();
 
@@ -14,10 +15,25 @@
     onMount(async () => {
         console.log($settingsObject);
 
+        loadPreview();
+
         if (window.cep) {
             getSvelteFile();
         }
     });
+
+    async function loadPreview() {
+        const extensionPath = csi.getSystemPath("extension");
+        const writablePath = extensionPath + "/writable/";
+        await evalTS(
+            "runPreview",
+            {
+                settings: $settingsObject,
+                code: { css: $stylesString },
+            },
+            writablePath,
+        );
+    }
 
     // dynamically imports svelte file
     // from extension's internal 'writable' folder
