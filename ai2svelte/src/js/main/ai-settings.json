@@ -45,7 +45,7 @@
     "image_output_path": {
         "type": "text",
         "description": "description",
-        "value": "../../statics/images/graphics/"
+        "value": "../src/statics/images/graphics/"
     },
     "image_source_path": {
         "type": "text",

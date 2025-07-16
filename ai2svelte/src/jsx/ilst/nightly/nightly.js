@@ -329,7 +329,9 @@ function renderArtboardGroup(group, masks, settings, textBlockContent) {
   // Output html file
   //=====================================
 
-  addTextBlockContent(output, textBlockContent);
+  if(settings.isPreview) {
+    addTextBlockContent(output, textBlockContent);
+  }
   generateOutputHtml(output, group, settings);
 
 } // end render()
@@ -2083,9 +2085,19 @@ function exportSymbolAsHtml(item, geometries, abBox, opts) {
   var geom, x, y;
   var innerBlock = opts.innerBlock || "";
   var symbolClass = getSymbolClass();
+  var divId = '';
 
   if(opts.tagPrefix == 'snippet') {
     symbolClass += " " + nameSpace + 'aiSnippet';
+    properties = 'data-name="' + opts.idName + '" ';
+    var id = nameSpace + "snippet-" + opts.idName;
+    divId = 'id="' + id + '" ';
+  } else if (opts.tagPrefix == "div" && item.name) {
+    var id = nameSpace + "div-" + opts.idName + "-" + item.name;
+    divId = 'id="' + id + '" ';
+  } else if (opts.tagPrefix == "symbol" && item.name) {
+    var id = nameSpace + "symbol-" + opts.idName + "-" + item.name;;
+    divId = 'id="' + id + '" ';
   }
 
   for (var i=0; i<geometries.length; i++) {
@@ -2094,7 +2106,7 @@ function exportSymbolAsHtml(item, geometries, abBox, opts) {
     x = geom.center[0] - abBox.left;
     y = -geom.center[1] - abBox.top;
     geom.center = [x, y];
-    html += '\r\t\t\t' + '<div class="' + symbolClass + '" ' + properties +
+    html += '\r\t\t\t' + '<div class="' + symbolClass + '" ' + divId + properties +
       getBasicSymbolCss(geom, style, abBox, opts) + '>\r' + innerBlock + '\r</div>';
   }
   return html;
@@ -2172,6 +2184,11 @@ function exportSymbols(lyr, ab, masks, opts) {
         innerBlock += "{@render " + opts.prop + "?.()}";
 
         opts.innerBlock = innerBlock;
+        opts.idName = opts.prop;
+    } else if(tagPrefix == "div") {
+      opts.idName = opts.divName;
+    } else if(tagPrefix == "symbol") {
+      opts.idName = opts.symbolName;
     }
 
     html += exportSymbolAsHtml(item, geometries, abBox, opts);
@@ -2409,7 +2426,8 @@ function convertArtItems(activeArtboard, textFrames, masks, settings) {
 
   // Symbols in :symbol layers are not scaled
     forEach(findTaggedLayers("symbol"), function (lyr) {
-      var obj = exportSymbols(lyr, activeArtboard, masks, { scaled: false, tagPrefix: 'symbol'});
+      var name = /(.*):symbol/.exec(lyr.name)[1];
+      var obj = exportSymbols(lyr, activeArtboard, masks, { scaled: false, tagPrefix: 'symbol', symbolName: name});
       var lyrZ = lyr.zOrderPosition;
       layerHtml.push({
         z: lyrZ,
@@ -2420,7 +2438,8 @@ function convertArtItems(activeArtboard, textFrames, masks, settings) {
 
     // Symbols in :div layers are scaled
     forEach(findTaggedLayers("div"), function (lyr) {
-      var obj = exportSymbols(lyr, activeArtboard, masks, { scaled: true, tagPrefix: 'div' });
+      var name = /(.*):div/.exec(lyr.name)[1];
+      var obj = exportSymbols(lyr, activeArtboard, masks, { scaled: true, tagPrefix: 'div', divName: name });
       var lyrZ = lyr.zOrderPosition;
       layerHtml.push({
         z: lyrZ,
@@ -2430,8 +2449,9 @@ function convertArtItems(activeArtboard, textFrames, masks, settings) {
     });
 
   forEach(findTaggedLayers('svg'), function(lyr) {
+    var opts = extend({}, settings, {tagPrefix: 'svg'});
     var uniqName = uniqAssetName(getLayerImageName(lyr, activeArtboard, settings), uniqNames);
-    var svgHtml = exportImage(uniqName, 'svg', activeArtboard, masks, lyr, settings);
+    var svgHtml = exportImage(uniqName, 'svg', activeArtboard, masks, lyr, opts);
     var lyrZ = lyr.zOrderPosition;
     if (svgHtml) {
       uniqNames.push(uniqName);
@@ -2447,8 +2467,9 @@ function convertArtItems(activeArtboard, textFrames, masks, settings) {
   // Embed images tagged :png as separate images
   // Inside this function, layers are hidden and unhidden as needed
   forEachImageLayer('png', function(lyr) {
-    var opts = extend({}, settings, {png_transparent: true});
-    var name = getLayerImageName(lyr, activeArtboard, settings);
+    var opts = extend({}, settings, {png_transparent: true, tagPrefix: 'png'});
+    // var name = getLayerImageName(lyr, activeArtboard, settings);
+    var name = /(.*):png/.exec(lyr.name)[1];
     var fmt = contains(settings.image_format || [], 'png24') ? 'png24' : 'png';
     var lyrZ = lyr.zOrderPosition;
     // This test prevents empty images, but is expensive when a layer contains many art objects...
@@ -2561,6 +2582,12 @@ function exportImage(imgName, format, ab, masks, layer, settings) {
   var imgFile = getImageFileName(imgName, format);
   var outputPath = pathJoin(getImageFolder(settings), imgFile);
   var imgId = getImageId(imgName);
+
+  // separate id convention for tagged png layers
+  if(settings.tagPrefix == 'png') {
+    imgId = nameSpace + "png-" + imgName;
+  }
+
   // imgClass: // remove artboard size (careful not to remove deduplication annotations)
   var imgClass = imgId.replace(/-[1-9][0-9]+-/, '-');
   // all images are now absolutely positioned (before, artboard images were
@@ -2569,8 +2596,16 @@ function exportImage(imgName, format, ab, masks, layer, settings) {
   var inlineSvg = isTrue(settings.inline_svg) || check;
   var svgInlineStyle, svgLayersArg;
   var created, html;
+  // var divId = nameSpace + "svg-" + imgName;
 
   imgClass += ' ' + nameSpace + 'aiImg';
+
+  // change id for tagged svg layer
+  // after assigning the original class derived from original id
+  if(settings.tagPrefix == 'svg') {
+    var svgName = /(.*):svg/.exec(layer.name)[1];
+    imgId = nameSpace + "svg-" + svgName;
+  }
 
   if (format == 'svg') {
     imgClass += ' ' + nameSpace + 'svg-layer';
@@ -3389,8 +3424,14 @@ function generateOutputHtml(content, group, settings) {
   html += '</div>\r';
 
   // CSS
-  css = '<style lang="scss">\r' +
-    generatePageCss(containerId, group, settings) +
+  css = '<style lang="scss">\r';
+
+  if(settings.isPreview) {
+    css += '@use "./shadows.scss" as *;\n'
+    css += '@use "./animations.scss" as *;\n\n'
+  }
+
+  css += generatePageCss(containerId, group, settings) +
     content.css +
     '\r</style>\r';
 

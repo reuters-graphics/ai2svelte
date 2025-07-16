@@ -14,6 +14,11 @@
     import scss from "postcss-scss";
     import { tooltip } from "svooltip";
     import { tooltipSettings } from "../utils/utils";
+    // @ts-ignore - Since HostAdapter isn't explicitly typed, linting throws an error we'll ignore
+    import {
+        AIEventAdapter,
+        AIEvent,
+    } from "../../../public/BoltHostAdapter.js";
 
     import SectionTabBar from "../Components/SectionTabBar.svelte";
     import ShadowCard from "../Components/ShadowCard.svelte";
@@ -64,11 +69,11 @@
     });
 
     // Sync the derived cssString to the editable version when styles change
-    // $effect(() => {
-    //     editableCssString = cssString;
-    //     const allMixinIncludes = generateAllMixins();
-    //     $stylesString = allMixinIncludes + "\n" + cssString;
-    // });
+    $effect(() => {
+        editableCssString = cssString;
+        const allMixinIncludes = generateAllMixins();
+        $stylesString = allMixinIncludes + "\n" + cssString;
+    });
 
     // $effect(() => {
     //     console.log("editable:", editableCssString);
@@ -100,6 +105,21 @@
         }
     });
 
+    // fires every time document is changed
+    // used to handle stale previews
+    function setDocChangeEventListener() {
+        const adapter = AIEventAdapter.getInstance();
+        adapter.addEventListener(
+            AIEvent.ART_SELECTION_CHANGED,
+            async (e: any) => {
+                console.log("Selection changed:");
+                const identifier = await evalTS("fetchSelectedItems");
+                shadowSelector = identifier || "";
+            },
+        );
+        // console.log(AIEventAdapter);
+    }
+
     onMount(async () => {
         allShadows = [...shadows].map((x) => ({
             id: x.id,
@@ -124,6 +144,8 @@
         // }
 
         initialLoad = true;
+
+        setDocChangeEventListener();
 
         changeSpecimen();
         backdrop = await fetchNewImageURL();

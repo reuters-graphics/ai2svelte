@@ -24,6 +24,6 @@ ab:image_only -> discards text inside the artboard in the final output
 
 
 layer:svg -> exports as svg
-layer:div -> separate element that can scale
-layer:symbol -> separate element that cannot scale
+layer:div -> separate element that can scale, only rectangles
+layer:symbol -> separate element that cannot scale, only rectangles
 layer:png -> separate element comprising of just png image

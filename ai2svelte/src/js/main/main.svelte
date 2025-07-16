@@ -62,17 +62,18 @@
   function setDocChangeEventListener() {
     const adapter = AIEventAdapter.getInstance();
     adapter.addEventListener(AIEvent.ART_SELECTION_CHANGED, async (e: any) => {
-      console.log("Host Adapter triggered:");
-      console.log(e);
+      console.log("Selection changed:");
+      const selectedItems = await evalTS("fetchSelectedItems");
+      // console.log(selectedItems);
     });
-    console.log(AIEventAdapter);
+    // console.log(AIEventAdapter);
   }
 
   onMount(() => {
     isCEP.set(window.cep);
     if (get(isCEP)) {
       fetchSettings();
-      setDocChangeEventListener();
+      // setDocChangeEventListener();
     }
   });
 

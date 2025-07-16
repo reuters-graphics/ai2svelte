@@ -3,7 +3,7 @@ import { fetchSelectors } from "./fetchSelectors";
 import { addSnippet } from "./addSnippet";
 import { storeHiddenData, getHiddenData } from './dataOperations';
 import { main } from './nightly/nightly';
-import { getDocPath, createFolder, createFile } from "./ilstUtils";
+import { getDocPath, createFolder, createFile, getSelectedItems } from "./ilstUtils";
 
 export const updateAiSettings = (settingsObj: string, str: string) => {
   if(app) {
@@ -57,22 +57,22 @@ export const runPreview = (settings, path) => {
   // }
   // );
 
-  alert('init check');
+  // alert('init check');
 
-    // createFolder(path);
+    createFolder(path);
 
-    // settings.settings.isPreview = true;
-    // settings.settings.html_output_path = path;
-    // settings.settings.html_output_extension = ".svelte";
-    // settings.settings.image_output_path = path;
-    // settings.settings.image_source_path = "";
-    // settings.settings.include_resizer_css = false;
-    // settings.settings.project_name = "preview";
-    // settings.settings.show_completion_dialog_box = false;
+    settings.settings.isPreview = true;
+    settings.settings.html_output_path = path;
+    settings.settings.html_output_extension = ".svelte";
+    settings.settings.image_output_path = path;
+    settings.settings.image_source_path = "";
+    settings.settings.include_resizer_css = false;
+    settings.settings.project_name = "preview";
+    settings.settings.show_completion_dialog_box = false;
 
-    // // alert(JSON.stringify(settings));
+    // alert(JSON.stringify(settings));
 
-    // main(settings);
+    main(settings);
   }
 }
 
@@ -92,5 +92,11 @@ export const makeFile = (path, content) => {
   if(app) {
     createFile(path, content);
     return path;
+  }
+}
+
+export const fetchSelectedItems = () => {
+  if(app) {
+    return getSelectedItems();
   }
 }
