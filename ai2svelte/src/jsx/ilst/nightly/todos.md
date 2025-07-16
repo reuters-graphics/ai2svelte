@@ -17,6 +17,8 @@ think of adding gif as lazy loading?
 
 scaled and unscaled snippets?
 
+think about removing font matching logic...already setup in ai2svelte script (need to remove?)
+
 artboards and layers can hold everything after colon as abSettings
 ab:1200 -> 1200 gets set as minwidth
 ab:fixed,prop,467,999 -> sets minwidth:999 and artboard fixed. rest of the things get ignored

@@ -103,7 +103,7 @@ export function getSelectedItems() {
                 if(allItemsSelected(objectLayer)) {
                     identifier = `.${namespace}${objectLayerName}`
                 } else  if(objectName && object.typename == "TextFrame") {
-                    identifier = `#${namespace}${objectName}`
+                    identifier = `#${objectName}`
                 }
             }
         }

@@ -1,4 +1,4 @@
-@mixin pulse($duration: 1s, $delay: 0s, $scale: 1.05, $easing: ease-in-out, $iteration: infinite) {
+@mixin animPulse($duration: 1s, $delay: 0s, $scale: 1.05, $easing: ease-in-out, $iteration: infinite) {
   animation: pulse $duration $easing $delay $iteration;
   
   @keyframes pulse {
@@ -7,7 +7,7 @@
   }
 }
 
-@mixin rotate($duration: 0.5s, $delay: 0s, $degrees: 360deg, $easing: ease-in-out, $iteration: infinite) {
+@mixin animRotate($duration: 0.5s, $delay: 0s, $degrees: 360deg, $easing: ease-in-out, $iteration: infinite) {
   animation: rotate $duration $easing $delay $iteration;
   
   @keyframes rotate {
@@ -16,7 +16,7 @@
   }
 }
 
-@mixin spin($duration: 1s, $delay: 0s, $easing: linear, $iteration: infinite) {
+@mixin animSpin($duration: 1s, $delay: 0s, $easing: linear, $iteration: infinite) {
   animation: spin $duration $easing $delay $iteration;
   
   @keyframes spin {
@@ -25,7 +25,7 @@
   }
 }
 
-@mixin bounce($duration: 1s, $delay: 0s, $easing: ease-in-out, $iteration: infinite) {
+@mixin animBounce($duration: 1s, $delay: 0s, $easing: ease-in-out, $iteration: infinite) {
   animation: bounce $duration $easing $delay $iteration;
   
   @keyframes bounce {
@@ -44,7 +44,7 @@
   }
 }
 
-@mixin shake($duration: 0.5s, $delay: 0s, $intensity: 10px, $easing: ease-in-out, $iteration: infinite) {
+@mixin animShake($duration: 0.5s, $delay: 0s, $intensity: 10px, $easing: ease-in-out, $iteration: infinite) {
   animation: shake $duration $easing $delay $iteration;
   
   @keyframes shake {
@@ -54,7 +54,7 @@
   }
 }
 
-@mixin wobble($duration: 1s, $delay: 0s, $easing: ease-in-out, $iteration: infinite) {
+@mixin animWobble($duration: 1s, $delay: 0s, $easing: ease-in-out, $iteration: infinite) {
   animation: wobble $duration $easing $delay $iteration;
   
   @keyframes wobble {
@@ -68,7 +68,7 @@
   }
 }
 
-@mixin jello($duration: 1s, $delay: 0s, $easing: ease-in-out, $iteration: infinite) {
+@mixin animJello($duration: 1s, $delay: 0s, $easing: ease-in-out, $iteration: infinite) {
   animation: jello $duration $easing $delay $iteration;
   
   @keyframes jello {
@@ -83,7 +83,7 @@
   }
 }
 
-@mixin flip($duration: 1s, $delay: 0s, $easing: ease-in-out, $iteration: infinite) {
+@mixin animFlip($duration: 1s, $delay: 0s, $easing: ease-in-out, $iteration: infinite) {
   animation: flip $duration $easing $delay $iteration;
   
   @keyframes flip {
@@ -95,7 +95,7 @@
   }
 }
 
-@mixin flash($duration: 1s, $delay: 0s, $easing: ease-in-out, $iteration: infinite) {
+@mixin animFlash($duration: 1s, $delay: 0s, $easing: ease-in-out, $iteration: infinite) {
   animation: flash $duration $easing $delay $iteration;
   
   @keyframes flash {
@@ -104,7 +104,7 @@
   }
 }
 
-@mixin heartBeat($duration: 1.3s, $delay: 0s, $easing: ease-in-out, $iteration: infinite) {
+@mixin animHeartBeat($duration: 1.3s, $delay: 0s, $easing: ease-in-out, $iteration: infinite) {
   animation: heartBeat $duration $easing $delay $iteration;
   
   @keyframes heartBeat {
@@ -116,7 +116,7 @@
   }
 }
 
-@mixin rubberBand($duration: 1s, $delay: 0s, $easing: ease-in-out, $iteration: infinite) {
+@mixin animRubberBand($duration: 1s, $delay: 0s, $easing: ease-in-out, $iteration: infinite) {
   animation: rubberBand $duration $easing $delay $iteration;
   
   @keyframes rubberBand {
@@ -130,7 +130,7 @@
   }
 }
 
-@mixin dots($duration: 1.4s, $delay: 0s, $easing: ease-in-out, $iteration: infinite) {
+@mixin animDots($duration: 1.4s, $delay: 0s, $easing: ease-in-out, $iteration: infinite) {
   animation: dots $duration $easing $delay $iteration both;
   
   @keyframes dots {
@@ -139,7 +139,7 @@
   }
 }
 
-@mixin lineProgress($duration: 1s, $delay: 0s, $easing: linear, $iteration: infinite) {
+@mixin animLineProgress($duration: 1s, $delay: 0s, $easing: linear, $iteration: infinite) {
   stroke-dasharray: 20 10;
   stroke-dashoffset: 30;
   animation: dash $duration $easing $delay $iteration;
@@ -151,7 +151,7 @@
   }
 }
 
-@mixin hueRotate($duration: 1s, $delay: 0s, $easing: linear, $iteration: infinite) {
+@mixin animHueRotate($duration: 1s, $delay: 0s, $easing: linear, $iteration: infinite) {
   filter: hue-rotate(0deg);
   animation: hueRotate $duration $easing $delay $iteration;
 
@@ -162,7 +162,7 @@
   }
 }
 
-@mixin zoomFade($zoom: 2, $duration: 1s, $delay: 0s, $easing: ease-in-out, $iteration: infinite) {
+@mixin animZoomFade($zoom: 2, $duration: 1s, $delay: 0s, $easing: ease-in-out, $iteration: infinite) {
   animation: zoomFade $duration $easing $delay $iteration;
 
   @keyframes zoomFade {
