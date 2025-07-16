@@ -9,6 +9,7 @@
     import shadows, { cheeses } from "./shadows";
     import animations from "./animations.json";
     import { styles, stylesString, updateInProgress, isCEP } from "../stores";
+    import type { Style } from "../stores";
     import ColorPicker from "svelte-awesome-color-picker";
     import postcss from "postcss";
     import scss from "postcss-scss";
@@ -35,7 +36,7 @@
     let backdrop: string | undefined = $state();
     let fillColor: string = $state("#ffffff");
     let shadowColor: string = $state("#000000");
-    let shadowSelector: string = $state(`p[class^="g-pstyle"]`);
+    let cssSelector: string = $state(`p[class^="g-pstyle"]`);
 
     let initialLoad = $state(false);
 
@@ -95,6 +96,7 @@
         def: string;
         value: string;
         candidate: string;
+        animId: string;
     };
 
     let allAnimations: AnimationItem[] = $state([]);
@@ -114,10 +116,9 @@
             async (e: any) => {
                 console.log("Selection changed:");
                 const identifier = await evalTS("fetchSelectedItems");
-                shadowSelector = identifier || "";
+                cssSelector = identifier || "";
             },
         );
-        // console.log(AIEventAdapter);
     }
 
     onMount(async () => {
@@ -135,6 +136,7 @@
             def: x.def,
             value: x.value,
             candidate: x.candidate,
+            animId: x.animId,
         }));
 
         activeTab = "shadows";
@@ -145,7 +147,9 @@
 
         initialLoad = true;
 
-        setDocChangeEventListener();
+        if ($isCEP) {
+            setDocChangeEventListener();
+        }
 
         changeSpecimen();
         backdrop = await fetchNewImageURL();
@@ -154,7 +158,7 @@
     onDestroy(() => {});
 
     $effect(() => {
-        if (shadowSelector) {
+        if (cssSelector) {
             clearShadowSelection();
         }
     });
@@ -247,6 +251,22 @@
         }
     }
 
+    // function processStyles(rawNodes) {
+    //     // x.nodes.map((s, i) => processCSS(s, i))
+    //     let stylesArray = [];
+
+    //     let animMixinRegex = new RegExp(/@include anim(.*).*/);
+
+    //     for(let i = 0; i < rawNodes.length; i++) {
+    //         if(rawNodes[i].type == "comment" && rawNodes[i + 1].type == "atrule" && rawNodes[i+1].type == "") {
+    //             // processing
+    //             let comment = `/* ${s.text} */\n`;
+    //             i++;
+    //             let style =
+    //         }
+    //     }
+    // }
+
     function processCSS(s) {
         switch (s.type) {
             case "decl":
@@ -265,6 +285,9 @@
                 return str;
                 break;
 
+            case "comment":
+                return `/* ${s.text} */`;
+
             default:
                 return "";
                 break;
@@ -275,13 +298,13 @@
     function updateStyle(string: string) {
         let obj;
 
-        // console.log(postcss.parse(string, { parser: scss }));
+        console.log(postcss.parse(string, { parser: scss }));
 
         try {
             obj = postcss.parse(string, { parser: scss }).nodes.map((x) => {
                 return {
                     selector: x.selector,
-                    styles: x.nodes.map((s) => processCSS(s)),
+                    styles: x.nodes.map((s, i) => processCSS(s)),
                 };
             });
 
@@ -289,6 +312,7 @@
             obj.forEach((x) => {
                 newStyles[x.selector] = x.styles;
             });
+            // console.log(string);
             styles.set(newStyles);
         } catch (error) {
             // ignore errors cause user might still be typing the style
@@ -309,26 +333,52 @@
     function updateAnimations(
         animationUsage: string,
         animationDefinition: string,
+        animationId: string,
         operation: boolean,
     ) {
+        const animationMixinRegex = new RegExp(/.*@include (.*)\(\)/);
+        const mixinCheck = animationUsage?.match(animationMixinRegex);
+        const animationIdentifier = mixinCheck ? mixinCheck[1] : undefined;
+        console.log("animId:" + animationIdentifier);
+        console.log("operation:" + operation);
         const defPlusUsage =
             "/* " + animationDefinition + " */\n\t" + animationUsage;
 
         if (operation) {
-            if (!$styles[shadowSelector]) {
-                $styles[shadowSelector] = [];
+            if (!$styles[cssSelector]) {
+                $styles[cssSelector] = [];
             }
 
-            $styles[shadowSelector].push(defPlusUsage);
-        } else {
-            const index: number = $styles[shadowSelector].findIndex(
-                (x) => x == defPlusUsage,
+            $styles[cssSelector].push(
+                `/* ${animationIdentifier} ${animationDefinition} */`,
             );
-            $styles[shadowSelector].splice(index, 1);
+            $styles[cssSelector].push(animationUsage);
+        } else {
+            console.log("id:" + animationIdentifier);
+            const regexCheck = new RegExp(`\\b${animationIdentifier}\\b`);
+
+            const indexes = $styles[cssSelector]
+                .map((x, i) => (regexCheck.test(x) ? i : null))
+                .filter((x) => x !== null && x >= 0);
+
+            const indexSet = new Set(indexes);
+            console.log(indexSet);
+
+            const arrayWithValuesRemoved = $styles[cssSelector].filter(
+                (value, i) => !indexSet.has(i),
+            );
+
+            $styles[cssSelector] = [...arrayWithValuesRemoved];
+
+            // const index: number = $styles[cssSelector].find((x) =>
+            //     x.match(regexCheck),
+            // );
+
+            // $styles[cssSelector].splice(index, 1);
         }
 
-        if ($styles[shadowSelector].length == 0) {
-            delete $styles[shadowSelector];
+        if ($styles[cssSelector].length == 0) {
+            delete $styles[cssSelector];
         }
 
         $styles = $styles;
@@ -341,31 +391,32 @@
         // true to add
         // false to remove
         if (operation) {
-            if (!$styles[shadowSelector]) {
-                $styles[shadowSelector] = [];
+            if (!$styles[cssSelector]) {
+                $styles[cssSelector] = [];
             }
-            $styles[shadowSelector].push(shadowString);
+            $styles[cssSelector].push(shadowString);
         } else {
-            const index: number = $styles[shadowSelector].findIndex(
+            const index: number = $styles[cssSelector].findIndex(
                 (x) => x == shadowString,
             );
-            $styles[shadowSelector].splice(index, 1);
+            $styles[cssSelector].splice(index, 1);
         }
 
-        if ($styles[shadowSelector].length == 0) {
-            delete $styles[shadowSelector];
+        if ($styles[cssSelector].length == 0) {
+            delete $styles[cssSelector];
         }
 
         $styles = $styles;
     }
 
     function clearShadowSelection() {
+        console.log("clearShadowSelection");
         allShadows.forEach((x) => {
             const shadowMixin =
                 "@include shadow-" + x.dataName + "(" + shadowColor + ")";
 
-            if ($styles[shadowSelector]) {
-                if ($styles[shadowSelector].includes(shadowMixin)) {
+            if ($styles[cssSelector]) {
+                if ($styles[cssSelector].includes(shadowMixin)) {
                     x.active = true;
                 } else {
                     x.active = false;
@@ -377,9 +428,13 @@
 
         allAnimations.forEach((x) => {
             const defPlusUsage = "/* " + x.def + " */\n\t" + x.usage;
+            const animationMixinRegex = new RegExp(/.*@include (.*)\(\)/);
+            const mixinCheck = x.usage?.match(animationMixinRegex);
+            const animationIdentifier = mixinCheck ? mixinCheck[1] : undefined;
+            const regexCheck = new RegExp(`\\b${animationIdentifier}\\b`);
 
-            if ($styles[shadowSelector]) {
-                if ($styles[shadowSelector].includes(defPlusUsage)) {
+            if ($styles[cssSelector]) {
+                if ($styles[cssSelector].some((x) => regexCheck.test(x))) {
                     x.active = true;
                 } else {
                     x.active = false;
@@ -397,14 +452,14 @@
             {#each Object.keys($styles) as selector}
                 <Pill
                     name={selector}
-                    active={selector == shadowSelector}
+                    active={selector == cssSelector}
                     onClick={(e) => {
-                        shadowSelector = selector;
+                        cssSelector = selector;
                     }}
                     onRemove={(e) => {
                         delete $styles[selector];
                         $styles = $styles;
-                        shadowSelector =
+                        cssSelector =
                             Object.keys($styles).at(-1) ||
                             `p[class^="g-pstyle"]`;
                     }}
@@ -502,7 +557,7 @@
         </div>
     </SectionTabBar>
 
-    <Input label="Identifier" type="text" bind:value={shadowSelector} />
+    <Input label="Identifier" type="text" bind:value={cssSelector} />
 
     {#if activeTab == "shadows"}
         <div class="shadow-container">
@@ -536,12 +591,14 @@
                     bind:active={animation.active}
                     propValue={animation.value}
                     candidate={animation.candidate}
+                    animId={animation.animId}
                     onChange={(e: Event) => {
                         allAnimations[index].active = animation.active;
                         allAnimations = [...allAnimations];
                         updateAnimations(
                             animation.usage,
                             animation.def,
+                            animation.animId,
                             animation.active,
                         );
                     }}

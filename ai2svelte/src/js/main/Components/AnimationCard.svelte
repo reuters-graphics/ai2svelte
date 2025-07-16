@@ -8,6 +8,7 @@
         definition: string;
         propValue: string;
         candidate: string;
+        animId: string;
         active: boolean;
         delay?: number;
     }
@@ -17,6 +18,7 @@
         animation,
         definition,
         propValue,
+        animId,
         candidate = "shape",
         active = $bindable(false),
         onChange = () => {},
