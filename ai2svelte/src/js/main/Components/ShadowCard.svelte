@@ -104,12 +104,13 @@
 
     .card-title {
         font-family: "Geist Mono";
-        font-size: var(--font-size-base);
+        font-size: var(--font-size-sm);
+        font-weight: 500;
         color: var(--color-white);
         text-align: left;
         text-transform: uppercase;
-        filter: drop-shadow(0px 0px 1px var(--color-black))
-            drop-shadow(0px 0px 1px var(--color-black));
+        filter: drop-shadow(0px 0px 1px rgba(0, 0, 0, 0.8))
+            drop-shadow(0px 0px 1px rgba(0, 0, 0, 0.8));
     }
 
     .card-pseudo-specimen {
@@ -118,7 +119,8 @@
         text-overflow: ellipsis;
         white-space: nowrap;
         overflow: hidden;
-        font-family: "Knowledge2017";
+        font-family:
+            "Inter", apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
         font-size: var(--font-size-base);
     }
 
@@ -129,7 +131,8 @@
         white-space: nowrap;
         top: 0;
         left: 0;
-        font-family: "Knowledge2017";
+        font-family:
+            "Inter", apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
         font-size: var(--font-size-base);
     }
 </style>

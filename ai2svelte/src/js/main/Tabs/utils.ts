@@ -82,7 +82,7 @@ export const myTheme = EditorView.theme(
                     overflow: "auto"
                 },
                 "&.cm-focused .cm-cursor": {
-                    borderLeftColor: "#dc4300 !important",
+                    borderLeftColor: "var(--color-accent-primary) !important",
                     borderWidth: "2px !important",
                 },
                 ".cm-gutters": {
