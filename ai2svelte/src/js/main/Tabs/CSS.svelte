@@ -122,22 +122,26 @@
     }
 
     onMount(async () => {
-        allShadows = [...shadows].map((x) => ({
-            id: x.id,
-            shadow: x.shadow,
-            active: false,
-            dataName: "",
-        }));
+        allShadows = [...shadows]
+            .map((x) => ({
+                id: x.id,
+                shadow: x.shadow,
+                active: false,
+                dataName: "",
+            }))
+            .sort((a, b) => a.id.localeCompare(b.id));
 
-        allAnimations = [...animations].map((x) => ({
-            name: x.name,
-            usage: x.usage,
-            active: false,
-            def: x.def,
-            value: x.value,
-            candidate: x.candidate,
-            animId: x.animId,
-        }));
+        allAnimations = [...animations]
+            .map((x) => ({
+                name: x.name,
+                usage: x.usage,
+                active: false,
+                def: x.def,
+                value: x.value,
+                candidate: x.candidate,
+                animId: x.animId,
+            }))
+            .sort((a, b) => a.name.localeCompare(b.name));
 
         activeTab = "shadows";
 
