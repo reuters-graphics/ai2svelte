@@ -329,9 +329,8 @@ function renderArtboardGroup(group, masks, settings, textBlockContent) {
   // Output html file
   //=====================================
 
-  if(settings.isPreview) {
-    addTextBlockContent(output, textBlockContent);
-  }
+
+  addTextBlockContent(output, textBlockContent);
   generateOutputHtml(output, group, settings);
 
 } // end render()

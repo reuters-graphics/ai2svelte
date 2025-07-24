@@ -17,7 +17,7 @@ export const styles: Writable<Style> = writable(testStyle);
 
 export const stylesString: Writable<string> = writable('');
 
-export const updateInProgress: Writable<boolean> = writable(false);
+export const updateInProgress: Writable<boolean> = writable(true);
 
 export const isCEP: Writable<boolean> = writable(false);
 

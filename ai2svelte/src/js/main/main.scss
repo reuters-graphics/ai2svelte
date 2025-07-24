@@ -9,6 +9,11 @@ body {
     padding: 1rem;
 }
 
+.app {
+    height: calc(98vh - 1rem);
+    position: relative;
+}
+
 hr {
         width: 100%;
         border: 1px solid var(--color-secondary);

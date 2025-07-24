@@ -2,7 +2,7 @@
     import { onMount, untrack } from "svelte";
     import AiSettings from "../ai-settings.json";
     import { fly } from "svelte/transition";
-    import { settingsObject, stylesString } from "../stores";
+    import { settingsObject, stylesString, styles } from "../stores";
     import { evalTS } from "../../lib/utils/bolt";
     import SectionTitle from "../Components/SectionTitle.svelte";
     import Input from "../Components/Input.svelte";
@@ -90,7 +90,7 @@
 
         if (window.cep) {
             evalTS("setVariable", "ai-settings", $settingsObject);
-            evalTS("setVariable", "css-settings", $stylesString);
+            // evalTS("setVariable", "css-settings", $stylesString);
         }
     }
 </script>
@@ -103,7 +103,9 @@
                 settings: $settingsObject,
                 code: { css: $stylesString },
             });
+            console.log($stylesString);
             evalTS("setVariable", "ai-settings", $settingsObject);
+            evalTS("setVariable", "css-settings", $styles);
         }}>Run Nightly</button
     >
 
@@ -122,6 +124,14 @@
                 writablePath,
             );
         }}>Run Preview</button
+    >
+
+    <button
+        id="hero-button"
+        onclick={async (e) => {
+            const temp = await evalTS("getVariable", "css-settings");
+            console.log(temp);
+        }}>Fetch settings</button
     >
 
     <SectionTitle

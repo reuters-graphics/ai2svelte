@@ -24,11 +24,13 @@
   // @ts-ignore - Since HostAdapter isn't explicitly typed, linting throws an error we'll ignore
   import { AIEventAdapter, AIEvent } from "../../public/BoltHostAdapter.js";
 
+  import Intro from "./Intro.svelte";
   import TabBar from "./TabBar.svelte";
   import Home from "./Tabs/Home.svelte";
   import CSS from "./Tabs/CSS.svelte";
   import Preview from "./Tabs/Preview.svelte";
 
+  let splashScreen: boolean = $state(false);
   let activeTab: string = $state("HOME");
 
   $effect(() => {
@@ -41,39 +43,40 @@
     }
   });
 
-  $effect.pre(() => {
-    if (activeTab) {
-      if (window.cep) {
-        updateInProgress.set(true);
-        fetchSettings();
-      }
-    }
-  });
+  // $effect.pre(() => {
+  //   if (activeTab) {
+  //     if (window.cep) {
+  //       updateInProgress.set(false);
+  //       fetchSettings();
+  //     }
+  //   }
+  // });
 
   async function fetchSettings() {
     const fetchedSettings = await evalTS("getVariable", "ai-settings");
     settingsObject.set(fetchedSettings);
 
-    updateInProgress.set(false);
-  }
+    const fetchedStyles = await evalTS("getVariable", "css-settings");
+    styles.set(fetchedStyles);
 
-  // fires every time document is changed
-  // used to handle stale previews
-  function setDocChangeEventListener() {
-    const adapter = AIEventAdapter.getInstance();
-    adapter.addEventListener(AIEvent.ART_SELECTION_CHANGED, async (e: any) => {
-      console.log("Selection changed:");
-      const selectedItems = await evalTS("fetchSelectedItems");
-      // console.log(selectedItems);
-    });
-    // console.log(AIEventAdapter);
+    updateInProgress.set(false);
+
+    // data is loaded
+    if (splashScreen) {
+      splashScreen = true;
+    }
   }
 
   onMount(() => {
     isCEP.set(window.cep);
+
     if (get(isCEP)) {
       fetchSettings();
-      // setDocChangeEventListener();
+    } else {
+      // handle splash for testing
+      setTimeout(() => {
+        // splashScreen = false;
+      }, 3000);
     }
   });
 
@@ -128,13 +131,17 @@
 </script>
 
 <div class="app">
-  <TabBar bind:activeLabel={activeTab} />
+  <Intro bind:loaded={splashScreen} />
 
-  {#if activeTab === "HOME"}
-    <Home />
-  {:else if activeTab === "CSS"}
-    <CSS />
-  {:else if activeTab === "PREVIEW"}
-    <Preview />
+  {#if splashScreen}
+    <TabBar bind:activeLabel={activeTab} />
+
+    {#if activeTab === "HOME"}
+      <Home />
+    {:else if activeTab === "CSS"}
+      <CSS />
+    {:else if activeTab === "PREVIEW"}
+      <Preview />
+    {/if}
   {/if}
 </div>
