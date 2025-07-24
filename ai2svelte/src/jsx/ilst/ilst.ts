@@ -43,21 +43,13 @@ export const getVariable = (key) => {
 
 export const runNightly = (settings) => {
   if (app) {
+    settings.settings.show_completion_dialog_box = true;
     main(settings);
   }
 }
 
 export const runPreview = (settings, path) => {
   if(app) {
-
-  //     AIEventAdapter.getInstance().addEventListener(
-  // AIEvent.ART_SELECTION_CHANGED,
-  // function(eve) {
-  // alert(eve.type +" invoked.");
-  // }
-  // );
-
-  // alert('init check');
 
     createFolder(path);
 

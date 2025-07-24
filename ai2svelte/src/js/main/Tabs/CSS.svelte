@@ -21,6 +21,9 @@
         AIEvent,
     } from "../../../public/BoltHostAdapter.js";
 
+    import typeSpecimenIcon from "../../../public/type_specimen.svg";
+    import replaceImageIcon from "../../../public/replace_image.svg";
+
     import SectionTabBar from "../Components/SectionTabBar.svelte";
     import ShadowCard from "../Components/ShadowCard.svelte";
     import CmTextArea from "../Components/CMTextArea.svelte";
@@ -489,7 +492,7 @@
             >
                 <img
                     style="width: 24px;"
-                    src="../../assets/replace_image.svg"
+                    src={replaceImageIcon}
                     alt="Change backdrop"
                 />
             </button>
@@ -504,7 +507,7 @@
             >
                 <img
                     style="width: 24px;"
-                    src="../../assets/type_specimen.svg"
+                    src={typeSpecimenIcon}
                     alt="Change type specimen"
                 />
             </button>

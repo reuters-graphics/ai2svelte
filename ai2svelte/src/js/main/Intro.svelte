@@ -1,6 +1,7 @@
 <script lang="ts">
     import { onMount } from "svelte";
     import { fly } from "svelte/transition";
+    import logoType from "../../public/logotype.svg";
 
     let { loaded = $bindable(false) } = $props();
 
@@ -20,7 +21,7 @@
         <div transition:fly={{ y: 50 }}>
             <img
                 class="logotype"
-                src="../assets/logotype.svg"
+                src={logoType}
                 alt="ai2svelte logotype"
                 style="
                 opacity: {loaded == false ? 0.3 : 0.1};
@@ -48,10 +49,11 @@
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            min-width: 8vw;
+            width: 72vw;
             opacity: 0.3;
             transition:
                 0.8s all cubic-bezier(0.39, 0.575, 0.565, 1),
+                0s width ease,
                 0.3s opacity ease;
         }
 

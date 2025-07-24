@@ -29,6 +29,7 @@
   import Home from "./Tabs/Home.svelte";
   import CSS from "./Tabs/CSS.svelte";
   import Preview from "./Tabs/Preview.svelte";
+  import About from "./Tabs/About.svelte";
 
   let splashScreen: boolean = $state(false);
   let activeTab: string = $state("HOME");
@@ -142,6 +143,8 @@
       <CSS />
     {:else if activeTab === "PREVIEW"}
       <Preview />
+    {:else if activeTab === "ABOUT"}
+      <About />
     {/if}
   {/if}
 </div>
