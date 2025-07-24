@@ -34,63 +34,6 @@ export function convertStringToObject(s: string) {
         return obj;
 }
 
-function processCSS(s) {
-    switch (s.type) {
-        case "decl":
-            return `${s.prop} : ${s.value}`;
-            break;
-
-        case "atrule":
-            if(s.name == "mixin") {
-                return null;
-            } else {
-                return `@${s.name} ${s.params}`;
-            }
-            break;
-
-        case "rule":
-            const styles = s.nodes.map((x) => processCSS(x)).join(";\n");
-            const str = `${s.selector} {
-${styles};
-}`;
-            return str;
-            break;
-
-        case "comment":
-            return `/* ${s.text} */`;
-
-        default:
-            return "";
-            break;
-    }
-}
-
-// parses css into object
-export function convertStyleStringToObject(string: string) {
-    let obj;
-
-    try {
-        obj = postcss.parse(string, { parser: scss }).nodes.map((x) => {
-            return {
-                selector: x.selector,
-                styles: x.nodes.map((s, i) => processCSS(s)),
-            };
-        });
-
-        const newStyles = { };
-        obj.forEach((x) => {
-            console.log(x.selector);
-            if(x.selector !== null && x.selector !== undefined) {
-                newStyles[x.selector] = x.styles;
-            }
-        });
-
-        return obj;
-    } catch (error) {
-        // ignore errors cause user might still be typing the style
-    }
-}
-
 export function parseSnippetSettings(settingsText: string) {
     // Handle both Windows (\r\n) and Unix (\n) line endings\
     var text = settingsText.replace(/[\u201C\u201D]/g, '"').replace(/[\u2018\u2019]/g, "'");
