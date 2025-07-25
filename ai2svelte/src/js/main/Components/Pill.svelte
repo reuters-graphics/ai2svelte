@@ -42,7 +42,7 @@
 </button>
 
 <style lang="scss">
-    @use "../../variables.scss" as *;
+    @use "../styles/variables.scss" as *;
 
     .pill {
         all: unset;

@@ -49,7 +49,7 @@
 </div>
 
 <style lang="scss">
-    @use "../../variables.scss" as *;
+    @use "../styles/variables.scss" as *;
 
     .radio-group {
         display: flex;

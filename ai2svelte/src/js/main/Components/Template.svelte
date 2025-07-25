@@ -13,5 +13,5 @@
 <div></div>
 
 <style lang="scss">
-    @use "../../variables.scss" as *;
+    @use "../styles/variables.scss" as *;
 </style>

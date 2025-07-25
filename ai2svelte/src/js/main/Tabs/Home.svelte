@@ -1,6 +1,6 @@
 <script lang="ts">
     import { onMount, untrack } from "svelte";
-    import AiSettings from "../ai-settings.json";
+    import AiSettings from "./data/ai-settings.json";
     import { fly } from "svelte/transition";
     import { settingsObject, stylesString, styles } from "../stores";
     import { evalTS } from "../../lib/utils/bolt";
@@ -30,7 +30,7 @@
         jpg_quality: number;
         graphicskit: AiSettingOption;
         inline_svg: AiSettingOption;
-        "max-width": null | number;
+        max_width: null | number;
     }
 
     let activeFormat: string = $state("");

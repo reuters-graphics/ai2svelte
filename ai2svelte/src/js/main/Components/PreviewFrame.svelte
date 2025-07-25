@@ -112,7 +112,7 @@
 </div>
 
 <style lang="scss">
-    @use "../../variables.scss" as *;
+    @use "../styles/variables.scss" as *;
 
     .preview-container {
         position: relative;

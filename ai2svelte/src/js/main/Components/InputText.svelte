@@ -10,7 +10,7 @@
 <input id={`select-${label}`} class="option-text" type="text" bind:value />
 
 <style lang="scss">
-    @use "../../variables.scss" as *;
+    @use "../styles/variables.scss" as *;
 
     .option-text {
         background-color: transparent;

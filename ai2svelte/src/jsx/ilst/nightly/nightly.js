@@ -3426,8 +3426,8 @@ function generateOutputHtml(content, group, settings) {
   css = '<style lang="scss">\r';
 
   if(settings.isPreview) {
-    css += '@use "./shadows.scss" as *;\n'
-    css += '@use "./animations.scss" as *;\n\n'
+    css += '@use "../public/shadows.scss" as *;\n'
+    css += '@use "../public/animations.scss" as *;\n\n'
   }
 
   css += generatePageCss(containerId, group, settings) +

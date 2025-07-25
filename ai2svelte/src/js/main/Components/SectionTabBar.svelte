@@ -28,7 +28,7 @@
 <hr />
 
 <style lang="scss">
-    @use "../../variables.scss" as *;
+    @use "../styles/variables.scss" as *;
 
     .section {
         display: flex;

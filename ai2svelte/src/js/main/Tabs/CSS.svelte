@@ -6,8 +6,8 @@
     import { onDestroy, onMount, untrack } from "svelte";
     import { fly, scale, slide } from "svelte/transition";
     import { evalTS } from "../../lib/utils/bolt";
-    import shadows, { cheeses } from "./shadows";
-    import animations from "./animations.json";
+    import shadows, { cheeses } from "./ts/shadows";
+    import animations from "./data/animations.json";
     import { styles, stylesString, updateInProgress, isCEP } from "../stores";
     import type { Style } from "../stores";
     import ColorPicker from "svelte-awesome-color-picker";
@@ -627,8 +627,8 @@
 </div>
 
 <style lang="scss">
-    @use "../shadows.scss" as *;
-    @use "../animations.scss" as *;
+    @use "../styles/shadows.scss" as *;
+    @use "../styles/animations.scss" as *;
 
     .shadow-content {
         display: flex;

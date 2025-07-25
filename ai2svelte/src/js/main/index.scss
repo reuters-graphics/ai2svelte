@@ -1,6 +1,6 @@
-@use "./theme.scss" as *;
-@use "./variables.scss" as *;
-@use './fonts.scss' as *;
+@use "./styles/theme.scss" as *;
+@use "./styles/variables.scss" as *;
+@use './styles/fonts.scss' as *;
 
 :root {
   --svooltip-arrow-size: 0px;
@@ -42,18 +42,4 @@ p::selection, input::selection {
 ::-webkit-scrollbar {
   width: 10px;
   -webkit-appearance: always;
-}
-
-::-webkit-scrollbar-track {
-  background: $darkest;
-//   padding: 2.25em 1.6875em;
-}
-
-::-webkit-scrollbar-thumb {
-  background: $darker;
-  border-radius: 5px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: $dark;
 }

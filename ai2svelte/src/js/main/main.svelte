@@ -10,8 +10,8 @@
     evalTS,
   } from "../lib/utils/bolt";
   import { isAppRunning } from "../lib/utils/bolt";
-  import "../index.scss";
-  import "./main.scss";
+  import "./index.scss";
+  import "./styles/main.scss";
   import {
     settingsObject,
     styles,
@@ -19,13 +19,13 @@
     isCEP,
     snippets,
   } from "./stores";
-  import { convertStringToObject, parseSnippetSettings } from "./Tabs/utils";
+  import { convertStringToObject, parseSnippetSettings } from "./Tabs/ts/utils";
   import type { Style } from "./stores";
   // @ts-ignore - Since HostAdapter isn't explicitly typed, linting throws an error we'll ignore
   import { AIEventAdapter, AIEvent } from "../../public/BoltHostAdapter.js";
 
-  import Intro from "./Intro.svelte";
-  import TabBar from "./TabBar.svelte";
+  import Intro from "./Components/Intro.svelte";
+  import TabBar from "./Components/TabBar.svelte";
   import Home from "./Tabs/Home.svelte";
   import CSS from "./Tabs/CSS.svelte";
   import Preview from "./Tabs/Preview.svelte";

@@ -13,7 +13,7 @@
 <button class="chip" data-name={text}>{text}</button>
 
 <style lang="scss">
-    @use "../../variables.scss" as *;
+    @use "../styles/variables.scss" as *;
 
     .chip {
         cursor: pointer;

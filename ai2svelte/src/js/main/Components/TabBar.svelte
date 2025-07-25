@@ -1,11 +1,11 @@
 <script lang="ts">
     import { onMount } from "svelte";
-    import ThemeSwitcher from "./Components/ThemeSwitcher.svelte";
+    import ThemeSwitcher from "./ThemeSwitcher.svelte";
     import ColorPicker from "svelte-awesome-color-picker";
     import { tooltip } from "svooltip";
-    import { tooltipSettings } from "./utils/utils";
+    import { tooltipSettings } from "../utils/utils";
 
-    import { userTheme } from "./stores";
+    import { userTheme } from "../stores";
 
     let { activeLabel = $bindable() } = $props();
 
@@ -106,7 +106,7 @@
 </div>
 
 <style lang="scss">
-    @use "../variables.scss" as *;
+    @use "../styles/variables.scss" as *;
 
     /* Hide the radio inputs */
     .tabs input[type="radio"] {

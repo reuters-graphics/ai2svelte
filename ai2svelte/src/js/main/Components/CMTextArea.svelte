@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { myTheme } from "../Tabs/utils";
+    import { myTheme } from "../Tabs/ts/utils";
     import { basicSetup } from "codemirror";
     import { Compartment } from "@codemirror/state";
     import { EditorView, keymap } from "@codemirror/view";
