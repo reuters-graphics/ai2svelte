@@ -99,11 +99,15 @@
     <button
         id="hero-button"
         onclick={(e) => {
+            // set show_completion_dialog_box
+            // unless set by user
             evalTS("runNightly", {
-                settings: $settingsObject,
+                settings: {
+                    show_completion_dialog_box: true,
+                    ...$settingsObject,
+                },
                 code: { css: $stylesString },
             });
-            console.log($stylesString);
             evalTS("setVariable", "ai-settings", $settingsObject);
             evalTS("setVariable", "css-settings", $styles);
         }}>Run Nightly</button

@@ -92,9 +92,6 @@ export const myTheme = EditorView.theme(
                     backgroundColor: "#ffffff00 !important",
                     color: "var(--color-text) !important"
                 },
-                ".cm-selectionBackground": {
-                    backgroundColor: "color-mix(in srgb, var(--color-text) 10%, transparent) !important",
-                },
                 ".cm-content, .cm-gutter": { minHeight: "200px", height: "100%" },
                 ".cm-line": {
                     fontSize: "clamp(0.89rem, -0.08vw + 0.91rem, 0.84rem) !important",

@@ -10,11 +10,9 @@
         insertNewlineAndIndent,
     } from "@codemirror/commands";
     import { css } from "@codemirror/lang-css";
-    import { yaml } from "@codemirror/lang-yaml";
     import { StreamLanguage } from "@codemirror/language";
     import { properties } from "@codemirror/legacy-modes/mode/properties";
     import { vsCodeDark, vsCodeLight } from "@fsegurai/codemirror-theme-bundle";
-    import { json } from "@codemirror/lang-json";
     import { onMount } from "svelte";
     import { userTheme } from "../stores";
 
@@ -111,6 +109,7 @@
             extensions: [
                 updateListener,
                 basicSetup,
+                EditorView.lineWrapping,
                 keymap.of([
                     indentWithTab,
                     { key: "Enter", run: insertNewlineAndIndent },
@@ -120,12 +119,12 @@
                 themeConfig.of([getTheme($userTheme)]),
                 myTheme,
                 EditorView.domEventHandlers({
-                    focusin: (e, v) => {
-                        isFocused = true;
-                    },
-                    focusout: (e, v) => {
-                        isFocused = false;
-                    },
+                    // focusin: (e, v) => {
+                    //     isFocused = true;
+                    // },
+                    // focusout: (e, v) => {
+                    //     isFocused = false;
+                    // },
                 }),
             ],
         } as EditorViewConfig);

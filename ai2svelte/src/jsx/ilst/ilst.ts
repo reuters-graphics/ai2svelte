@@ -43,7 +43,6 @@ export const getVariable = (key) => {
 
 export const runNightly = (settings) => {
   if (app) {
-    settings.settings.show_completion_dialog_box = true;
     main(settings);
   }
 }
