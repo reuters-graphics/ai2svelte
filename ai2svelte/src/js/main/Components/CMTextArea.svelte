@@ -83,6 +83,16 @@
         }
     });
 
+    // Block all shortcuts when CodeMirror has focus
+    const blockAllShortcuts = EditorView.domEventHandlers({
+        keydown(event, view) {
+            // Stop all keyboard events from reaching Illustrator
+            event.stopPropagation();
+            event.stopImmediatePropagation();
+            return false; // Allow CodeMirror to handle the event
+        },
+    });
+
     onMount(() => {
         if (autoCompletionTokens) {
             setupAutoCompletions(autoCompletionTokens);
@@ -114,17 +124,18 @@
                     indentWithTab,
                     { key: "Enter", run: insertNewlineAndIndent },
                 ]),
+                blockAllShortcuts,
                 type == "yaml" ? [StreamLanguage.define(properties)] : css(),
                 autocompletion({ override: [customCompletions] }),
                 themeConfig.of([getTheme($userTheme)]),
                 myTheme,
                 EditorView.domEventHandlers({
-                    // focusin: (e, v) => {
-                    //     isFocused = true;
-                    // },
-                    // focusout: (e, v) => {
-                    //     isFocused = false;
-                    // },
+                    focusin: (e, v) => {
+                        isFocused = true;
+                    },
+                    focusout: (e, v) => {
+                        isFocused = false;
+                    },
                 }),
             ],
         } as EditorViewConfig);
