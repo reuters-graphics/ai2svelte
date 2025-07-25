@@ -1,119 +1,5 @@
-// =============================================================================
-// CSS ANIMATION MIXINS LIBRARY
-// =============================================================================
-
-// 1. FADE ANIMATIONS
-// =============================================================================
-
-// Fade In
-@mixin fadeIn($duration: 0.3s, $delay: 0s, $easing: ease-in-out) {
-  animation: fadeIn $duration $easing $delay both;
-  
-  @keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
-  }
-}
-
-// Fade Out
-@mixin fadeOut($duration: 0.3s, $delay: 0s, $easing: ease-in-out) {
-  animation: fadeOut $duration $easing $delay both;
-  
-  @keyframes fadeOut {
-    from { opacity: 1; }
-    to { opacity: 0; }
-  }
-}
-
-// 2. SLIDE ANIMATIONS
-// =============================================================================
-
-// Slide In from Left
-@mixin slideInLeft($duration: 0.5s, $delay: 0s, $distance: 100px, $easing: ease-out) {
-  animation: slideInLeft $duration $easing $delay both;
-  
-  @keyframes slideInLeft {
-    from {
-      transform: translateX(-$distance);
-      opacity: 0;
-    }
-    to {
-      transform: translateX(0);
-      opacity: 1;
-    }
-  }
-}
-
-// Slide In from Right
-@mixin slideInRight($duration: 0.5s, $delay: 0s, $distance: 100px, $easing: ease-out) {
-  animation: slideInRight $duration $easing $delay both;
-  
-  @keyframes slideInRight {
-    from {
-      transform: translateX($distance);
-      opacity: 0;
-    }
-    to {
-      transform: translateX(0);
-      opacity: 1;
-    }
-  }
-}
-
-// Slide Up
-@mixin slideUp($duration: 0.5s, $delay: 0s, $distance: 50px, $easing: ease-out) {
-  animation: slideUp $duration $easing $delay both;
-  
-  @keyframes slideUp {
-    from {
-      transform: translateY($distance);
-      opacity: 0;
-    }
-    to {
-      transform: translateY(0);
-      opacity: 1;
-    }
-  }
-}
-
-// 3. SCALE ANIMATIONS
-// =============================================================================
-
-// Scale In
-@mixin scaleIn($duration: 0.3s, $delay: 0s, $scale-from: 0.8, $easing: ease-out) {
-  animation: scaleIn $duration $easing $delay both;
-  
-  @keyframes scaleIn {
-    from {
-      transform: scale($scale-from);
-      opacity: 0;
-    }
-    to {
-      transform: scale(1);
-      opacity: 1;
-    }
-  }
-}
-
-// Scale Out
-@mixin scaleOut($duration: 0.3s, $delay: 0s, $scale-to: 0.8, $easing: ease-in) {
-  animation: scaleOut $duration $easing $delay both;
-  
-  @keyframes scaleOut {
-    from {
-      transform: scale(1);
-      opacity: 1;
-    }
-    to {
-      transform: scale($scale-to);
-      opacity: 0;
-    }
-  }
-}
-
-// Pulse
-@mixin pulse($duration: 1s, $delay: 0s, $scale: 1.1, $iterations: infinite) {
-  animation: pulse $duration ease-in-out $delay $iterations;
+@mixin animPulse($duration: 1s, $delay: 0s, $scale: 1.05, $easing: ease-in-out, $iteration: infinite) {
+  animation: pulse $duration $easing $delay $iteration;
   
   @keyframes pulse {
     0%, 100% { transform: scale(1); }
@@ -121,12 +7,8 @@
   }
 }
 
-// 4. ROTATION ANIMATIONS
-// =============================================================================
-
-// Rotate
-@mixin rotate($duration: 1s, $delay: 0s, $degrees: 360deg, $iterations: infinite, $easing: linear) {
-  animation: rotate $duration $easing $delay $iterations;
+@mixin animRotate($duration: 0.5s, $delay: 0s, $degrees: 360deg, $easing: ease-in-out, $iteration: infinite) {
+  animation: rotate $duration $easing $delay $iteration;
   
   @keyframes rotate {
     from { transform: rotate(0deg); }
@@ -134,9 +16,8 @@
   }
 }
 
-// Spin
-@mixin spin($duration: 2s, $delay: 0s, $direction: normal, $iterations: infinite) {
-  animation: spin $duration linear $delay $iterations $direction;
+@mixin animSpin($duration: 1s, $delay: 0s, $easing: linear, $iteration: infinite) {
+  animation: spin $duration $easing $delay $iteration;
   
   @keyframes spin {
     from { transform: rotate(0deg); }
@@ -144,233 +25,154 @@
   }
 }
 
-// 5. BOUNCE ANIMATIONS
-// =============================================================================
-
-// Bounce In
-@mixin bounceIn($duration: 0.75s, $delay: 0s, $easing: cubic-bezier(0.215, 0.610, 0.355, 1.000)) {
-  animation: bounceIn $duration $easing $delay both;
-  
-  @keyframes bounceIn {
-    0% {
-      opacity: 0;
-      transform: scale3d(0.3, 0.3, 0.3);
-    }
-    20% {
-      transform: scale3d(1.1, 1.1, 1.1);
-    }
-    40% {
-      transform: scale3d(0.9, 0.9, 0.9);
-    }
-    60% {
-      opacity: 1;
-      transform: scale3d(1.03, 1.03, 1.03);
-    }
-    80% {
-      transform: scale3d(0.97, 0.97, 0.97);
-    }
-    100% {
-      opacity: 1;
-      transform: scale3d(1, 1, 1);
-    }
-  }
-}
-
-// Bounce
-@mixin bounce($duration: 1s, $delay: 0s, $height: 30px, $iterations: infinite) {
-  animation: bounce $duration ease-in-out $delay $iterations;
+@mixin animBounce($duration: 1s, $delay: 0s, $easing: ease-in-out, $iteration: infinite) {
+  animation: bounce $duration $easing $delay $iteration;
   
   @keyframes bounce {
     0%, 20%, 53%, 80%, 100% {
       transform: translateY(0);
     }
     40%, 43% {
-      transform: translateY(-$height);
+      transform: translateY(-15px);
     }
     70% {
-      transform: translateY(-$height/2);
+      transform: translateY(-7px);
     }
     90% {
-      transform: translateY(-$height/4);
+      transform: translateY(-3px);
     }
   }
 }
 
-// 6. SHAKE/WOBBLE ANIMATIONS
-// =============================================================================
-
-// Shake
-@mixin shake($duration: 0.5s, $delay: 0s, $distance: 10px, $iterations: 1) {
-  animation: shake $duration ease-in-out $delay $iterations;
+@mixin animShake($duration: 0.5s, $delay: 0s, $intensity: 10px, $easing: ease-in-out, $iteration: infinite) {
+  animation: shake $duration $easing $delay $iteration;
   
   @keyframes shake {
     0%, 100% { transform: translateX(0); }
-    10%, 30%, 50%, 70%, 90% { transform: translateX(-$distance); }
-    20%, 40%, 60%, 80% { transform: translateX($distance); }
+    10%, 30%, 50%, 70%, 90% { transform: translateX(-$intensity); }
+    20%, 40%, 60%, 80% { transform: translateX($intensity); }
   }
 }
 
-// Wobble
-@mixin wobble($duration: 1s, $delay: 0s, $iterations: 1) {
-  animation: wobble $duration ease-in-out $delay $iterations;
+@mixin animWobble($duration: 1s, $delay: 0s, $easing: ease-in-out, $iteration: infinite) {
+  animation: wobble $duration $easing $delay $iteration;
   
   @keyframes wobble {
-    0% { transform: translateX(0%); }
+    0% { transform: translateX(0%) rotate(0deg); }
     15% { transform: translateX(-25%) rotate(-5deg); }
     30% { transform: translateX(20%) rotate(3deg); }
     45% { transform: translateX(-15%) rotate(-3deg); }
     60% { transform: translateX(10%) rotate(2deg); }
     75% { transform: translateX(-5%) rotate(-1deg); }
-    100% { transform: translateX(0%); }
+    100% { transform: translateX(0%) rotate(0deg); }
   }
 }
 
-// 7. FLIP ANIMATIONS
-// =============================================================================
-
-// Flip In X
-@mixin flipInX($duration: 0.75s, $delay: 0s, $easing: ease-in) {
-  animation: flipInX $duration $easing $delay both;
+@mixin animJello($duration: 1s, $delay: 0s, $easing: ease-in-out, $iteration: infinite) {
+  animation: jello $duration $easing $delay $iteration;
   
-  @keyframes flipInX {
-    from {
-      transform: perspective(400px) rotate3d(1, 0, 0, 90deg);
-      opacity: 0;
-    }
-    40% {
-      transform: perspective(400px) rotate3d(1, 0, 0, -20deg);
-    }
-    60% {
-      transform: perspective(400px) rotate3d(1, 0, 0, 10deg);
-      opacity: 1;
-    }
-    80% {
-      transform: perspective(400px) rotate3d(1, 0, 0, -5deg);
-    }
+  @keyframes jello {
+    0%, 11.1%, 100% { transform: skewX(0deg) skewY(0deg); }
+    22.2% { transform: skewX(-12.5deg) skewY(-12.5deg); }
+    33.3% { transform: skewX(6.25deg) skewY(6.25deg); }
+    44.4% { transform: skewX(-3.125deg) skewY(-3.125deg); }
+    55.5% { transform: skewX(1.5625deg) skewY(1.5625deg); }
+    66.6% { transform: skewX(-0.78125deg) skewY(-0.78125deg); }
+    77.7% { transform: skewX(0.390625deg) skewY(0.390625deg); }
+    88.8% { transform: skewX(-0.1953125deg) skewY(-0.1953125deg); }
+  }
+}
+
+@mixin animFlip($duration: 1s, $delay: 0s, $easing: ease-in-out, $iteration: infinite) {
+  animation: flip $duration $easing $delay $iteration;
+  
+  @keyframes flip {
+    0% { transform: perspective(400px) rotateY(0); }
+    40% { transform: perspective(400px) translateZ(150px) rotateY(170deg); }
+    50% { transform: perspective(400px) translateZ(150px) rotateY(190deg) scale(1); }
+    80% { transform: perspective(400px) rotateY(360deg) scale(0.95); }
+    100% { transform: perspective(400px) scale(1); }
+  }
+}
+
+@mixin animFlash($duration: 1s, $delay: 0s, $easing: ease-in-out, $iteration: infinite) {
+  animation: flash $duration $easing $delay $iteration;
+  
+  @keyframes flash {
+    0%, 50%, 100% { opacity: 1; }
+    25%, 75% { opacity: 0; }
+  }
+}
+
+@mixin animHeartBeat($duration: 1.3s, $delay: 0s, $easing: ease-in-out, $iteration: infinite) {
+  animation: heartBeat $duration $easing $delay $iteration;
+  
+  @keyframes heartBeat {
+    0% { transform: scale(1); }
+    14% { transform: scale(1.3); }
+    28% { transform: scale(1); }
+    42% { transform: scale(1.3); }
+    70% { transform: scale(1); }
+  }
+}
+
+@mixin animRubberBand($duration: 1s, $delay: 0s, $easing: ease-in-out, $iteration: infinite) {
+  animation: rubberBand $duration $easing $delay $iteration;
+  
+  @keyframes rubberBand {
+    0% { transform: scale(1); }
+    30% { transform: scaleX(1.25) scaleY(0.75); }
+    40% { transform: scaleX(0.75) scaleY(1.25); }
+    50% { transform: scaleX(1.15) scaleY(0.85); }
+    65% { transform: scaleX(0.95) scaleY(1.05); }
+    75% { transform: scaleX(1.05) scaleY(0.95); }
+    100% { transform: scale(1); }
+  }
+}
+
+@mixin animDots($duration: 1.4s, $delay: 0s, $easing: ease-in-out, $iteration: infinite) {
+  animation: dots $duration $easing $delay $iteration both;
+  
+  @keyframes dots {
+    0%, 80%, 100% { transform: scale(0); }
+    40% { transform: scale(1); }
+  }
+}
+
+@mixin animLineProgress($duration: 1s, $delay: 0s, $easing: linear, $iteration: infinite) {
+  stroke-dasharray: 20 10;
+  stroke-dashoffset: 30;
+  animation: dash $duration $easing $delay $iteration;
+
+  @keyframes dash {
     to {
-      transform: perspective(400px);
+      stroke-dashoffset: 0;
     }
   }
 }
 
-// Flip In Y
-@mixin flipInY($duration: 0.75s, $delay: 0s, $easing: ease-in) {
-  animation: flipInY $duration $easing $delay both;
-  
-  @keyframes flipInY {
-    from {
-      transform: perspective(400px) rotate3d(0, 1, 0, 90deg);
-      opacity: 0;
-    }
-    40% {
-      transform: perspective(400px) rotate3d(0, 1, 0, -20deg);
-    }
-    60% {
-      transform: perspective(400px) rotate3d(0, 1, 0, 10deg);
-      opacity: 1;
-    }
-    80% {
-      transform: perspective(400px) rotate3d(0, 1, 0, -5deg);
-    }
+@mixin animHueRotate($duration: 1s, $delay: 0s, $easing: linear, $iteration: infinite) {
+  filter: hue-rotate(0deg);
+  animation: hueRotate $duration $easing $delay $iteration;
+
+  @keyframes hueRotate {
     to {
-      transform: perspective(400px);
+      filter: hue-rotate(360deg);
     }
   }
 }
 
-// 8. ZOOM ANIMATIONS
-// =============================================================================
+@mixin animZoomFade($zoom: 2, $duration: 1s, $delay: 0s, $easing: ease-in-out, $iteration: infinite) {
+  animation: zoomFade $duration $easing $delay $iteration;
 
-// Zoom In
-@mixin zoomIn($duration: 0.5s, $delay: 0s, $scale-from: 0.3, $easing: ease-out) {
-  animation: zoomIn $duration $easing $delay both;
-  
-  @keyframes zoomIn {
-    from {
-      opacity: 0;
-      transform: scale3d($scale-from, $scale-from, $scale-from);
-    }
-    50% {
-      opacity: 1;
-    }
-  }
-}
-
-// Zoom Out
-@mixin zoomOut($duration: 0.5s, $delay: 0s, $scale-to: 0.3, $easing: ease-in) {
-  animation: zoomOut $duration $easing $delay both;
-  
-  @keyframes zoomOut {
-    from {
-      opacity: 1;
-    }
-    50% {
-      opacity: 0;
-      transform: scale3d($scale-to, $scale-to, $scale-to);
-    }
-    to {
-      opacity: 0;
-    }
-  }
-}
-
-// 9. LOADING ANIMATIONS
-// =============================================================================
-
-// Loading Spinner
-@mixin loadingSpinner($size: 40px, $border-width: 4px, $color: #3498db, $duration: 1s) {
-  width: $size;
-  height: $size;
-  border: $border-width solid rgba($color, 0.3);
-  border-top: $border-width solid $color;
-  border-radius: 50%;
-  animation: loadingSpinner $duration linear infinite;
-  
-  @keyframes loadingSpinner {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-  }
-}
-
-// Loading Dots
-@mixin loadingDots($dot-size: 8px, $color: #3498db, $duration: 1.4s) {
-  display: inline-block;
-  width: $dot-size;
-  height: $dot-size;
-  border-radius: 50%;
-  background-color: $color;
-  animation: loadingDots $duration ease-in-out infinite both;
-  
-  @keyframes loadingDots {
-    0%, 80%, 100% {
-      transform: scale(0);
-    }
-    40% {
+  @keyframes zoomFade {
+    0% {
       transform: scale(1);
+      opacity: 1;
     }
-  }
-}
-
-// 10. HOVER EFFECTS
-// =============================================================================
-
-// Hover Lift
-@mixin hoverLift($lift-distance: 5px, $duration: 0.3s, $shadow: true) {
-  transition: transform $duration ease, box-shadow $duration ease;
-  
-  &:hover {
-    transform: translateY(-$lift-distance);
-    @if $shadow {
-      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+    100% {
+      transform: scale($zoom);
+      opacity: 0;
     }
-  }
-}
-
-// Hover Glow
-@mixin hoverGlow($glow-color: #3498db, $duration: 0.3s, $blur: 10px) {
-  transition: box-shadow $duration ease;
-  
-  &:hover {
-    box-shadow: 0 0 $blur $glow-color;
   }
 }
