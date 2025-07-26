@@ -4,7 +4,7 @@
 
 <script lang="ts">
     import { onDestroy, onMount, untrack } from "svelte";
-    import { fly, scale, slide } from "svelte/transition";
+    import { fly, slide } from "svelte/transition";
     import { evalTS } from "../../lib/utils/bolt";
     import shadows, { cheeses } from "./ts/shadows";
     import animations from "./data/animations.json";
@@ -98,6 +98,7 @@
         active: boolean;
         def: string;
         value: string;
+        styleDefinition: string;
         candidate: string;
         animId: string;
     };
@@ -141,6 +142,7 @@
                 active: false,
                 def: x.def,
                 value: x.value,
+                styleDefinition: x.definition,
                 candidate: x.candidate,
                 animId: x.animId,
             }))
@@ -597,6 +599,7 @@
                     definition={animation.def}
                     bind:active={animation.active}
                     propValue={animation.value}
+                    styleDefinition={animation.styleDefinition}
                     candidate={animation.candidate}
                     animId={animation.animId}
                     onChange={(e: Event) => {

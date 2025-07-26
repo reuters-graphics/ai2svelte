@@ -18,6 +18,7 @@
         animation,
         definition,
         propValue,
+        styleDefinition,
         animId,
         candidate = "shape",
         active = $bindable(false),
@@ -37,7 +38,7 @@
 
     function createStyle() {
         const style = document.createElement("style");
-        style.textContent = propValue;
+        style.textContent = styleDefinition;
         document?.head.appendChild(style);
     }
 </script>
