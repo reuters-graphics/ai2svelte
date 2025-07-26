@@ -113,31 +113,6 @@
         }}>Run Nightly</button
     >
 
-    <button
-        id="hero-button"
-        onclick={(e) => {
-            console.log("running preview");
-            const extensionPath = csi.getSystemPath("extension");
-            const writablePath = extensionPath + "/writable/";
-            evalTS(
-                "runPreview",
-                {
-                    settings: $settingsObject,
-                    code: { css: $stylesString },
-                },
-                writablePath,
-            );
-        }}>Run Preview</button
-    >
-
-    <button
-        id="hero-button"
-        onclick={async (e) => {
-            const temp = await evalTS("getVariable", "css-settings");
-            console.log(temp);
-        }}>Fetch settings</button
-    >
-
     <SectionTitle
         title={"Settings"}
         labels={["UI", "Code"]}

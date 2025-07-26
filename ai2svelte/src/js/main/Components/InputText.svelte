@@ -13,6 +13,7 @@
     @use "../styles/variables.scss" as *;
 
     .option-text {
+        padding: 0;
         background-color: transparent;
         border: unset;
         color: var(--color-text);
