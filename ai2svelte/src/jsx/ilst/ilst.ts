@@ -61,8 +61,6 @@ export const runPreview = (settings, path) => {
     settings.settings.project_name = "preview";
     settings.settings.show_completion_dialog_box = false;
 
-    // alert(JSON.stringify(settings));
-
     main(settings);
   }
 }

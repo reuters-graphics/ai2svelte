@@ -1,33 +1,47 @@
-<!-- compare datetimes and run script only if ai is modified -->
 <!-- show snippet name instead of generic 'snippet' -->
 
 <script lang="ts">
-    import { onMount } from "svelte";
-    import { settingsObject, stylesString } from "../stores";
-    import PreviewFrame from "../Components/PreviewFrame.svelte";
-    import BirdStats from "../example/ai2svelte/bird-stats.svelte";
-    import { csi } from "../../lib/utils/bolt";
+    // SVELTE IMPORTS
+    import { onMount, type Component } from "svelte";
     import { Spring } from "svelte/motion";
+    import PreviewFrame from "../Components/PreviewFrame.svelte";
+
+    // DATA IMPORTS
+    import { settingsObject, stylesString } from "../stores";
+
+    // BOLT IMPORTS
+    import { csi } from "../../lib/utils/bolt";
     import { evalTS } from "../../lib/utils/bolt";
 
-    let PreviewComponent = $state();
+    // OTHER IMPORTS
+    // @ts-ignore
+    import BirdStats from "../example/ai2svelte/bird-stats.svelte";
 
-    let previewWidth = new Spring(800);
-    let previewHeight = new Spring(400);
+    let PreviewComponent: Component | undefined = $state();
+
+    let previewWidth: Spring<number> = new Spring(800);
+    let previewHeight: Spring<number> = new Spring(400);
 
     onMount(async () => {
         console.log($settingsObject);
 
-        loadPreview();
-
         if (window.cep) {
+            loadPreview();
             getSvelteFile();
         }
     });
 
+    /**
+     * Runs the ai2svelte script with the preview settings
+     *
+     * @async
+     * @returns {Promise<void>} Resolves when the preview has been loaded.
+     */
     async function loadPreview() {
         const extensionPath = csi.getSystemPath("extension");
         const writablePath = extensionPath + "/writable/";
+
+        // run ai2svelte script with preview settings
         await evalTS(
             "runPreview",
             {
@@ -38,8 +52,12 @@
         );
     }
 
-    // dynamically imports svelte file
-    // from extension's internal 'writable' folder
+    /**
+     * Asynchronously loads a Svelte component from a writable file path and assigns it to `PreviewComponent`.
+     *
+     * @async
+     * @returns {Promise<void>} Resolves when the component is imported and assigned.
+     */
     async function getSvelteFile() {
         const extensionPath = csi.getSystemPath("extension");
         const writablePath = extensionPath + "/writable/";
