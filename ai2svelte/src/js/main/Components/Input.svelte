@@ -5,19 +5,21 @@
     import { fly } from "svelte/transition";
     import { onMount } from "svelte";
 
-    type Props = DropdownProps &
-        TextProps &
-        RangeProps & {
-            label: string;
-            value: string | number | undefined | null;
-            type?: "select" | "text" | "range";
-            delay?: number;
-        };
+    interface Props {
+        label: string;
+        options?: string[];
+        value: string | number | undefined | null;
+        type?: "select" | "text" | "range";
+        start?: number;
+        end?: number;
+        stepper?: number;
+        delay?: number;
+    }
 
     let {
         label,
         options = [],
-        value = $bindable(),
+        value = $bindable(undefined),
         type = "select",
         start = 0,
         end = 100,
@@ -56,7 +58,8 @@
                     for=""
                     class="option-title"
                     style="opacity: 1;"
-                    transition:fly={{ duration: 400, y: 40 }}>{value}</label
+                    transition:fly={{ duration: 400, y: 40 }}
+                    >{value as string}</label
                 >
             {/if}
         </div>

@@ -8,13 +8,14 @@
     import Input from "../Components/Input.svelte";
     import CmTextArea from "../Components/CMTextArea.svelte";
     import { allSettings } from "../utils/allSettings";
-    import { csi } from "../../lib/utils/bolt";
 
     interface AiSettingOption {
-        options: string[];
+        options?: string[];
         type: string;
         value: string | number | null;
         description: string;
+        start?: number;
+        end?: number;
     }
 
     interface AiSettings {
@@ -26,9 +27,8 @@
         image_output_path: string;
         image_source_path: string;
         png_transparent: AiSettingOption;
-        png_number_of_colors: number;
-        jpg_quality: number;
-        graphicskit: AiSettingOption;
+        png_number_of_colors: AiSettingOption;
+        jpg_quality: AiSettingOption;
         inline_svg: AiSettingOption;
         max_width: null | number;
     }
@@ -36,6 +36,8 @@
     let activeFormat: string = $state("");
     let uiContent: HTMLElement | undefined = $state();
     let codeContent: HTMLElement | undefined = $state();
+
+    // holds key-value pairs as string
     let yamlString: string = $derived.by(() => {
         return Object.keys($settingsObject)
             .filter((key) => $settingsObject[key] !== null)
@@ -43,10 +45,16 @@
             .join("\n")
             .trim();
     });
+
+    // same as yamlString but used actively
+    // by the text editor
     let editableYamlString: string = $state("");
 
+    // if no key-value pairs found in settingsObject,
+    // initialise it with default pairs from AiSettings
     $effect(() => {
         if (Object.keys($settingsObject).length == 0 && AiSettings) {
+            // avoid circular dependency by updating settingsObject in untrack
             untrack(() => {
                 const obj = JSON.parse(JSON.stringify(AiSettings));
 
@@ -66,6 +74,7 @@
     });
 
     onMount(() => {
+        // start with UI tab as active
         activeFormat = "UI";
     });
 
@@ -147,8 +156,16 @@
                                 <Input
                                     label={key}
                                     bind:value={$settingsObject[key]}
-                                    start={AiSettings[key].start}
-                                    end={AiSettings[key].end}
+                                    start={(
+                                        AiSettings[
+                                            key as keyof AiSettings
+                                        ] as AiSettingOption
+                                    )?.start ?? 0}
+                                    end={(
+                                        AiSettings[
+                                            key as keyof AiSettings
+                                        ] as AiSettingOption
+                                    )?.end ?? 100}
                                     type="range"
                                     delay={index * 30}
                                 />

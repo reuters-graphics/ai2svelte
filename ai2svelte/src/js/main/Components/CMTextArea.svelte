@@ -101,10 +101,15 @@
         const updateListener = EditorView.updateListener.of((update) => {
             if (!update.docChanged) return;
 
-            const userInput = update.transactions[0].annotations.some((x) =>
-                x.value.toString().match(/input/),
+            // test if the text change is made by user input
+            const userInput = update.transactions[0].annotations.some(
+                (x) =>
+                    x.value.toString().match(/input/) ||
+                    x.value.toString().match(/delete/),
             );
 
+            // if made by the user input,
+            // run onUpdate
             if (update.state.doc.toString() !== textValue && userInput) {
                 textValue = update.state.doc.toString();
                 onUpdate(update.state.doc.toString());
