@@ -8,30 +8,7 @@
     import Input from "../Components/Input.svelte";
     import CmTextArea from "../Components/CMTextArea.svelte";
     import { aiSettingsTokens } from "../utils/settingsTokens";
-
-    interface AiSettingOption {
-        options?: string[];
-        type: string;
-        value: string | number | null;
-        description: string;
-        start?: number;
-        end?: number;
-    }
-
-    interface AiSettings {
-        image_format: AiSettingOption;
-        responsiveness: AiSettingOption;
-        output: AiSettingOption;
-        html_output_path: string;
-        html_output_extension: AiSettingOption;
-        image_output_path: string;
-        image_source_path: string;
-        png_transparent: AiSettingOption;
-        png_number_of_colors: AiSettingOption;
-        jpg_quality: AiSettingOption;
-        inline_svg: AiSettingOption;
-        max_width: null | number;
-    }
+    import type { AiSettingOption, AiSettingsType } from "./types";
 
     let activeFormat: string = $state("");
     let uiContent: HTMLElement | undefined = $state();
@@ -141,29 +118,29 @@
                 {#if $settingsObject}
                     {#each Object.keys($settingsObject) as key, index}
                         <div class="ai-setting">
-                            {#if (AiSettings[key as keyof AiSettings] as AiSettingOption)?.type == "select"}
+                            {#if (AiSettings[key as keyof AiSettingsType] as AiSettingOption)?.type == "select"}
                                 <Input
                                     label={key}
                                     options={(
                                         AiSettings[
-                                            key as keyof AiSettings
+                                            key as keyof AiSettingsType
                                         ] as AiSettingOption
                                     ).options}
                                     bind:value={$settingsObject[key] as string}
                                     delay={index * 30}
                                 />
-                            {:else if (AiSettings[key as keyof AiSettings] as AiSettingOption)?.type == "range"}
+                            {:else if (AiSettings[key as keyof AiSettingsType] as AiSettingOption)?.type == "range"}
                                 <Input
                                     label={key}
                                     bind:value={$settingsObject[key]}
                                     start={(
                                         AiSettings[
-                                            key as keyof AiSettings
+                                            key as keyof AiSettingsType
                                         ] as AiSettingOption
                                     )?.start ?? 0}
                                     end={(
                                         AiSettings[
-                                            key as keyof AiSettings
+                                            key as keyof AiSettingsType
                                         ] as AiSettingOption
                                     )?.end ?? 100}
                                     type="range"
