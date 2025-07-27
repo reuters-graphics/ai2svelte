@@ -1,4 +1,4 @@
-export let allSettings = [
+export let aiSettingsTokens = [
   {
     label: "namespace",
     type: "variable",

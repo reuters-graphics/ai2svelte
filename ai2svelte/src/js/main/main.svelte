@@ -16,6 +16,8 @@
   let splashScreen: boolean = $state(false);
   let activeTab: string = $state("HOME");
 
+  // if plugin is running in Illustrator,
+  // listen to document change event
   $effect(() => {
     if (csi && window.cep) {
       untrack(() => {
@@ -27,6 +29,13 @@
     }
   });
 
+  /**
+   * Fetches plugin settings from Illustrator document,
+   * updates the corresponding Svelte stores, and manages the splash screen state.
+   *
+   * @async
+   * @returns {Promise<void>} Resolves when settings and styles have been fetched and updated.
+   */
   async function fetchSettings() {
     const fetchedSettings = await evalTS("getVariable", "ai-settings");
     settingsObject.set(fetchedSettings);
@@ -46,6 +55,7 @@
     isCEP.set(window.cep);
 
     if (get(isCEP)) {
+      $updateInProgress = true;
       fetchSettings();
     } else {
       // handle splash for testing

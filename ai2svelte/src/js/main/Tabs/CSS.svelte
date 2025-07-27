@@ -1,29 +1,37 @@
-<!-- TODO -->
-<!-- pick id, class from Illustrator as identifier -->
-<!-- current identifier preview with styles applied -->
-
 <script lang="ts">
-    import { onDestroy, onMount, untrack } from "svelte";
+    // SVELTE IMPORTS
+    import { onMount } from "svelte";
     import { fly, slide } from "svelte/transition";
+
+    // BOLT IMPORTS
     import { evalTS } from "../../lib/utils/bolt";
+
+    // DATA IMPORTS
     import shadows, { cheeses } from "./ts/shadows";
     import animations from "./data/animations.json";
     import { styles, stylesString, updateInProgress, isCEP } from "../stores";
-    import type { Style } from "../stores";
+
+    // OTHER LIB IMPORTS
     import ColorPicker from "svelte-awesome-color-picker";
     import postcss from "postcss";
     import scss from "postcss-scss";
     import { tooltip } from "svooltip";
     import { tooltipSettings } from "../utils/utils";
-    // @ts-ignore - Since HostAdapter isn't explicitly typed, linting throws an error we'll ignore
     import {
         AIEventAdapter,
         AIEvent,
     } from "../../../public/BoltHostAdapter.js";
 
+    // UTILS
+    import type { ShadowItem, AnimationItem } from "./types";
+    import { createMixinFromCSS, parseSCSS } from "../utils/cssUtils";
+    import { fetchNewImageURL } from "../utils/utils";
+
+    // MEDIA
     import typeSpecimenIcon from "../../../public/type_specimen.svg";
     import replaceImageIcon from "../../../public/replace_image.svg";
 
+    // COMPONENT IMPORTS
     import SectionTabBar from "../Components/SectionTabBar.svelte";
     import ShadowCard from "../Components/ShadowCard.svelte";
     import CmTextArea from "../Components/CMTextArea.svelte";
@@ -41,23 +49,25 @@
     let shadowColor: string = $state("#000000");
     let cssSelector: string = $state(`p[class^="g-pstyle"]`);
 
-    let initialLoad = $state(false);
+    let initialLoad: boolean = $state(false);
 
     let editableCssString: string = $state("");
 
-    let codeEditor = $state();
+    let allShadows: ShadowItem[] = $state([]);
 
+    let allAnimations: AnimationItem[] = $state([]);
+
+    // holds styles object as string
     let cssString: string = $derived.by(() => {
         // don't update while its fetching settings from AI
         if (!$updateInProgress) {
             const keys = Object.keys($styles);
-            // let string = "shadow-settings\n";
             let string = "";
 
             keys.forEach((key) => {
                 string += key + " {\n\t";
                 string += ($styles[key]?.join(";\n\t") || "") + ";";
-                string += "\n}\n";
+                string += "\n}\n\n";
             });
 
             if ($isCEP) {
@@ -68,10 +78,6 @@
         return "";
     });
 
-    $effect(() => {
-        editableCssString = cssString;
-    });
-
     // Sync the derived cssString to the editable version when styles change
     $effect(() => {
         editableCssString = cssString;
@@ -79,41 +85,31 @@
         $stylesString = allMixinIncludes + "\n" + cssString;
     });
 
-    // $effect(() => {
-    //     console.log("editable:", editableCssString);
-    //     updateStyle(editableCssString);
-    // });
-
-    type ShadowItem = {
-        id: string;
-        shadow: string;
-        active: boolean;
-        dataName: string;
-    };
-    let allShadows: ShadowItem[] = $state([]);
-
-    type AnimationItem = {
-        name: string;
-        usage: string;
-        active: boolean;
-        def: string;
-        value: string;
-        styleDefinition: string;
-        candidate: string;
-        animId: string;
-    };
-
-    let allAnimations: AnimationItem[] = $state([]);
-
+    // disable initial load once
+    // the document data is received
     $effect(() => {
         if (initialLoad && editableCssString) {
             initialLoad = false;
         }
     });
 
-    // fires every time document is changed
-    // used to handle stale previews
-    function setDocChangeEventListener() {
+    // if css identifier changes
+    // clear card selection
+    $effect(() => {
+        if (cssSelector) {
+            clearShadowSelection();
+        }
+    });
+
+    /**
+     * Adds an event listener for the ART_SELECTION_CHANGED event using the AIEventAdapter singleton.
+     * When the selection changes, it fetches the selected items' identifier using evalTS("fetchSelectedItems")
+     * and updates the cssSelector variable accordingly. Needs AiHostAdapter plugin installed in the host system.
+     *
+     * Responsible for populating active css identifier when art selection changes.
+     *
+     */
+    function addSelectionChangeEventListener() {
         const adapter = AIEventAdapter.getInstance();
         adapter.addEventListener(
             AIEvent.ART_SELECTION_CHANGED,
@@ -150,28 +146,20 @@
 
         activeTab = "shadows";
 
-        // if (!$isCEP) {
-        //     updateStyle(view.state.doc.toString());
-        // }
-
-        initialLoad = true;
-
         if ($isCEP) {
-            setDocChangeEventListener();
+            initialLoad = true;
+            addSelectionChangeEventListener();
         }
 
         changeSpecimen();
         backdrop = await fetchNewImageURL();
     });
 
-    onDestroy(() => {});
-
-    $effect(() => {
-        if (cssSelector) {
-            clearShadowSelection();
-        }
-    });
-
+    /**
+     * Generates all unique CSS mixins for shadow styles used in the current styles.
+     *
+     * @returns {string} A string containing all generated mixin code, joined by newlines.
+     */
     function generateAllMixins() {
         const mixinRegex = new RegExp(/@include\sshadow-(.*)\((#\d+)\)/);
 
@@ -202,50 +190,14 @@
         return allMixins.join("\n");
     }
 
-    function createMixinsFile() {
-        const mixins = [];
-
-        shadows.forEach((shadow) => {
-            const sh = shadow.shadow;
-            const name = "shadow-" + shadow.id.toLowerCase().replace(" ", "");
-            let str = `@mixin ${name}($clr){\n`;
-            str += sh.replaceAll("rgba(0,0,0", "rgba($clr");
-            str += "\n}";
-            mixins.push(str);
-        });
-
-        console.log(mixins.join("\n\n"));
-    }
-
-    function toCamelCase(str: string) {
-        return str
-            .replace(/(?:^\w|[A-Z]|\b\w)/g, (word, index) => {
-                return index === 0 ? word.toLowerCase() : word.toUpperCase();
-            })
-            .replace(/\s+/g, "");
-    }
-
-    function createMixinFromCSS(shadow) {
-        const name = "shadow-" + toCamelCase(shadow.id);
-        let str = `@mixin ${name}($clr){\n`;
-        str += shadow.shadow.replaceAll("rgba(0,0,0", "rgba($clr");
-        str += "\n}";
-
-        return str;
-    }
-
-    async function fetchNewImageURL() {
-        try {
-            const imgURL = await fetch("https://picsum.photos/300/200").then(
-                (res) => res.url,
-            );
-            return imgURL;
-        } catch (error) {
-            console.log(error);
-            return undefined;
-        }
-    }
-
+    /**
+     * Asynchronously changes the backdrop image by fetching a new image URL.
+     * If fetching fails, the function retries recursively.
+     * On success, updates the `backdrop` variable with the new image URL.
+     *
+     * @async
+     * @returns {Promise<void>} Resolves when the backdrop is updated.
+     */
     async function changeBackdrop() {
         let newImageURL;
         try {
@@ -260,60 +212,26 @@
         }
     }
 
-    // function processStyles(rawNodes) {
-    //     // x.nodes.map((s, i) => processCSS(s, i))
-    //     let stylesArray = [];
-
-    //     let animMixinRegex = new RegExp(/@include anim(.*).*/);
-
-    //     for(let i = 0; i < rawNodes.length; i++) {
-    //         if(rawNodes[i].type == "comment" && rawNodes[i + 1].type == "atrule" && rawNodes[i+1].type == "") {
-    //             // processing
-    //             let comment = `/* ${s.text} */\n`;
-    //             i++;
-    //             let style =
-    //         }
-    //     }
-    // }
-
-    function processCSS(s) {
-        switch (s.type) {
-            case "decl":
-                return `${s.prop} : ${s.value}`;
-                break;
-
-            case "atrule":
-                return `@${s.name} ${s.params}`;
-                break;
-
-            case "rule":
-                const styles = s.nodes.map((x) => processCSS(x)).join(";\n");
-                const str = `${s.selector} {
-    ${styles};
-}`;
-                return str;
-                break;
-
-            case "comment":
-                return `/* ${s.text} */`;
-
-            default:
-                return "";
-                break;
-        }
-    }
-
-    // parses css into object
+    /**
+     * Parses a SCSS string and updates the reactive `styles` store with the parsed selectors and their styles.
+     *
+     * @param {string} string - The SCSS code as a string to be parsed.
+     * @returns {void}
+     * @remarks
+     * Uses PostCSS with a SCSS parser to extract selectors and their style rules.
+     * Updates the `$styles` store with the new styles.
+     * Ignores errors to allow for incomplete or in-progress user input.
+     */
     function updateStyle(string: string) {
         let obj;
 
-        console.log(postcss.parse(string, { parser: scss }));
+        // console.log(postcss.parse(string, { parser: scss }));
 
         try {
             obj = postcss.parse(string, { parser: scss }).nodes.map((x) => {
                 return {
                     selector: x.selector,
-                    styles: x.nodes.map((s, i) => processCSS(s)),
+                    styles: x.nodes.map((s, i) => parseSCSS(s)),
                 };
             });
 
@@ -328,6 +246,9 @@
         }
     }
 
+    /**
+     * Changes the type specimen and increments the type weight from 100-900.
+     */
     function changeSpecimen() {
         if (cheeses.length) {
             specimen = cheeses[Math.floor(Math.random() * cheeses.length)];
@@ -339,19 +260,25 @@
         specimenWeight = ((specimenWeight + 50) % 900) + 50;
     }
 
-    function updateAnimations(
+    /**
+     * Toggles the presence of an animation card in the styles object for a given CSS selector.
+     *
+     * @param {string} animationUsage - The usage string of the animation, typically containing the mixin call.
+     * @param {string} animationDefinition - The definition or description of the animation.
+     * @param {boolean} operation - If true, adds the animation to the styles; if false, removes it.
+     *
+     * The function parses the animation usage to extract the animation identifier,
+     * then either adds or removes the animation from the styles object for the current CSS selector.
+     * If the styles array for the selector becomes empty after removal, the selector is deleted from the styles object.
+     */
+    function toggleAnimationCard(
         animationUsage: string,
         animationDefinition: string,
-        animationId: string,
         operation: boolean,
     ) {
         const animationMixinRegex = new RegExp(/.*@include (.*)\(\)/);
         const mixinCheck = animationUsage?.match(animationMixinRegex);
         const animationIdentifier = mixinCheck ? mixinCheck[1] : undefined;
-        console.log("animId:" + animationIdentifier);
-        console.log("operation:" + operation);
-        const defPlusUsage =
-            "/* " + animationDefinition + " */\n\t" + animationUsage;
 
         if (operation) {
             if (!$styles[cssSelector]) {
@@ -363,7 +290,7 @@
             );
             $styles[cssSelector].push(animationUsage);
         } else {
-            console.log("id:" + animationIdentifier);
+            // console.log("id:" + animationIdentifier);
             const regexCheck = new RegExp(`\\b${animationIdentifier}\\b`);
 
             const indexes = $styles[cssSelector]
@@ -371,19 +298,12 @@
                 .filter((x) => x !== null && x >= 0);
 
             const indexSet = new Set(indexes);
-            console.log(indexSet);
 
             const arrayWithValuesRemoved = $styles[cssSelector].filter(
                 (value, i) => !indexSet.has(i),
             );
 
             $styles[cssSelector] = [...arrayWithValuesRemoved];
-
-            // const index: number = $styles[cssSelector].find((x) =>
-            //     x.match(regexCheck),
-            // );
-
-            // $styles[cssSelector].splice(index, 1);
         }
 
         if ($styles[cssSelector].length == 0) {
@@ -393,7 +313,17 @@
         $styles = $styles;
     }
 
-    function updateStyles(shadowName: string, operation: boolean) {
+    /**
+     * Toggles a shadow mixin string in the styles object for a given CSS selector.
+     *
+     * @param {string} shadowName - The name of the shadow mixin to toggle.
+     * @param {boolean} operation - If true, adds the shadow; if false, removes it.
+     *
+     * The function constructs a shadow mixin string using the provided shadowName and a global shadowColor.
+     * If the array becomes empty after removal, the selector is deleted from the styles object.
+     * The styles store is updated at the end to trigger reactivity.
+     */
+    function toggleShadowCard(shadowName: string, operation: boolean) {
         const shadowString: string =
             "@include shadow-" + shadowName + "(" + shadowColor + ")";
 
@@ -418,8 +348,12 @@
         $styles = $styles;
     }
 
+    /**
+     * Clears active selection of shadow and animation cards.
+     * And toggles style cards associated with the new css identifier.
+     *
+     */
     function clearShadowSelection() {
-        console.log("clearShadowSelection");
         allShadows.forEach((x) => {
             const shadowMixin =
                 "@include shadow-" + x.dataName + "(" + shadowColor + ")";
@@ -436,7 +370,6 @@
         });
 
         allAnimations.forEach((x) => {
-            const defPlusUsage = "/* " + x.def + " */\n\t" + x.usage;
             const animationMixinRegex = new RegExp(/.*@include (.*)\(\)/);
             const mixinCheck = x.usage?.match(animationMixinRegex);
             const animationIdentifier = mixinCheck ? mixinCheck[1] : undefined;
@@ -462,12 +395,13 @@
                 <Pill
                     name={selector}
                     active={selector == cssSelector}
-                    onClick={(e) => {
+                    onClick={() => {
                         cssSelector = selector;
                     }}
-                    onRemove={(e) => {
+                    onRemove={() => {
                         delete $styles[selector];
                         $styles = $styles;
+                        // replace identifier with default style
                         cssSelector =
                             Object.keys($styles).at(-1) ||
                             `p[class^="g-pstyle"]`;
@@ -584,7 +518,7 @@
                     onChange={(e: Event) => {
                         allShadows[index].active = shadow.active;
                         allShadows = [...allShadows];
-                        updateStyles(shadow.dataName, shadow.active);
+                        toggleShadowCard(shadow.dataName, shadow.active);
                     }}
                     delay={index * 20}
                 />
@@ -605,10 +539,9 @@
                     onChange={(e: Event) => {
                         allAnimations[index].active = animation.active;
                         allAnimations = [...allAnimations];
-                        updateAnimations(
+                        toggleAnimationCard(
                             animation.usage,
                             animation.def,
-                            animation.animId,
                             animation.active,
                         );
                     }}

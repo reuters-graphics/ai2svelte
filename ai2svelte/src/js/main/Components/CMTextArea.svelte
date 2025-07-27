@@ -146,9 +146,10 @@
         } as EditorViewConfig);
     });
 
+    // runs when styles are added by toggling cards
     $effect(() => {
         if (textValue !== editor?.state.doc.toString() && !isFocused) {
-            console.log("updated programmatically");
+            // console.log("updated programmatically");
             editor?.dispatch({
                 changes: {
                     from: 0,

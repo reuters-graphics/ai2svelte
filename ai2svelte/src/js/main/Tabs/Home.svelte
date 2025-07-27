@@ -7,7 +7,7 @@
     import SectionTitle from "../Components/SectionTitle.svelte";
     import Input from "../Components/Input.svelte";
     import CmTextArea from "../Components/CMTextArea.svelte";
-    import { allSettings } from "../utils/allSettings";
+    import { aiSettingsTokens } from "../utils/settingsTokens";
 
     interface AiSettingOption {
         options?: string[];
@@ -190,14 +190,14 @@
                 in:fly={{ y: -50, duration: 300 }}
                 out:fly={{ y: 50, duration: 300 }}
             >
-                {#if allSettings}
+                {#if aiSettingsTokens}
                     <CmTextArea
                         type="yaml"
                         bind:textValue={editableYamlString}
                         onUpdate={(e: string) => {
                             convertStringToObject(e);
                         }}
-                        autoCompletionTokens={allSettings}
+                        autoCompletionTokens={aiSettingsTokens}
                     />
                 {/if}
             </div>
