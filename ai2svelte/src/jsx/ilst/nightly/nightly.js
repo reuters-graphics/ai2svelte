@@ -2912,7 +2912,7 @@ function copyArtboardForImageExport(ab, masks, items) {
   destGroup.move(destLayer, ElementPlacement.PLACEATEND);
   forEach(sourceItems, copyLayerOrItem);
 
-  // kludge: export empty documents iff items argument is missing (assuming
+  // kludge: export empty documents if items argument is missing (assuming
   //    this is the main artboard image, which is needed to set the container size)
   if (itemCount > 0 || !items) {
     // need to save group position before copying to second document. Oddly,
@@ -3032,7 +3032,7 @@ function copyArtboardForImageExport(ab, masks, items) {
 
 // Returns true if a file was created or else false (because svg document was empty);
 function exportSVG(ofile, ab, masks, items, settings) {
-  // Illustrator's SVG output contains all objects in a document (it doesn't
+  //   Illustrator's SVG output contains all objects in a document (it doesn't
   //   clip to the current artboard), so we copy artboard objects to a temporary
   //   document for export.
   var exportDoc = copyArtboardForImageExport(ab, masks, items);
