@@ -11,6 +11,8 @@
         animId: string;
         active: boolean;
         delay?: number;
+        styleDefinition: string;
+        onChange: () => void;
     }
 
     let {
@@ -24,7 +26,7 @@
         active = $bindable(false),
         onChange = () => {},
         delay = 100,
-    } = $props();
+    }: Props = $props();
 
     let mounted = $state(false);
 
@@ -36,6 +38,11 @@
         createStyle();
     });
 
+    /**
+     * Dynamically creates a style element with the provided CSS definition
+     * and appends it to the document's head.
+     *
+     */
     function createStyle() {
         const style = document.createElement("style");
         style.textContent = styleDefinition;

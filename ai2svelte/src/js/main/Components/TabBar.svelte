@@ -7,7 +7,11 @@
 
     import { userTheme } from "../stores";
 
-    let { activeLabel = $bindable() } = $props();
+    interface Props {
+        activeLabel: string;
+    }
+
+    let { activeLabel = $bindable() }: Props = $props();
 
     let accentColor: string = $state("#dc4300");
 

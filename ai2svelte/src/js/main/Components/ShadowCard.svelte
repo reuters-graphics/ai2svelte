@@ -13,6 +13,8 @@
         backdrop: string;
         active: boolean;
         delay?: number;
+        dataName: string;
+        onChange: () => void;
     }
 
     let {
@@ -27,7 +29,7 @@
         active = $bindable(false),
         onChange = () => {},
         delay = 100,
-    } = $props();
+    }: Props = $props();
 
     let shadowName: string = $derived(
         name

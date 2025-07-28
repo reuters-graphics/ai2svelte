@@ -75,7 +75,7 @@
     "types-for-adobe": "^7.2.3",
     "types-for-adobe-extras": "^0.0.9",
     "typescript": "^5.8.3",
-    "typescript-eslint": "^8.35.1",
+    "typescript-eslint": "^8.38.0",
     "vite": "^6.3.5",
     "vite-cep-plugin": "^2.1.1"
   },
