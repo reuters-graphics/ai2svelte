@@ -23,7 +23,8 @@
     let previewHeight: Spring<number> = new Spring(400);
 
     onMount(async () => {
-        console.log($settingsObject);
+        previewWidth.target = window.innerWidth;
+        previewHeight.target = 0.8 * window.innerHeight;
 
         if (window.cep) {
             loadPreview();
