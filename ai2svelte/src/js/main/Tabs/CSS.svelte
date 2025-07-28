@@ -1,6 +1,6 @@
 <script lang="ts">
     // SVELTE IMPORTS
-    import { onMount } from "svelte";
+    import { onDestroy, onMount } from "svelte";
     import { fly, slide } from "svelte/transition";
 
     // BOLT IMPORTS
@@ -9,14 +9,19 @@
     // DATA IMPORTS
     import shadows, { cheeses } from "./ts/shadows";
     import animations from "./data/animations.json";
-    import { styles, stylesString, updateInProgress, isCEP } from "../stores";
+    import {
+        styles,
+        stylesString,
+        updateInProgress,
+        isCEP,
+        settingsObject,
+    } from "../stores";
 
     // OTHER LIB IMPORTS
     import ColorPicker from "svelte-awesome-color-picker";
     import postcss from "postcss";
     import scss from "postcss-scss";
     import { tooltip } from "svooltip";
-    import { tooltipSettings } from "../utils/utils";
     import {
         AIEventAdapter,
         AIEvent,
@@ -26,6 +31,7 @@
     import type { ShadowItem, AnimationItem } from "./types";
     import { createMixinFromCSS, parseSCSS } from "../utils/cssUtils";
     import { fetchNewImageURL } from "../utils/utils";
+    import { saveSettings, tooltipSettings } from "../utils/utils";
 
     // MEDIA
     import typeSpecimenIcon from "../../../public/type_specimen.svg";
@@ -38,6 +44,7 @@
     import Pill from "../Components/Pill.svelte";
     import Input from "../Components/Input.svelte";
     import AnimationCard from "../Components/AnimationCard.svelte";
+    import type { Style } from "./types";
 
     let activeTab = $state("");
 
@@ -155,6 +162,14 @@
         backdrop = await fetchNewImageURL();
     });
 
+    onDestroy(() => {
+        // save XMPMetadata when style object changes
+        // avoid saving XMPMetadata on style changes to prevent too many calls
+        if (window.cep) {
+            saveSettings($settingsObject, $styles);
+        }
+    });
+
     /**
      * Generates all unique CSS mixins for shadow styles used in the current styles.
      *
@@ -236,11 +251,11 @@
                 };
             });
 
-            const newStyles = { ...$styles };
+            const newStyles: Style = {};
             obj.forEach((x) => {
                 newStyles[x.selector] = x.styles;
             });
-            // console.log(string);
+
             styles.set(newStyles);
         } catch (error) {
             // ignore errors cause user might still be typing the style

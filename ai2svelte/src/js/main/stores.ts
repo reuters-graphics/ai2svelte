@@ -1,9 +1,6 @@
 import { writable } from "svelte/store";
 import type { Writable } from "svelte/store";
-
-export interface Style {
-    [key: string]: string[];
-}
+import type { Style } from "./Tabs/types";
 
 export const settingsObject = writable<Record<string, any>>({});
 

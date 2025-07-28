@@ -9,6 +9,7 @@
     import CmTextArea from "../Components/CMTextArea.svelte";
     import { aiSettingsTokens } from "../utils/settingsTokens";
     import type { AiSettingOption, AiSettingsType } from "./types";
+    import { saveSettings } from "../utils/utils";
 
     let activeFormat: string = $state("");
     let uiContent: HTMLElement | undefined = $state();
@@ -75,8 +76,7 @@
         settingsObject.set(obj);
 
         if (window.cep) {
-            evalTS("setVariable", "ai-settings", $settingsObject);
-            // evalTS("setVariable", "css-settings", $stylesString);
+            saveSettings($settingsObject, $styles);
         }
     }
 </script>
@@ -94,8 +94,9 @@
                 },
                 code: { css: $stylesString },
             });
-            evalTS("setVariable", "ai-settings", $settingsObject);
-            evalTS("setVariable", "css-settings", $styles);
+            if (window.cep) {
+                saveSettings($settingsObject, $styles);
+            }
         }}>Run Nightly</button
     >
 

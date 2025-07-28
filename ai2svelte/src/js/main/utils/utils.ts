@@ -1,5 +1,6 @@
 import type { Options } from 'svooltip';
 import type { Placement } from '@floating-ui/dom';
+import { evalTS } from '../../lib/utils/bolt';
 
 export const tooltipSettings: Options = {
             placement: "top-start" as Placement,
@@ -25,5 +26,12 @@ export async function fetchNewImageURL() {
     } catch (error) {
         console.log(error);
         return undefined;
+    }
+}
+
+export function saveSettings(aiSettings, styleSettings) {
+    if (window.cep) {
+        evalTS("setVariable", "ai-settings", aiSettings);
+        evalTS("setVariable", "css-settings", styleSettings);
     }
 }

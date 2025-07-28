@@ -1,3 +1,7 @@
+export interface Style {
+    [key: string]: string[];
+}
+
 export type ShadowItem = {
     id: string;
     shadow: string;
