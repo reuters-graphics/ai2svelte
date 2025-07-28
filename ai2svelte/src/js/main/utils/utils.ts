@@ -1,6 +1,7 @@
 import type { Options } from 'svooltip';
 import type { Placement } from '@floating-ui/dom';
 import { evalTS } from '../../lib/utils/bolt';
+import { EditorView } from "@codemirror/view";
 
 export const tooltipSettings: Options = {
             placement: "top-start" as Placement,
@@ -35,3 +36,47 @@ export function saveSettings(aiSettings, styleSettings) {
         evalTS("setVariable", "css-settings", styleSettings);
     }
 }
+
+export const myTheme = EditorView.theme(
+            {
+                "&": {
+                    backgroundColor: "transparent !important",
+                    border: "unset !important",
+                },
+                "&.cm-focused": {
+                    outline: "unset !important",
+                },
+                ".cm-scroller": {
+                    fontFamily: "inherit",
+                    overflow: "auto"
+                },
+                "&.cm-focused .cm-cursor": {
+                    borderLeftColor: "var(--color-accent-primary) !important",
+                    borderWidth: "2px !important",
+                },
+                ".cm-gutters": {
+                    backgroundColor: "#ffffff00 !important",
+                    color: "var(--color-text) !important"
+                },
+                ".cm-content, .cm-gutter": { minHeight: "200px", height: "100%" },
+                ".cm-line": {
+                    fontSize: "clamp(0.89rem, -0.08vw + 0.91rem, 0.84rem) !important",
+                    lineHeight: "150% !important"
+                },
+                ".cm-gutterElement": {
+                    fontSize: "clamp(0.89rem, -0.08vw + 0.91rem, 0.84rem) !important",
+                    lineHeight: "150% !important",
+                    opacity: "0.25 !important"
+                },
+                ".cm-activeLineGutter": {
+                    backgroundColor: "transparent !important",
+                    color: "var(--color-text) !important",
+                    opacity: "1 !important"
+                },
+                ".cm-activeLine": {
+                    backgroundColor: "transparent !important",
+                    boxShadow: "0 -0.5px 0 0 #80808055, 0 0.5px 0 0 #80808055"
+                },
+            },
+            { dark: true },
+);
