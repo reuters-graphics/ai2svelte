@@ -1,6 +1,6 @@
 [
     {
-        "name": "pulse",
+        "name": "Pulse",
         "usage": "@include animPulse()",
         "def": "($duration: 1s, $delay: 0s, $scale: 1.05, $easing: ease-in-out, $iteration: infinite)",
         "value": "animation: pulse 1s ease-in-out 0s infinite;",
@@ -9,7 +9,7 @@
         "animId": "anim01"
     },
     {
-        "name": "rotate",
+        "name": "Rotate",
         "usage": "@include animRotate()",
         "def": "($duration: 0.5s, $delay: 0s, $degrees: 360deg, $easing: ease-in-out, $iteration: infinite)",
         "value": "animation: rotate 0.5s ease-in-out 0s infinite;",
@@ -18,7 +18,7 @@
         "animId": "anim02"
     },
     {
-        "name": "spin",
+        "name": "Spin",
         "usage": "@include animSpin()",
         "def": "($duration: 1s, $delay: 0s, $easing: linear, $iteration: infinite)",
         "value": "animation: spin 1s linear 0s infinite;",
@@ -27,7 +27,7 @@
         "animId": "anim03"
     },
     {
-        "name": "bounce",
+        "name": "Bounce",
         "usage": "@include animBounce()",
         "def": "($duration: 1s, $delay: 0s, $easing: ease-in-out, $iteration: infinite)",
         "value": "animation: bounce 1s ease-in-out 0s infinite;",
@@ -36,7 +36,7 @@
         "animId": "anim04"
     },
     {
-        "name": "shake",
+        "name": "Shake",
         "usage": "@include animShake()",
         "def": "($duration: 0.5s, $delay: 0s, $intensity: 10px, $easing: ease-in-out, $iteration: infinite)",
         "value": "animation: shake 0.5s ease-in-out 0s infinite;",
@@ -45,7 +45,7 @@
         "animId": "anim05"
     },
     {
-        "name": "wobble",
+        "name": "Wobble",
         "usage": "@include animWobble()",
         "def": "($duration: 1s, $delay: 0s, $easing: ease-in-out, $iteration: infinite)",
         "value": "animation: wobble 1s ease-in-out 0s infinite;",
@@ -54,7 +54,7 @@
         "animId": "anim06"
     },
     {
-        "name": "jello",
+        "name": "Jello",
         "usage": "@include animJello()",
         "def": "($duration: 1s, $delay: 0s, $easing: ease-in-out, $iteration: infinite)",
         "value": "animation: jello 1s ease-in-out 0s infinite;",
@@ -63,7 +63,7 @@
         "animId": "anim07"
     },
     {
-        "name": "flip",
+        "name": "Flip",
         "usage": "@include animFlip()",
         "def": "($duration: 1s, $delay: 0s, $easing: ease-in-out, $iteration: infinite)",
         "value": "animation: flip 1s ease-in-out 0s infinite;",
@@ -72,7 +72,7 @@
         "animId": "anim08"
     },
     {
-        "name": "flash",
+        "name": "Flash",
         "usage": "@include animFlash()",
         "def": "($duration: 1s, $delay: 0s, $easing: ease-in-out, $iteration: infinite)",
         "value": "animation: flash 1s ease-in-out 0s infinite;",
@@ -81,7 +81,7 @@
         "animId": "anim09"
     },
     {
-        "name": "heartBeat",
+        "name": "HeartBeat",
         "usage": "@include animHeartBeat()",
         "def": "($duration: 1.3s, $delay: 0s, $easing: ease-in-out, $iteration: infinite)",
         "value": "animation: heartBeat 1.3s ease-in-out 0s infinite;",
@@ -90,7 +90,7 @@
         "animId": "anim10"
     },
     {
-        "name": "rubberBand",
+        "name": "RubberBand",
         "usage": "@include animRubberBand()",
         "def": "($duration: 1s, $delay: 0s, $easing: ease-in-out, $iteration: infinite)",
         "value": "animation: rubberBand 1s ease-in-out 0s infinite;",
@@ -99,7 +99,7 @@
         "animId": "anim11"
     },
     {
-        "name": "dots",
+        "name": "Dots",
         "usage": "@include animDots()",
         "def": "($duration: 1.4s, $delay: 0s, $easing: ease-in-out, $iteration: infinite)",
         "value": "animation: dots 1.4s ease-in-out 0s infinite both;",
@@ -108,7 +108,7 @@
         "animId": "anim12"
     },
     {
-        "name": "lineProgress",
+        "name": "LineProgress",
         "usage": "@include animLineProgress()",
         "def": "($duration: 1s, $delay: 0s, $easing: linear, $iteration: infinite)",
         "value": "stroke-dasharray: 20 10; stroke-dashoffset: 30; animation: dash 1s linear 0s infinite;",
@@ -117,7 +117,7 @@
         "animId": "anim13"
     },
     {
-        "name": "hueRotate",
+        "name": "HueRotate",
         "usage": "@include animHueRotate()",
         "def": "($duration: 1s, $delay: 0s, $easing: linear, $iteration: infinite)",
         "value": "filter: hue-rotate(0deg); animation: hueRotate 1s linear 0s infinite;",
@@ -126,7 +126,7 @@
         "animId": "anim14"
     },
     {
-        "name": "zoomFade",
+        "name": "ZoomFade",
         "usage": "@include animZoomFade()",
         "def": "($zoom: 2, $duration: 1s, $delay: 0s, $easing: ease-in-out, $iteration: infinite)",
         "value": "animation: zoomFade 1s ease-in-out 0s infinite;",

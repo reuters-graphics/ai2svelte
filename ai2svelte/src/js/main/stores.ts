@@ -1,6 +1,7 @@
-import { writable } from "svelte/store";
+import { derived, writable } from "svelte/store";
 import type { Writable } from "svelte/store";
 import type { Style } from "./Tabs/types";
+import { styleObjectToString, generateAllMixins } from "./utils/cssUtils";
 
 export const settingsObject = writable<Record<string, any>>({});
 
@@ -10,10 +11,16 @@ const testStyle: Style = {
 
 export const styles: Writable<Style> = writable(testStyle);
 
-export const stylesString: Writable<string> = writable('');
+// export const stylesString: Writable<string> = writable('');
 
 export const updateInProgress: Writable<boolean> = writable(false);
 
 export const isCEP: Writable<boolean> = writable(false);
 
 export const userTheme: Writable<string> = writable('dark');
+
+export const stylesString = derived(styles,
+    ($styles) => {
+        return generateAllMixins($styles) + "\n" + styleObjectToString($styles);
+    }
+);

@@ -3357,9 +3357,7 @@ function generateSvelteScript() {
 
     script +=  " } = $props();\r";
 
-  if(!settingsArg.settings.include_resizer_css) {
-    script +=  "let width = $state(100);\n\r";
-    
+  if(!settingsArg.settings.include_resizer_css) {    
     for(let i = 0; i < previewImageImports.length; i++) {
       script += previewImageImports[i] + "\n\r";
     }

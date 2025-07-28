@@ -4,7 +4,13 @@
   import { csi, evalTS } from "../lib/utils/bolt";
   import "./index.scss";
   import "./styles/main.scss";
-  import { settingsObject, styles, updateInProgress, isCEP } from "./stores";
+  import {
+    settingsObject,
+    styles,
+    updateInProgress,
+    isCEP,
+    stylesString,
+  } from "./stores";
 
   import Intro from "./Components/Intro.svelte";
   import TabBar from "./Components/TabBar.svelte";
@@ -12,6 +18,7 @@
   import CSS from "./Tabs/CSS.svelte";
   import Preview from "./Tabs/Preview.svelte";
   import About from "./Tabs/About.svelte";
+  import { styleObjectToString } from "./utils/cssUtils";
 
   let splashScreen: boolean = $state(false);
   let activeTab: string = $state("HOME");
@@ -42,6 +49,8 @@
 
     const fetchedStyles = await evalTS("getVariable", "css-settings");
     styles.set(fetchedStyles);
+
+    // stylesString.set(styleObjectToString($styles));
 
     updateInProgress.set(false);
 

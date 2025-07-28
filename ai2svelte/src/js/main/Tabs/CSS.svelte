@@ -9,13 +9,7 @@
     // DATA IMPORTS
     import shadows, { cheeses } from "./ts/shadows";
     import animations from "./data/animations.json";
-    import {
-        styles,
-        stylesString,
-        updateInProgress,
-        isCEP,
-        settingsObject,
-    } from "../stores";
+    import { styles, updateInProgress, isCEP, settingsObject } from "../stores";
 
     // OTHER LIB IMPORTS
     import ColorPicker from "svelte-awesome-color-picker";
@@ -29,9 +23,18 @@
 
     // UTILS
     import type { ShadowItem, AnimationItem } from "./types";
-    import { createMixinFromCSS, parseSCSS } from "../utils/cssUtils";
-    import { fetchNewImageURL } from "../utils/utils";
-    import { saveSettings, tooltipSettings } from "../utils/utils";
+    import {
+        createShadowMixinFromCSS,
+        createAnimationMixinFromCSS,
+        parseSCSS,
+        styleObjectToString,
+        generateAllMixins,
+    } from "../utils/cssUtils";
+    import {
+        saveSettings,
+        tooltipSettings,
+        fetchNewImageURL,
+    } from "../utils/utils";
 
     // MEDIA
     import typeSpecimenIcon from "../../../public/type_specimen.svg";
@@ -71,13 +74,8 @@
         // don't update while its fetching settings from AI
         if (!$updateInProgress) {
             const keys = Object.keys($styles);
-            let string = "";
 
-            keys.forEach((key) => {
-                string += key + " {\n\t";
-                string += ($styles[key]?.join(";\n\t") || "") + ";";
-                string += "\n}\n\n";
-            });
+            let string = styleObjectToString($styles);
 
             if ($isCEP) {
                 evalTS("updateAiSettings", "shadow-settings", string);
@@ -90,8 +88,8 @@
     // Sync the derived cssString to the editable version when styles change
     $effect(() => {
         editableCssString = cssString;
-        const allMixinIncludes = generateAllMixins();
-        $stylesString = allMixinIncludes + "\n" + cssString;
+        // const allMixinIncludes = generateAllMixins($styles);
+        // $stylesString = allMixinIncludes + "\n" + cssString;
     });
 
     // disable initial load once
@@ -181,41 +179,6 @@
             }
         }
     });
-
-    /**
-     * Generates all unique CSS mixins for shadow styles used in the current styles.
-     *
-     * @returns {string} A string containing all generated mixin code, joined by newlines.
-     */
-    function generateAllMixins() {
-        const mixinRegex = new RegExp(/@include\sshadow-(.*)\((#\d+)\)/);
-
-        // get all unique shadow styles
-        const allStyles = new Set(
-            Object.keys($styles)
-                .map((x) => $styles[x])
-                .flat()
-                .filter((x) => mixinRegex.test(x))
-                .map((x) => {
-                    const match = x.match(mixinRegex);
-                    return match ? match[1] : undefined;
-                }),
-        );
-
-        // get all shadows CSS
-        const allStylesCSS = Array.from(allStyles).map((x) =>
-            shadows.find(
-                (s) => s.id.toLowerCase().replace(" ", "") == x.toLowerCase(),
-            ),
-        );
-
-        // generate all mixins
-        const allMixins = allStylesCSS.map((shadow) =>
-            createMixinFromCSS(shadow),
-        );
-
-        return allMixins.join("\n");
-    }
 
     /**
      * Asynchronously changes the backdrop image by fetching a new image URL.
