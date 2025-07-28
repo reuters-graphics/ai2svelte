@@ -64,6 +64,8 @@
 
     let allAnimations: AnimationItem[] = $state([]);
 
+    let previousStyles: Style = [];
+
     // holds styles object as string
     let cssString: string = $derived.by(() => {
         // don't update while its fetching settings from AI
@@ -163,6 +165,8 @@
             addSelectionChangeEventListener();
         }
 
+        previousStyles = { ...$styles };
+
         changeSpecimen();
         backdrop = await fetchNewImageURL();
     });
@@ -171,7 +175,10 @@
         // save XMPMetadata when style object changes
         // avoid saving XMPMetadata on style changes to prevent too many calls
         if (window.cep) {
-            saveSettings($settingsObject, $styles);
+            // save settings objects if styles are modified
+            if (JSON.stringify(previousStyles) !== JSON.stringify($styles)) {
+                saveSettings($settingsObject, $styles);
+            }
         }
     });
 
