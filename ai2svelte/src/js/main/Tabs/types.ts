@@ -38,5 +38,4 @@ export interface AiSettingsType {
     jpg_quality: AiSettingOption;
     inline_svg: AiSettingOption;
     max_width: null | number;
-    [key: string]: AiSettingOption;
 }

@@ -225,7 +225,8 @@
     function updateStyle(string: string) {
         let obj;
 
-        // console.log(postcss.parse(string, { parser: scss }));
+        // const ast = postcss.parse(string, { parser: scss });
+        // console.log(ast);
 
         try {
             obj = postcss.parse(string, { parser: scss }).nodes.map((x) => {

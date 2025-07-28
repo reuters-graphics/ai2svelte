@@ -62,7 +62,7 @@ export function createMixinFromCSS(shadow: ShadowItem) {
 export function parseSCSS(style) {
     switch (style.type) {
         case "decl":
-            return `${style.prop} : ${style.value}`;
+            return `${style.prop} : ${style.value}${style.important ? ' !important' : ''}`;
 
         case "atrule":
             return `@${style.name} ${style.params}`;
