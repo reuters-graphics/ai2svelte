@@ -153,6 +153,11 @@
 
         activeTab = "shadows";
 
+        // set first selector from styles object as css selector
+        if ($styles) {
+            cssSelector = Object.keys($styles)[0];
+        }
+
         if ($isCEP) {
             initialLoad = true;
             addSelectionChangeEventListener();

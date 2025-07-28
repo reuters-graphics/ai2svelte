@@ -126,6 +126,7 @@
         background-color: transparent;
         color: var(--color-text);
         @include animation-default;
+        user-select: none;
     }
 
     .tab[data-active="true"] {
