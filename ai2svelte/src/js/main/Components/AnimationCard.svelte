@@ -5,23 +5,21 @@
     interface Props {
         name: string;
         animation: string;
-        definition: string;
+        props: string;
         propValue: string;
         candidate: string;
-        animId: string;
         active: boolean;
         delay?: number;
-        styleDefinition: string;
+        definition: string;
         onChange: () => void;
     }
 
     let {
         name,
         animation,
-        definition,
+        props,
         propValue,
-        styleDefinition,
-        animId,
+        definition,
         candidate = "shape",
         active = $bindable(false),
         onChange = () => {},
@@ -45,7 +43,7 @@
      */
     function createStyle() {
         const style = document.createElement("style");
-        style.textContent = styleDefinition;
+        style.textContent = definition;
         document?.head.appendChild(style);
     }
 </script>

@@ -143,11 +143,10 @@
                 name: x.name,
                 usage: x.usage,
                 active: false,
-                def: x.def,
+                props: x.props,
                 value: x.value,
-                styleDefinition: x.definition,
+                definition: x.definition,
                 candidate: x.candidate,
-                animId: x.animId,
             }))
             .sort((a, b) => a.name.localeCompare(b.name));
 
@@ -521,18 +520,17 @@
                 <AnimationCard
                     name={animation.name}
                     animation={animation.usage}
-                    definition={animation.def}
+                    props={animation.props}
                     bind:active={animation.active}
                     propValue={animation.value}
-                    styleDefinition={animation.styleDefinition}
+                    definition={animation.definition}
                     candidate={animation.candidate}
-                    animId={animation.animId}
                     onChange={(e: Event) => {
                         allAnimations[index].active = animation.active;
                         allAnimations = [...allAnimations];
                         toggleAnimationCard(
                             animation.usage,
-                            animation.def,
+                            animation.props,
                             animation.active,
                         );
                     }}

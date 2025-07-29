@@ -59,8 +59,8 @@ export function createShadowMixinFromCSS(shadow: ShadowItem) {
  * @returns {string} The generated SASS mixin as a string.
  */
 export function createAnimationMixinFromCSS(animation: AnimationItem) {
-    const name = "anim" + animation.name;
-    let str = `@mixin ${name}${animation.def}{\n`;
+    const name = "animation-" + animation.name;
+    let str = `@mixin ${name}${animation.props}{\n`;
     str += animation.definition + '\n\r' + animation.value;
     str += "\n}";
 
@@ -159,12 +159,12 @@ export function generateAllMixins(stylesObject) {
 
         // generate all shadow mixins
         const allShadowMixins = allShadowStylesCSS.map((shadow) =>
-            createShadowMixinFromCSS(shadow),
+            createShadowMixinFromCSS({...shadow, active: false} as ShadowItem),
         );
 
         // generate all animation mixins
         const allAnimationMixins = allAnimationStylesCSS.map((animation) =>
-            createAnimationMixinFromCSS(animation),
+            createAnimationMixinFromCSS(animation as AnimationItem),
         );
 
         const allMixins = [...allShadowMixins, ...allAnimationMixins].join(

@@ -1,137 +1,122 @@
 [
     {
-        "name": "Pulse",
-        "usage": "@include animPulse()",
-        "def": "($duration: 1s, $delay: 0s, $scale: 1.05, $easing: ease-in-out, $iteration: infinite)",
+        "name": "pulse",
+        "usage": "@include animation-pulse()",
+        "props": "($duration: 1s, $delay: 0s, $scale: 1.05, $easing: ease-in-out, $iteration: infinite)",
         "value": "animation: pulse 1s ease-in-out 0s infinite;",
         "definition": "@keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.15); } }",
-        "candidate": "shape",
-        "animId": "anim01"
+        "candidate": "shape"
     },
     {
-        "name": "Rotate",
-        "usage": "@include animRotate()",
-        "def": "($duration: 0.5s, $delay: 0s, $degrees: 360deg, $easing: ease-in-out, $iteration: infinite)",
+        "name": "rotate",
+        "usage": "@include animation-rotate()",
+        "props": "($duration: 0.5s, $delay: 0s, $degrees: 360deg, $easing: ease-in-out, $iteration: infinite)",
         "value": "animation: rotate 0.5s ease-in-out 0s infinite;",
         "definition": "@keyframes rotate { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }",
-        "candidate": "shape",
-        "animId": "anim02"
+        "candidate": "shape"
     },
     {
-        "name": "Spin",
-        "usage": "@include animSpin()",
-        "def": "($duration: 1s, $delay: 0s, $easing: linear, $iteration: infinite)",
+        "name": "spin",
+        "usage": "@include animation-spin()",
+        "props": "($duration: 1s, $delay: 0s, $easing: linear, $iteration: infinite)",
         "value": "animation: spin 1s linear 0s infinite;",
         "definition": "@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }",
-        "candidate": "shape",
-        "animId": "anim03"
+        "candidate": "shape"
     },
     {
-        "name": "Bounce",
-        "usage": "@include animBounce()",
-        "def": "($duration: 1s, $delay: 0s, $easing: ease-in-out, $iteration: infinite)",
+        "name": "bounce",
+        "usage": "@include animation-bounce()",
+        "props": "($duration: 1s, $delay: 0s, $easing: ease-in-out, $iteration: infinite)",
         "value": "animation: bounce 1s ease-in-out 0s infinite;",
         "definition": "@keyframes bounce { 0%, 20%, 53%, 80%, 100% { transform: translateY(0); } 40%, 43% { transform: translateY(-15px); } 70% { transform: translateY(-7px); } 90% { transform: translateY(-3px); } }",
-        "candidate": "shape",
-        "animId": "anim04"
+        "candidate": "shape"
     },
     {
-        "name": "Shake",
-        "usage": "@include animShake()",
-        "def": "($duration: 0.5s, $delay: 0s, $intensity: 10px, $easing: ease-in-out, $iteration: infinite)",
+        "name": "shake",
+        "usage": "@include animation-shake()",
+        "props": "($duration: 0.5s, $delay: 0s, $intensity: 10px, $easing: ease-in-out, $iteration: infinite)",
         "value": "animation: shake 0.5s ease-in-out 0s infinite;",
         "definition": "@keyframes shake { 0%, 100% { transform: translateX(0); } 10%, 30%, 50%, 70%, 90% { transform: translateX(-10px); } 20%, 40%, 60%, 80% { transform: translateX(10px); } }",
-        "candidate": "shape",
-        "animId": "anim05"
+        "candidate": "shape"
     },
     {
-        "name": "Wobble",
-        "usage": "@include animWobble()",
-        "def": "($duration: 1s, $delay: 0s, $easing: ease-in-out, $iteration: infinite)",
+        "name": "wobble",
+        "usage": "@include animation-wobble()",
+        "props": "($duration: 1s, $delay: 0s, $easing: ease-in-out, $iteration: infinite)",
         "value": "animation: wobble 1s ease-in-out 0s infinite;",
         "definition": "@keyframes wobble { 0% { transform: translateX(0%) rotate(0deg); } 15% { transform: translateX(-25%) rotate(-5deg); } 30% { transform: translateX(20%) rotate(3deg); } 45% { transform: translateX(-15%) rotate(-3deg); } 60% { transform: translateX(10%) rotate(2deg); } 75% { transform: translateX(-5%) rotate(-1deg); } 100% { transform: translateX(0%) rotate(0deg); } }",
-        "candidate": "shape",
-        "animId": "anim06"
+        "candidate": "shape"
     },
     {
-        "name": "Jello",
-        "usage": "@include animJello()",
-        "def": "($duration: 1s, $delay: 0s, $easing: ease-in-out, $iteration: infinite)",
+        "name": "jello",
+        "usage": "@include animation-jello()",
+        "props": "($duration: 1s, $delay: 0s, $easing: ease-in-out, $iteration: infinite)",
         "value": "animation: jello 1s ease-in-out 0s infinite;",
         "definition": "@keyframes jello { 0%, 11.1%, 100% { transform: skewX(0deg) skewY(0deg); } 22.2% { transform: skewX(-12.5deg) skewY(-12.5deg); } 33.3% { transform: skewX(6.25deg) skewY(6.25deg); } 44.4% { transform: skewX(-3.125deg) skewY(-3.125deg); } 55.5% { transform: skewX(1.5625deg) skewY(1.5625deg); } 66.6% { transform: skewX(-0.78125deg) skewY(-0.78125deg); } 77.7% { transform: skewX(0.390625deg) skewY(0.390625deg); } 88.8% { transform: skewX(-0.1953125deg) skewY(-0.1953125deg); } }",
-        "candidate": "shape",
-        "animId": "anim07"
+        "candidate": "shape"
     },
     {
-        "name": "Flip",
-        "usage": "@include animFlip()",
-        "def": "($duration: 1s, $delay: 0s, $easing: ease-in-out, $iteration: infinite)",
+        "name": "flip",
+        "usage": "@include animation-flip()",
+        "props": "($duration: 1s, $delay: 0s, $easing: ease-in-out, $iteration: infinite)",
         "value": "animation: flip 1s ease-in-out 0s infinite;",
         "definition": "@keyframes flip { 0% { transform: perspective(400px) rotateY(0); } 40% { transform: perspective(400px) translateZ(150px) rotateY(170deg); } 50% { transform: perspective(400px) translateZ(150px) rotateY(190deg) scale(1); } 80% { transform: perspective(400px) rotateY(360deg) scale(0.95); } 100% { transform: perspective(400px) scale(1); } }",
-        "candidate": "shape",
-        "animId": "anim08"
+        "candidate": "shape"
     },
     {
-        "name": "Flash",
-        "usage": "@include animFlash()",
-        "def": "($duration: 1s, $delay: 0s, $easing: ease-in-out, $iteration: infinite)",
+        "name": "flash",
+        "usage": "@include animation-flash()",
+        "props": "($duration: 1s, $delay: 0s, $easing: ease-in-out, $iteration: infinite)",
         "value": "animation: flash 1s ease-in-out 0s infinite;",
         "definition": "@keyframes flash { 0%, 50%, 100% { opacity: 1; } 25%, 75% { opacity: 0; } }",
-        "candidate": "shape",
-        "animId": "anim09"
+        "candidate": "shape"
     },
     {
-        "name": "HeartBeat",
-        "usage": "@include animHeartBeat()",
-        "def": "($duration: 1.3s, $delay: 0s, $easing: ease-in-out, $iteration: infinite)",
+        "name": "heartBeat",
+        "usage": "@include animation-heartBeat()",
+        "props": "($duration: 1.3s, $delay: 0s, $easing: ease-in-out, $iteration: infinite)",
         "value": "animation: heartBeat 1.3s ease-in-out 0s infinite;",
         "definition": "@keyframes heartBeat { 0% { transform: scale(1); } 14% { transform: scale(1.3); } 28% { transform: scale(1); } 42% { transform: scale(1.3); } 70% { transform: scale(1); } }",
-        "candidate": "shape",
-        "animId": "anim10"
+        "candidate": "shape"
     },
     {
-        "name": "RubberBand",
-        "usage": "@include animRubberBand()",
-        "def": "($duration: 1s, $delay: 0s, $easing: ease-in-out, $iteration: infinite)",
+        "name": "rubberBand",
+        "usage": "@include animation-rubberBand()",
+        "props": "($duration: 1s, $delay: 0s, $easing: ease-in-out, $iteration: infinite)",
         "value": "animation: rubberBand 1s ease-in-out 0s infinite;",
         "definition": "@keyframes rubberBand { 0% { transform: scale(1); } 30% { transform: scaleX(1.25) scaleY(0.75); } 40% { transform: scaleX(0.75) scaleY(1.25); } 50% { transform: scaleX(1.15) scaleY(0.85); } 65% { transform: scaleX(0.95) scaleY(1.05); } 75% { transform: scaleX(1.05) scaleY(0.95); } 100% { transform: scale(1); } }",
-        "candidate": "shape",
-        "animId": "anim11"
+        "candidate": "shape"
     },
     {
-        "name": "Dots",
-        "usage": "@include animDots()",
-        "def": "($duration: 1.4s, $delay: 0s, $easing: ease-in-out, $iteration: infinite)",
+        "name": "dots",
+        "usage": "@include animation-dots()",
+        "props": "($duration: 1.4s, $delay: 0s, $easing: ease-in-out, $iteration: infinite)",
         "value": "animation: dots 1.4s ease-in-out 0s infinite both;",
         "definition": "@keyframes dots { 0%, 80%, 100% { transform: scale(0); } 40% { transform: scale(1); } }",
-        "candidate": "shape",
-        "animId": "anim12"
+        "candidate": "shape"
     },
     {
-        "name": "LineProgress",
-        "usage": "@include animLineProgress()",
-        "def": "($duration: 1s, $delay: 0s, $easing: linear, $iteration: infinite)",
+        "name": "lineProgress",
+        "usage": "@include animation-lineProgress()",
+        "props": "($duration: 1s, $delay: 0s, $easing: linear, $iteration: infinite)",
         "value": "stroke-dasharray: 20 10; stroke-dashoffset: 30; animation: dash 1s linear 0s infinite;",
         "definition": "@keyframes dash {to {stroke-dashoffset: 0;}}",
-        "candidate": "line",
-        "animId": "anim13"
+        "candidate": "line"
     },
     {
-        "name": "HueRotate",
-        "usage": "@include animHueRotate()",
-        "def": "($duration: 1s, $delay: 0s, $easing: linear, $iteration: infinite)",
+        "name": "hueRotate",
+        "usage": "@include animation-hueRotate()",
+        "props": "($duration: 1s, $delay: 0s, $easing: linear, $iteration: infinite)",
         "value": "filter: hue-rotate(0deg); animation: hueRotate 1s linear 0s infinite;",
         "definition": "@keyframes hueRotate {to {filter: hue-rotate(360deg);}}",
-        "candidate": "shape",
-        "animId": "anim14"
+        "candidate": "shape"
     },
     {
-        "name": "ZoomFade",
-        "usage": "@include animZoomFade()",
-        "def": "($zoom: 2, $duration: 1s, $delay: 0s, $easing: ease-in-out, $iteration: infinite)",
+        "name": "zoomFade",
+        "usage": "@include animation-zoomFade()",
+        "props": "($zoom: 2, $duration: 1s, $delay: 0s, $easing: ease-in-out, $iteration: infinite)",
         "value": "animation: zoomFade 1s ease-in-out 0s infinite;",
         "definition": "@keyframes zoomFade {0% {transform: scale(1);opacity: 1;}100% {transform: scale(2);opacity: 0;}}",
-        "candidate": "shape",
-        "animId": "anim15"
+        "candidate": "shape"
     }
 ]

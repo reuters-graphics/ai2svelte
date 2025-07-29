@@ -13,11 +13,10 @@ export type AnimationItem = {
     name: string;
     usage: string;
     active: boolean;
-    def: string;
+    props: string;
     value: string;
-    styleDefinition: string;
+    definition: string;
     candidate: string;
-    animId: string;
 };
 
 export interface AiSettingOption {
