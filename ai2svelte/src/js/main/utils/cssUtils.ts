@@ -119,7 +119,7 @@ export function styleObjectToString(stylesObject) {
  */
 export function generateAllMixins(stylesObject) {
         const mixinShadowRegex = new RegExp(/@include\sshadow-(.*)\((#\d+)\)/);
-        const mixinAnimationRegex = new RegExp(/@include\sanim(.*)\(.*\)/);
+        const mixinAnimationRegex = new RegExp(/@include\sanimation-(.*)\(.*\)/);
 
         // get all unique shadow styles
         const allShadowStyles = new Set(

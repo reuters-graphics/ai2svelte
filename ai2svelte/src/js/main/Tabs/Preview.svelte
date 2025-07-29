@@ -1,5 +1,3 @@
-<!-- show snippet name instead of generic 'snippet' -->
-
 <script lang="ts">
     // SVELTE IMPORTS
     import { onMount, type Component } from "svelte";
@@ -21,6 +19,8 @@
 
     let previewWidth: Spring<number> = new Spring(800);
     let previewHeight: Spring<number> = new Spring(400);
+
+    let currentArtboard: string | undefined = $state();
 
     onMount(async () => {
         previewWidth.target = window.innerWidth;
@@ -70,12 +70,67 @@
             PreviewComponent = component;
         }, 1000);
     }
+
+    /**
+     * Adds a CSS class to each element with the "g-aiSnippet" class based on its "data-name" attribute,
+     * and injects a style element to define a CSS custom property (--data-name) for each snippet.
+     *
+     * Note: This function assumes that each "g-aiSnippet" element has a unique "data-name" attribute.
+     */
+    function displaySnippetNames() {
+        // fetch all the snippets
+        const allSnippets = Array.from(
+            document.querySelectorAll(".g-aiSnippet"),
+        );
+
+        allSnippets.forEach((snippetNode) => {
+            const snippetName = snippetNode.getAttribute("data-name");
+            snippetNode.classList.add(`${snippetName}-variable`);
+
+            const style = document.createElement("style");
+            snippetNode.appendChild(style);
+
+            const sheet = style.sheet;
+
+            // Add CSS rules
+            sheet?.insertRule(
+                `
+                .${snippetName}-variable::after {
+                    --data-name: "${snippetNode.getAttribute("data-name")}";
+                }
+            `,
+                0,
+            );
+        });
+    }
+
+    // if preview viewport changes, listen for active artboard
+    $effect(() => {
+        if (previewWidth.current && PreviewComponent) {
+            const container = document.querySelector("#g-preview-box");
+            currentArtboard =
+                container?.firstElementChild?.getAttribute("id") || undefined;
+        }
+    });
+
+    // if active artboard changes, re-link snippet names
+    $effect(() => {
+        if (currentArtboard) {
+            displaySnippetNames();
+        }
+    });
 </script>
 
 <div class="tab-content">
     <PreviewFrame {previewWidth} {previewHeight}>
         {#if PreviewComponent}
-            <PreviewComponent />
+            <PreviewComponent
+                onAiMounted={() => {
+                    setTimeout(() => {
+                        displaySnippetNames();
+                    }, 0);
+                }}
+            />
         {:else}
             <BirdStats assetsPath={"../../../assets"} />
         {/if}
@@ -97,14 +152,13 @@
         }
 
         .g-aiSnippet::after {
-            content: "SNIPPET";
+            content: var(--data-name);
             position: absolute;
             padding: 8px;
             text-align: center;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            font-size: var(--font-size-base);
         }
     }
 </style>

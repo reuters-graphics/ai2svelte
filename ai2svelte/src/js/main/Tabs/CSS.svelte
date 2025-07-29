@@ -154,7 +154,7 @@
 
         // set first selector from styles object as css selector
         if ($styles) {
-            cssSelector = Object.keys($styles)[0];
+            cssSelector = Object.keys($styles)[0] || 'p[class^="g-pstyle"]';
         }
 
         if ($isCEP) {
