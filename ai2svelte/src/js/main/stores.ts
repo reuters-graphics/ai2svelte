@@ -11,7 +11,11 @@ const testStyle: Style = {
 
 export const styles: Writable<Style> = writable(testStyle);
 
-// export const stylesString: Writable<string> = writable('');
+export const stylesString = derived(styles,
+    ($styles) => {
+        return generateAllMixins($styles) + "\n" + styleObjectToString($styles);
+    }
+);
 
 export const updateInProgress: Writable<boolean> = writable(false);
 
@@ -19,8 +23,4 @@ export const isCEP: Writable<boolean> = writable(false);
 
 export const userTheme: Writable<string> = writable('dark');
 
-export const stylesString = derived(styles,
-    ($styles) => {
-        return generateAllMixins($styles) + "\n" + styleObjectToString($styles);
-    }
-);
+export const currentBackdrop: Writable<number> = writable(0);

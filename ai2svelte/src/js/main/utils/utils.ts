@@ -2,6 +2,11 @@ import type { Options } from 'svooltip';
 import type { Placement } from '@floating-ui/dom';
 import { evalTS } from '../../lib/utils/bolt';
 import { EditorView } from "@codemirror/view";
+import { currentBackdrop } from '../stores';
+import { get } from 'svelte/store';
+
+const maxBackdropCount = 14;
+
 
 export const tooltipSettings: Options = {
             placement: "top-start" as Placement,
@@ -19,10 +24,10 @@ export const tooltipSettings: Options = {
  * @returns {Promise<string | undefined>} A promise that resolves to the image URL, or `undefined` if an error occurs.
  */
 export async function fetchNewImageURL() {
+    let currBackdrop = get(currentBackdrop);
     try {
-        const imgURL = await fetch("https://picsum.photos/300/200").then(
-            (res) => res.url,
-        );
+        const imgURL = `../../../assets/images/backdrops/backdrop_${currBackdrop}.jpg`;
+        currentBackdrop.set((currBackdrop+1) % maxBackdropCount);
         return imgURL;
     } catch (error) {
         console.log(error);
