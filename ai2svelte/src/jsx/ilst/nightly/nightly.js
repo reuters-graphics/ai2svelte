@@ -36,6 +36,8 @@ import { defaultSettings, placeholderSettings } from "./settings";
 
 import { caps, align, blendModes, cssTextStyleProperties, cssPrecision } from './cssStyles';
 
+// import { cropSVG } from "./cropSVG";
+
 import {
   testBoundsIntersection,
   shiftBounds,
@@ -2618,6 +2620,7 @@ function exportImage(imgName, format, ab, masks, layer, settings) {
       return ''; // no image was created
     }
     rewriteSVGFile(outputPath, imgId);
+    // rewriteSampleSVG(outputPath);
 
     if (inlineSvg) {
       html = generateInlineSvg(outputPath, imgClass, svgInlineStyle, settings);
@@ -3057,6 +3060,14 @@ function exportSVG(ofile, ab, masks, items, settings) {
   //exportDoc.pageItems.removeAll();
   exportDoc.close(SaveOptions.DONOTSAVECHANGES);
   return true;
+}
+
+function rewriteSampleSVG(path) {
+  var svg = readFile(path);
+  if(!svg) return;
+
+  var newSVG = cropSVG(svg);
+  saveTextFile(path, newSVG);
 }
 
 function rewriteSVGFile(path, id) {

@@ -1,5 +1,5 @@
 {
-  "name": "",
+  "name": "ai2svelte",
   "type": "module",
   "version": "0.0.1",
   "scripts": {
@@ -13,5 +13,22 @@
     "@astrojs/starlight": "^0.34.4",
     "astro": "^5.6.1",
     "sharp": "^0.32.5"
-  }
+  },
+  "description": "[![Built with Starlight](https://astro.badg.es/v2/built-with-starlight/tiny.svg)](https://starlight.astro.build)",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "devDependencies": {},
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/reuters-graphics/ai2svelte.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/reuters-graphics/ai2svelte/issues"
+  },
+  "homepage": "https://github.com/reuters-graphics/ai2svelte#readme"
 }
