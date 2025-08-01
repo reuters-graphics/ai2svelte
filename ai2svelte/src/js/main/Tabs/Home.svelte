@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { onMount, untrack } from "svelte";
+    import { onDestroy, onMount, untrack } from "svelte";
     import AiSettings from "./data/ai-settings.json";
     import { fly } from "svelte/transition";
     import { settingsObject, stylesString, styles } from "../stores";
@@ -14,6 +14,8 @@
     let activeFormat: string = $state("");
     let uiContent: HTMLElement | undefined = $state();
     let codeContent: HTMLElement | undefined = $state();
+
+    let previousSettings: Record<string, any> | undefined = $state();
 
     // holds key-value pairs as string
     let yamlString: string = $derived.by(() => {
@@ -54,7 +56,25 @@
     onMount(() => {
         // start with UI tab as active
         activeFormat = "UI";
+
+        if ($settingsObject) {
+            previousSettings = { ...$settingsObject };
+        }
     });
+
+    // onDestroy(() => {
+    //     // save XMPMetadata when settings object changes
+    //     // avoid saving XMPMetadata on style changes to prevent too many calls
+    //     if (window.cep) {
+    //         // save settings objects if settings are modified
+    //         if (
+    //             JSON.stringify(previousSettings) !==
+    //             JSON.stringify($settingsObject)
+    //         ) {
+    //             saveSettings($settingsObject, $styles);
+    //         }
+    //     }
+    // });
 
     // converts string in textarea to js object
     function convertStringToObject(s: string) {
@@ -75,9 +95,9 @@
 
         settingsObject.set(obj);
 
-        if (window.cep) {
-            saveSettings($settingsObject, $styles);
-        }
+        // if (window.cep) {
+        //     saveSettings($settingsObject, $styles);
+        // }
     }
 </script>
 

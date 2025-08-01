@@ -13,8 +13,8 @@ export type AnimationItem = {
     name: string;
     usage: string;
     active: boolean;
-    props: string;
-    value: string;
+    arguments: string;
+    animationRule: string;
     definition: string;
     candidate: string;
 };

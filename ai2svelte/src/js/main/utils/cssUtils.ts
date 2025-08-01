@@ -1,6 +1,9 @@
 import type { ShadowItem, AnimationItem } from "../Tabs/types";
 import shadows, { cheeses } from "../Tabs/ts/shadows";
-import animations from "../Tabs/data/animations.json";
+import animationsRaw from "../Tabs/data/animations.json?raw";
+import JSON5 from "json5";
+
+const animations = JSON5.parse(animationsRaw);
 
 export function createMixinsFile(shadows: ShadowItem[]) {
     const mixins: string[] = [];
@@ -60,8 +63,8 @@ export function createShadowMixinFromCSS(shadow: ShadowItem) {
  */
 export function createAnimationMixinFromCSS(animation: AnimationItem) {
     const name = "animation-" + animation.name;
-    let str = `@mixin ${name}${animation.props}{\n`;
-    str += animation.definition + '\n\r' + animation.value;
+    let str = `@mixin ${name}${animation.arguments}{\n`;
+    str += animation.definition + '\n\r';
     str += "\n}";
 
     return str;
@@ -100,12 +103,12 @@ ${styles};
 }
 
 export function styleObjectToString(stylesObject) {
-    const keys = Object.keys(stylesObject);
+    const selectors = Object.keys(stylesObject);
     let string = "";
 
-    keys.forEach((key) => {
-        string += key + " {\n\t";
-        string += (stylesObject[key]?.join(";\n\t") || "") + ";";
+    selectors.forEach((selector) => {
+        string += selector + " {\n\t";
+        string += (stylesObject[selector]?.join(";\n\t") || "") + ";";
         string += "\n}\n\n";
     });
 
@@ -119,7 +122,7 @@ export function styleObjectToString(stylesObject) {
  */
 export function generateAllMixins(stylesObject) {
         const mixinShadowRegex = new RegExp(/@include\sshadow-(.*)\((#\d+)\)/);
-        const mixinAnimationRegex = new RegExp(/@include\sanimation-(.*)\(.*\)/);
+        const mixinAnimationRegex = new RegExp(/@include\sanimation-(.*)\((.*)\)/);
 
         // get all unique shadow styles
         const allShadowStyles = new Set(
@@ -139,7 +142,7 @@ export function generateAllMixins(stylesObject) {
                 .map((x) => stylesObject[x])
                 .flat()
                 .filter((x) => mixinAnimationRegex.test(x))
-                .map((x) => {
+                .flatMap((x) => {
                     const match = x.match(mixinAnimationRegex);
                     return match ? match[1] : undefined;
                 }),

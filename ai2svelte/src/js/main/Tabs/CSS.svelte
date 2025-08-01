@@ -8,7 +8,7 @@
 
     // DATA IMPORTS
     import shadows, { cheeses } from "./ts/shadows";
-    import animations from "./data/animations.json";
+    import animations from "./data/animations.json?raw";
     import { styles, updateInProgress, isCEP, settingsObject } from "../stores";
 
     // OTHER LIB IMPORTS
@@ -16,6 +16,7 @@
     import postcss from "postcss";
     import scss from "postcss-scss";
     import { tooltip } from "svooltip";
+    import JSON5 from "json5";
     import {
         AIEventAdapter,
         AIEvent,
@@ -48,6 +49,7 @@
     import Input from "../Components/Input.svelte";
     import AnimationCard from "../Components/AnimationCard.svelte";
     import type { Style } from "./types";
+    import { css } from "@codemirror/lang-css";
 
     let activeTab = $state("");
 
@@ -138,13 +140,13 @@
             }))
             .sort((a, b) => a.id.localeCompare(b.id));
 
-        allAnimations = [...animations]
+        allAnimations = [...JSON5.parse(animations)]
             .map((x) => ({
                 name: x.name,
                 usage: x.usage,
                 active: false,
-                props: x.props,
-                value: x.value,
+                arguments: x.arguments,
+                animationRule: x.animationRule,
                 definition: x.definition,
                 candidate: x.candidate,
             }))
@@ -168,16 +170,16 @@
         backdrop = await fetchNewImageURL();
     });
 
-    onDestroy(() => {
-        // save XMPMetadata when style object changes
-        // avoid saving XMPMetadata on style changes to prevent too many calls
-        if (window.cep) {
-            // save settings objects if styles are modified
-            if (JSON.stringify(previousStyles) !== JSON.stringify($styles)) {
-                saveSettings($settingsObject, $styles);
-            }
-        }
-    });
+    // onDestroy(() => {
+    //     // save XMPMetadata when style object changes
+    //     // avoid saving XMPMetadata on style changes to prevent too many calls
+    //     if (window.cep) {
+    //         // save settings objects if styles are modified
+    //         if (JSON.stringify(previousStyles) !== JSON.stringify($styles)) {
+    //             saveSettings($settingsObject, $styles);
+    //         }
+    //     }
+    // });
 
     /**
      * Asynchronously changes the backdrop image by fetching a new image URL.
@@ -263,7 +265,9 @@
      */
     function toggleAnimationCard(
         animationUsage: string,
+        animationName: string,
         animationDefinition: string,
+        animationRule: string,
         operation: boolean,
     ) {
         const animationMixinRegex = new RegExp(/.*@include (.*)\(\)/);
@@ -275,13 +279,73 @@
                 $styles[cssSelector] = [];
             }
 
+            const animationStyle = $styles[cssSelector].find((x: string) =>
+                x.includes("animation:"),
+            );
+
             $styles[cssSelector].push(
                 `/* ${animationIdentifier} ${animationDefinition} */`,
             );
             $styles[cssSelector].push(animationUsage);
+
+            // if 'animation' rule isn't included, add it
+            if (!animationStyle) {
+                $styles[cssSelector].push(`animation: ${animationRule}`);
+            } else {
+                const regex = new RegExp(/.*animation:\s(.*)/);
+                const existingAnimations = animationStyle.match(regex);
+                if (existingAnimations) {
+                    const index = $styles[cssSelector].findIndex(
+                        (x) => x == animationStyle,
+                    );
+
+                    if (index > -1) {
+                        $styles[cssSelector].splice(index, 1);
+                        $styles[cssSelector].push(
+                            `animation: ${existingAnimations[1]}, ${animationRule}`,
+                        );
+                    }
+                }
+            }
         } else {
             // console.log("id:" + animationIdentifier);
             const regexCheck = new RegExp(`\\b${animationIdentifier}\\b`);
+
+            const animationStyle = $styles[cssSelector].find((x: string) =>
+                x.includes("animation:"),
+            );
+
+            if (animationStyle) {
+                const regex = new RegExp(/.*animation:(.*)/);
+                const existingAnimations = animationStyle.match(regex);
+                const animString = existingAnimations
+                    ? existingAnimations[1]
+                    : undefined;
+
+                if (animString) {
+                    const animRegex = new RegExp(
+                        `\\s*${animationName}([^,)]*)`,
+                    );
+                    const newAnimString = animString
+                        .replace(animRegex, "")
+                        .split(",")
+                        .filter((x) => x !== "")
+                        .join(",");
+
+                    const index = $styles[cssSelector].findIndex(
+                        (x) => x == animationStyle,
+                    );
+
+                    if (index > -1) {
+                        if (newAnimString == "") {
+                            $styles[cssSelector].splice(index, 1);
+                        } else {
+                            $styles[cssSelector][index] =
+                                `animation: ${newAnimString}`;
+                        }
+                    }
+                }
+            }
 
             const indexes = $styles[cssSelector]
                 .map((x, i) => (regexCheck.test(x) ? i : null))
@@ -298,6 +362,8 @@
 
         if ($styles[cssSelector].length == 0) {
             delete $styles[cssSelector];
+        } else {
+            // add all animations
         }
 
         $styles = $styles;
@@ -520,9 +586,9 @@
                 <AnimationCard
                     name={animation.name}
                     animation={animation.usage}
-                    props={animation.props}
+                    animationArguments={animation.arguments}
                     bind:active={animation.active}
-                    propValue={animation.value}
+                    animationRule={animation.animationRule}
                     definition={animation.definition}
                     candidate={animation.candidate}
                     onChange={(e: Event) => {
@@ -530,7 +596,9 @@
                         allAnimations = [...allAnimations];
                         toggleAnimationCard(
                             animation.usage,
-                            animation.props,
+                            animation.name,
+                            animation.arguments,
+                            animation.animationRule,
                             animation.active,
                         );
                     }}

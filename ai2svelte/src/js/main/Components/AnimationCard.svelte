@@ -5,8 +5,8 @@
     interface Props {
         name: string;
         animation: string;
-        props: string;
-        propValue: string;
+        animationArguments: string;
+        animationRule: string;
         candidate: string;
         active: boolean;
         delay?: number;
@@ -17,8 +17,8 @@
     let {
         name,
         animation,
-        props,
-        propValue,
+        animationArguments,
+        animationRule,
         definition,
         candidate = "shape",
         active = $bindable(false),
@@ -37,13 +37,45 @@
     });
 
     /**
+     * Converts a string of key-value pairs (e.g. "key1: value1, key2: value2")
+     * into an object { key1: "value1", key2: "value2" }
+     */
+    function parseKeyValueString(str: string): Record<string, string> {
+        return str
+            .split(",")
+            .map((pair) => pair.trim())
+            .filter(Boolean)
+            .reduce(
+                (acc, pair) => {
+                    const [key, ...rest] = pair.split(":");
+                    if (key && rest.length) {
+                        acc[key.trim()] = rest.join(":").trim();
+                    }
+                    return acc;
+                },
+                {} as Record<string, string>,
+            );
+    }
+
+    /**
      * Dynamically creates a style element with the provided CSS definition
      * and appends it to the document's head.
      *
      */
     function createStyle() {
+        const regex = new RegExp(/\((.*)\)/);
+        const match = animationArguments.match(regex);
+        let argumentsObj: Record<string, string> = {};
+        if (match) {
+            argumentsObj = parseKeyValueString(match[1]);
+        }
+
         const style = document.createElement("style");
-        style.textContent = definition;
+        let parsedStyle = definition;
+        Object.keys(argumentsObj).forEach((arg) => {
+            parsedStyle = parsedStyle.replaceAll(`${arg}`, argumentsObj[arg]);
+        });
+        style.textContent = parsedStyle;
         document?.head.appendChild(style);
     }
 </script>
@@ -91,7 +123,7 @@
                         cy="50%"
                         r={20}
                         fill={"url(#Gradient)"}
-                        style={propValue}
+                        style={`animation: ${animationRule};`}
                     />
                 {:else if candidate == "text"}
                     <text
@@ -100,7 +132,7 @@
                         y="50%"
                         text-anchor="middle"
                         fill="white"
-                        style={propValue}>ai2svelte</text
+                        style={`animation: ${animationRule};`}>ai2svelte</text
                     >
                 {:else if candidate == "line"}
                     <line
@@ -111,7 +143,7 @@
                         y2="50%"
                         stroke="var(--color-tertiary)"
                         stroke-width="3px"
-                        style={propValue}
+                        style={`animation: ${animationRule};`}
                     ></line>
                 {/if}
             </svg>

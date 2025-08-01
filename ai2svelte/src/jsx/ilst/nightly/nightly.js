@@ -2596,7 +2596,7 @@ function exportImage(imgName, format, ab, masks, layer, settings) {
   var check = (layer && parseObjectName(layer.name).inline);
   var inlineSvg = isTrue(settings.inline_svg) || check;
   var svgInlineStyle, svgLayersArg;
-  var created, html;
+  var svgOutput, html;
   // var divId = nameSpace + "svg-" + imgName;
 
   imgClass += ' ' + nameSpace + 'aiImg';
@@ -2615,14 +2615,31 @@ function exportImage(imgName, format, ab, masks, layer, settings) {
       svgInlineStyle = getLayerOpacityCSS(layer);
       svgLayersArg = [layer];
     }
-    created = exportSVG(outputPath, ab, masks, svgLayersArg, settings);
-    if (!created) {
+    svgOutput = exportSVG(outputPath, ab, masks, svgLayersArg, settings);
+    if (!svgOutput) {
       return ''; // no image was created
     }
     rewriteSVGFile(outputPath, imgId);
-    // rewriteSampleSVG(outputPath);
 
     if (inlineSvg) {
+      if(settings.tagPrefix == "svg") {
+        width = roundTo(svgOutput.width, 1);
+        height = roundTo(svgOutput.height, 1);
+        left = roundTo(svgOutput.left, 1);
+        top = roundTo(svgOutput.top, 1);
+        var abBox = convertAiBounds(ab.artboardRect);
+
+        svgInlineStyle += "position: absolute;";
+        svgInlineStyle += 'width: ' + formatCssPct(width, abBox.width) + ";";
+        svgInlineStyle += 'height: ' + formatCssPct(height, abBox.height) + ";";
+        svgInlineStyle += 'top: ' + formatCssPct(top, abBox.height) + ";";
+        // vertical margin pct is calculated as pct of width
+        svgInlineStyle += 'left: ' + formatCssPct(left, abBox.width) + ";";
+
+        // remove namespace-aiImg class to avoid other CSS styles
+        imgClass = imgClass.replace(' ' + nameSpace + 'aiImg', '');
+      }
+
       html = generateInlineSvg(outputPath, imgClass, svgInlineStyle, settings);
       if (layer) {
         message('Generated inline SVG for layer [' + getLayerName(layer) + ']');
@@ -3035,9 +3052,14 @@ function copyArtboardForImageExport(ab, masks, items) {
 
 // Returns true if a file was created or else false (because svg document was empty);
 function exportSVG(ofile, ab, masks, items, settings) {
+  var width = 0;
+  var height = 0;
+  var left = 0;
+  var top = 0;
   //   Illustrator's SVG output contains all objects in a document (it doesn't
   //   clip to the current artboard), so we copy artboard objects to a temporary
   //   document for export.
+  var parentArtboardBounds = convertAiBounds(ab.artboardRect);
   var exportDoc = copyArtboardForImageExport(ab, masks, items);
   var opts = new ExportOptionsSVG();
   if (!exportDoc) return false;
@@ -3055,11 +3077,43 @@ function exportSVG(ofile, ab, masks, items, settings) {
   //  * Smaller file size (50% on one test file)
   //  * Convert raster/vector effects to external .png images (other DTDs use jpg)
 
+  exportDoc.activate();
+
+  if(settings.tagPrefix == 'svg') {
+    // Run menu command to trim svg to visible items
+    app.executeMenuCommand('Fit Artboard to artwork bounds');
+    var svgBounds = convertAiBounds(exportDoc.artboards[0].artboardRect);
+    // trimming artboard repositions final artboard
+    // to artwork's x, y
+    left = svgBounds.left - parentArtboardBounds.left;
+    top = svgBounds.top - parentArtboardBounds.top;
+
+    // if svg bounds exceed parent artboard's bounds,
+    // revert trimming operation and use parent artboard's bounds
+    if(svgBounds.width > parentArtboardBounds.width || svgBounds.height > parentArtboardBounds.height) {
+      app.executeMenuCommand('undo');
+      svgBounds = convertAiBounds(exportDoc.artboards[0].artboardRect);
+      left = 0;
+      top = 0;
+    }
+
+    width = svgBounds.width;
+    height = svgBounds.height;
+  }
   exportDoc.exportFile(new File(ofile), ExportType.SVG, opts);
+
   doc.activate();
   //exportDoc.pageItems.removeAll();
   exportDoc.close(SaveOptions.DONOTSAVECHANGES);
-  return true;
+
+  var response = {
+    width: width,
+    height: height,
+    left: left,
+    top: top
+  };
+
+  return response;
 }
 
 function rewriteSampleSVG(path) {
@@ -3244,6 +3298,19 @@ function generateContainerQueryCss(ab, abId, group, settings) {
   return css;
 }
 
+// mixin to combine multiple animations passed
+// through @include animations(x, y, z)
+function animationMixin() {
+  var css = `@mixin animations($values...) {
+        $animation: ();
+        @each $value in $values {
+            $animation: append($animation, $value, comma);
+        }
+        animation: $animation;
+    }`;
+  return css;
+}
+
 // css for snippets to occupy only the space inside the box
 // adds object-fit cover for html image and video snippets
 function snippetCss() {
@@ -3329,9 +3396,11 @@ function generatePageCss(containerId, group, settings) {
   css += formatCssRule(blockStart + ' .' + nameSpace + 'aiPointText p',
     {'white-space': 'nowrap'});
 
-  if (docSettings.snippetProps) {
-    css += snippetCss();
-  }
+  // if (docSettings.snippetProps) {
+  //   css += snippetCss();
+  // }
+
+  css += animationMixin();
 
   return css;
 }

@@ -1,16 +1,11 @@
 <script lang="ts">
-  import { onMount, untrack } from "svelte";
+  import { onDestroy, onMount, untrack } from "svelte";
   import { get } from "svelte/store";
   import { csi, evalTS } from "../lib/utils/bolt";
   import "./index.scss";
   import "./styles/main.scss";
-  import {
-    settingsObject,
-    styles,
-    updateInProgress,
-    isCEP,
-    stylesString,
-  } from "./stores";
+  import { settingsObject, styles, updateInProgress, isCEP } from "./stores";
+  import { saveSettings } from "./utils/utils";
 
   import Intro from "./Components/Intro.svelte";
   import TabBar from "./Components/TabBar.svelte";
@@ -18,10 +13,10 @@
   import CSS from "./Tabs/CSS.svelte";
   import Preview from "./Tabs/Preview.svelte";
   import About from "./Tabs/About.svelte";
-  import { styleObjectToString } from "./utils/cssUtils";
 
   let splashScreen: boolean = $state(false);
   let activeTab: string = $state("HOME");
+  let previousSettings: Record<string, any> | undefined = $state();
 
   // if plugin is running in Illustrator,
   // listen to document change event
@@ -66,11 +61,27 @@
     if (get(isCEP)) {
       $updateInProgress = true;
       fetchSettings();
+      previousSettings = { ...$settingsObject };
     } else {
       // handle splash for testing
       setTimeout(() => {
         // splashScreen = false;
       }, 3000);
+    }
+  });
+
+  onDestroy(() => {
+    console.log("trying to save");
+    // save XMPMetadata when settings object changes
+    // avoid saving XMPMetadata on style changes to prevent too many calls
+    if (window.cep) {
+      // save settings objects if settings are modified
+      if (
+        JSON.stringify(previousSettings) !== JSON.stringify($settingsObject)
+      ) {
+        saveSettings($settingsObject, $styles);
+        console.log("saved");
+      }
     }
   });
 </script>
