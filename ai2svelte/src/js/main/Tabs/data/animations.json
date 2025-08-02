@@ -142,5 +142,45 @@
         "animationRule": "zoomFade 1s ease-in-out 0s infinite",
         "definition": "@keyframes zoomFade {0% {transform: scale(1);opacity: 1;}100% {transform: scale($zoom);opacity: 0;}}",
         "candidate": "shape"
+    },
+    {
+        "name": "letterSpacing",
+        "usage": "@include animation-letterSpacing()",
+        "arguments": "($startSpacing: 0px, $endSpacing: 5px)",
+        "animationRule": "letterSpacing 1s ease-in-out 0s infinite alternate",
+        "definition": "@keyframes letterSpacing { from { letter-spacing: $startSpacing; } to { letter-spacing: $endSpacing; } }",
+        "candidate": "text"
+    },
+    {
+        "name": "textGlow",
+        "usage": "@include animation-textGlow()",
+        "arguments": "($shadow: 0 0 10px currentColor)",
+        "animationRule": "textGlow 2s ease-in-out 0s infinite alternate",
+        "definition": "@keyframes textGlow { from { text-shadow: none; } to { text-shadow: $shadow; } }",
+        "candidate": "text"
+    },
+    {
+        "name": "lineGrow",
+        "usage": "@include animation-lineGrow()",
+        "arguments": "($startWidth: 0, $endWidth: 5px)",
+        "animationRule": "lineGrow 1.5s ease-out 0s 1 alternate",
+        "definition": "@keyframes lineGrow { from { stroke-width: $startWidth; } to { stroke-width: $endWidth; } }",
+        "candidate": "line"
+    },
+    {
+        "name": "lineGlow",
+        "usage": "@include animation-lineGlow()",
+        "arguments": "($glowColorStart: red, $glowColorEnd: yellow, $intensity: 10px)",
+        "animationRule": "lineGlow 2s ease-in-out 0s infinite alternate",
+        "definition": "@keyframes lineGlow { from { filter: drop-shadow(0 0 2px $glowColorStart); } to { filter: drop-shadow(0 0 $intensity $glowColorEnd); } }",
+        "candidate": "line"
+    },
+    {
+        "name": "blurFocus",
+        "usage": "@include animation-blurFocus()",
+        "arguments": "($maxBlur: 10px)",
+        "animationRule": "blurFocus 2s ease-in-out 0s infinite alternate",
+        "definition": "@keyframes blurFocus { from { filter: blur($maxBlur); } to { filter: blur(0); } }",
+        "candidate": "shape"
     }
 ]

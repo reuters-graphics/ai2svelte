@@ -92,61 +92,61 @@
     >
         <p class="card-title" style="pointer-events:none;">{name}</p>
         <div style="position: relative;">
-            <svg width="100%" height="80px">
-                <defs>
-                    <linearGradient
-                        id="Gradient"
-                        x1="0"
-                        x2="100%"
-                        y1="50%"
-                        y2="50%"
-                    >
-                        <stop offset="0%" stop-color="var(--color-secondary)" />
-                        <stop
-                            offset="49.99%"
-                            stop-color="var(--color-secondary)"
+            {#if candidate == "text"}
+                <div class="animated-text-container">
+                    <p style={`animation: ${animationRule};`}>lorem ipsum</p>
+                </div>
+            {:else}
+                <svg width="100%" height="80px">
+                    <defs>
+                        <linearGradient
+                            id="Gradient"
+                            x1="0"
+                            x2="100%"
+                            y1="50%"
+                            y2="50%"
+                        >
+                            <stop
+                                offset="0%"
+                                stop-color="var(--color-secondary)"
+                            />
+                            <stop
+                                offset="49.99%"
+                                stop-color="var(--color-secondary)"
+                            />
+                            <stop
+                                offset="50.01%"
+                                stop-color="var(--color-accent-primary)"
+                            />
+                            <stop
+                                offset="100%"
+                                stop-color="var(--color-accent-primary)"
+                            />
+                        </linearGradient>
+                    </defs>
+                    {#if candidate == "shape"}
+                        <circle
+                            class="animated-ele"
+                            cx="50%"
+                            cy="50%"
+                            r={20}
+                            fill={"url(#Gradient)"}
+                            style={`animation: ${animationRule};`}
                         />
-                        <stop
-                            offset="50.01%"
-                            stop-color="var(--color-accent-primary)"
-                        />
-                        <stop
-                            offset="100%"
-                            stop-color="var(--color-accent-primary)"
-                        />
-                    </linearGradient>
-                </defs>
-                {#if candidate == "shape"}
-                    <circle
-                        id="animated-ele"
-                        cx="50%"
-                        cy="50%"
-                        r={20}
-                        fill={"url(#Gradient)"}
-                        style={`animation: ${animationRule};`}
-                    />
-                {:else if candidate == "text"}
-                    <text
-                        id="animated-ele"
-                        x="50%"
-                        y="50%"
-                        text-anchor="middle"
-                        fill="white"
-                        style={`animation: ${animationRule};`}>ai2svelte</text
-                    >
-                {:else if candidate == "line"}
-                    <line
-                        id="animated-ele"
-                        x1="0%"
-                        y1="50%"
-                        x2="100%"
-                        y2="50%"
-                        stroke="var(--color-tertiary)"
-                        stroke-width="3px"
-                        style={`animation: ${animationRule};`}
-                    ></line>
-                {/if}
-            </svg>
+                    {:else if candidate == "line"}
+                        <line
+                            class="animated-ele"
+                            x1="0%"
+                            y1="50%"
+                            x2="100%"
+                            y2="50%"
+                            stroke="var(--color-tertiary)"
+                            stroke-width="3px"
+                            style={`animation: ${animationRule};`}
+                        ></line>
+                    {/if}
+                </svg>
+            {/if}
         </div>
     </button>
 {/if}
@@ -162,6 +162,7 @@
         position: relative;
         width: 100%;
         cursor: pointer;
+        overflow: hidden;
     }
 
     .focused {
@@ -181,9 +182,25 @@
         text-transform: uppercase;
     }
 
-    #animated-ele {
+    .animated-ele {
         animation-iteration-count: infinite !important;
         animation-duration: 1s !important;
         transform-origin: center !important;
+    }
+
+    .animated-text-container {
+        width: 100%;
+        height: 80px;
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        p {
+            font-family: "Inter";
+            color: var(--color-text);
+            font-weight: 500;
+            text-align: center;
+        }
     }
 </style>
