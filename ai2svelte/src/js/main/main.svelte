@@ -1,18 +1,19 @@
 <script lang="ts">
+  import path from "path";
   import { onDestroy, onMount, untrack } from "svelte";
   import { get } from "svelte/store";
   import { csi, evalTS } from "../lib/utils/bolt";
   import "./index.scss";
+  import { isCEP, settingsObject, styles, updateInProgress } from "./stores";
   import "./styles/main.scss";
-  import { settingsObject, styles, updateInProgress, isCEP } from "./stores";
-  import { saveSettings } from "./utils/utils";
+  import { readUserSettings, saveSettings } from "./utils/utils";
 
   import Intro from "./Components/Intro.svelte";
   import TabBar from "./Components/TabBar.svelte";
-  import Home from "./Tabs/Home.svelte";
-  import CSS from "./Tabs/CSS.svelte";
-  import Preview from "./Tabs/Preview.svelte";
   import About from "./Tabs/About.svelte";
+  import CSS from "./Tabs/CSS.svelte";
+  import Home from "./Tabs/Home.svelte";
+  import Preview from "./Tabs/Preview.svelte";
 
   let splashScreen: boolean = $state(false);
   let activeTab: string = $state("HOME");
@@ -39,6 +40,9 @@
    * @returns {Promise<void>} Resolves when settings and styles have been fetched and updated.
    */
   async function fetchSettings() {
+    const userSettings = readUserSettings();
+    console.log(userSettings);
+
     const fetchedSettings = await evalTS("getVariable", "ai-settings");
     settingsObject.set(fetchedSettings);
 
