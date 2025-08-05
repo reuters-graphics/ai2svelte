@@ -1,23 +1,24 @@
-import type { ShadowItem, AnimationItem } from "../Tabs/types";
-import shadows, { cheeses } from "../Tabs/ts/shadows";
-import animationsRaw from "../Tabs/data/animations.json?raw";
 import JSON5 from "json5";
+import animationsRaw from "../Tabs/data/animations.json?raw";
+import shadowsRaw from "../Tabs/data/shadows.json?raw";
+import type { AnimationItem, ShadowItem } from "../Tabs/types";
 
 const animations = JSON5.parse(animationsRaw);
+const shadows = JSON5.parse(shadowsRaw);
 
 export function createMixinsFile(shadows: ShadowItem[]) {
-    const mixins: string[] = [];
+  const mixins: string[] = [];
 
-    shadows.forEach((shadow) => {
-        const sh = shadow.shadow;
-        const name = "shadow-" + shadow.id.toLowerCase().replace(" ", "");
-        let str = `@mixin ${name}($clr){\n`;
-        str += sh.replaceAll("rgba(0,0,0", "rgba($clr");
-        str += "\n}";
-        mixins.push(str);
-    });
+  shadows.forEach((shadow) => {
+    const sh = shadow.shadow;
+    const name = "shadow-" + shadow.id.toLowerCase().replace(" ", "");
+    let str = `@mixin ${name}($clr){\n`;
+    str += sh.replaceAll("rgba(0,0,0", "rgba($clr");
+    str += "\n}";
+    mixins.push(str);
+  });
 
-    console.log(mixins.join("\n\n"));
+  console.log(mixins.join("\n\n"));
 }
 
 /**
@@ -32,11 +33,11 @@ export function createMixinsFile(shadows: ShadowItem[]) {
  * @returns {string} The camelCase formatted string.
  */
 export function toCamelCase(str: string) {
-    return str
-        .replace(/(?:^\w|[A-Z]|\b\w)/g, (word, index) => {
-            return index === 0 ? word.toLowerCase() : word.toUpperCase();
-        })
-        .replace(/\s+/g, "");
+  return str
+    .replace(/(?:^\w|[A-Z]|\b\w)/g, (word, index) => {
+      return index === 0 ? word.toLowerCase() : word.toUpperCase();
+    })
+    .replace(/\s+/g, "");
 }
 
 /**
@@ -47,12 +48,12 @@ export function toCamelCase(str: string) {
  * @returns {string} The generated SASS mixin as a string.
  */
 export function createShadowMixinFromCSS(shadow: ShadowItem) {
-    const name = "shadow-" + toCamelCase(shadow.id);
-    let str = `@mixin ${name}($clr){\n`;
-    str += shadow.shadow.replaceAll("rgba(0,0,0", "rgba($clr");
-    str += "\n}";
+  const name = "shadow-" + toCamelCase(shadow.id);
+  let str = `@mixin ${name}($clr){\n`;
+  str += shadow.shadow.replaceAll("rgba(0,0,0", "rgba($clr");
+  str += "\n}";
 
-    return str;
+  return str;
 }
 
 /**
@@ -62,12 +63,12 @@ export function createShadowMixinFromCSS(shadow: ShadowItem) {
  * @returns {string} The generated SASS mixin as a string.
  */
 export function createAnimationMixinFromCSS(animation: AnimationItem) {
-    const name = "animation-" + animation.name;
-    let str = `@mixin ${name}${animation.arguments}{\n`;
-    str += animation.definition + '\n\r';
-    str += "\n}";
+  const name = "animation-" + animation.name;
+  let str = `@mixin ${name}${animation.arguments}{\n`;
+  str += animation.definition + "\n\r";
+  str += "\n}";
 
-    return str;
+  return str;
 }
 
 /**
@@ -80,39 +81,39 @@ export function createAnimationMixinFromCSS(animation: AnimationItem) {
  *   for unknown node types.
  */
 export function parseSCSS(style) {
-    switch (style.type) {
-        case "decl":
-            return `${style.prop} : ${style.value}${style.important ? ' !important' : ''}`;
+  switch (style.type) {
+    case "decl":
+      return `${style.prop} : ${style.value}${style.important ? " !important" : ""}`;
 
-        case "atrule":
-            return `@${style.name} ${style.params}`;
+    case "atrule":
+      return `@${style.name} ${style.params}`;
 
-        case "rule":
-            const styles = style.nodes.map((x) => parseSCSS(x)).join(";\n");
-            const str = `${style.selector} {
+    case "rule":
+      const styles = style.nodes.map((x) => parseSCSS(x)).join(";\n");
+      const str = `${style.selector} {
 ${styles};
 }`;
-            return str;
+      return str;
 
-        case "comment":
-            return `/* ${style.text} */`;
+    case "comment":
+      return `/* ${style.text} */`;
 
-        default:
-            return "";
-    }
+    default:
+      return "";
+  }
 }
 
 export function styleObjectToString(stylesObject) {
-    const selectors = Object.keys(stylesObject);
-    let string = "";
+  const selectors = Object.keys(stylesObject);
+  let string = "";
 
-    selectors.forEach((selector) => {
-        string += selector + " {\n\t";
-        string += (stylesObject[selector]?.join(";\n\t") || "") + ";";
-        string += "\n}\n\n";
-    });
+  selectors.forEach((selector) => {
+    string += selector + " {\n\t";
+    string += (stylesObject[selector]?.join(";\n\t") || "") + ";";
+    string += "\n}\n\n";
+  });
 
-    return string;
+  return string;
 }
 
 /**
@@ -121,58 +122,58 @@ export function styleObjectToString(stylesObject) {
  * @returns {string} A string containing all generated mixin code, joined by newlines.
  */
 export function generateAllMixins(stylesObject) {
-        const mixinShadowRegex = new RegExp(/@include\sshadow-(.*)\((#\d+)\)/);
-        const mixinAnimationRegex = new RegExp(/@include\sanimation-(.*)\((.*)\)/);
+  const mixinShadowRegex = new RegExp(/@include\sshadow-(.*)\((#\d+)\)/);
+  const mixinAnimationRegex = new RegExp(/@include\sanimation-(.*)\((.*)\)/);
 
-        // get all unique shadow styles
-        const allShadowStyles = new Set(
-            Object.keys(stylesObject)
-                .map((x) => stylesObject[x])
-                .flat()
-                .filter((x) => mixinShadowRegex.test(x))
-                .map((x) => {
-                    const match = x.match(mixinShadowRegex);
-                    return match ? match[1] : undefined;
-                }),
-        );
+  // get all unique shadow styles
+  const allShadowStyles = new Set(
+    Object.keys(stylesObject)
+      .map((x) => stylesObject[x])
+      .flat()
+      .filter((x) => mixinShadowRegex.test(x))
+      .map((x) => {
+        const match = x.match(mixinShadowRegex);
+        return match ? match[1] : undefined;
+      })
+  );
 
-        // get all unique animation styles
-        const allAnimationStyles = new Set(
-            Object.keys(stylesObject)
-                .map((x) => stylesObject[x])
-                .flat()
-                .filter((x) => mixinAnimationRegex.test(x))
-                .flatMap((x) => {
-                    const match = x.match(mixinAnimationRegex);
-                    return match ? match[1] : undefined;
-                }),
-        );
+  console.log("Styles ojbect");
+  console.log(JSON.stringify(stylesObject));
+  console.log(allShadowStyles);
 
-        // get all shadows CSS
-        const allShadowStylesCSS = Array.from(allShadowStyles).map((x) =>
-            shadows.find(
-                (s) => s.id.toLowerCase().replace(" ", "") == x.toLowerCase(),
-            ),
-        );
+  // get all unique animation styles
+  const allAnimationStyles = new Set(
+    Object.keys(stylesObject)
+      .map((x) => stylesObject[x])
+      .flat()
+      .filter((x) => mixinAnimationRegex.test(x))
+      .flatMap((x) => {
+        const match = x.match(mixinAnimationRegex);
+        return match ? match[1] : undefined;
+      })
+  );
 
-        // get all animations CSS
-        const allAnimationStylesCSS = Array.from(allAnimationStyles).map((x) =>
-            animations.find((s) => s.name.toLowerCase() == x.toLowerCase()),
-        );
+  // get all shadows CSS
+  const allShadowStylesCSS = Array.from(allShadowStyles).map((x) =>
+    shadows.find((s) => s.id.toLowerCase().replace(" ", "") == x.toLowerCase())
+  );
 
-        // generate all shadow mixins
-        const allShadowMixins = allShadowStylesCSS.map((shadow) =>
-            createShadowMixinFromCSS({...shadow, active: false} as ShadowItem),
-        );
+  // get all animations CSS
+  const allAnimationStylesCSS = Array.from(allAnimationStyles).map((x) =>
+    animations.find((s) => s.name.toLowerCase() == x.toLowerCase())
+  );
 
-        // generate all animation mixins
-        const allAnimationMixins = allAnimationStylesCSS.map((animation) =>
-            createAnimationMixinFromCSS(animation as AnimationItem),
-        );
+  // generate all shadow mixins
+  const allShadowMixins = allShadowStylesCSS.map((shadow) =>
+    createShadowMixinFromCSS({ ...shadow, active: false } as ShadowItem)
+  );
 
-        const allMixins = [...allShadowMixins, ...allAnimationMixins].join(
-            "\n\n",
-        );
+  // generate all animation mixins
+  const allAnimationMixins = allAnimationStylesCSS.map((animation) =>
+    createAnimationMixinFromCSS(animation as AnimationItem)
+  );
 
-        return allMixins;
-    }
+  const allMixins = [...allShadowMixins, ...allAnimationMixins].join("\n\n");
+
+  return allMixins;
+}
