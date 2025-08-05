@@ -5,6 +5,7 @@
   import { csi, evalTS } from "../lib/utils/bolt";
   import "./index.scss";
   import { isCEP, settingsObject, styles, updateInProgress } from "./stores";
+  import { userData } from "./state.svelte";
   import "./styles/main.scss";
   import { readUserSettings, saveSettings } from "./utils/utils";
 
@@ -40,16 +41,19 @@
    * @returns {Promise<void>} Resolves when settings and styles have been fetched and updated.
    */
   async function fetchSettings() {
+    // fetch user settings
+    // and update the store
     const userSettings = readUserSettings();
-    console.log(userSettings);
+    if (userSettings) {
+      userData.theme = userSettings.theme;
+      userData.accentColor = userSettings.accentColor;
+    }
 
     const fetchedSettings = await evalTS("getVariable", "ai-settings");
     settingsObject.set(fetchedSettings);
 
     const fetchedStyles = await evalTS("getVariable", "css-settings");
     styles.set(fetchedStyles);
-
-    // stylesString.set(styleObjectToString($styles));
 
     updateInProgress.set(false);
 
@@ -75,7 +79,6 @@
   });
 
   onDestroy(() => {
-    console.log("trying to save");
     // save XMPMetadata when settings object changes
     // avoid saving XMPMetadata on style changes to prevent too many calls
     if (window.cep) {

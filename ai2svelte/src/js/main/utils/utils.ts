@@ -6,10 +6,11 @@ import type { Options } from "svooltip";
 import { fs } from "../../lib/cep/node";
 import { csi, evalTS } from "../../lib/utils/bolt";
 import { currentBackdrop } from "../stores";
+import config from "../../../../cep.config";
 
 const maxBackdropCount = 14;
 const userDataPath = csi.getSystemPath("userData");
-var settingsFile = path.join(userDataPath, "ai2svelte-user-settings.json");
+var settingsFile = path.join(userDataPath, config.id, "user-settings.json");
 
 export const tooltipSettings: Options = {
   placement: "top-start" as Placement,
@@ -97,5 +98,8 @@ export function readUserSettings() {
 }
 
 export function writeUserSettings(userSettings) {
+  if (!fs.existsSync(settingsFile)) {
+    fs.mkdirSync(path.dirname(settingsFile));
+  }
   fs.writeFileSync(settingsFile, JSON.stringify(userSettings));
 }

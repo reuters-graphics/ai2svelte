@@ -2,41 +2,41 @@
 
 // accent
 $accent-primary: #dc4300;
-$accent-secondary: #241E1C;
+$accent-secondary: #241e1c;
 
 // backgrounds
 $dark-theme: (
   background: hsl(0, 0%, 9%),
-    primary: hsl(0, 0%, 12%),
-    secondary: #353535,
-    tertiary: #626262,
+  primary: hsl(0, 0%, 12%),
+  secondary: #353535,
+  tertiary: #626262,
 
-    invert: #000000,
+  invert: #000000,
 
-    accent-primary: #dc4300,
-    accent-secondary: #241E1C,
+  accent-primary: #dc4300,
+  accent-secondary: #241e1c,
 
-    text: #ffffff,
+  text: #ffffff,
 
-    black: #000000,
-    white: #ffffff
+  black: #000000,
+  white: #ffffff,
 );
 
 $light-theme: (
-background: hsl(0, 0%, 96%),
-primary: #E7E9EB,
-secondary: #D8D9DB,
-tertiary: #b5b5b5,
+  background: hsl(0, 0%, 96%),
+  primary: #e7e9eb,
+  secondary: #d8d9db,
+  tertiary: #b5b5b5,
 
-    invert: #ffffff,
+  invert: #ffffff,
 
-    accent-primary: oklch(59.908% 0.19852 37.432),
-    accent-secondary: #241E1C,
+  accent-primary: #dc4300,
+  accent-secondary: #241e1c,
 
-    text: #3D3D3D,
+  text: #3d3d3d,
 
-    black: #000000,
-    white: #ffffff
+  black: #000000,
+  white: #ffffff,
 );
 
 // statics

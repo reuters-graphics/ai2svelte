@@ -1,9 +1,7 @@
 <script lang="ts">
-  import path from "path";
   import { onMount } from "svelte";
   import ColorPicker from "svelte-awesome-color-picker";
   import { tooltip } from "svooltip";
-  import { csi } from "../../lib/utils/bolt";
   import { userData } from "../state.svelte";
   import { tooltipSettings } from "../utils/utils";
   import ThemeSwitcher from "./ThemeSwitcher.svelte";
@@ -16,11 +14,11 @@
 
   let { activeLabel = $bindable() }: Props = $props();
 
-  let accentColor: string = $state("#dc4300");
+  let accentColor: string = $derived(userData.accentColor);
 
   let activeTab: HTMLElement | undefined = $state();
 
-  let theme = $state(userData.theme);
+  let theme = $derived(userData.theme);
 
   function handleClick(e: Event) {
     if (e.target && e.target instanceof HTMLElement) {
@@ -37,12 +35,6 @@
         activeTab = firstLabel;
       }
     }, 300);
-
-    const userDataPath = csi.getSystemPath("userData");
-    var settingsFile = path.join(userDataPath, "ai2svelte-user-settings.json");
-    console.log(settingsFile);
-
-    // fs.writeFileSync(settingsFile, JSON.stringify(userSettings));
   });
 
   $effect(() => {
