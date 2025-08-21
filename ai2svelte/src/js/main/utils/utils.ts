@@ -1,16 +1,20 @@
 import { EditorView } from "@codemirror/view";
 import type { Placement } from "@floating-ui/dom";
-import path from "path";
 import { get } from "svelte/store";
 import type { Options } from "svooltip";
-import { fs } from "../../lib/cep/node";
+import { fs, path } from "../../lib/cep/node";
 import { csi, evalTS } from "../../lib/utils/bolt";
 import { currentBackdrop } from "../stores";
 import config from "../../../../cep.config";
 
 const maxBackdropCount = 14;
-const userDataPath = csi.getSystemPath("userData");
-var settingsFile = path.join(userDataPath, config.id, "user-settings.json");
+let userDataPath;
+let settingsFile;
+
+function setSettingsFile() {
+  userDataPath = csi.getSystemPath("userData");
+  settingsFile = path.join(userDataPath, config.id, "user-settings.json");
+}
 
 export const tooltipSettings: Options = {
   placement: "top-start" as Placement,
@@ -91,6 +95,9 @@ export const myTheme = EditorView.theme(
 );
 
 export function readUserSettings() {
+  if (settingsFile == undefined) {
+    setSettingsFile();
+  }
   if (fs.existsSync(settingsFile)) {
     var userSettings = JSON.parse(fs.readFileSync(settingsFile, "utf8"));
   }
@@ -98,6 +105,9 @@ export function readUserSettings() {
 }
 
 export function writeUserSettings(userSettings) {
+  if (settingsFile == undefined) {
+    setSettingsFile();
+  }
   if (!fs.existsSync(settingsFile)) {
     fs.mkdirSync(path.dirname(settingsFile));
   }

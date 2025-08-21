@@ -52,12 +52,22 @@ $color-white: #ffffff;
 
 /* @link https://utopia.fyi/type/calculator?c=320,16,1.2,1200,20,1.25,3,3,&s=0.75|0.5|0.25,1.5|2|3|4|6,s-l&g=s,l,xl,12 */
 
+// :root {
+//   --font-size-xs: clamp(0.79rem, -0.2vw + 0.83rem, 0.67rem);
+//   --font-size-sm: clamp(0.89rem, -0.08vw + 0.91rem, 0.84rem);
+//   --font-size-base: clamp(1rem, 0.08vw + 0.98rem, 1.05rem);
+//   --font-size-lg: clamp(1.13rem, 0.31vw + 1.06rem, 1.31rem);
+//   --font-size-xl: clamp(1.27rem, 0.63vw + 1.14rem, 1.64rem);
+// }
+
+/* @link https://utopia.fyi/type/calculator?c=320,14,1.125,1200,16,1.125,2,2,&s=0.75|0.5|0.25,1.5|2|3|4|6,s-l&g=s,l,xl,12 */
+
 :root {
-  --font-size-xs: clamp(0.79rem, -0.2vw + 0.83rem, 0.67rem);
-  --font-size-sm: clamp(0.89rem, -0.08vw + 0.91rem, 0.84rem);
-  --font-size-base: clamp(1rem, 0.08vw + 0.98rem, 1.05rem);
-  --font-size-lg: clamp(1.13rem, 0.31vw + 1.06rem, 1.31rem);
-  --font-size-xl: clamp(1.27rem, 0.63vw + 1.14rem, 1.64rem);
+  --font-size-xs: clamp(0.6914rem, 0.6554rem + 0.1796vw, 0.7901rem);
+  --font-size-sm: clamp(0.7778rem, 0.7374rem + 0.202vw, 0.8889rem);
+  --font-size-base: clamp(0.875rem, 0.8295rem + 0.2273vw, 1rem);
+  --font-size-lg: clamp(0.9844rem, 0.9332rem + 0.2557vw, 1.125rem);
+  --font-size-xl: clamp(1.1074rem, 1.0499rem + 0.2876vw, 1.2656rem);
 }
 
 :root {

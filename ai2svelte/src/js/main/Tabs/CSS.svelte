@@ -656,6 +656,10 @@
     width: 100%;
     display: grid;
     grid-gap: 8px;
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+
+    @media screen and (max-width: 559px) {
+      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    }
   }
 </style>

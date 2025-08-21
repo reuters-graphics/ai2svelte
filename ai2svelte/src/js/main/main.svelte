@@ -1,5 +1,4 @@
 <script lang="ts">
-  import path from "path";
   import { onDestroy, onMount, untrack } from "svelte";
   import { get } from "svelte/store";
   import { csi, evalTS } from "../lib/utils/bolt";
@@ -70,10 +69,11 @@
       $updateInProgress = true;
       fetchSettings();
       previousSettings = { ...$settingsObject };
+      splashScreen = true;
     } else {
       // handle splash for testing
       setTimeout(() => {
-        // splashScreen = false;
+        splashScreen = true;
       }, 3000);
     }
   });
@@ -94,7 +94,7 @@
 </script>
 
 <div class="app">
-  <Intro bind:loaded={splashScreen} />
+  <!-- <Intro bind:loaded={splashScreen} /> -->
 
   {#if splashScreen}
     <TabBar bind:activeLabel={activeTab} />

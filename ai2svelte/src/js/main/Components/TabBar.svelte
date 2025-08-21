@@ -44,13 +44,17 @@
         accentColor
       );
       userData.accentColor = accentColor;
-      writeUserSettings(userData);
+      if (window.cep) {
+        writeUserSettings(userData);
+      }
     }
   });
 
   $effect(() => {
     userData.theme = theme;
-    writeUserSettings(userData);
+    if (window.cep) {
+      writeUserSettings(userData);
+    }
   });
 </script>
 
