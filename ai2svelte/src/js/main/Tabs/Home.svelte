@@ -110,6 +110,7 @@
     id="hero-button"
     onclick={async (e) => {
       const ele = e.currentTarget;
+      ele.textContent = "Running...";
       ele.setAttribute("disabled", "true");
       // set show_completion_dialog_box
       // unless set by user
@@ -124,9 +125,11 @@
           code: { css: $stylesString },
         });
         saveSettings($settingsObject, $styles);
+        ele.textContent = "Run Nightly";
         ele.removeAttribute("disabled");
       } else {
         setTimeout(() => {
+          ele.textContent = "Run Nightly";
           ele.removeAttribute("disabled");
         }, 2000);
       }
