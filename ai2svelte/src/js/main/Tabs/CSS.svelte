@@ -500,6 +500,7 @@
         />
       </button>
       <div
+        id="picker-fill"
         style="--picker-color: {fillColor};"
         use:tooltip={{
           ...tooltipSettings,
@@ -525,6 +526,7 @@
         />
       </div>
       <div
+        id="picker-shadow"
         style="--picker-color: {shadowColor};"
         use:tooltip={{
           ...tooltipSettings,

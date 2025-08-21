@@ -10,7 +10,7 @@
 
   import Intro from "./Components/Intro.svelte";
   import TabBar from "./Components/TabBar.svelte";
-  import About from "./Tabs/About.svelte";
+  import Settings from "./Tabs/Settings.svelte";
   import CSS from "./Tabs/CSS.svelte";
   import Home from "./Tabs/Home.svelte";
   import Preview from "./Tabs/Preview.svelte";
@@ -105,8 +105,8 @@
       <CSS />
     {:else if activeTab === "PREVIEW"}
       <Preview />
-    {:else if activeTab === "ABOUT"}
-      <About />
+    {:else if activeTab === "SETTINGS"}
+      <Settings />
     {/if}
   {/if}
 </div>

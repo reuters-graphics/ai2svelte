@@ -58,7 +58,7 @@ hr {
   display: flex;
 
   .picker {
-    display: none !important;
+    // display: none !important;
   }
 
   label {
@@ -72,6 +72,12 @@ hr {
     div.color {
       box-shadow: inset 0 0 0px 3px rgba(0, 0, 0, 0.15);
     }
+  }
+}
+
+#picker-accent {
+  .picker {
+    display: none !important;
   }
 }
 
