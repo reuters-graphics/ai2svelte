@@ -6,7 +6,13 @@
   import { evalTS } from "../../lib/utils/bolt";
 
   // DATA IMPORTS
-  import { isCEP, settingsObject, styles, updateInProgress } from "../stores";
+  import {
+    isCEP,
+    settingsObject,
+    styles,
+    updateInProgress,
+    currentBackdrop,
+  } from "../stores";
   import animations from "./data/animations.json?raw";
   import shadows from "./data/shadows.json?raw";
   import specimens from "./data/specimens.json?raw";
@@ -50,6 +56,7 @@
   let specimenWeight: 200 | 300 | 400 | 500 | 600 | 700 | 800 | 900 =
     $state(400);
   let backdrop: string | undefined = $state();
+  const maxBackdropCount: number = 14;
   let fillColor: string = $state("#ffffff");
   let shadowColor: string = $state("#000000");
   let cssSelector: string = $state(`p[class^="g-pstyle"]`);
@@ -186,6 +193,7 @@
   async function changeBackdrop() {
     let newImageURL;
     try {
+      $currentBackdrop = ($currentBackdrop + 1) % maxBackdropCount;
       newImageURL = await fetchNewImageURL();
     } catch (error) {
       changeBackdrop();

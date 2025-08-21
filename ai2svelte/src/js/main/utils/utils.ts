@@ -7,7 +7,6 @@ import { csi, evalTS } from "../../lib/utils/bolt";
 import { currentBackdrop } from "../stores";
 import config from "../../../../cep.config";
 
-const maxBackdropCount = 14;
 let userDataPath;
 let settingsFile;
 
@@ -35,7 +34,6 @@ export async function fetchNewImageURL() {
   let currBackdrop = get(currentBackdrop);
   try {
     const imgURL = `../../../assets/images/backdrops/backdrop_${currBackdrop}.jpg`;
-    currentBackdrop.set((currBackdrop + 1) % maxBackdropCount);
     return imgURL;
   } catch (error) {
     console.log(error);
