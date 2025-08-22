@@ -75,7 +75,7 @@
       // handle splash for testing
       setTimeout(() => {
         splashScreen = true;
-      }, 3000);
+      }, 300);
     }
   });
 

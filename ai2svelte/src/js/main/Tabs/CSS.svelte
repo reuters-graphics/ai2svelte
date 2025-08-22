@@ -677,18 +677,20 @@
   }
 
   #extra-configs {
+    $tranparentSecondary: var(--color-secondary);
     position: fixed;
     z-index: 2;
     margin: 0 auto;
     left: 50%;
     transform: translate(-50%, -50%);
-    filter: drop-shadow(0 0 8px rgba(0, 0, 0, 0.5));
+    filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.15));
     display: flex;
     flex-direction: row;
     justify-content: space-around;
     align-items: center;
     gap: 16px;
-    background-color: var(--color-secondary);
+    background-color: var(--color-primary);
+    border: 10px solid rgba($tranparentSecondary, 0.5);
     padding: 1rem 1.25rem;
     border-radius: 24px;
     @include animation-default;

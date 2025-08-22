@@ -255,7 +255,6 @@ export function main(settingsArg) {
   }
 
   doc.selection = null;
-  alert(missingFontFamilies.join("|"));
   return missingFontFamilies;
 
   // =================================
