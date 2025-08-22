@@ -137,10 +137,6 @@ export function generateAllMixins(stylesObject) {
       })
   );
 
-  console.log("Styles ojbect");
-  console.log(JSON.stringify(stylesObject));
-  console.log(allShadowStyles);
-
   // get all unique animation styles
   const allAnimationStyles = new Set(
     Object.keys(stylesObject)

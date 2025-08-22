@@ -46,6 +46,7 @@
     if (userSettings) {
       userData.theme = userSettings.theme;
       userData.accentColor = userSettings.accentColor;
+      userData.fontsConfig = userSettings.fontsConfig || {};
     }
 
     const fetchedSettings = await evalTS("getVariable", "ai-settings");

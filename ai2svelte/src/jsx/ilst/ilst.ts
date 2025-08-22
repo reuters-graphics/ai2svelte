@@ -1,55 +1,59 @@
 import { updateSettings, fetchSettings } from "./updateSettings";
 import { fetchSelectors } from "./fetchSelectors";
 import { addSnippet } from "./addSnippet";
-import { storeHiddenData, getHiddenData } from './dataOperations';
-import { main } from './nightly/nightly';
-import { getDocPath, createFolder, createFile, getSelectedItems } from "./ilstUtils";
+import { storeHiddenData, getHiddenData } from "./dataOperations";
+import { main } from "./nightly/nightly";
+import {
+  getDocPath,
+  createFolder,
+  createFile,
+  getSelectedItems,
+} from "./ilstUtils";
 
 export const updateAiSettings = (settingsObj: string, str: string) => {
-  if(app) {
+  if (app) {
     updateSettings(settingsObj, str);
   }
 };
 
 export const fetchAiSettings = (settingsObj: string) => {
-  if(app) {
+  if (app) {
     return fetchSettings(settingsObj);
   }
 };
 
 export const fetchDocSelectors = () => {
-  if(app) {
+  if (app) {
     return fetchSelectors();
   }
-}
+};
 
 export const addSnippetLayer = () => {
-  if(app) {
+  if (app) {
     return addSnippet();
   }
-}
+};
 
 export const setVariable = (key, value) => {
-  if(app) {
+  if (app) {
     return storeHiddenData(key, value);
   }
-}
+};
 
 export const getVariable = (key) => {
-  if(app) {
+  if (app) {
     return getHiddenData(key);
   }
-}
+};
 
 export const runNightly = (settings) => {
   if (app) {
-    main(settings);
+    return main(settings);
   }
-}
+};
 
 export const runPreview = (settings, path) => {
-  if(app) {
-
+  if (app) {
     createFolder(path);
 
     settings.settings.isPreview = true;
@@ -63,29 +67,29 @@ export const runPreview = (settings, path) => {
 
     main(settings);
   }
-}
+};
 
 export const getFilePath = () => {
-  if(app) {
+  if (app) {
     return getDocPath();
   }
-}
+};
 
 export const makeFolder = (path) => {
-  if(app) {
+  if (app) {
     return createFolder(path);
   }
-}
+};
 
 export const makeFile = (path, content) => {
-  if(app) {
+  if (app) {
     createFile(path, content);
     return path;
   }
-}
+};
 
 export const fetchSelectedItems = () => {
-  if(app) {
+  if (app) {
     return getSelectedItems();
   }
-}
+};

@@ -10,6 +10,7 @@
   import { aiSettingsTokens } from "../utils/settingsTokens";
   import type { AiSettingOption, AiSettingsType } from "./types";
   import { saveSettings } from "../utils/utils";
+  import { userData } from "../state.svelte";
 
   let activeFormat: string = $state("");
   let uiContent: HTMLElement | undefined = $state();
@@ -117,13 +118,19 @@
       if (window.cep) {
         // let disabled state kick in
         await delay(200);
-        evalTS("runNightly", {
+        const missingFontFamilies = await evalTS("runNightly", {
           settings: {
             show_completion_dialog_box: true,
             ...$settingsObject,
           },
-          code: { css: $stylesString },
+          code: { css: $stylesString, fontsConfig: userData.fontsConfig },
         });
+        if (missingFontFamilies.length > 0) {
+          missingFontFamilies.forEach((family) => {
+            userData.fontsConfig[family] = "";
+          });
+        }
+        console.log("Missing fonts:", missingFontFamilies);
         saveSettings($settingsObject, $styles);
         ele.textContent = "Run Nightly";
         ele.removeAttribute("disabled");

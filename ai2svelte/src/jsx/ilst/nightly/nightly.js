@@ -127,6 +127,8 @@ export function main(settingsArg) {
   let doc, docPath, docSlug, docIsSaved;
   let progressBar;
   let JSON;
+  let fontsConfig;
+  let missingFontFamilies = [];
 
   initJSON();
 
@@ -253,6 +255,8 @@ export function main(settingsArg) {
   }
 
   doc.selection = null;
+  alert(missingFontFamilies.join("|"));
+  return missingFontFamilies;
 
   // =================================
   // ai2svelte render function
@@ -265,6 +269,9 @@ export function main(settingsArg) {
     if (doc.selection && doc.selection.typename) {
       clearSelection();
     }
+
+    // set fontsConfig object
+    fontsConfig = textBlockContent.fontsConfig;
 
     unlockObjects(); // Unlock containers and clipping masks
     var masks = findMasks(); // identify all clipping masks and their contents
@@ -1792,6 +1799,9 @@ export function main(settingsArg) {
       if (range.aiStyle.aifont && !range.cssStyle["font-family"]) {
         warnOnce(
           "Missing a rule for converting font: " +
+            "font-family: " +
+            range.aiStyle.aifont.split("-")[0] +
+            "\n" +
             range.aiStyle.aifont +
             ". Sample text: " +
             truncateString(range.text, 35),
@@ -1885,11 +1895,16 @@ export function main(settingsArg) {
     };
 
     var findFamily = function () {
-      var family = aifont.match(
-        /(source|knowledge|menlo|arial|georgia|freight|)/gi
-      );
-      if (family && fontFamilies[family[0].toLowerCase()]) {
-        return fontFamilies[family[0].toLowerCase()];
+      if (fontsConfig && aifont) {
+        let aiFontName = aifont.split("-")[0];
+        if (fontsConfig[aiFontName]) {
+          return fontsConfig[aiFontName];
+        } else {
+          if (!contains(missingFontFamilies, aiFontName)) {
+            missingFontFamilies.push(aiFontName);
+          }
+          return "";
+        }
       }
       return "";
     };
