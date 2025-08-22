@@ -17,8 +17,9 @@ hr {
   border: 1px solid var(--color-secondary);
 }
 
-#content {
+.content {
   position: relative;
+  width: 100%;
 }
 
 .content-item {
@@ -70,9 +71,16 @@ hr {
     height: 24px;
 
     div.color {
-      box-shadow: inset 0 0 0px 3px rgba(0, 0, 0, 0.15);
+      //   box-shadow: inset 0 0 0px 3px rgba(0, 0, 0, 0.15);
+      outline: 1px solid var(--color-tertiary);
     }
   }
+}
+
+#picker-fill,
+#picker-shadow {
+  width: 20px !important;
+  height: 20px !important;
 }
 
 #picker-accent {

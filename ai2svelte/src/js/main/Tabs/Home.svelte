@@ -13,7 +13,6 @@
   import { userData } from "../state.svelte";
 
   let activeFormat: string = $state("");
-  let uiContent: HTMLElement | undefined = $state();
   let codeContent: HTMLElement | undefined = $state();
 
   let previousSettings: Record<string, any> | undefined = $state();
@@ -150,12 +149,11 @@
     bind:activeValue={activeFormat}
   />
 
-  <div id="content">
+  <div class="content">
     {#if activeFormat === "UI"}
       <div
         id="ui-form"
         class="options content-item"
-        bind:this={uiContent}
         in:fly={{ y: -50, duration: 300 }}
         out:fly={{ y: 50, duration: 300 }}
       >

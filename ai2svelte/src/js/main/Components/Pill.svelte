@@ -62,7 +62,7 @@
     }
 
     svg {
-      width: 16px;
+      width: 12px;
       aspect-ratio: 1;
       fill: var(--color-tertiary);
       @include animation-default;

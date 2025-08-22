@@ -1,6 +1,6 @@
 @use "./styles/theme.scss" as *;
 @use "./styles/variables.scss" as *;
-@use './styles/fonts.scss' as *;
+@use "./styles/fonts.scss" as *;
 
 :root {
   --svooltip-arrow-size: 0px;
@@ -9,16 +9,21 @@
 *,
 *::before,
 *::after {
-    margin: 0;
-    box-sizing: border-box;
-    font-family: "Geist Mono";
-    font-size: var(--font-size-base);
+  margin: 0;
+  box-sizing: border-box;
+  font-family: "Geist Mono";
+  font-size: var(--font-size-base);
 }
 
 body {
   padding: 0;
   margin: 0;
-  font-family: "Geist Mono", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-family:
+    "Geist Mono",
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   background-color: var(--color-background);
@@ -33,13 +38,13 @@ p {
   text-wrap: pretty;
 }
 
-p::selection, input::selection {
+p::selection,
+input::selection {
   background-color: var(--color-accent-primary);
   color: var(--color-text);
 }
 
-
 ::-webkit-scrollbar {
-  width: 10px;
+  width: 0px;
   -webkit-appearance: always;
 }

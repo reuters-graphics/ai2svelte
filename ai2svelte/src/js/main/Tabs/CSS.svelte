@@ -1,6 +1,6 @@
 <script lang="ts">
   // SVELTE IMPORTS
-  import { onDestroy, onMount } from "svelte";
+  import { onDestroy, onMount, untrack } from "svelte";
   import { fly, slide } from "svelte/transition";
   // BOLT IMPORTS
   import { evalTS } from "../../lib/utils/bolt";
@@ -50,7 +50,8 @@
   import ShadowCard from "../Components/ShadowCard.svelte";
   import type { Style } from "./types";
 
-  let activeTab = $state("");
+  let activeTab: string = $state("");
+  let activeFormat: string = $state("UI");
 
   let specimen: string = $state("");
   let specimenWeight: 200 | 300 | 400 | 500 | 600 | 700 | 800 | 900 =
@@ -171,16 +172,18 @@
     backdrop = await fetchNewImageURL();
   });
 
-  // onDestroy(() => {
-  //     // save XMPMetadata when style object changes
-  //     // avoid saving XMPMetadata on style changes to prevent too many calls
-  //     if (window.cep) {
-  //         // save settings objects if styles are modified
-  //         if (JSON.stringify(previousStyles) !== JSON.stringify($styles)) {
-  //             saveSettings($settingsObject, $styles);
-  //         }
-  //     }
-  // });
+  // switches to UI format
+  // when format is set to Code
+  // and user switches to Animation
+  $effect(() => {
+    if (activeTab == "animations") {
+      untrack(() => {
+        if (activeFormat == "Code") {
+          activeFormat = "UI";
+        }
+      });
+    }
+  });
 
   /**
    * Asynchronously changes the backdrop image by fetching a new image URL.
@@ -463,163 +466,192 @@
     </div>
   {/if}
 
+  <Input label="Identifier" type="text" bind:value={cssSelector} />
+
+  <div
+    id="extra-configs"
+    class={activeTab == "shadows" && activeFormat == "UI"
+      ? "showConfigs"
+      : "hideConfigs"}
+  >
+    <button
+      id="replace-image"
+      onclick={changeBackdrop}
+      aria-label="Change backdrop"
+      use:tooltip={{
+        ...tooltipSettings,
+        content: "Change backdrop",
+      }}
+    >
+      <img style="width: 100%;" src={replaceImageIcon} alt="Change backdrop" />
+    </button>
+    <button
+      id="replace-specimen"
+      onclick={changeSpecimen}
+      aria-label="Change type specimen"
+      use:tooltip={{
+        ...tooltipSettings,
+        content: "Change type specimen",
+      }}
+    >
+      <img
+        style="width: 100%;"
+        src={typeSpecimenIcon}
+        alt="Change type specimen"
+      />
+    </button>
+    <div
+      id="picker-fill"
+      style="--picker-color: {fillColor};"
+      use:tooltip={{
+        ...tooltipSettings,
+        content: "Fill color (view only)",
+      }}
+    >
+      <ColorPicker
+        position="responsive"
+        label=""
+        isAlpha={false}
+        bind:hex={fillColor}
+        sliderDirection="horizontal"
+        --picker-width="160px"
+        --picker-height="120px"
+        --slider-width="20px"
+        --picker-indicator-size="40px"
+        --picker-z-index="10"
+        --input-size="20px"
+        --cp-border-color="#ffffff22"
+        --cp-bg-color="#292929"
+        --cp-text-color="#ffffff"
+        --cp-input-color="#292929"
+      />
+    </div>
+    <div
+      id="picker-shadow"
+      style="--picker-color: {shadowColor};"
+      use:tooltip={{
+        ...tooltipSettings,
+        content: "Shadow color",
+      }}
+    >
+      <ColorPicker
+        position="responsive"
+        label=""
+        isAlpha={false}
+        bind:hex={shadowColor}
+        sliderDirection="horizontal"
+        --picker-width="160px"
+        --picker-height="120px"
+        --slider-width="20px"
+        --picker-indicator-size="40px"
+        --picker-z-index="10"
+        --input-size="20px"
+        --cp-border-color="#ffffff22"
+        --cp-bg-color="#292929"
+        --cp-text-color="#ffffff"
+        --cp-input-color="#292929"
+      />
+    </div>
+  </div>
+
   <SectionTabBar
     labels={["shadows", "animations"]}
     tooltipDescription={["Add shadows", "Add animations"]}
-    bind:activeValue={activeTab}
-  >
-    <div id="extra-configs">
-      <button
-        id="replace-image"
-        onclick={changeBackdrop}
-        aria-label="Change backdrop"
-        use:tooltip={{
-          ...tooltipSettings,
-          content: "Change backdrop",
-        }}
-      >
-        <img
-          style="width: 24px;"
-          src={replaceImageIcon}
-          alt="Change backdrop"
-        />
-      </button>
-      <button
-        id="replace-specimen"
-        onclick={changeSpecimen}
-        aria-label="Change type specimen"
-        use:tooltip={{
-          ...tooltipSettings,
-          content: "Change type specimen",
-        }}
-      >
-        <img
-          style="width: 24px;"
-          src={typeSpecimenIcon}
-          alt="Change type specimen"
-        />
-      </button>
+    formats={["UI", "Code"]}
+    formatTooltipDescription={["Simplified settings", "Advanced settings"]}
+    bind:activeFormat
+    bind:activeTab
+  ></SectionTabBar>
+
+  <div class="content">
+    {#if activeFormat == "UI"}
+      {#if activeTab == "shadows"}
+        <div class="card-container content-item">
+          {#each allShadows as shadow, index (shadow.id)}
+            <ShadowCard
+              name={shadow.id}
+              shadow={shadow.shadow}
+              {specimen}
+              {specimenWeight}
+              {backdrop}
+              {shadowColor}
+              {fillColor}
+              bind:active={shadow.active}
+              bind:dataName={shadow.dataName}
+              onChange={(e: Event) => {
+                allShadows[index].active = shadow.active;
+                allShadows = [...allShadows];
+                toggleShadowCard(shadow.dataName, shadow.active);
+              }}
+              delay={index * 20}
+            />
+          {/each}
+        </div>
+      {:else if activeTab == "animations"}
+        <div class="card-container content-item">
+          {#each allAnimations as animation, index}
+            <AnimationCard
+              name={animation.name}
+              animation={animation.usage}
+              animationArguments={animation.arguments}
+              bind:active={animation.active}
+              animationRule={animation.animationRule}
+              definition={animation.definition}
+              candidate={animation.candidate}
+              onChange={(e: Event) => {
+                allAnimations[index].active = animation.active;
+                allAnimations = [...allAnimations];
+                toggleAnimationCard(
+                  animation.usage,
+                  animation.name,
+                  animation.arguments,
+                  animation.animationRule,
+                  animation.active
+                );
+              }}
+              delay={index * 20}
+            />
+          {/each}
+        </div>
+      {/if}
+    {:else if activeFormat == "Code"}
       <div
-        id="picker-fill"
-        style="--picker-color: {fillColor};"
-        use:tooltip={{
-          ...tooltipSettings,
-          content: "Fill color (view only)",
-        }}
+        class="code-editor content-item"
+        in:fly={{ y: -50, duration: 300 }}
+        out:fly={{ y: 50, duration: 300 }}
       >
-        <ColorPicker
-          position="responsive"
-          label=""
-          isAlpha={false}
-          bind:hex={fillColor}
-          sliderDirection="horizontal"
-          --picker-width="160px"
-          --picker-height="120px"
-          --slider-width="20px"
-          --picker-indicator-size="40px"
-          --picker-z-index="10"
-          --input-size="24px"
-          --cp-border-color="#ffffff22"
-          --cp-bg-color="#292929"
-          --cp-text-color="#ffffff"
-          --cp-input-color="#292929"
+        <CmTextArea
+          bind:textValue={editableCssString}
+          type="css"
+          onUpdate={(e: string) => {
+            updateStyle(e);
+          }}
         />
       </div>
-      <div
-        id="picker-shadow"
-        style="--picker-color: {shadowColor};"
-        use:tooltip={{
-          ...tooltipSettings,
-          content: "Shadow color",
-        }}
-      >
-        <ColorPicker
-          position="responsive"
-          label=""
-          isAlpha={false}
-          bind:hex={shadowColor}
-          sliderDirection="horizontal"
-          --picker-width="160px"
-          --picker-height="120px"
-          --slider-width="20px"
-          --picker-indicator-size="40px"
-          --picker-z-index="10"
-          --input-size="24px"
-          --cp-border-color="#ffffff22"
-          --cp-bg-color="#292929"
-          --cp-text-color="#ffffff"
-          --cp-input-color="#292929"
-        />
-      </div>
-    </div>
-  </SectionTabBar>
-
-  <Input label="Identifier" type="text" bind:value={cssSelector} />
-
-  {#if activeTab == "shadows"}
-    <div class="shadow-container">
-      {#each allShadows as shadow, index (shadow.id)}
-        <ShadowCard
-          name={shadow.id}
-          shadow={shadow.shadow}
-          {specimen}
-          {specimenWeight}
-          {backdrop}
-          {shadowColor}
-          {fillColor}
-          bind:active={shadow.active}
-          bind:dataName={shadow.dataName}
-          onChange={(e: Event) => {
-            allShadows[index].active = shadow.active;
-            allShadows = [...allShadows];
-            toggleShadowCard(shadow.dataName, shadow.active);
-          }}
-          delay={index * 20}
-        />
-      {/each}
-    </div>
-  {:else if activeTab == "animations"}
-    <div class="shadow-container">
-      {#each allAnimations as animation, index}
-        <AnimationCard
-          name={animation.name}
-          animation={animation.usage}
-          animationArguments={animation.arguments}
-          bind:active={animation.active}
-          animationRule={animation.animationRule}
-          definition={animation.definition}
-          candidate={animation.candidate}
-          onChange={(e: Event) => {
-            allAnimations[index].active = animation.active;
-            allAnimations = [...allAnimations];
-            toggleAnimationCard(
-              animation.usage,
-              animation.name,
-              animation.arguments,
-              animation.animationRule,
-              animation.active
-            );
-          }}
-          delay={index * 20}
-        />
-      {/each}
-    </div>
-  {/if}
-
-  <div class="code-editor">
-    <CmTextArea
-      bind:textValue={editableCssString}
-      type="css"
-      onUpdate={(e: string) => {
-        updateStyle(e);
-      }}
-    />
+    {/if}
   </div>
 </div>
 
 <style lang="scss">
   @use "../styles/shadows.scss" as *;
   @use "../styles/animations.scss" as *;
+  @use "../styles/variables.scss" as *;
+
+  :global {
+    .option-container:has(#select-Identifier) {
+      margin-bottom: 16px;
+    }
+
+    .showConfigs {
+      bottom: 0%;
+      opacity: 1;
+    }
+
+    .hideConfigs {
+      bottom: -5%;
+      opacity: 0;
+    }
+  }
 
   .shadow-content {
     display: flex;
@@ -629,22 +661,41 @@
   }
 
   .pills-container {
+    width: 100%;
     display: flex;
     flex-direction: row;
+    flex-wrap: wrap;
     gap: 8px;
-    margin-bottom: 16px;
+  }
+
+  .configs {
+    width: 100%;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-around;
+    gap: 2rem;
   }
 
   #extra-configs {
+    position: fixed;
+    z-index: 2;
+    margin: 0 auto;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    filter: drop-shadow(0 0 8px rgba(0, 0, 0, 0.5));
     display: flex;
     flex-direction: row;
-    justify-content: center;
+    justify-content: space-around;
     align-items: center;
     gap: 16px;
+    background-color: var(--color-secondary);
+    padding: 1rem 1.25rem;
+    border-radius: 24px;
+    @include animation-default;
 
     button {
-      width: 24px;
-      height: 24px;
+      width: 20px;
+      height: 20px;
     }
 
     #replace-image,
@@ -662,11 +713,11 @@
     }
   }
 
-  .shadow-container {
+  .card-container {
     width: 100%;
     display: grid;
     grid-gap: 8px;
-    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
 
     @media screen and (max-width: 559px) {
       grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));

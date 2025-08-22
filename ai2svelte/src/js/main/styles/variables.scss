@@ -12,23 +12,6 @@ $color-gray: #808080;
 $color-black: #000000;
 $color-white: #ffffff;
 
-// _theme-tokens.scss
-$light-theme: (
-  primary: #007bff,
-  secondary: #6c757d,
-  background: #ffffff,
-  text: #212529,
-  border: #dee2e6,
-);
-
-$dark-theme: (
-  primary: #0d6efd,
-  secondary: #6c757d,
-  background: #121212,
-  text: #ffffff,
-  border: #333333,
-);
-
 @mixin animation-default($property: all) {
   transition: 0.3s $property ease;
 }
