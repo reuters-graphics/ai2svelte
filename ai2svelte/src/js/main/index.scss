@@ -15,8 +15,13 @@
   font-size: var(--font-size-base);
 }
 
+html {
+  height: 100%;
+}
+
 body {
-  padding: 0;
+  height: 100%;
+  padding: 1rem;
   margin: 0;
   font-family:
     "Geist Mono",
@@ -28,6 +33,10 @@ body {
   -moz-osx-font-smoothing: grayscale;
   background-color: var(--color-background);
   color: var(--color-text);
+}
+
+#app {
+  height: 100%;
 }
 
 p {

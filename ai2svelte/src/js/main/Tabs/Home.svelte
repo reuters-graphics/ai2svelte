@@ -131,15 +131,15 @@
         }
         console.log("Missing fonts:", missingFontFamilies);
         saveSettings($settingsObject, $styles);
-        ele.textContent = "Run Nightly";
+        ele.textContent = "Run AI2SVELTE";
         ele.removeAttribute("disabled");
       } else {
         setTimeout(() => {
-          ele.textContent = "Run Nightly";
+          ele.textContent = "Run AI2SVELTE";
           ele.removeAttribute("disabled");
         }, 2000);
       }
-    }}>Run Nightly</button
+    }}>Run AI2SVELTE</button
   >
 
   <SectionTitle
@@ -219,6 +219,8 @@
 </div>
 
 <style lang="scss">
+  @use "../styles/variables.scss" as *;
+
   .tab-content {
     display: flex;
     flex-direction: column;
@@ -228,25 +230,48 @@
   #hero-button {
     cursor: pointer;
     padding: 1rem;
-    color: var(--color-white);
-    background-color: var(--color-accent-primary);
+    color: var(--color-text);
+    background-color: var(--color-primary);
     border: unset;
-    border-radius: 4px;
     font-size: var(--font-size-s);
     font-weight: 500;
     text-transform: uppercase;
     letter-spacing: 0.2rem;
-    transition: 0.2s ease;
     margin-bottom: 1rem;
+    @include animation-default;
   }
 
   #hero-button:hover {
-    letter-spacing: 0;
+    background-color: var(--color-accent-primary);
+    color: var(--color-white);
   }
 
   #hero-button:disabled {
-    opacity: 0.2;
+    $primary-clr: var(--color-accent-primary);
+    $secondary-clr: rgba(0, 0, 0, 0.25);
     cursor: not-allowed;
+    opacity: 0.5;
+    color: var(--color-white);
+    background:
+      repeating-linear-gradient(
+        -45deg,
+        $primary-clr,
+        $primary-clr 8px,
+        $secondary-clr 8px,
+        $secondary-clr 16px
+      ),
+      $primary-clr;
+    background-size: 200% 200%;
+    animation: flicker 4s linear infinite;
+  }
+
+  @keyframes flicker {
+    0% {
+      background-position: 0% 0%;
+    }
+    100% {
+      background-position: 100% 100%;
+    }
   }
 
   .options {

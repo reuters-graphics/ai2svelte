@@ -7,15 +7,14 @@ $accent-secondary: #241e1c;
 // backgrounds
 $dark-theme: (
   background: hsl(0, 0%, 9%),
-  primary: hsl(0, 0%, 12%),
+  primary: hsl(0, 0%, 14%),
   secondary: #353535,
   tertiary: #626262,
 
   invert: #000000,
 
   accent-primary: #dc4300,
-  accent-secondary: #241e1c,
-
+  accent-secondary: darken($accent-primary, 10%),
   text: #ffffff,
 
   black: #000000,

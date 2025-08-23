@@ -1,17 +1,3 @@
-$accent: #dc4300;
-$accent-dark: #241e1c;
-
-$color-charcoal: #1e1e1e;
-$color-charcoal-dark: #171717;
-$color-charcoal-light: #292929;
-$color-charcoal-lighter: #353535;
-$color-charcoal-lightest: #626262;
-
-$color-silver: #a3a3a3;
-$color-gray: #808080;
-$color-black: #000000;
-$color-white: #ffffff;
-
 @mixin animation-default($property: all) {
   transition: 0.3s $property ease;
 }
