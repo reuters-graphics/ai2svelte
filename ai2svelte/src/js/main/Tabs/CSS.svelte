@@ -113,6 +113,11 @@
     }
   });
 
+  async function detectIdentifier() {
+    const identifier = await evalTS("fetchSelectedItems");
+    cssSelector = identifier || "";
+  }
+
   /**
    * Adds an event listener for the ART_SELECTION_CHANGED event using the AIEventAdapter singleton.
    * When the selection changes, it fetches the selected items' identifier using evalTS("fetchSelectedItems")
@@ -125,8 +130,7 @@
     const adapter = AIEventAdapter.getInstance();
     adapter.addEventListener(AIEvent.ART_SELECTION_CHANGED, async (e: any) => {
       console.log("Selection changed:");
-      const identifier = await evalTS("fetchSelectedItems");
-      cssSelector = identifier || "";
+      await detectIdentifier();
     });
   }
 
@@ -164,6 +168,7 @@
     if ($isCEP) {
       initialLoad = true;
       addSelectionChangeEventListener();
+      detectIdentifier();
     }
 
     previousStyles = { ...$styles };
@@ -634,7 +639,6 @@
 
 <style lang="scss">
   @use "../styles/shadows.scss" as *;
-  @use "../styles/animations.scss" as *;
   @use "../styles/variables.scss" as *;
 
   :global {

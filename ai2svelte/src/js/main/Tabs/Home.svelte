@@ -116,7 +116,7 @@
       // unless set by user
       if (window.cep) {
         // let disabled state kick in
-        await delay(200);
+        await delay(500);
         const missingFontFamilies = await evalTS("runNightly", {
           settings: {
             show_completion_dialog_box: true,

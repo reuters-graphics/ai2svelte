@@ -1,0 +1,30 @@
+---
+title: ai2svelte Settings
+description: Configure ai2svelte to match your design workflow and output preferences.
+---
+
+import { Image } from "astro:assets";
+import { Steps } from "@astrojs/starlight/components";
+import Image_Autocomplete from "../../../../public/images/autocomplete.png";
+
+The ai2svelte plugin comes with sensible default settings optimized for most workflows. However, you can easily customize these settings through the plugin's **Home** tab to better suit your specific needs and project requirements.
+
+### Adding/Removing properties
+
+<Steps>
+  1. Open the `Home` tab in the ai2svelte panel. {/* prettier-ignore */}
+  2. Switch from `UI` to `Code` format view. {/* prettier-ignore */}
+  3. Add your new property as a key-value pair in YAML format.
+  {/* prettier-ignore */}
+</Steps>
+
+The code editor provides helpful features to streamline property management, including syntax highlighting and intelligent value suggestions to ensure proper configuration.
+
+<Image
+  src={Image_Autocomplete}
+  alt="Screenshot showing auto-complete suggestions for ai2svelte settings"
+/>
+
+### Restoring Default Settings
+
+To restore all ai2svelte settings to their factory defaults, navigate to the `Settings` tab and click the `Reset Config` button. This will revert all custom configurations back to the original optimized values.

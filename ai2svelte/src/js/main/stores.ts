@@ -9,7 +9,7 @@ const testStyle: Style = {
   "#text1": ["color: yellow", "stroke: white"],
 };
 
-export const styles: Writable<Style> = writable(testStyle);
+export const styles: Writable<Style> = writable({});
 
 export const stylesString = derived(styles, ($styles) => {
   return generateAllMixins($styles) + "\n" + styleObjectToString($styles);
