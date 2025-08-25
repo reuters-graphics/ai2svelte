@@ -1,10 +1,12 @@
 // @ts-check
 import { defineConfig } from "astro/config";
 import starlight from "@astrojs/starlight";
+import svelte from "@astrojs/svelte";
 
 // https://astro.build/config
 export default defineConfig({
   integrations: [
+    svelte(),
     starlight({
       title: "ai2svelte",
       logo: {
