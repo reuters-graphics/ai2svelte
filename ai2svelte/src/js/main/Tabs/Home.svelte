@@ -129,7 +129,6 @@
             userData.fontsConfig[family] = "";
           });
         }
-        console.log("Missing fonts:", missingFontFamilies);
         saveSettings($settingsObject, $styles);
         ele.textContent = "Run AI2SVELTE";
         ele.removeAttribute("disabled");

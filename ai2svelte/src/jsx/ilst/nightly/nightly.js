@@ -1798,11 +1798,11 @@ export function main(settingsArg) {
       if (range.aiStyle.aifont && !range.cssStyle["font-family"]) {
         warnOnce(
           "Missing a rule for converting font: " +
-            "font-family: " +
+            "\nfont-family: " +
             range.aiStyle.aifont.split("-")[0] +
-            "\n" +
+            "\nfont: " +
             range.aiStyle.aifont +
-            ". Sample text: " +
+            ". \nSample text: " +
             truncateString(range.text, 35),
           range.aiStyle.aifont
         );

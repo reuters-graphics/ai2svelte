@@ -42,6 +42,7 @@ export default defineConfig({
             "users/auto-detect",
             "users/tagged-layers",
             "users/snippets",
+            "users/font-config",
             "users/examples",
           ],
         },

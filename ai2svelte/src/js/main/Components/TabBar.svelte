@@ -80,6 +80,7 @@
     <div class="tab-items">
       {@render tab("Home", true)}
       {@render tab("CSS", false)}
+      {@render tab("Preview", false)}
       {@render tab("Settings", false)}
     </div>
     <div class="theme-configs">

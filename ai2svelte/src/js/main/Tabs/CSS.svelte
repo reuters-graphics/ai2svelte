@@ -24,18 +24,8 @@
   import { tooltip } from "svooltip";
   import { AIEvent, AIEventAdapter } from "../../../public/BoltHostAdapter.js";
   // UTILS
-  import {
-    createAnimationMixinFromCSS,
-    createShadowMixinFromCSS,
-    generateAllMixins,
-    parseSCSS,
-    styleObjectToString,
-  } from "../utils/cssUtils";
-  import {
-    fetchNewImageURL,
-    saveSettings,
-    tooltipSettings,
-  } from "../utils/utils";
+  import { parseSCSS, styleObjectToString } from "../utils/cssUtils";
+  import { fetchNewImageURL, tooltipSettings } from "../utils/utils";
   import type { AnimationItem, ShadowItem } from "./types";
   // MEDIA
   import replaceImageIcon from "../../../public/replace_image.svg";
