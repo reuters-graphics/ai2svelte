@@ -72,7 +72,7 @@
       ? 'calc(4px)'
       : 'calc(-100% - 4px)'}); color: {progress.current < 0.5
       ? 'var(--color-text)'
-      : 'var(--color-invert)'}; opacity: {dragging ? 0 : 0.7};"
+      : 'var(--color-invert)'}; opacity: {dragging ? 0 : 0.5};"
   >
     {value}
   </p>
@@ -120,6 +120,7 @@
     user-select: none;
     opacity: 0.5;
     font-size: var(--font-size-base);
+	font-weight: 800;
     @include animation-default(transform);
     @include animation-default(opacity);
   }
