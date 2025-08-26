@@ -107,7 +107,7 @@ export function writeUserSettings(userSettings) {
     setSettingsFile();
   }
   if (!fs.existsSync(settingsFile)) {
-    fs.mkdirSync(path.dirname(settingsFile));
+    fs.mkdirSync(path.dirname(settingsFile), {recursive: true});
   }
   fs.writeFileSync(settingsFile, JSON.stringify(userSettings));
 }
