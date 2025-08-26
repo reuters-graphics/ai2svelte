@@ -1,80 +1,35 @@
 <script lang="ts">
-  import { company, displayName, version } from "../../../shared/shared";
   import { userData } from "../state.svelte";
   import CmTextArea from "../Components/CMTextArea.svelte";
   import SectionTitle from "../Components/SectionTitle.svelte";
   import { settingsObject } from "../stores";
-
-  // holds key-value pairs as string
-  let yamlString: string = $derived.by(() => {
-    return Object.keys(userData.fontsConfig)
-      .filter((key) => userData.fontsConfig[key] !== null)
-      .map((key) => `${key}: ${userData.fontsConfig[key]}`)
-      .join("\n")
-      .trim();
-  });
-
-  // same as yamlString but used actively
-  // by the text editor
-  let editableYamlString: string = $state("");
-
-  // Sync the derived yamlString to the editable version when styles change
-  $effect(() => {
-    editableYamlString = yamlString;
-  });
+  import AiSettings from "./Settings/AiSettings.svelte";
+  import FontSettings from "./Settings/FontSettings.svelte";
 
   function resetUI() {
     userData.accentColor = "#dc4300";
     userData.theme = "dark";
   }
 
-  // converts string in textarea to js object
-  function convertStringToObject(s: string) {
-    const obj: { [key: string]: unknown } = {};
-    s.trim()
-      .split("\n")
-      .forEach((line) => {
-        const [key, ...rest] = line.split(":");
-        if (key && rest.length) {
-          let value: unknown = rest.join(":").trim();
-          // Try to convert to number if possible
-          // if (parseInt(value as string)) {
-          //     value = Number(value);
-          // }
-          obj[key.trim()] = value;
-        }
-      });
-
-    userData.fontsConfig = obj;
-  }
-
   function resetConfig() {
     $settingsObject = {};
   }
+
+  let activeFormat: string = $state("UI");
 </script>
 
-<div class="content">
-  <div class="tab-content">
-    <SectionTitle
-      title={"Font Configuration"}
-      labels={[]}
-      tooltipDescription={[]}
-    />
-    <CmTextArea
-      type="yaml"
-      bind:textValue={editableYamlString}
-      onUpdate={(e: string) => {
-        convertStringToObject(e);
-      }}
-    />
+<div class="tab-content">
+  <div id="settings-content">
+    <AiSettings bind:activeFormat />
+
+    <hr />
+
+    <FontSettings {activeFormat} />
   </div>
 
-  <div id="bottom-content">
-    <div id="reset-settings">
-      <button onclick={resetConfig}>Reset Config</button>
-      <button onclick={resetUI}>Reset Theme</button>
-    </div>
-    <p id="about-line">{displayName} v{version} by {company}</p>
+  <div id="reset-settings">
+    <button onclick={resetConfig}>Reset Config</button>
+    <button onclick={resetUI}>Reset Theme</button>
   </div>
 </div>
 
@@ -85,14 +40,21 @@
     height: 100%;
     display: flex;
     flex-direction: column;
-    justify-content: space-between;
     gap: 1rem;
   }
 
   .tab-content {
+    height: 100%;
     display: flex;
     flex-direction: column;
-    gap: 16px;
+    justify-content: space-between;
+    gap: 1rem;
+  }
+
+  #settings-content {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
   }
 
   #bottom-content {
