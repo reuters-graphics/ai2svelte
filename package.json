@@ -16,7 +16,8 @@
     "@astrojs/svelte": "^7.1.0",
     "@reuters-graphics/savile": "^0.0.4",
     "astro": "^5.6.1",
-    "sharp": "^0.32.5"
+    "sharp": "^0.32.5",
+    "svelte": "^5.38.6"
   },
   "description": "[![Built with Starlight](https://astro.badg.es/v2/built-with-starlight/tiny.svg)](https://starlight.astro.build)",
   "main": "index.js",
