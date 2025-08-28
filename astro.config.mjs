@@ -5,6 +5,8 @@ import svelte from "@astrojs/svelte";
 
 // https://astro.build/config
 export default defineConfig({
+  site: "https://reuters-graphics.github.io",
+  base: "/ai2svelte",
   outDir: "./docs",
   integrations: [
     svelte(),
