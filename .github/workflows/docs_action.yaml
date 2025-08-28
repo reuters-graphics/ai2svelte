@@ -32,10 +32,6 @@ jobs:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
-    env:
-      # Prevent pnpm from touching internal packages
-      PNPM_IGNORE_PATTERNS: "ai2svelte/** legacy/**"
-      PNPM_WORKSPACE_ROOT: true
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -61,14 +57,14 @@ jobs:
 
       - name: Install dependencies
         run: |
-          # Only install dependencies for root package.json, completely ignore all subdirectories
-          pnpm install --ignore-scripts --frozen-lockfile --workspace-root --filter=.
+          # Only install dependencies for root package.json, ignore any subdirectories
+          pnpm install --ignore-scripts --frozen-lockfile
         working-directory: .
 
       # Needed by astro docs that have mermaid graphs, unfortunately
       - run: |
           # Install playwright only for the root package, never touch internal packages
-          pnpm add playwright --ignore-scripts --workspace-root --filter=.
+          pnpm add playwright --ignore-scripts
           pnpm playwright install --with-deps
 
       - name: Build docs

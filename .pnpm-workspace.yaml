@@ -1,8 +1,0 @@
-packages:
-  # Explicitly exclude ALL subdirectories to prevent pnpm from managing internal package.json files
-  - "!ai2svelte"
-  - "!ai2svelte/**"
-  - "!legacy"
-  - "!legacy/**"
-  - "!packages/**"
-  # Don't include any packages - this workspace only manages the root
