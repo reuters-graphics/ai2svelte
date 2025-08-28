@@ -6,13 +6,7 @@
   import { evalTS } from "../../lib/utils/bolt";
 
   // DATA IMPORTS
-  import {
-    isCEP,
-    settingsObject,
-    styles,
-    updateInProgress,
-    currentBackdrop,
-  } from "../stores";
+  import { styles, updateInProgress, currentBackdrop } from "../stores";
   import animations from "./data/animations.json?raw";
   import shadows from "./data/shadows.json?raw";
   import specimens from "./data/specimens.json?raw";
@@ -28,10 +22,9 @@
   import { fetchNewImageURL, tooltipSettings } from "../utils/utils";
   import type { AnimationItem, ShadowItem } from "./types";
   // MEDIA
-  import replaceImageIcon from "../../../public/replace_image.svg";
-  import typeSpecimenIcon from "../../../public/type_specimen.svg";
+  import replaceImageIcon from "../../assets/replace_image.svg";
+  import typeSpecimenIcon from "../../assets/type_specimen.svg";
   // COMPONENT IMPORTS
-  import { css } from "@codemirror/lang-css";
   import AnimationCard from "../Components/AnimationCard.svelte";
   import CmTextArea from "../Components/CMTextArea.svelte";
   import Input from "../Components/Input.svelte";
@@ -72,7 +65,7 @@
 
       let string = styleObjectToString($styles);
 
-      if ($isCEP) {
+      if (window.cep) {
         evalTS("updateAiSettings", "shadow-settings", string);
       }
       return string;
@@ -155,7 +148,7 @@
       cssSelector = Object.keys($styles)[0] || 'p[class^="g-pstyle"]';
     }
 
-    if ($isCEP) {
+    if (window.cep) {
       initialLoad = true;
       addSelectionChangeEventListener();
       detectIdentifier();
@@ -660,14 +653,6 @@
     flex-direction: row;
     flex-wrap: wrap;
     gap: 8px;
-  }
-
-  .configs {
-    width: 100%;
-    display: flex;
-    flex-direction: row;
-    justify-content: space-around;
-    gap: 2rem;
   }
 
   #extra-configs {

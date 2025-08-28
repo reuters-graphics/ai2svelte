@@ -2,7 +2,7 @@ import { updateSettings, fetchSettings } from "./updateSettings";
 import { fetchSelectors } from "./fetchSelectors";
 import { addSnippet } from "./addSnippet";
 import { storeHiddenData, getHiddenData } from "./dataOperations";
-import { main } from "./nightly/nightly";
+import { main } from "./ai2svelte/ai2svelte";
 import {
   getDocPath,
   createFolder,

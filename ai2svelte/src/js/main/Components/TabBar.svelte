@@ -1,12 +1,15 @@
 <script lang="ts">
+  // SVELTE IMPORTS
   import { onMount } from "svelte";
+
+  // OTHER IMPORTS
   import ColorPicker from "svelte-awesome-color-picker";
   import { tooltip } from "svooltip";
   import { userData } from "../state.svelte";
-  import { tooltipSettings } from "../utils/utils";
-  import ThemeSwitcher from "./ThemeSwitcher.svelte";
+  import { tooltipSettings, writeUserSettings } from "../utils/utils";
 
-  import { writeUserSettings } from "../utils/utils";
+  // COMPONENT
+  import ThemeSwitcher from "./ThemeSwitcher.svelte";
 
   interface Props {
     activeLabel: string;
@@ -81,7 +84,6 @@
       {@render tab("Home", true)}
       {@render tab("Settings", false)}
       {@render tab("Styles", false)}
-      {@render tab("Preview", false)}
     </div>
     <div class="theme-configs">
       <ThemeSwitcher bind:theme />
@@ -156,16 +158,6 @@
     height: 2px;
     // top: 100%;
     background-color: var(--color-secondary);
-  }
-
-  .active-tab-line {
-    position: fixed;
-    width: 100px;
-    // left: 0;
-    // top: 0;
-    height: 2px;
-    background-color: var(--color-accent-primary);
-    @include animation-default;
   }
 
   .tab-items {

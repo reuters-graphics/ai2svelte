@@ -1,7 +1,5 @@
 <script lang="ts">
   import { userData } from "../state.svelte";
-  import CmTextArea from "../Components/CMTextArea.svelte";
-  import SectionTitle from "../Components/SectionTitle.svelte";
   import { settingsObject } from "../stores";
   import AiSettings from "./Settings/AiSettings.svelte";
   import FontSettings from "./Settings/FontSettings.svelte";
@@ -36,13 +34,6 @@
 <style lang="scss">
   @use "../styles/variables.scss" as *;
 
-  .content {
-    height: 100%;
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-  }
-
   .tab-content {
     height: 100%;
     display: flex;
@@ -55,17 +46,6 @@
     display: flex;
     flex-direction: column;
     gap: 2rem;
-  }
-
-  #bottom-content {
-    width: 100%;
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-  }
-
-  #about-line {
-    text-align: center;
   }
 
   #reset-settings {

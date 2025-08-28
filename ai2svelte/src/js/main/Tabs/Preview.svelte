@@ -3,6 +3,7 @@
   import { onMount, type Component } from "svelte";
   import { Spring } from "svelte/motion";
   import PreviewFrame from "../Components/PreviewFrame.svelte";
+  import { compile } from "svelte/compiler";
 
   // DATA IMPORTS
   import { settingsObject, stylesString, styles } from "../stores";
@@ -10,6 +11,7 @@
   // BOLT IMPORTS
   import { csi } from "../../lib/utils/bolt";
   import { evalTS } from "../../lib/utils/bolt";
+  import { fs, path } from "../../lib/cep/node";
 
   // OTHER IMPORTS
   // @ts-ignore
@@ -53,6 +55,16 @@
       },
       writablePath
     );
+
+    const inputPath = path.resolve(writablePath, "preview.svelte");
+    const outputPath = path.resolve(writablePath, "preview.js");
+
+    const source = fs.readFileSync(inputPath, "utf-8");
+
+    const { js } = compile(source, {});
+
+    fs.writeFileSync(outputPath, js.code);
+    console.log("✅ Compiled preview.svelte to preview.js");
   }
 
   /**

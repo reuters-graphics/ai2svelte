@@ -1,19 +1,25 @@
 <script lang="ts">
+  // SVELTE IMPORTS
   import { onDestroy, onMount, untrack } from "svelte";
   import { get } from "svelte/store";
+  import { settingsObject, styles, updateInProgress } from "./stores";
+
+  // BOLT IMPORTS
   import { csi, evalTS } from "../lib/utils/bolt";
+
+  // STYLE IMPORT
   import "./index.scss";
-  import { isCEP, settingsObject, styles, updateInProgress } from "./stores";
-  import { userData } from "./state.svelte";
   import "./styles/main.scss";
+
+  // OTHER IMPORTS
+  import { userData } from "./state.svelte";
   import { readUserSettings, saveSettings } from "./utils/utils";
 
-  import Intro from "./Components/Intro.svelte";
+  // TABS
   import TabBar from "./Components/TabBar.svelte";
   import Settings from "./Tabs/Settings.svelte";
   import Styles from "./Tabs/Styles.svelte";
   import Home from "./Tabs/Home.svelte";
-  import Preview from "./Tabs/Preview.svelte";
 
   let splashScreen: boolean = $state(false);
   let activeTab: string = $state("HOME");
@@ -64,9 +70,7 @@
   }
 
   onMount(() => {
-    isCEP.set(window.cep);
-
-    if (get(isCEP)) {
+    if (window.cep) {
       $updateInProgress = true;
       fetchSettings();
       previousSettings = { ...$settingsObject };
@@ -94,20 +98,16 @@
   });
 </script>
 
-<div class="app">
-  <!-- <Intro bind:loaded={splashScreen} /> -->
+{#if splashScreen}
+  <TabBar bind:activeLabel={activeTab} />
 
-  {#if splashScreen}
-    <TabBar bind:activeLabel={activeTab} />
-
-    {#if activeTab === "HOME"}
-      <Home />
-    {:else if activeTab === "STYLES"}
-      <Styles />
-    {:else if activeTab === "PREVIEW"}
-      <Preview />
-    {:else if activeTab === "SETTINGS"}
-      <Settings />
-    {/if}
+  {#if activeTab === "HOME"}
+    <Home />
+  {:else if activeTab === "STYLES"}
+    <Styles />
+    <!-- {:else if activeTab === "PREVIEW"} -->
+    <!-- <Preview /> -->
+  {:else if activeTab === "SETTINGS"}
+    <Settings />
   {/if}
-</div>
+{/if}

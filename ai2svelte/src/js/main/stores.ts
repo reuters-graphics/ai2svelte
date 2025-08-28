@@ -17,8 +17,6 @@ export const stylesString = derived(styles, ($styles) => {
 
 export const updateInProgress: Writable<boolean> = writable(false);
 
-export const isCEP: Writable<boolean> = writable(false);
-
 export const userTheme: Writable<string> = writable("dark");
 
 export const currentBackdrop: Writable<number> = writable(0);

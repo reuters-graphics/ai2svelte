@@ -1,7 +1,7 @@
 import { defineConfig } from "vite";
 
-import { svelte } from "@sveltejs/vite-plugin-svelte"; 
-import sveltePreprocess from "svelte-preprocess"; 
+import { svelte } from "@sveltejs/vite-plugin-svelte";
+import sveltePreprocess from "svelte-preprocess";
 
 import { cep, runAction } from "vite-cep-plugin";
 import cepConfig from "./cep.config";
@@ -48,19 +48,24 @@ if (action) runAction(config, action);
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [
-    svelte({ 
-      preprocess: sveltePreprocess({ 
+    svelte({
+      preprocess: sveltePreprocess({
         typescript: true,
         scss: {
-          includePaths: ['src/js']
-        }
-      })
-    }), 
-    // svelte(), 
+          includePaths: ["src/js"],
+        },
+      }),
+    }),
+    // svelte(),
     cep(config),
   ],
   resolve: {
-    alias: [{ find: "@esTypes", replacement: path.resolve(__dirname, "src") }],
+    alias: [
+      {
+        find: "@esTypes",
+        replacement: path.resolve(__dirname, "src"),
+      },
+    ],
   },
   root,
   clearScreen: false,
@@ -101,5 +106,5 @@ extendscriptConfig(
   cepConfig,
   extensions,
   isProduction,
-  isPackage,
+  isPackage
 );

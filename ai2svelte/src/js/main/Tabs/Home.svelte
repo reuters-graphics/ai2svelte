@@ -1,19 +1,13 @@
 <script lang="ts">
-  import { onDestroy, onMount, untrack } from "svelte";
-  import AiSettings from "./data/ai-settings.json";
-  import { fly } from "svelte/transition";
   import { settingsObject, stylesString, styles } from "../stores";
   import { evalTS } from "../../lib/utils/bolt";
-  import SectionTitle from "../Components/SectionTitle.svelte";
-  import Input from "../Components/Input.svelte";
-  import CmTextArea from "../Components/CMTextArea.svelte";
-  import { aiSettingsTokens } from "../utils/settingsTokens";
-  import type { AiSettingOption, AiSettingsType } from "./types";
   import { saveSettings } from "../utils/utils";
   import { userData } from "../state.svelte";
   import { company, displayName, version } from "../../../shared/shared";
 
-  function delay(ms) {
+  import Logo from "../Components/Logo.svelte";
+
+  function delay(ms: number) {
     return new Promise((resolve) => setTimeout(resolve, ms));
   }
 </script>
@@ -28,15 +22,20 @@
       // set show_completion_dialog_box
       // unless set by user
       if (window.cep) {
+        let missingFontFamilies = [];
         // let disabled state kick in
         await delay(500);
-        const missingFontFamilies = await evalTS("runNightly", {
-          settings: {
-            show_completion_dialog_box: true,
-            ...$settingsObject,
-          },
-          code: { css: $stylesString, fontsConfig: userData.fontsConfig },
-        });
+        try {
+          missingFontFamilies = await evalTS("runNightly", {
+            settings: {
+              show_completion_dialog_box: true,
+              ...$settingsObject,
+            },
+            code: { css: $stylesString, fontsConfig: userData.fontsConfig },
+          });
+        } catch (error) {
+          console.log(error);
+        }
         if (missingFontFamilies.length > 0) {
           missingFontFamilies.forEach((family) => {
             userData.fontsConfig[family] = "";
@@ -54,11 +53,23 @@
     }}>Run AI2SVELTE</button
   >
 
-  <p id="about-line">{displayName} v{version} by {company}</p>
+  <div id="credits">
+    <!-- <img class="logo" src={logo} alt="ai2svelte logo" /> -->
+    <Logo />
+    <p id="about-line">{displayName} v{version} by {company}</p>
+  </div>
 </div>
 
 <style lang="scss">
   @use "../styles/variables.scss" as *;
+
+  #credits {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 0.5rem;
+  }
 
   .tab-content {
     height: 100%;
@@ -115,20 +126,9 @@
     }
   }
 
-  .options {
-    display: flex;
-    flex-direction: row;
-    flex-wrap: wrap;
-    gap: 8px;
-  }
-
-  .ai-setting {
-    flex-grow: 1;
-    transition: 0.3s ease;
-  }
-
   #about-line {
     text-align: center;
     color: var(--color-tertiary);
+    letter-spacing: -0.05rem;
   }
 </style>

@@ -1,6 +1,6 @@
 <script lang="ts">
     import { onMount } from "svelte";
-    import { fly } from "svelte/transition";
+    import { fly } from "svelte/transition"; 
     import logoType from "../../../public/logotype.svg";
 
     let { loaded = $bindable(false) } = $props();

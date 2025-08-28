@@ -96,10 +96,6 @@
         opacity: 0.4;
         @include animation-default;
       }
-
-      .thumb {
-        fill: var(--color-accent-primary);
-      }
     }
   }
 

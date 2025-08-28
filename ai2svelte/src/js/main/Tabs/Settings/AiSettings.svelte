@@ -164,12 +164,6 @@
     gap: 1rem;
   }
 
-  .tab-content {
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-  }
-
   .options {
     display: flex;
     flex-direction: row;
