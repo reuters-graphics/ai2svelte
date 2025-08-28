@@ -26,5 +26,5 @@ jobs:
 
   docs:
     needs: prebuild
-    uses: reuters-graphics/action-workflows/.github/workflows/docs.yaml@main
+    uses: ./docs_action.yaml@main
     secrets: inherit

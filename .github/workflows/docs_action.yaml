@@ -1,0 +1,72 @@
+name: Build and deploy docs to GitHub Pages
+
+on:
+  workflow_call:
+    inputs:
+      docs_directory:
+        required: false
+        type: string
+        default: "./docs"
+      node_version:
+        required: false
+        type: string
+        default: "20"
+      build_script:
+        required: false
+        type: string
+        default: "build"
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: true
+
+jobs:
+  publish:
+    name: Publish docs
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ inputs.node_version }}
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm i
+
+      # Needed by astro docs that have mermaid graphs, unfortunately
+      - run: pnpm i playwright && pnpm playwright install --with-deps
+
+      - id: build-packages
+        name: Build all packages
+        run: pnpm run --if-present ${{ inputs.build_script }}
+
+      - name: Build docs
+        run: pnpm run --if-present build:docs
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          # Upload built docs directory
+          path: ${{ inputs.docs_directory }}
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
