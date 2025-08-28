@@ -46,17 +46,29 @@ jobs:
           cache: pnpm
 
       - name: Install dependencies
-        run: pnpm i
+        run: |
+          # Only install dependencies for root package.json, ignore internal packages
+          pnpm install --ignore-scripts --frozen-lockfile
+        working-directory: .
 
       # Needed by astro docs that have mermaid graphs, unfortunately
-      - run: pnpm i playwright && pnpm playwright install --with-deps
+      - run: |
+          # Install playwright only for the root package, not internal packages
+          pnpm install playwright --ignore-scripts
+          pnpm playwright install --with-deps
 
       - id: build-packages
         name: Build all packages
-        run: pnpm run --if-present ${{ inputs.build_script }}
+        run: |
+          # Only run build scripts defined in root package.json
+          pnpm run --if-present ${{ inputs.build_script }}
+        working-directory: .
 
       - name: Build docs
-        run: pnpm run --if-present build:docs
+        run: |
+          # Only run build:docs script from root package.json
+          pnpm run --if-present build:docs
+        working-directory: .
 
       - name: Setup Pages
         uses: actions/configure-pages@v4

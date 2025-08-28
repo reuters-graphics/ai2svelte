@@ -21,8 +21,11 @@ jobs:
       - name: Install pnpm
         run: npm install -g pnpm
 
-      - name: Install dependencies
-        run: pnpm install
+      - name: Install dependencies (root only)
+        run: |
+          # Ensure we only install dependencies for the root package.json
+          pnpm install --ignore-scripts --frozen-lockfile
+        working-directory: .
 
   docs:
     needs: prebuild

@@ -6,6 +6,11 @@ docs/
 # dependencies
 node_modules/
 
+# Prevent node_modules in internal packages (they should not be managed)
+ai2svelte/node_modules/
+legacy/node_modules/
+**/node_modules/
+
 # logs
 npm-debug.log*
 yarn-debug.log*
