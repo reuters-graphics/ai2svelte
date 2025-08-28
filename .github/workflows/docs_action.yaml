@@ -57,13 +57,6 @@ jobs:
           pnpm install playwright --ignore-scripts
           pnpm playwright install --with-deps
 
-      - id: build-packages
-        name: Build all packages
-        run: |
-          # Only run build scripts defined in root package.json
-          pnpm run --if-present ${{ inputs.build_script }}
-        working-directory: .
-
       - name: Build docs
         run: |
           # Only run build:docs script from root package.json

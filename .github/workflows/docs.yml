@@ -7,27 +7,6 @@ on:
   workflow_dispatch:
 
 jobs:
-  prebuild:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: 18
-
-      - name: Install pnpm
-        run: npm install -g pnpm
-
-      - name: Install dependencies (root only)
-        run: |
-          # Ensure we only install dependencies for the root package.json
-          pnpm install --ignore-scripts --frozen-lockfile
-        working-directory: .
-
   docs:
-    needs: prebuild
     uses: ./.github/workflows/docs_action.yaml
     secrets: inherit
