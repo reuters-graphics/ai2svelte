@@ -1,0 +1,60 @@
+---
+title: Styles
+description: Apply styles to your ai2svelte elements.
+---
+
+import { Aside } from "@astrojs/starlight/components";
+import { Image } from "astro:assets";
+import { Steps } from "@astrojs/starlight/components";
+import Image_Shadows_UI from "../../../../public/images/shadows_ui.png";
+import Image_Animations_UI from "../../../../public/images/animations_ui.png";
+import Image_Shadows_Code from "../../../../public/images/shadows_code.png";
+import Image_Animations_Code from "../../../../public/images/animations_code.png";
+
+Custom CSS styles can be applied directly from the plugin. This allows you to tailor the appearance of your components without needing to modify the underlying code.
+
+The plugin comes loaded with a set of unique CSS shadows and animations that can be applied to any element with a single click.
+
+## Shadows
+
+The ai2svelte plugin includes a variety of pre-defined shadow styles (sourced from [here](https://luissevillano.net/cheesy-shadow-picker/)) that can be easily applied to your components.
+
+To apply a shadow, enter an appropriate CSS selector in the identifier textbox and select any of the shadow styles from the cards provided below. The CSS code associated with the selected shadow will be automatically added to the generated output file.
+
+<Image
+  src={Image_Shadows_UI}
+  alt="Screenshot showing UI for shadow selection"
+/>
+
+The floating toolbar at the bottom provides few tools like changing the backdrop in the cards to check how the shadows look in different contexts, changing the type specimen along with it's weight, text fill color and changing the shadow color. The backdrop, text and text fill color do not affect the generated CSS and are only for preview purposes.
+
+## Animations
+
+The ai2svelte plugin also supports a variety of animations that can be applied to your components.
+
+<Image
+  src={Image_Animations_UI}
+  alt="Screenshot showing UI for animation selection"
+/>
+
+<Aside type="tip">
+  You can add more than one shadow or animation to a single selector. If more
+  than one animation/s are applied and they conflict, the last one defined will
+  take precedence.
+</Aside>
+
+## Advanced styling
+
+Changing the view format to `Code` allows users to to directly write SCSS code for more advanced styling options.
+
+<Image
+  src={Image_Shadows_Code}
+  alt="Screenshot showing code editor for advanced styling"
+/>
+
+Shadow mixins are defined with a color as an argument. Similarly, animation mixins are also defined with associated arguments and can be customized further.
+
+<Image
+  src={Image_Animations_Code}
+  alt="Screenshot showing code editor for advanced styling"
+/>

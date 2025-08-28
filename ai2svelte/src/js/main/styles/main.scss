@@ -1,0 +1,145 @@
+@use "./variables.scss" as *;
+
+@use "./shadows.scss" as *;
+
+@use "svooltip/styles.css" as *; // Include default styling
+
+.app {
+  position: relative;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+hr {
+  width: 100%;
+  border: 1px solid var(--color-secondary);
+}
+
+.content {
+  position: relative;
+  width: 100%;
+}
+
+.content-item {
+  position: relative;
+  top: 0;
+  left: 0;
+  width: 100%;
+}
+
+.content-item[inert] {
+  position: absolute;
+}
+
+.chips-container {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 1.5rem;
+}
+
+.code-editor {
+  width: 100%;
+  background-color: var(--color-primary);
+  padding: 0.75rem;
+  border: unset;
+  border-radius: 8px;
+  height: auto;
+}
+
+/* TOOLTIP STYLING */
+
+/* COLOR PICKER */
+.color-picker {
+  width: 24px !important;
+  height: 24px !important;
+  display: flex;
+
+  label {
+    margin: 0 !important;
+  }
+
+  .container {
+    width: 24px;
+    height: 24px;
+
+    div.color {
+      outline: 1px solid var(--color-tertiary);
+    }
+  }
+}
+
+#picker-fill,
+#picker-shadow {
+  width: 20px !important;
+  height: 20px !important;
+}
+
+div[aria-label="color picker"] {
+  border-radius: 8px !important;
+  padding: 0 !important;
+  // display: flex !important;
+  // flex-direction: column !important;
+
+  div.picker {
+    border-radius: 8px 8px 0px 0px;
+
+    div.picker-indicator {
+      background-color: var(--picker-color);
+      border: 2px solid white;
+    }
+  }
+
+  div.h {
+    margin: 0 !important;
+    padding: 0 !important;
+    // width: 100%;
+
+    div.slider {
+      width: var(--picker-width) !important;
+      max-width: unset !important;
+      margin: 0;
+      ---thumb-size: 24px !important;
+
+      div.thumb {
+        position: absolute;
+        border: unset;
+        box-shadow:
+          0px 0px 4px black,
+          0px 0px 4px black;
+      }
+    }
+
+    div.track {
+      border: unset !important;
+      border-radius: 0 !important;
+    }
+  }
+
+  div.text-input {
+    margin: 0 !important;
+    padding: 0 !important;
+
+    * {
+      margin: 0 !important;
+      padding: 0 !important;
+      border-radius: 0 !important;
+    }
+
+    button {
+      display: block;
+      border-radius: 0px 0px 8px 8px !important;
+    }
+
+    span.appear {
+      background-color: var(--cp-input-color) !important;
+    }
+  }
+}
+
+div[aria-label="color picker"].is-open {
+  display: flex !important;
+  flex-direction: column !important;
+}

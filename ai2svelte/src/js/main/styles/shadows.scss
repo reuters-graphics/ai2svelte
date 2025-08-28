@@ -1,0 +1,226 @@
+@mixin shadow-veganCheese($clr) {
+  text-shadow:
+    rgba($clr, 1) 2px 0px 0px,
+    rgba($clr, 1) 1.75517px 0.958851px 0px,
+    rgba($clr, 1) 1.0806px 1.68294px 0px,
+    rgba($clr, 1) 0.141474px 1.99499px 0px,
+    rgba($clr, 1) -0.832294px 1.81859px 0px,
+    rgba($clr, 1) -1.60229px 1.19694px 0px,
+    rgba($clr, 1) -1.97998px 0.28224px 0px,
+    rgba($clr, 1) -1.87291px -0.701566px 0px,
+    rgba($clr, 1) -1.30729px -1.5136px 0px,
+    rgba($clr, 1) -0.421592px -1.95506px 0px,
+    rgba($clr, 1) 0.567324px -1.91785px 0px,
+    rgba($clr, 1) 1.41734px -1.41108px 0px,
+    rgba($clr, 1) 1.92034px -0.558831px 0px;
+}
+
+@mixin shadow-gouda($clr) {
+  text-shadow:
+    1px 1px 1px rgba($clr, 0.9),
+    1px -1px 1px rgba($clr, 0.9),
+    -1px 1px 1px rgba($clr, 0.9),
+    -1px -1px 1px rgba($clr, 0.9);
+}
+
+@mixin shadow-cheddar($clr) {
+  text-shadow:
+    0px 0px 3px rgba($clr, 1),
+    0px 0px 3px rgba($clr, 1),
+    0px 0px 3px rgba($clr, 1);
+}
+
+@mixin shadow-parmesan($clr) {
+  text-shadow:
+    0 1px 2px rgba($clr, 0.6),
+    0 0 2px rgba($clr, 0.3);
+}
+
+@mixin shadow-brie($clr) {
+  text-shadow:
+    0px 0px 1px rgba($clr, 1),
+    0px 0px 2px rgba($clr, 1),
+    0px 0px 3px rgba($clr, 1),
+    0px 0px 4px rgba($clr, 1);
+}
+
+@mixin shadow-roquefort($clr) {
+  text-shadow:
+    0 0 2px rgba($clr, 1),
+    0 0 2px rgba($clr, 0.8),
+    0 0 2px rgba($clr, 0.5);
+}
+
+@mixin shadow-manchego($clr) {
+  text-shadow:
+    rgba($clr, 1) 1px 0px 0px,
+    rgba($clr, 1) 0.540302px 0.841471px 0px,
+    rgba($clr, 1) -0.416147px 0.909297px 0px,
+    rgba($clr, 1) -0.989992px 0.14112px 0px,
+    rgba($clr, 1) -0.653644px -0.756802px 0px,
+    rgba($clr, 1) 0.283662px -0.958924px 0px,
+    rgba($clr, 1) 0.96017px -0.279415px 0px;
+}
+
+@mixin shadow-mozzarella($clr) {
+  text-shadow:
+    0 0 10px rgba($clr, 1),
+    0 0 10px rgba($clr, 1);
+}
+
+@mixin shadow-emmental($clr) {
+  text-shadow:
+    -1px 0 rgba($clr, 1),
+    0 1px rgba($clr, 1),
+    1px 0 rgba($clr, 1),
+    0 -1px rgba($clr, 1);
+}
+
+@mixin shadow-gorgonzola($clr) {
+  text-shadow:
+    rgba($clr, 1) 0px 0px 3px,
+    rgba($clr, 1) 0px 0px 3px;
+}
+
+@mixin shadow-feta($clr) {
+  text-shadow:
+    0 0 10px rgba($clr, 0.5),
+    0 0 3px rgba($clr, 1);
+}
+
+@mixin shadow-provolone($clr) {
+  text-shadow:
+    1px 1px 0px rgba($clr, 0.7),
+    0px 1px 0px rgba($clr, 0.7),
+    -1px 1px 0px rgba($clr, 0.7),
+    -1px 0px 0px rgba($clr, 0.7),
+    -1px -1px 0px rgba($clr, 0.7),
+    0px -1px 0px rgba($clr, 0.7),
+    1px -1px 0px rgba($clr, 0.7);
+}
+
+@mixin shadow-havarti($clr) {
+  text-shadow: 0 0 4px rgba($clr, 0.7);
+}
+
+@mixin shadow-camembert($clr) {
+  text-shadow: 1px 1px 3px rgba($clr, 1);
+}
+
+@mixin shadow-asiago($clr) {
+  text-shadow:
+    rgba($clr, 0.3) 0.5px 0px 0px,
+    rgba($clr, 0.3) 0.540302px 0.841471px 0px,
+    rgba($clr, 0.3) -0.416147px 0.909297px 0px,
+    rgba($clr, 0.3) -0.989992px 0.14112px 0px,
+    rgba($clr, 0.3) -0.653644px -0.756802px 0px,
+    rgba($clr, 0.3) 0.283662px -0.958924px 0px,
+    rgba($clr, 0.3) 0.96017px -0.279415px 0px;
+}
+
+@mixin shadow-edam($clr) {
+  text-shadow:
+    1px 1px 3px rgba($clr, 0.3),
+    -1px 1px 3px rgba($clr, 0.3),
+    1px -1px 3px rgba($clr, 0.3),
+    -1px -1px 3px rgba($clr, 0.3);
+}
+
+@mixin shadow-colby($clr) {
+  text-shadow:
+    1px 1px 1px rgba($clr, 0.7),
+    -1px -1px 1px rgba($clr, 0.7),
+    1px -1px 1px rgba($clr, 0.7),
+    -1px 1px 1px rgba($clr, 0.7);
+}
+
+@mixin shadow-fontina($clr) {
+  text-shadow:
+    -2px 2px 6px rgba($clr, 1),
+    0 0 2px rgba($clr, 1),
+    2px 2px 6px rgba($clr, 1);
+}
+
+@mixin shadow-montereyJack($clr) {
+  text-shadow:
+    1px 1px 1px rgba($clr, 0.3),
+    -1px 1px 1px rgba($clr, 0.3),
+    1px -1px 1px rgba($clr, 0.3),
+    -1px -1px 1px rgba($clr, 0.3),
+    2px 2px 2px rgba($clr, 0.3),
+    -2px 2px 2px rgba($clr, 0.3),
+    2px -2px 2px rgba($clr, 0.3),
+    -2px -2px 2px rgba($clr, 0.3);
+}
+
+@mixin shadow-ricotta($clr) {
+  text-shadow:
+    0px 0px 3px rgba($clr, 1),
+    0px 0px 5px rgba($clr, 1),
+    0px 0px 10px rgba($clr, 1);
+}
+
+@mixin shadow-stilton($clr) {
+  text-shadow:
+    0 1px 0 rgba($clr, 1),
+    1px 0 0 rgba($clr, 1),
+    0 -1px 0 rgba($clr, 1),
+    -1px 0 0 rgba($clr, 1) !important;
+}
+
+@mixin shadow-taleggio($clr) {
+  text-shadow:
+    0px 0px 5px rgba($clr, 1),
+    0px 0px 5px rgba($clr, 1);
+}
+
+@mixin shadow-cotija($clr) {
+  text-shadow:
+    1px -1px 0 rgba($clr, 1),
+    1px -1px 0 rgba($clr, 1),
+    -1px 1px 0 rgba($clr, 1),
+    1px 1px 0 rgba($clr, 1);
+}
+
+@mixin shadow-halloumi($clr) {
+  text-shadow: 0px 0px 2px rgba($clr, 1);
+}
+
+@mixin shadow-pecorino($clr) {
+  text-shadow:
+    1px 1px 0px rgba($clr, 0.7),
+    -1px -1px 0px rgba($clr, 0.7),
+    -1px 1px 0px rgba($clr, 0.7),
+    1px -1px 0px rgba($clr, 0.7);
+}
+
+@mixin shadow-burrata($clr) {
+  text-shadow: 1px 1px 2px rgba($clr, 0.5);
+}
+
+@mixin shadow-raclette($clr) {
+  text-shadow:
+    rgba($clr, 1) 1px 0px 0px,
+    rgba($clr, 1) 0.5px 0.8px 0px,
+    rgba($clr, 1) -0.4px 0.9px 0px,
+    rgba($clr, 1) -0.98px 0.14px 0px,
+    rgba($clr, 1) -0.65px -0.75px 0px,
+    rgba($clr, 1) 0.28px -0.95px 0px,
+    rgba($clr, 1) 0.96px -0.27px 0px;
+}
+
+@mixin shadow-olorosoCheese($clr) {
+  text-shadow:
+    -1px -1px 0 rgba($clr, 1),
+    1px -1px 0 rgba($clr, 1),
+    -1px 1px 0 rgba($clr, 1),
+    1px 1px 0 rgba($clr, 1);
+}
+
+@mixin shadow-pecorinoIi($clr) {
+  text-shadow:
+    1px 1px 0px rgba($clr, 1),
+    -1px 1px 0px rgba($clr, 1),
+    1px -1px 0px rgba($clr, 1),
+    -1px -1px 0px rgba($clr, 1);
+}

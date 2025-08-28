@@ -1,0 +1,3 @@
+@mixin animation-default($property: all) {
+  transition: 0.3s $property ease;
+}

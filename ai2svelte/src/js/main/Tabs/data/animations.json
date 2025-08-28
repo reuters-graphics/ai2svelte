@@ -1,0 +1,186 @@
+// follow this structure for animation item
+// {
+//     "name": "animationName",
+//     "usage": "@include animation-animationName()",
+//     "arguments": "arguments to a mixin (goes as comment)",
+//     "animationRule": "css animation rule",   // wherever possible, use specific property (eg scale instead of transform: scale) to avoid conflicts when using multiple animations
+//     "definition": "css keyframe rule",
+//     "candidate": "[shape, line]"
+// }
+// ----------------------------------------------------------------------------
+// MIXIN structure
+// @mixin animation-flash($start: 1, $end: 0) {
+//  @keyframes flash {
+//      0%,
+//      50%,
+//      100% {
+//          opacity: $start;
+//      }
+//      25%,
+//      75% {
+//          opacity: $end;
+//      }
+//  }
+// }
+[
+  {
+    "name": "pulse",
+    "usage": "@include animation-pulse()",
+    "arguments": "($scale: 0.8)",
+    "animationRule": "pulse 1s ease-in-out 0s infinite",
+    "definition": "@keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale($scale); } }",
+    "candidate": "shape"
+  },
+  {
+    "name": "rotate",
+    "usage": "@include animation-rotate()",
+    "arguments": "($degrees: 360deg)",
+    "animationRule": "rotate 0.5s ease-in-out 0s infinite",
+    "definition": "@keyframes rotate { from { transform: rotate(0deg); } to { transform: rotate($degrees); } }",
+    "candidate": "shape"
+  },
+  {
+    "name": "spin",
+    "usage": "@include animation-spin()",
+    "arguments": "($degrees: 360deg)",
+    "animationRule": "spin 1s linear 0s infinite",
+    "definition": "@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate($degrees); } }",
+    "candidate": "shape"
+  },
+  {
+    "name": "bounce",
+    "usage": "@include animation-bounce()",
+    "arguments": "($magnitude: -15px)",
+    "animationRule": "bounce 1s ease-in-out 0s infinite",
+    "definition": "@keyframes bounce { 0%, 20%, 53%, 80%, 100% { transform: translateY(0); } 40%, 43% { transform: translateY($magnitude); } 70% { transform: translateY(calc($magnitude * 0.5)); } 90% { transform: translateY(calc($magnitude * 0.25)); } }",
+    "candidate": "shape"
+  },
+  {
+    "name": "shake",
+    "usage": "@include animation-shake()",
+    "arguments": "($intensity: 10px)",
+    "animationRule": "shake 0.5s ease-in-out 0s infinite",
+    "definition": "@keyframes shake { 0%, 100% { transform: translateX(0); } 10%, 30%, 50%, 70%, 90% { transform: translateX(calc($intensity * -1)); } 20%, 40%, 60%, 80% { transform: translateX($intensity); } }",
+    "candidate": "shape"
+  },
+  {
+    "name": "wobble",
+    "usage": "@include animation-wobble()",
+    "arguments": "($magnitude: 5deg)",
+    "animationRule": "wobble 1s ease-in-out 0s infinite",
+    "definition": "@keyframes wobble { 0% { transform: translateX(0%) rotate(0deg); } 15% { transform: translateX(-25%) rotate(calc($magnitude * -1)); } 30% { transform: translateX(20%) rotate(calc($magnitude * 0.6)); } 45% { transform: translateX(-15%) rotate(calc($magnitude * -0.6)); } 60% { transform: translateX(10%) rotate(calc($magnitude * 0.4)); } 75% { transform: translateX(-5%) rotate(calc($magnitude * -0.2)); } 100% { transform: translateX(0%) rotate(0deg); } }",
+    "candidate": "shape"
+  },
+  {
+    "name": "jello",
+    "usage": "@include animation-jello()",
+    "arguments": "($magnitude: 12deg)",
+    "animationRule": "jello 1s ease-in-out 0s infinite",
+    "definition": "@keyframes jello { 0%, 11.1%, 100% { transform: skewX(0deg) skewY(0deg); } 22.2% { transform: skewX(calc($magnitude * -1.04)) skewY(calc($magnitude * -1.04)); } 33.3% { transform: skewX(calc($magnitude * 0.52)) skewY(calc($magnitude * 0.52)); } 44.4% { transform: skewX(calc($magnitude * -0.26)) skewY(calc($magnitude * -0.26)); } 55.5% { transform: skewX(calc($magnitude * 0.13)) skewY(calc($magnitude * 0.13)); } 66.6% { transform: skewX(calc($magnitude * -0.065)) skewY(calc($magnitude * -0.065)); } 77.7% { transform: skewX(calc($magnitude * 0.0325)) skewY(calc($magnitude * 0.0325)); } 88.8% { transform: skewX(calc($magnitude * -0.01625)) skewY(calc($magnitude * -0.01625)); } }",
+    "candidate": "shape"
+  },
+  {
+    "name": "flip",
+    "usage": "@include animation-flip()",
+    "arguments": "($perspective: 400px, $translateZ: 150px, $rotate: 360deg)",
+    "animationRule": "flip 1s ease-in-out 0s infinite",
+    "definition": "@keyframes flip { 0% { transform: perspective($perspective) rotateY(0); } 40% { transform: perspective($perspective) translateZ($translateZ) rotateY(calc($rotate * 0.47)); } 50% { transform: perspective($perspective) translateZ($translateZ) rotateY(calc($rotate * 0.53)) scale(1); } 80% { transform: perspective($perspective) rotateY($rotate) scale(0.95); } 100% { transform: perspective($perspective) scale(1); } }",
+    "candidate": "shape"
+  },
+  {
+    "name": "flash",
+    "usage": "@include animation-flash()",
+    "arguments": "($maxOpacity: 1, $minOpacity: 0)",
+    "animationRule": "flash 1s ease-in-out 0s infinite",
+    "definition": "@keyframes flash { 0%, 50%, 100% { opacity: $maxOpacity; } 25%, 75% { opacity: $minOpacity; } }",
+    "candidate": "shape"
+  },
+  {
+    "name": "heartBeat",
+    "usage": "@include animation-heartBeat()",
+    "arguments": "($scale: 1.5)",
+    "animationRule": "heartBeat 1.3s ease-in-out 0s infinite",
+    "definition": "@keyframes heartBeat { 0% { transform: scale(1); } 14% { transform: scale(calc(1 + ($scale - 1) * 0.87)); } 28% { transform: scale(1); } 42% { transform: scale(calc(1 + ($scale - 1) * 0.87)); } 70% { transform: scale(1); } }",
+    "candidate": "shape"
+  },
+  {
+    "name": "rubberBand",
+    "usage": "@include animation-rubberBand()",
+    "arguments": "($scaleX: 1.25, $scaleY: 0.75)",
+    "animationRule": "rubberBand 1s ease-in-out 0s infinite",
+    "definition": "@keyframes rubberBand { 0% { transform: scale(1); } 30% { transform: scaleX($scaleX) scaleY($scaleY); } 40% { transform: scaleX($scaleY) scaleY($scaleX); } 50% { transform: scaleX(calc(1 + ($scaleX - 1) * 0.6)) scaleY(calc(1 + ($scaleY - 1) * 0.6)); } 65% { transform: scaleX(calc(1 + ($scaleX - 1) * -0.2)) scaleY(calc(1 + ($scaleY - 1) * -0.2)); } 75% { transform: scaleX(calc(1 + ($scaleX - 1) * 0.2)) scaleY(calc(1 + ($scaleY - 1) * 0.2)); } 100% { transform: scale(1); } }",
+    "candidate": "shape"
+  },
+  {
+    "name": "dots",
+    "usage": "@include animation-dots()",
+    "arguments": "($scale: 1)",
+    "animationRule": "dots 1.4s ease-in-out 0s infinite both",
+    "definition": "@keyframes dots { 0%, 80%, 100% { scale: 0; } 40% { scale: $scale; } }",
+    "candidate": "shape"
+  },
+  {
+    "name": "lineProgress",
+    "usage": "@include animation-lineProgress()",
+    "arguments": "($dashArray: 20, $dashGap: 10, $dashOffset: 30)",
+    "animationRule": "dash 1s linear 0s infinite",
+    "definition": "@keyframes dash {0% {stroke-dashoffset: $dashOffset; stroke-dasharray: $dashArray $dashGap;} 100% {stroke-dashoffset: 0; stroke-dasharray: $dashArray $dashGap;}}",
+    "candidate": "line"
+  },
+  {
+    "name": "hueRotate",
+    "usage": "@include animation-hueRotate()",
+    "arguments": "($degrees: 360deg)",
+    "animationRule": "hueRotate 1s linear 0s infinite",
+    "definition": "@keyframes hueRotate {from {filter: hue-rotate(0deg);} to {filter: hue-rotate($degrees);}}",
+    "candidate": "shape"
+  },
+  {
+    "name": "zoomFade",
+    "usage": "@include animation-zoomFade()",
+    "arguments": "($zoom: 2)",
+    "animationRule": "zoomFade 1s ease-in-out 0s infinite",
+    "definition": "@keyframes zoomFade {0% {transform: scale(1);opacity: 1;}100% {transform: scale($zoom);opacity: 0;}}",
+    "candidate": "shape"
+  },
+  {
+    "name": "letterSpacing",
+    "usage": "@include animation-letterSpacing()",
+    "arguments": "($startSpacing: 0px, $endSpacing: 5px)",
+    "animationRule": "letterSpacing 1s ease-in-out 0s infinite alternate",
+    "definition": "@keyframes letterSpacing { from { letter-spacing: $startSpacing; } to { letter-spacing: $endSpacing; } }",
+    "candidate": "text"
+  },
+  {
+    "name": "textGlow",
+    "usage": "@include animation-textGlow()",
+    "arguments": "($shadow: 0 0 10px currentColor)",
+    "animationRule": "textGlow 2s ease-in-out 0s infinite alternate",
+    "definition": "@keyframes textGlow { from { text-shadow: none; } to { text-shadow: $shadow; } }",
+    "candidate": "text"
+  },
+  {
+    "name": "lineGrow",
+    "usage": "@include animation-lineGrow()",
+    "arguments": "($startWidth: 0, $endWidth: 5px)",
+    "animationRule": "lineGrow 1.5s ease-out 0s 1 alternate",
+    "definition": "@keyframes lineGrow { from { stroke-width: $startWidth; } to { stroke-width: $endWidth; } }",
+    "candidate": "line"
+  },
+  {
+    "name": "lineGlow",
+    "usage": "@include animation-lineGlow()",
+    "arguments": "($glowColorStart: red, $glowColorEnd: yellow, $intensity: 10px)",
+    "animationRule": "lineGlow 2s ease-in-out 0s infinite alternate",
+    "definition": "@keyframes lineGlow { from { filter: drop-shadow(0 0 2px $glowColorStart); } to { filter: drop-shadow(0 0 $intensity $glowColorEnd); } }",
+    "candidate": "line"
+  },
+  {
+    "name": "blurFocus",
+    "usage": "@include animation-blurFocus()",
+    "arguments": "($maxBlur: 10px)",
+    "animationRule": "blurFocus 2s ease-in-out 0s infinite alternate",
+    "definition": "@keyframes blurFocus { from { filter: blur($maxBlur); } to { filter: blur(0); } }",
+    "candidate": "shape"
+  }
+]

@@ -1,0 +1,72 @@
+// SCSS Variables
+
+// accent
+$accent-primary: #dc4300;
+$accent-secondary: #241e1c;
+
+// backgrounds
+$dark-theme: (
+  background: hsl(0, 0%, 8%),
+  primary: hsl(0, 0%, 14%),
+  secondary: #353535,
+  tertiary: #626262,
+
+  invert: #000000,
+
+  accent-primary: #dc4300,
+  accent-secondary: #241e1c,
+  text: #ffffff,
+
+  black: #000000,
+  white: #ffffff,
+);
+
+$light-theme: (
+  background: #e7e8eb,
+  primary: #ffffff,
+  secondary: #d8d9db,
+  tertiary: #b5b5b5,
+
+  invert: #ffffff,
+
+  accent-primary: #dc4300,
+  accent-secondary: #241e1c,
+
+  text: #1e1e1e,
+
+  black: #000000,
+  white: #ffffff,
+);
+
+// statics
+$color-black: #000000;
+$color-white: #ffffff;
+
+// Generate CSS custom properties
+@mixin generate-theme-vars($theme-map) {
+  @each $key, $value in $theme-map {
+    --color-#{$key}: #{$value};
+  }
+}
+
+/* @link https://utopia.fyi/type/calculator?c=320,14,1.125,1200,16,1.125,2,2,&s=0.75|0.5|0.25,1.5|2|3|4|6,s-l&g=s,l,xl,12 */
+
+:root {
+  --font-size-xs: clamp(0.6914rem, 0.6554rem + 0.1796vw, 0.7901rem);
+  --font-size-sm: clamp(0.7778rem, 0.7374rem + 0.202vw, 0.8889rem);
+  --font-size-base: clamp(0.875rem, 0.8295rem + 0.2273vw, 1rem);
+  --font-size-lg: clamp(0.9844rem, 0.9332rem + 0.2557vw, 1.125rem);
+  --font-size-xl: clamp(1.1074rem, 1.0499rem + 0.2876vw, 1.2656rem);
+}
+
+:root {
+  @include generate-theme-vars($dark-theme);
+}
+
+[data-theme="dark"] {
+  @include generate-theme-vars($dark-theme);
+}
+
+[data-theme="light"] {
+  @include generate-theme-vars($light-theme);
+}
