@@ -1,8 +1,8 @@
 packages:
-  # Explicitly exclude internal folders to prevent pnpm from managing their package.json files
+  # Explicitly exclude ALL subdirectories to prevent pnpm from managing internal package.json files
   - "!ai2svelte"
   - "!ai2svelte/**"
   - "!legacy"
   - "!legacy/**"
-  # Only include packages we want to manage through the workspace (none for now)
-  - "packages/*"
+  - "!packages/**"
+  # Don't include any packages - this workspace only manages the root
