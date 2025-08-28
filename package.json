@@ -33,5 +33,8 @@
   "bugs": {
     "url": "https://github.com/reuters-graphics/ai2svelte/issues"
   },
-  "homepage": "https://github.com/reuters-graphics/ai2svelte#readme"
+  "homepage": "https://github.com/reuters-graphics/ai2svelte#readme",
+  "devDependencies": {
+    "rimraf": "^6.0.1"
+  }
 }
