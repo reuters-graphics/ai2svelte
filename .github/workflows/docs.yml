@@ -26,5 +26,5 @@ jobs:
 
   docs:
     needs: prebuild
-    uses: ./docs_action.yaml@main
+    uses: ./.github/workflows/docs_action.yaml
     secrets: inherit
