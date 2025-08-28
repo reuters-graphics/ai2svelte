@@ -1,0 +1,3 @@
+packages:
+  - "packages/*" # Only include folders you want
+  - "!ai2svelte" # Exclude this folder
