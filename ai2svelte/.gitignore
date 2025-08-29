@@ -1,8 +1,10 @@
 node_modules
 .DS_Store
-dist
 dist-ssr
 *.local
-dist
 yarn-error.log
 .media
+.dist
+dist/cep
+!dist/zxp/
+!dist/zxp/**
