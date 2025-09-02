@@ -10,7 +10,7 @@
 {#snippet engineSnippet()}
   <div class="model-viewer">
     <model-viewer
-      src={`/docs/models/engine.glb`}
+      src={`/ai2svelte/models/engine.glb`}
       shadow-intensity="0.5"
       camera-controls
       touch-action="pan-y"
@@ -25,7 +25,7 @@
 {#snippet steeringSnippet()}
   <div class="model-viewer">
     <model-viewer
-      src={`/docs/models/steering-wheel.glb`}
+      src={`/ai2svelte/models/steering-wheel.glb`}
       shadow-intensity="0.5"
       camera-controls
       touch-action="pan-y"
@@ -40,7 +40,7 @@
 {#snippet wheelSnippet()}
   <div class="model-viewer">
     <model-viewer
-      src={`/docs/models/wheel.glb`}
+      src={`/ai2svelte/models/wheel.glb`}
       shadow-intensity="0.5"
       camera-controls
       touch-action="pan-y"
@@ -53,7 +53,7 @@
 {/snippet}
 
 <Car
-  assetsPath="/docs/"
+  assetsPath="/ai2svelte/"
   engine={engineSnippet}
   steering={steeringSnippet}
   wheel={wheelSnippet}

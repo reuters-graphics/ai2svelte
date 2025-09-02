@@ -7,7 +7,7 @@ import preprocess from "svelte-preprocess";
 // https://astro.build/config
 export default defineConfig({
   site: "https://reuters-graphics.github.io",
-  base: "/docs",
+  base: "/ai2svelte",
   outDir: "./docs",
   integrations: [
     svelte({

@@ -17,7 +17,7 @@
   </Theme>
 {/snippet}
 
-<HeadlineComponent assetsPath="/docs/" hed={headline} />
+<HeadlineComponent assetsPath="/ai2svelte/" hed={headline} />
 
 <style lang="scss">
   :global {

@@ -58,7 +58,7 @@
 {/snippet}
 
 <BeforeAfter
-  assetsPath="/docs/"
+  assetsPath="/ai2svelte/"
   slider={sliderSnippet}
   onAiMounted={beforeAfterAttachment}
 />

@@ -13,7 +13,7 @@
   ></video>
 {/snippet}
 
-<MapVideo assetsPath="/docs/" vid={video} />
+<MapVideo assetsPath="/ai2svelte/" vid={video} />
 
 <style lang="scss">
   :global {
