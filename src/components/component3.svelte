@@ -10,7 +10,7 @@
 {#snippet engineSnippet()}
   <div class="model-viewer">
     <model-viewer
-      src={`/models/engine.glb`}
+      src={`/docs/models/engine.glb`}
       shadow-intensity="0.5"
       camera-controls
       touch-action="pan-y"
@@ -25,7 +25,7 @@
 {#snippet steeringSnippet()}
   <div class="model-viewer">
     <model-viewer
-      src={`/models/steering-wheel.glb`}
+      src={`/docs/models/steering-wheel.glb`}
       shadow-intensity="0.5"
       camera-controls
       touch-action="pan-y"
@@ -40,7 +40,7 @@
 {#snippet wheelSnippet()}
   <div class="model-viewer">
     <model-viewer
-      src={`/models/wheel.glb`}
+      src={`/docs/models/wheel.glb`}
       shadow-intensity="0.5"
       camera-controls
       touch-action="pan-y"
@@ -52,7 +52,12 @@
   </div>
 {/snippet}
 
-<Car engine={engineSnippet} steering={steeringSnippet} wheel={wheelSnippet} />
+<Car
+  assetsPath="/docs/"
+  engine={engineSnippet}
+  steering={steeringSnippet}
+  wheel={wheelSnippet}
+/>
 
 <style lang="scss">
   :global {

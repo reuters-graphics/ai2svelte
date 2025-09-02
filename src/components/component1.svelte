@@ -17,7 +17,7 @@
   </Theme>
 {/snippet}
 
-<HeadlineComponent hed={headline} />
+<HeadlineComponent assetsPath="/docs/" hed={headline} />
 
 <style lang="scss">
   :global {

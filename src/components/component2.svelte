@@ -5,7 +5,7 @@
 {#snippet video()}
   <video
     style="width: 100%; height: 100%; object-fit: cover;"
-    src={`/videos/gifford_fires.mp4`}
+    src={`/docs/videos/gifford_fires.mp4`}
     autoplay
     playsinline
     muted
@@ -13,7 +13,7 @@
   ></video>
 {/snippet}
 
-<MapVideo vid={video} />
+<MapVideo assetsPath="/docs/" vid={video} />
 
 <style lang="scss">
   :global {

@@ -57,4 +57,8 @@
   </div>
 {/snippet}
 
-<BeforeAfter slider={sliderSnippet} onAiMounted={beforeAfterAttachment} />
+<BeforeAfter
+  assetsPath="/docs/"
+  slider={sliderSnippet}
+  onAiMounted={beforeAfterAttachment}
+/>

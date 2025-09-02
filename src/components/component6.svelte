@@ -55,7 +55,7 @@
 <svelte:window bind:innerWidth={screenWidth} bind:innerHeight={screenHeight} />
 
 <div bind:this={graphicEle} bind:clientHeight={graphicHeight}>
-  <Fire onAiMounted={getSWIRImage} />
+  <Fire assetsPath="/docs/" onAiMounted={getSWIRImage} />
 </div>
 
 <style lang="scss">

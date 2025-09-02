@@ -108,6 +108,7 @@
 
 <Block width="normal">
   <Stock
+    assetsPath="/docs/"
     ripple={rippleSnippet}
     bitcoin={bitcoinSnippet}
     ethereum={ethereumSnippet}
