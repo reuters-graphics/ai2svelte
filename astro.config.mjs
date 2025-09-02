@@ -2,14 +2,16 @@
 import { defineConfig } from "astro/config";
 import starlight from "@astrojs/starlight";
 import svelte from "@astrojs/svelte";
+import preprocess from "svelte-preprocess";
 
 // https://astro.build/config
 export default defineConfig({
   site: "https://reuters-graphics.github.io",
-  base: "/ai2svelte",
   outDir: "./docs",
   integrations: [
-    svelte(),
+    svelte({
+      preprocess: preprocess(),
+    }),
     starlight({
       title: "ai2svelte",
       logo: {
@@ -62,4 +64,7 @@ export default defineConfig({
       ],
     }),
   ],
+  vite: {
+    assetsInclude: ["**/*.glb"],
+  },
 });
