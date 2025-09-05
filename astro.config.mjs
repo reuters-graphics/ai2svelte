@@ -44,6 +44,16 @@ export default defineConfig({
         // Relative path to your custom CSS file
         "./src/styles/custom.css",
       ],
+      sidebar: [
+        {
+          label: "Users",
+          autogenerate: { directory: "users" },
+        },
+        {
+          label: "Contributors",
+          autogenerate: { directory: "contributors" },
+        },
+      ],
     }),
   ],
   vite: {
