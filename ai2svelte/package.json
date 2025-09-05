@@ -11,7 +11,9 @@
     "zip": "rimraf dist/* && tsc -p \"tsconfig-build.json\" && cross-env ZIP_PACKAGE=true vite build --watch false",
     "serve": "cross-env SERVE_PANEL=true vite preview",
     "symlink": "cross-env BOLT_ACTION=symlink vite",
-    "delsymlink": "cross-env BOLT_ACTION=delsymlink vite"
+    "delsymlink": "cross-env BOLT_ACTION=delsymlink vite",
+    "bake-shadows-raw": "node scripts/bakeShadows.js",
+    "bake-shadows": "npm run bake-shadows-raw -- --input=src/js/main/Tabs/data/shadows.json --output=src/js/main/Tabs/data/shadowsBaked.json"
   },
   "dependencies": {
     "@codemirror/lang-css": "^6.3.1",
