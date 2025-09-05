@@ -12,8 +12,7 @@
     "serve": "cross-env SERVE_PANEL=true vite preview",
     "symlink": "cross-env BOLT_ACTION=symlink vite",
     "delsymlink": "cross-env BOLT_ACTION=delsymlink vite",
-    "bake-shadows-raw": "node scripts/bakeShadows.js",
-    "bake-shadows": "npm run bake-shadows-raw -- --input=src/js/main/Tabs/data/shadows.json --output=src/js/main/Tabs/data/shadowsBaked.json"
+    "bake-shadows": "node scripts/bakeShadows.js bake-shadows-raw -- --input=src/js/main/Tabs/data/shadows.json --output=src/js/main/Tabs/data/shadowsBaked.json"
   },
   "dependencies": {
     "@codemirror/lang-css": "^6.3.1",
