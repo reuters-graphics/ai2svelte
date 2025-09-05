@@ -50,7 +50,7 @@ export function toCamelCase(str: string) {
 export function createShadowMixinFromCSS(shadow: ShadowItem) {
   const name = "shadow-" + toCamelCase(shadow.id);
   let str = `@mixin ${name}($clr){\n`;
-  str += shadow.shadow.replaceAll("rgba(0,0,0", "rgba($clr");
+  str += shadow.shadow.replaceAll("rgba(0, 0, 0", "rgba($clr");
   str += "\n}";
 
   return str;
@@ -122,7 +122,9 @@ export function styleObjectToString(stylesObject) {
  * @returns {string} A string containing all generated mixin code, joined by newlines.
  */
 export function generateAllMixins(stylesObject) {
-  const mixinShadowRegex = new RegExp(/@include\sshadow-(.*)\((#\d+)\)/);
+  const mixinShadowRegex = new RegExp(
+    /@include\sshadow-(.*)\((#[0-9a-fA-F]+)\)/
+  );
   const mixinAnimationRegex = new RegExp(/@include\sanimation-(.*)\((.*)\)/);
 
   // get all unique shadow styles
@@ -169,7 +171,7 @@ export function generateAllMixins(stylesObject) {
     createAnimationMixinFromCSS(animation as AnimationItem)
   );
 
-  const allMixins = [...allShadowMixins, ...allAnimationMixins].join("\n\n");
+  let allMixins = [...allShadowMixins, ...allAnimationMixins].join("\n\n");
 
   return allMixins;
 }

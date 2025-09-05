@@ -8,7 +8,7 @@
   // DATA IMPORTS
   import { styles, updateInProgress, currentBackdrop } from "../stores";
   import animations from "./data/animations.json?raw";
-  import shadows from "./data/shadows.json?raw";
+  import shadows from "./data/shadowsBaked.json?raw";
   import specimens from "./data/specimens.json?raw";
   // OTHER LIB IMPORTS
   import JSON5 from "json5";
