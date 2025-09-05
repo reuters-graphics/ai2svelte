@@ -8,7 +8,6 @@ import preprocess from "svelte-preprocess";
 export default defineConfig({
   site: "https://reuters-graphics.github.io",
   base: "ai2svelte",
-  srcDir: "./src",
   outDir: "./docs",
   trailingSlash: "always",
   integrations: [
