@@ -8,11 +8,17 @@ import { currentBackdrop } from "../stores";
 import config from "../../../../cep.config";
 
 let userDataPath;
+let settingsProfilesFile;
 let settingsFile;
 
 function setSettingsFile() {
   userDataPath = csi.getSystemPath("userData");
   settingsFile = path.join(userDataPath, config.id, "user-settings.json");
+  settingsProfilesFile = path.join(
+    userDataPath,
+    config.id,
+    "user-settings-profiles.json"
+  );
 }
 
 export const tooltipSettings: Options = {
@@ -107,7 +113,7 @@ export function writeUserSettings(userSettings) {
     setSettingsFile();
   }
   if (!fs.existsSync(settingsFile)) {
-    fs.mkdirSync(path.dirname(settingsFile), {recursive: true});
+    fs.mkdirSync(path.dirname(settingsFile), { recursive: true });
   }
   fs.writeFileSync(settingsFile, JSON.stringify(userSettings));
 }
