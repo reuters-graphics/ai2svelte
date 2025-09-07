@@ -7,7 +7,7 @@ import { csi, evalTS } from "../../lib/utils/bolt";
 import { currentBackdrop } from "../stores";
 import config from "../../../../cep.config";
 
-let userDataPath;
+let userDataPath = window.cep ? csi.getSystemPath("userData") : "";
 let settingsFile;
 
 function setSettingsFile() {
@@ -102,12 +102,29 @@ export function readUserSettings() {
   return userSettings;
 }
 
+export function readFile(fileName) {
+  const filePath = path.join(userDataPath, config.id, fileName);
+  if (fs.existsSync(filePath)) {
+    var data = JSON.parse(fs.readFileSync(filePath, "utf8"));
+    return data;
+  }
+  return {};
+}
+
 export function writeUserSettings(userSettings) {
   if (settingsFile == undefined) {
     setSettingsFile();
   }
   if (!fs.existsSync(settingsFile)) {
-    fs.mkdirSync(path.dirname(settingsFile), {recursive: true});
+    fs.mkdirSync(path.dirname(settingsFile), { recursive: true });
   }
   fs.writeFileSync(settingsFile, JSON.stringify(userSettings));
+}
+
+export function writeFile(fileName, data) {
+  const filePath = path.join(userDataPath, config.id, fileName);
+  if (!fs.existsSync(filePath)) {
+    fs.mkdirSync(path.dirname(filePath), { recursive: true });
+  }
+  fs.writeFileSync(filePath, JSON.stringify(data));
 }
