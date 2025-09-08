@@ -13,7 +13,7 @@
 
   // OTHER IMPORTS
   import { userData } from "./state.svelte";
-  import { readUserSettings, saveSettings } from "./utils/utils";
+  import { readFile, saveSettings } from "./utils/utils";
 
   // TABS
   import TabBar from "./Components/TabBar.svelte";
@@ -48,7 +48,7 @@
   async function fetchSettings() {
     // fetch user settings
     // and update the store
-    const userSettings = readUserSettings();
+    const userSettings = readFile("user-settings.json");
     if (userSettings) {
       userData.theme = userSettings.theme;
       userData.accentColor = userSettings.accentColor;

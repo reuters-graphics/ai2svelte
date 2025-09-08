@@ -95,16 +95,6 @@ export const myTheme = EditorView.theme(
   { dark: true }
 );
 
-export function readUserSettings() {
-  if (settingsFile == undefined) {
-    setSettingsFile();
-  }
-  if (fs.existsSync(settingsFile)) {
-    var userSettings = JSON.parse(fs.readFileSync(settingsFile, "utf8"));
-  }
-  return userSettings;
-}
-
 export function readFile(fileName) {
   const filePath = path.join(userDataPath, config.id, fileName);
   if (fs.existsSync(filePath)) {
@@ -112,16 +102,6 @@ export function readFile(fileName) {
     return data;
   }
   return {};
-}
-
-export function writeUserSettings(userSettings) {
-  if (settingsFile == undefined) {
-    setSettingsFile();
-  }
-  if (!fs.existsSync(settingsFile)) {
-    fs.mkdirSync(path.dirname(settingsFile), { recursive: true });
-  }
-  fs.writeFileSync(settingsFile, JSON.stringify(userSettings));
 }
 
 export function writeFile(fileName, data) {
