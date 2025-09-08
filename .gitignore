@@ -1,5 +1,5 @@
 # build output
-docs/
+/docs/
 # generated types
 .astro/
 

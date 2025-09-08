@@ -7,8 +7,9 @@ import preprocess from "svelte-preprocess";
 // https://astro.build/config
 export default defineConfig({
   site: "https://reuters-graphics.github.io",
-  base: "/ai2svelte",
+  base: "ai2svelte",
   outDir: "./docs",
+  trailingSlash: "always",
   integrations: [
     svelte({
       preprocess: preprocess(),
@@ -39,29 +40,19 @@ export default defineConfig({
           href: "https://github.com/reuters-graphics/ai2svelte/",
         },
       ],
-      sidebar: [
-        {
-          label: "Users",
-          items: [
-            "users/intro",
-            "users/whats-new",
-            "users/ai2svelte-settings",
-            "users/styles",
-            "users/auto-detect",
-            "users/tagged-layers",
-            "users/snippets",
-            "users/font-config",
-            "users/examples",
-          ],
-        },
-        {
-          label: "Contributors",
-          items: ["contributors/intro"],
-        },
-      ],
       customCss: [
         // Relative path to your custom CSS file
         "./src/styles/custom.css",
+      ],
+      sidebar: [
+        {
+          label: "Users",
+          autogenerate: { directory: "users" },
+        },
+        {
+          label: "Contributors",
+          autogenerate: { directory: "contributors" },
+        },
       ],
     }),
   ],

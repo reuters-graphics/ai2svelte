@@ -1,0 +1,53 @@
+---
+title: Styles
+description: How to configure shadows and animations
+slug: contributors/styles
+sidebar:
+  order: 201
+---
+
+import { Aside } from "@astrojs/starlight/components";
+
+### Shadows
+
+The shadows applied to generated Svelte components are sourced from a predefined shadow library. You can customize this library by editing the [shadows.json](ai2svelte/src/js/main/Tabs/data/shadows.json) file to add your own shadow definitions.
+
+Each shadow definition is a JSON object that requires two properties: `shadow` and `id`. The `shadow` property contains the CSS text-shadow value, while the `id` property specifies the display name shown in the Styles tab. Shadow values must be formatted as CSS text-shadow properties using rgba(r, g, b, a) notation with black color values (0, 0, 0) and varying alpha transparency. Each `id` must be unique within the shadow library.
+
+```json
+{
+  "source": "https://meet.google.com/",
+  "shadow": "text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6), 0 0 2px rgba(0, 0, 0, 0.3);",
+  "id": "Parmesan"
+}
+```
+
+To apply your changes, run `npm run bake-shadows` to convert rgba values to hexadecimal format and generate an updated `shadowsBaked.json` file. The Styles tab uses this processed file to display available shadows and handle user interactions.
+
+### Animations
+
+The animations available in the Styles tab are defined in the [animations.json](ai2svelte/src/js/main/Tabs/data/animations.json) file. You can modify this file to add or customize animations for your Svelte components.
+
+Each animation definition is a JSON object that includes properties such as `name`, `usage`, `arguments`, `animationRule`, `definition` and `candidate`. The `name` property specifies the animation's name, while the `definition` property contains the CSS keyframe definitions. The `candidate` property decides what element the animation is targeted for, such as "shape", "text" or "line" (SVG path).
+
+```json
+{
+  "name": "pulse",
+  "usage": "@include animation-pulse()",
+  "arguments": "($scale: 0.8)",
+  "animationRule": "pulse 1s ease-in-out 0s infinite",
+  "definition": "@keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale($scale); } }",
+  "candidate": "shape"
+}
+```
+
+<Aside type="tip">
+  When defining keyframe animations, it's recommended to use atomic transform
+  properties such as translateX, translateY, scale, or rotate instead of
+  compound declarations like transform: translate(...). This approach promotes
+  better separation of concerns and reduces the risk of unintentionally
+  overriding other transform-related styles applied via classes or inline
+  styles.
+</Aside>
+
+You can add new animations by following the same structure and ensuring that each animation has a unique `name`. After updating the `animations.json` file, the new animations will be available in the Styles tab for selection and application to your components.

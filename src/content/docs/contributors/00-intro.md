@@ -1,6 +1,9 @@
 ---
 title: Introduction
 description: Intro on how to contribute to the project.
+slug: contributors/intro
+sidebar:
+  order: 200
 ---
 
 ai2svelte began as a fork of ai2html v0.123.1, with all New York Times-specific code removed to make the project fully generic and open for the community.

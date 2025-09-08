@@ -12,27 +12,20 @@
     "serve": "cross-env SERVE_PANEL=true vite preview",
     "symlink": "cross-env BOLT_ACTION=symlink vite",
     "delsymlink": "cross-env BOLT_ACTION=delsymlink vite",
-    "bake-shadows-raw": "node scripts/bakeShadows.js",
-    "bake-shadows": "npm run bake-shadows-raw -- --input=src/js/main/Tabs/data/shadows.json --output=src/js/main/Tabs/data/shadowsBaked.json"
+    "bake-shadows": "node scripts/bakeShadows.js bake-shadows-raw -- --input=src/js/main/Tabs/data/shadows.json --output=src/js/main/Tabs/data/shadowsBaked.json"
   },
   "dependencies": {
     "@codemirror/lang-css": "^6.3.1",
-    "@codemirror/lang-javascript": "^6.2.4",
-    "@codemirror/lang-json": "^6.0.2",
     "@codemirror/lang-yaml": "^6.1.2",
     "@codemirror/legacy-modes": "^6.5.1",
-    "@codemirror/theme-one-dark": "^6.1.3",
     "@floating-ui/dom": "^1.7.2",
     "@fsegurai/codemirror-theme-bundle": "^6.2.0",
     "@reuters-graphics/svelte-markdown": "^0.0.3",
     "@reuters-graphics/vite-plugin-purge-styles": "^0.0.3",
     "codemirror": "^6.0.2",
-    "codemirror-theme-catppuccin": "^0.3.0",
     "json5": "^2.2.3",
     "postcss": "^8.5.6",
-    "postcss-scss": "^4.0.9",
-    "prism-code-editor": "^4.1.0",
-    "underscore": "^1.13.7"
+    "postcss-scss": "^4.0.9"
   },
   "devDependencies": {
     "@babel/core": "^7.19.0",

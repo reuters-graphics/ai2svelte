@@ -7,16 +7,12 @@ import { csi, evalTS } from "../../lib/utils/bolt";
 import { currentBackdrop } from "../stores";
 import config from "../../../../cep.config";
 
+
 let userDataPath = window.cep ? csi.getSystemPath("userData") : "";
 let settingsFile;
 
 export function constrain(n: number, low: number, high: number) {
   return Math.max(Math.min(n, high), low);
-}
-
-function setSettingsFile() {
-  userDataPath = csi.getSystemPath("userData");
-  settingsFile = path.join(userDataPath, config.id, "user-settings.json");
 }
 
 export const tooltipSettings: Options = {
@@ -108,6 +104,7 @@ export function writeFile(fileName, data) {
   const filePath = path.join(userDataPath, config.id, fileName);
   if (!fs.existsSync(filePath)) {
     fs.mkdirSync(path.dirname(filePath), { recursive: true });
+
   }
   fs.writeFileSync(filePath, JSON.stringify(data));
 }

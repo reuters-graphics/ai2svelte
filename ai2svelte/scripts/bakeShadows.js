@@ -13,11 +13,11 @@ const outputArg = args.find((arg) => arg.startsWith("--output="));
 
 const inputPath = inputArg
   ? path.resolve(inputArg.split("=")[1])
-  : path.resolve(__dirname, "colors.json");
+  : path.resolve(__dirname, "shadows.json");
 
 const outputPath = outputArg
   ? path.resolve(outputArg.split("=")[1])
-  : path.resolve(__dirname, "colors-hex.json");
+  : path.resolve(__dirname, "shadowsBaked.json");
 
 // Convert rgba(...) to #RRGGBBAA
 function rgbaToHex(rgba) {
