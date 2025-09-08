@@ -2,146 +2,226 @@ export let aiSettingsTokens = [
   {
     label: "namespace",
     type: "variable",
-    info: "Prefix for HTML elements. Defaults to 'g-'"
+    info: "Prefix for HTML elements. Defaults to 'g-'",
+    default: "g-",
+    inputType: "text",
   },
   {
     label: "image_format",
     type: "variable",
-    info: "Options: auto, png, png24, jpg, svg"
+    info: "Options: auto, png, png24, jpg, svg",
+    default: "jpg",
+    inputType: "select",
+    options: ["jpg", "png", "png24", "svg"],
   },
   {
     label: "write_image_files",
     type: "variable",
-    info: "Options: true, false"
+    info: "Options: true, false",
+    default: "true",
+    inputType: "select",
+    options: ["true", "false"],
   },
   {
     label: "responsiveness",
     type: "variable",
-    info: "Options: fixed, dynamic"
+    info: "Options: fixed, dynamic",
+    default: "dynamic",
+    inputType: "select",
+    options: ["fixed", "dynamic"],
   },
   {
     label: "text_responsiveness",
     type: "variable",
-    info: "Options: fixed, dynamic"
+    info: "Options: fixed, dynamic",
+    default: "dynamic",
+    inputType: "select",
+    options: ["fixed", "dynamic"],
   },
   {
     label: "max_width",
     type: "variable",
-    info: "Max width to clip the final output by"
+    info: "Max width to clip the final output by",
+    default: null,
+    inputType: "text",
   },
   {
     label: "output",
     type: "variable",
-    info: "Options: one-file, multiple-files"
+    info: "Options: one-file, multiple-files",
+    default: "one-file",
+    inputType: "select",
+    options: ["one-file", "multiple-files"],
   },
   {
     label: "project_name",
     type: "variable",
-    info: "Defaults to the name of the AI file"
+    info: "Defaults to the name of the AI file",
+    default: null,
+    inputType: "text",
   },
   {
     label: "html_output_path",
     type: "variable",
-    info: "Location to export output files"
+    info: "Location to export output files",
+    default: "../src/lib/ai2svelte/",
+    inputType: "text",
   },
   {
     label: "html_output_extension",
     type: "variable",
-    info: "Output file extension"
+    info: "Output file extension",
+    default: ".svelte",
+    inputType: "select",
+    options: [".svelte", ".html"],
   },
   {
     label: "image_output_path",
     type: "variable",
-    info: "Location to export image files"
+    info: "Location to export image files",
+    default: "../src/statics/images/graphics/",
+    inputType: "text",
   },
   {
     label: "image_source_path",
     type: "variable",
-    info: "Specify from where to load the images"
+    info: "Specify from where to load the images",
+    default: "images/graphics/",
+    inputType: "text",
   },
   {
     label: "image_alt_text",
     type: "variable",
-    info: "Generally, use alt_text instead"
+    info: "Generally, use alt_text instead",
+    default: null,
+    inputType: "text",
   },
   {
     label: "png_transparent",
     type: "variable",
-    info: "Options: true, false"
+    info: "Options: true, false",
+    default: "true",
+    inputType: "select",
+    options: ["true", "false"],
   },
   {
     label: "png_number_of_colors",
     type: "variable",
-    info: "Number of colors in 8-bit PNG image (1-256)"
+    info: "Number of colors in 8-bit PNG image (1-256)",
+    default: "256",
+    inputType: "range",
+    start: 1,
+    end: 256,
   },
   {
     label: "jpg_quality",
     type: "variable",
-    info: "JPG image quality in range 0-100"
+    info: "JPG image quality in range 0-100",
+    default: "90",
+    inputType: "range",
+    start: 1,
+    end: 100,
   },
   {
     label: "center_html_output",
     type: "variable",
-    info: "Options: true, false"
+    info: "Whether ai2svelte div should be centered within the container. Options: true, false",
+    default: "true",
+    inputType: "select",
+    options: ["true", "false"],
   },
   {
     label: "use_2x_images_if_possible",
     type: "variable",
-    info: "Options: true, false"
+    info: "Output images at double the resolution if possible. Options: true, false",
+    default: "true",
+    inputType: "select",
+    options: ["true", "false"],
   },
   {
     label: "use_lazy_loader",
     type: "variable",
-    info: "Options: true, false"
+    info: "Lazy load the artboard images? Options: true, false",
+    default: "true",
+    inputType: "select",
+    options: ["true", "false"],
   },
   {
     label: "include_resizer_widths",
     type: "variable",
-    info: "Options: true, false"
+    info: "Add data-min/max-width to the artboard containers. Options: true, false",
+    default: "true",
+    inputType: "select",
+    options: ["true", "false"],
   },
   {
     label: "include_resizer_css",
     type: "variable",
-    info: "Container-query resizing"
+    info: "Container-query resizing. Options: true, false",
+    default: "true",
+    inputType: "select",
+    options: ["true", "false"],
   },
   {
     label: "inline_svg",
     type: "variable",
-    info: "Embed background image SVG in HTML instead of loading a file"
+    info: "Embed background image SVG in HTML instead of loading a file. Options: true, false",
+    default: "true",
+    inputType: "select",
+    options: ["true", "false"],
   },
   {
     label: "svg_id_prefix",
     type: "variable",
-    info: "Prefix SVG ids with a string to disambiguate from other ids on the page"
+    info: "Prefix SVG ids with a string to disambiguate from other ids on the page",
+    default: null,
+    inputType: "text",
   },
   {
     label: "svg_embed_images",
     type: "variable",
-    info: "Options: true, false"
+    info: "Options: true, false",
+    default: "false",
+    inputType: "select",
+    options: ["true", "false"],
   },
   {
     label: "render_text_as",
     type: "variable",
-    info: "Options: html, image"
+    info: "Options: html, image",
+    default: "html",
+    inputType: "select",
+    options: ["html", "image"],
   },
   {
     label: "render_rotated_skewed_text_as",
     type: "variable",
-    info: "Options: html, image"
+    info: "Options: html, image",
+    default: "html",
+    inputType: "select",
+    options: ["html", "image"],
   },
   {
     label: "testing_mode",
     type: "variable",
-    info: "Render text in both bg image and HTML to test HTML text placement"
+    info: "Render text in both bg image and HTML to test HTML text placement. Options: true, false",
+    default: "false",
+    inputType: "select",
+    options: ["true", "false"],
   },
   {
     label: "show_completion_dialog_box",
     type: "variable",
-    info: "Options: true, false"
+    info: "Whether to show the completion dialog box. Options: true, false",
+    default: "true",
+    inputType: "select",
+    options: ["true", "false"],
   },
   {
     label: "clickable_link",
     type: "variable",
-    info: "Add a URL to make the entire graphic a clickable link"
-  }
+    info: "Add a URL to make the entire graphic a clickable link",
+    default: null,
+    inputType: "text",
+  },
 ];

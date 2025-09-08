@@ -6,7 +6,7 @@
   import ColorPicker from "svelte-awesome-color-picker";
   import { tooltip } from "svooltip";
   import { userData } from "../state.svelte";
-  import { tooltipSettings, writeUserSettings } from "../utils/utils";
+  import { tooltipSettings, writeFile } from "../utils/utils";
 
   // COMPONENT
   import ThemeSwitcher from "./ThemeSwitcher.svelte";
@@ -48,7 +48,7 @@
       );
       userData.accentColor = accentColor;
       if (window.cep) {
-        writeUserSettings(userData);
+        writeFile("user-settings.json", userData);
       }
     }
   });
@@ -56,7 +56,7 @@
   $effect(() => {
     userData.theme = theme;
     if (window.cep) {
-      writeUserSettings(userData);
+      writeFile("user-settings.json", userData);
     }
   });
 </script>

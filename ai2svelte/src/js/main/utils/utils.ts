@@ -7,18 +7,12 @@ import { csi, evalTS } from "../../lib/utils/bolt";
 import { currentBackdrop } from "../stores";
 import config from "../../../../cep.config";
 
-let userDataPath;
-let settingsProfilesFile;
+
+let userDataPath = window.cep ? csi.getSystemPath("userData") : "";
 let settingsFile;
 
-function setSettingsFile() {
-  userDataPath = csi.getSystemPath("userData");
-  settingsFile = path.join(userDataPath, config.id, "user-settings.json");
-  settingsProfilesFile = path.join(
-    userDataPath,
-    config.id,
-    "user-settings-profiles.json"
-  );
+export function constrain(n: number, low: number, high: number) {
+  return Math.max(Math.min(n, high), low);
 }
 
 export const tooltipSettings: Options = {
@@ -29,7 +23,6 @@ export const tooltipSettings: Options = {
 };
 
 /**
- * Fetches a new random image URL from the Picsum Photos service.
  *
  * Makes a network request to "https://picsum.photos/300/200" and returns the final image URL.
  * If the request fails, logs the error and returns `undefined`.
@@ -98,22 +91,20 @@ export const myTheme = EditorView.theme(
   { dark: true }
 );
 
-export function readUserSettings() {
-  if (settingsFile == undefined) {
-    setSettingsFile();
+export function readFile(fileName) {
+  const filePath = path.join(userDataPath, config.id, fileName);
+  if (fs.existsSync(filePath)) {
+    var data = JSON.parse(fs.readFileSync(filePath, "utf8"));
+    return data;
   }
-  if (fs.existsSync(settingsFile)) {
-    var userSettings = JSON.parse(fs.readFileSync(settingsFile, "utf8"));
-  }
-  return userSettings;
+  return {};
 }
 
-export function writeUserSettings(userSettings) {
-  if (settingsFile == undefined) {
-    setSettingsFile();
+export function writeFile(fileName, data) {
+  const filePath = path.join(userDataPath, config.id, fileName);
+  if (!fs.existsSync(filePath)) {
+    fs.mkdirSync(path.dirname(filePath), { recursive: true });
+
   }
-  if (!fs.existsSync(settingsFile)) {
-    fs.mkdirSync(path.dirname(settingsFile), { recursive: true });
-  }
-  fs.writeFileSync(settingsFile, JSON.stringify(userSettings));
+  fs.writeFileSync(filePath, JSON.stringify(data));
 }

@@ -1,15 +1,13 @@
 <script lang="ts">
   import { onDestroy, onMount, untrack } from "svelte";
-  import AiSettings from "../data/ai-settings.json";
   import { fly } from "svelte/transition";
   import { settingsObject, stylesString, styles } from "../../stores";
   import SectionTitle from "../../Components/SectionTitle.svelte";
   import Input from "../../Components/Input.svelte";
   import CmTextArea from "../../Components/CMTextArea.svelte";
   import { aiSettingsTokens } from "../../utils/settingsTokens";
-  import type { AiSettingOption, AiSettingsType } from "../types";
 
-  let { activeFormat = $bindable() } = $props();
+  let { activeFormat = $bindable(), defaultProfile } = $props();
 
   let codeContent: HTMLElement | undefined = $state();
 
@@ -28,24 +26,6 @@
   // by the text editor
   let editableYamlString: string = $state("");
 
-  // if no key-value pairs found in settingsObject,
-  // initialise it with default pairs from AiSettings
-  $effect(() => {
-    if (Object.keys($settingsObject).length == 0 && AiSettings) {
-      // avoid circular dependency by updating settingsObject in untrack
-      untrack(() => {
-        const obj = JSON.parse(JSON.stringify(AiSettings));
-
-        Object.keys(AiSettings).forEach((key) => {
-          const typedKey = key as keyof typeof AiSettings;
-          obj[key] = (AiSettings[typedKey] as AiSettingOption).value;
-        });
-
-        settingsObject.set(JSON.parse(JSON.stringify(obj)));
-      });
-    }
-  });
-
   // Sync the derived yamlString to the editable version when styles change
   $effect(() => {
     editableYamlString = yamlString;
@@ -55,8 +35,10 @@
     // start with UI tab as active
     activeFormat = "UI";
 
-    if ($settingsObject) {
+    if (Object.keys($settingsObject).length > 0) {
       previousSettings = { ...$settingsObject };
+    } else {
+      $settingsObject = { ...defaultProfile };
     }
   });
 
@@ -96,28 +78,34 @@
   <div class="content">
     {#if activeFormat === "UI"}
       <div id="ui-form" class="options content-item">
-        {#if $settingsObject}
+        {#if $settingsObject && aiSettingsTokens}
           {#each Object.keys($settingsObject) as key, index}
+            {@const type =
+              aiSettingsTokens.find((item) => item.label == key).inputType ||
+              "text"}
             <div class="ai-setting">
-              {#if (AiSettings[key as keyof AiSettingsType] as AiSettingOption)?.type == "select"}
+              {#if type == "select"}
+                {@const options = aiSettingsTokens.find(
+                  (item) => item.label == key
+                ).options}
                 <Input
                   label={key}
-                  options={(
-                    AiSettings[key as keyof AiSettingsType] as AiSettingOption
-                  ).options}
+                  {options}
                   bind:value={$settingsObject[key] as string}
                   delay={index * 30}
                 />
-              {:else if (AiSettings[key as keyof AiSettingsType] as AiSettingOption)?.type == "range"}
+              {:else if type == "range"}
+                {@const start = aiSettingsTokens.find(
+                  (item) => item.label == key
+                ).start}
+                {@const end = aiSettingsTokens.find(
+                  (item) => item.label == key
+                ).end}
                 <Input
                   label={key}
                   bind:value={$settingsObject[key]}
-                  start={(
-                    AiSettings[key as keyof AiSettingsType] as AiSettingOption
-                  )?.start ?? 0}
-                  end={(
-                    AiSettings[key as keyof AiSettingsType] as AiSettingOption
-                  )?.end ?? 100}
+                  start={start ?? 0}
+                  end={end ?? 100}
                   type="range"
                   delay={index * 30}
                 />
