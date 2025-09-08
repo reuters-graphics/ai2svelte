@@ -23,7 +23,7 @@
     stiffness: 0.05,
     damping: 0.5,
   });
-  let length = $state(end - start);
+  let length = $state(end - start + 1);
   let contentRect: DOMRect | undefined = $state();
 
   function updateSlider(e: MouseEvent) {
@@ -36,7 +36,10 @@
         1
       );
       const val = Math.floor((progress.target * length) / stepper);
-      value = parseInt(Math.floor(stepper * val).toFixed(0));
+      value = Math.max(
+        Math.min(parseInt(Math.round(stepper * val).toFixed(0)), end),
+        start
+      );
     }
   }
 
@@ -120,7 +123,7 @@
     user-select: none;
     opacity: 0.5;
     font-size: var(--font-size-base);
-	font-weight: 800;
+    font-weight: 800;
     @include animation-default(transform);
     @include animation-default(opacity);
   }

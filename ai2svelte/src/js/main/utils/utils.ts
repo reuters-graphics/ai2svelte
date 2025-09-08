@@ -10,6 +10,10 @@ import config from "../../../../cep.config";
 let userDataPath = window.cep ? csi.getSystemPath("userData") : "";
 let settingsFile;
 
+export function constrain(n: number, low: number, high: number) {
+  return Math.max(Math.min(n, high), low);
+}
+
 function setSettingsFile() {
   userDataPath = csi.getSystemPath("userData");
   settingsFile = path.join(userDataPath, config.id, "user-settings.json");
@@ -23,7 +27,6 @@ export const tooltipSettings: Options = {
 };
 
 /**
- * Fetches a new random image URL from the Picsum Photos service.
  *
  * Makes a network request to "https://picsum.photos/300/200" and returns the final image URL.
  * If the request fails, logs the error and returns `undefined`.

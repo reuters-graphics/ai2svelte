@@ -4,80 +4,176 @@
   import AiSettings from "./Settings/AiSettings.svelte";
   import FontSettings from "./Settings/FontSettings.svelte";
   import Input from "../Components/Input.svelte";
-  import { readFile, writeFile } from "../utils/utils";
-  import { onMount } from "svelte";
+  import { readFile, writeFile, tooltipSettings } from "../utils/utils";
+  import { onMount, untrack, mount } from "svelte";
+  import defaultProfile from "./data/default-profile.json";
+  import Toast from "../Components/Toast.svelte";
+  import { tooltip } from "svooltip";
 
   let profileNameDialog: HTMLElement;
-  let activeProfile: string = $state("default");
-  let newProfileName: string = $state("placeholder");
-  let isModalOpen: boolean = $state(false);
-  let existingProfiles = $state({});
+  let profileListDialog: HTMLElement;
+  let activeProfile: string = $state("");
+  let tempActiveProfile: string = $state("");
+  let newProfileName: string = $state("");
+  let isProfileNameModalOpen: boolean = $state(false);
+  let isProfileListModalOpen: boolean = $state(false);
+  let refreshKey = $state(1);
+  let existingProfiles = $derived.by(() => {
+    if (window.cep) {
+      let usersProfiles = readFile("user-profiles.json") || {};
+      if (!Object.keys(usersProfiles).includes("default")) {
+        writeFile("user-profiles.json", {
+          ...usersProfiles,
+          ...defaultProfile,
+        });
+        usersProfiles = readFile("user-profiles.json");
+      }
+      return { ...usersProfiles };
+    } else {
+      return defaultProfile;
+    }
+  });
 
   function resetUI() {
     userData.accentColor = "#dc4300";
     userData.theme = "dark";
+
+    mount(Toast, {
+      target: document.body,
+      props: { message: "Theme reset!" },
+    });
   }
 
   function resetConfig() {
-    $settingsObject = {};
+    $settingsObject = { ...existingProfiles.default };
+    refreshKey++;
+
+    mount(Toast, {
+      target: document.body,
+      props: { message: "Settings reset to **default**" },
+    });
   }
 
   function saveProfile() {
-    isModalOpen = true;
+    isProfileNameModalOpen = true;
   }
 
-  function handleNewProfile(event) {
+  function loadProfile() {
+    isProfileListModalOpen = true;
+  }
+
+  function deleteProfile(profile) {
+    if (window.cep && profile !== "default") {
+      delete existingProfiles[profile];
+      writeFile("user-profiles.json", existingProfiles);
+      isProfileListModalOpen = false;
+      refreshProfile();
+    }
+  }
+
+  function handleNewProfile() {
     if (window.cep) {
       writeFile("user-profiles.json", {
         ...existingProfiles,
         [newProfileName]: $settingsObject,
       });
       existingProfiles = readFile("user-profiles.json") || {};
+      mount(Toast, {
+        target: document.body,
+        props: {
+          message: `**${newProfileName}** profile created successfully`,
+        },
+      });
     }
-    console.log(newProfileName);
-    isModalOpen = false;
+    isProfileNameModalOpen = false;
+  }
+
+  function profileLoaded(profile) {
+    if (profile && existingProfiles[profile]) {
+      activeProfile = profile;
+      refreshKey++;
+      $settingsObject = { ...existingProfiles[profile] };
+      mount(Toast, {
+        target: document.body,
+        props: { message: `**${profile}** profile loaded successfully` },
+      });
+    }
+
+    isProfileListModalOpen = false;
+  }
+
+  function refreshProfile() {
+    if (window.cep) {
+      existingProfiles = readFile("user-profiles.json") || {};
+    }
   }
 
   onMount(() => {
     if (window.cep) {
-      existingProfiles = readFile("user-profiles.json") || {};
-      activeProfile = Object.keys(existingProfiles)[0] || "default";
-    }
-  });
-
-  $effect(() => {
-    if (activeProfile && existingProfiles[activeProfile]) {
-      console.log("settings changed to :" + activeProfile);
-      console.log(existingProfiles[activeProfile]);
-      $settingsObject = { ...existingProfiles[activeProfile] };
+      tempActiveProfile = "default";
     }
   });
 
   let activeFormat: string = $state("UI");
 </script>
 
-<div class="dialog-backdrop" style="display: {isModalOpen ? 'block' : 'none'};">
+<div
+  class="dialog-backdrop"
+  style="display: {isProfileNameModalOpen ? 'block' : 'none'};"
+>
   <dialog
-    class="profile-dialog {isModalOpen ? 'modal-open' : ''}"
+    class="profile-dialog {isProfileNameModalOpen ? 'modal-open' : ''}"
     bind:this={profileNameDialog}
   >
     <p>Save profile settings</p>
-    <form method="dialog" onsubmit={handleNewProfile}>
+    <form method="dialog">
       <Input label="Profile Name" type="text" bind:value={newProfileName} />
-      <button>OK</button>
+      <button
+        onclick={() => (newProfileName !== "" ? handleNewProfile() : null)}
+        >OK</button
+      >
+      <button onclick={() => (isProfileNameModalOpen = false)}>Cancel</button>
+    </form>
+  </dialog>
+</div>
+
+<div
+  class="dialog-backdrop"
+  style="display: {isProfileListModalOpen ? 'block' : 'none'};"
+>
+  <dialog
+    class="profile-dialog {isProfileListModalOpen ? 'modal-open' : ''}"
+    bind:this={profileListDialog}
+  >
+    <p>Load profile settings</p>
+    <form method="dialog">
+      <Input
+        label="Load Profile"
+        type="select"
+        options={Object.keys(existingProfiles)}
+        bind:value={tempActiveProfile}
+      />
+      <button onclick={() => profileLoaded(tempActiveProfile)}>OK</button>
+      <button onclick={() => profileLoaded(null)}>Cancel</button>
+      {#if !tempActiveProfile == "default"}
+        <button onclick={() => deleteProfile(null)}
+          >Delete {tempActiveProfile} Profile</button
+        >
+      {/if}
     </form>
   </dialog>
 </div>
 
 <div class="tab-content">
   <div id="settings-content">
-    <Input
-      label="Settings Profile"
-      type="select"
-      options={Object.keys(existingProfiles)}
-      bind:value={activeProfile}
-    />
-    <AiSettings bind:activeFormat />
+    {#if Object.keys(existingProfiles).length > 0}
+      {#key refreshKey}
+        <AiSettings
+          bind:activeFormat
+          defaultProfile={existingProfiles.default}
+        />
+      {/key}
+    {/if}
 
     <hr />
 
@@ -85,10 +181,36 @@
   </div>
 
   <div id="reset-settings">
-    <button onclick={saveProfile}>Save Profile</button>
-    <button>Delete Profile</button>
-    <button onclick={resetConfig}>Reset Config</button>
-    <button onclick={resetUI}>Reset Theme</button>
+    <button
+      onclick={loadProfile}
+      use:tooltip={{
+        ...tooltipSettings,
+        content: "Load user profile",
+      }}>Load Profile</button
+    >
+    <button
+      onclick={saveProfile}
+      use:tooltip={{
+        ...tooltipSettings,
+        content: "Save user profile",
+      }}>Save Profile</button
+    >
+    <button
+      class="negative"
+      onclick={resetConfig}
+      use:tooltip={{
+        ...tooltipSettings,
+        content: "Reset configuration",
+      }}>Reset Config</button
+    >
+    <button
+      class="negative"
+      onclick={resetUI}
+      use:tooltip={{
+        ...tooltipSettings,
+        content: "Reset UI Theme",
+      }}>Reset Theme</button
+    >
   </div>
 </div>
 
@@ -97,7 +219,8 @@
 
   .profile-dialog {
     all: unset;
-    max-width: 100%;
+    min-width: 50vw;
+    max-width: 100vw;
     position: absolute;
     z-index: 10;
     top: 50%;
@@ -160,7 +283,7 @@
     display: flex;
     flex-direction: column;
     justify-content: space-between;
-    gap: 1rem;
+    gap: 4rem;
   }
 
   #settings-content {
@@ -185,12 +308,16 @@
       text-align: center;
       text-transform: uppercase;
       letter-spacing: 0.1rem;
-      font-size: var(--font-size-xs);
+      font-size: var(--font-size-sm);
       @include animation-default;
     }
 
-    button:hover {
+    .negative:hover {
       background-color: #ff2400;
+    }
+
+    button:hover {
+      background-color: var(--color-secondary);
     }
   }
 </style>

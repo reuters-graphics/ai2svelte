@@ -24,6 +24,7 @@
     "@codemirror/theme-one-dark": "^6.1.3",
     "@floating-ui/dom": "^1.7.2",
     "@fsegurai/codemirror-theme-bundle": "^6.2.0",
+    "@reuters-graphics/svelte-markdown": "^0.0.3",
     "@reuters-graphics/vite-plugin-purge-styles": "^0.0.3",
     "codemirror": "^6.0.2",
     "codemirror-theme-catppuccin": "^0.3.0",
