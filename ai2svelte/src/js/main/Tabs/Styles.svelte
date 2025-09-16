@@ -32,6 +32,7 @@
   import SectionTabBar from "../Components/SectionTabBar.svelte";
   import ShadowCard from "../Components/ShadowCard.svelte";
   import type { Style } from "./types";
+  import { css } from "@codemirror/lang-css";
 
   let activeTab: string = $state("");
   let activeFormat: string = $state("UI");
@@ -46,8 +47,6 @@
   let cssSelector: string = $state(`p[class^="g-pstyle"]`);
 
   let initialLoad: boolean = $state(false);
-
-  let editableCssString: string = $state("");
 
   let allShadows: ShadowItem[] = $state([]);
 
@@ -74,11 +73,7 @@
   });
 
   // Sync the derived cssString to the editable version when styles change
-  $effect(() => {
-    editableCssString = cssString;
-    // const allMixinIncludes = generateAllMixins($styles);
-    // $stylesString = allMixinIncludes + "\n" + cssString;
-  });
+  let editableCssString: string = $derived(cssString);
 
   // disable initial load once
   // the document data is received

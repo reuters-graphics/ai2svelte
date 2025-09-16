@@ -3797,62 +3797,10 @@ export function main(settingsArg) {
         overflow: "hidden",
       });
 
-    if (isTrue(settings.include_resizer_css)) {
-      css += generateContainerQueryCss(ab, abId, group, settings);
-    }
-
     // classes for paragraph and character styles
     forEach(cssRules, function (cssBlock) {
       css += abId + " " + cssBlock;
     });
-    return css;
-  }
-
-  function generateContainerQueryCss(ab, abId, group, settings) {
-    var css = "";
-    var visibleRange = getArtboardVisibilityRange(ab, group, settings);
-    var isSmallest = visibleRange[0] === 0;
-    var isLargest = visibleRange[1] === Infinity;
-    var query;
-    if (isSmallest && isLargest) {
-      // single artboard: no query needed
-      return "";
-    }
-    // default visibility: smallest ab visible, others hidden
-    // (fallback in case browser doesn't support container queries)
-    if (!isSmallest) {
-      css += formatCssRule(abId, { display: "none" });
-    }
-    // compose container query
-    if (isSmallest) {
-      query = "(width >= " + (visibleRange[1] + 1) + "px)";
-    } else {
-      query = "(width >= " + visibleRange[0] + "px)";
-      if (!isLargest) {
-        query += " and (width < " + (visibleRange[1] + 1) + "px)";
-      }
-    }
-    css +=
-      "@container " +
-      getGroupContainerId(group.groupName) +
-      " " +
-      query +
-      " {\r";
-    css += formatCssRule(abId, { display: isSmallest ? "none" : "block" });
-    css += "}\r";
-    return css;
-  }
-
-  // mixin to combine multiple animations passed
-  // through @include animations(x, y, z)
-  function animationMixin() {
-    var css = `@mixin animations($values...) {
-        $animation: ();
-        @each $value in $values {
-            $animation: append($animation, $value, comma);
-        }
-        animation: $animation;
-    }`;
     return css;
   }
 
@@ -3954,7 +3902,40 @@ export function main(settingsArg) {
     //   css += snippetCss();
     // }
 
-    css += animationMixin();
+    if (isTrue(settings.include_resizer_css)) {
+      // add container queries for each artboard
+      css +=
+        blockStart +
+        "." +
+        nameSpace +
+        "aiPointText p { white-space: nowrap; }\r";
+
+      css += blockStart + "{\r";
+      css += "container-type: inline-size;\r";
+
+      forEachUsableArtboard(function (ab, abIndex) {
+        var id = nameSpace + getDocumentArtboardName(ab);
+        var visibleRange = getArtboardVisibilityRange(ab, group, settings);
+
+        if (visibleRange[1] < Infinity) {
+          css +=
+            "@container (min-width:" +
+            visibleRange[0] +
+            "px) and (max-width: " +
+            visibleRange[1] +
+            "px) {\r";
+        } else {
+          css += "@container (min-width:" + visibleRange[0] + "px) {\r";
+        }
+
+        css += "#" + id + " {\r";
+        css += "display: block !important;\r";
+        css += "}\r";
+        css += "}\r";
+      });
+
+      css += "}\r";
+    }
 
     return css;
   }
@@ -3999,8 +3980,6 @@ export function main(settingsArg) {
     script += " } = $props();\r";
 
     if (!settingsArg.settings.include_resizer_css) {
-      script += "let width = $state(100);\n\r";
-
       for (let i = 0; i < previewImageImports.length; i++) {
         script += previewImageImports[i] + "\n\r";
       }

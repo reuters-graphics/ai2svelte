@@ -19,6 +19,8 @@
     dragging = $bindable(false),
   }: RangeProps = $props();
 
+  let originalTarget: EventTarget | null = null;
+
   let progress = new Spring(0, {
     stiffness: 0.05,
     damping: 0.5,
@@ -29,7 +31,8 @@
   function updateSlider(e: MouseEvent) {
     if (dragging && contentRect) {
       progress.target = map(
-        e.offsetX,
+        e.clientX -
+          ((originalTarget as Element)?.getBoundingClientRect().left || 0),
         contentRect.width * 0.05,
         contentRect.width * 0.95,
         0,
@@ -46,16 +49,25 @@
   onMount(() => {
     progress.target = value / length;
   });
+
+  function handleMouseUp() {
+    dragging = false;
+    document.removeEventListener("mouseup", handleMouseUp);
+    document.removeEventListener("mousemove", handleMouseMove);
+  }
+
+  function handleMouseMove(e: MouseEvent) {
+    updateSlider(e);
+  }
 </script>
 
 <div
   class="range"
   onmousedown={(e) => {
+    originalTarget = e.target;
+    document.addEventListener("mouseup", handleMouseUp);
+    document.addEventListener("mousemove", handleMouseMove);
     dragging = true;
-  }}
-  onmousemove={(e) => updateSlider(e)}
-  onmouseup={(e) => {
-    dragging = false;
   }}
   bind:contentRect
   role="slider"

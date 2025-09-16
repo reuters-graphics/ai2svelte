@@ -24,12 +24,8 @@
 
   // same as yamlString but used actively
   // by the text editor
-  let editableYamlString: string = $state("");
-
   // Sync the derived yamlString to the editable version when styles change
-  $effect(() => {
-    editableYamlString = yamlString;
-  });
+  let editableYamlString: string = $derived(yamlString);
 
   onMount(() => {
     // start with UI tab as active
