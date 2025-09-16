@@ -14,6 +14,7 @@
   // OTHER IMPORTS
   import { userData } from "./state.svelte";
   import { readFile, saveSettings } from "./utils/utils";
+  import defaultProfile from "./Tabs/data/default-profile.json";
 
   // TABS
   import TabBar from "./Components/TabBar.svelte";
@@ -56,10 +57,22 @@
     }
 
     const fetchedSettings = await evalTS("getVariable", "ai-settings");
-    settingsObject.set(fetchedSettings);
 
-    const fetchedStyles = await evalTS("getVariable", "css-settings");
-    styles.set(fetchedStyles);
+    if (Object.keys(fetchedSettings).length == 0) {
+      // no settings found, probably first time use
+      // use user's default settings
+      let usersProfiles = readFile("user-profiles.json");
+      if (usersProfiles && Object.keys(usersProfiles).includes("default")) {
+        settingsObject.set(usersProfiles.default);
+      } else {
+        settingsObject.set(defaultProfile);
+      }
+    } else {
+      // settings found, use them
+      settingsObject.set(fetchedSettings);
+      const fetchedStyles = await evalTS("getVariable", "css-settings");
+      styles.set(fetchedStyles);
+    }
 
     updateInProgress.set(false);
 
