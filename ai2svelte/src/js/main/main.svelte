@@ -1,8 +1,14 @@
 <script lang="ts">
   // SVELTE IMPORTS
   import { onDestroy, onMount, untrack } from "svelte";
-  import { get } from "svelte/store";
-  import { settingsObject, styles, updateInProgress } from "./stores";
+  import {
+    settingsObject,
+    styles,
+    updateInProgress,
+    savedSettings,
+    savedStyles,
+  } from "./stores";
+  import { fly } from "svelte/transition";
 
   // BOLT IMPORTS
   import { csi, evalTS } from "../lib/utils/bolt";
@@ -25,6 +31,10 @@
   let splashScreen: boolean = $state(false);
   let activeTab: string = $state("HOME");
   let previousSettings: Record<string, any> | undefined = $state();
+  let showAlert: { flag: boolean; message: string } = $state({
+    flag: true,
+    message: "",
+  });
 
   // if plugin is running in Illustrator,
   // listen to document change event
@@ -69,8 +79,10 @@
       }
     } else {
       // settings found, use them
-      settingsObject.set(fetchedSettings);
+      savedSettings.set({ ...fetchedSettings });
+      settingsObject.set({ ...fetchedSettings });
       const fetchedStyles = await evalTS("getVariable", "css-settings");
+      savedStyles.set(fetchedStyles);
       styles.set(fetchedStyles);
     }
 
@@ -109,13 +121,38 @@
       }
     }
   });
+
+  // if settings/styles changes,
+  // show alert saying there are unsaved changes
+  $effect(() => {
+    if ($settingsObject || $styles) {
+      const settingsMatch =
+        JSON.stringify($savedSettings) == JSON.stringify($settingsObject);
+      const stylesMatch =
+        JSON.stringify($savedStyles) == JSON.stringify($styles);
+
+      if (stylesMatch && settingsMatch) {
+        showAlert = { flag: false, message: "" };
+      } else {
+        showAlert = {
+          flag: true,
+          message: "There are unsaved changes. Run ai2svelte to save changes.",
+        };
+      }
+    }
+  });
 </script>
 
 {#if splashScreen}
+  {#if showAlert.flag}
+    <div class="alert" transition:fly={{ y: 20 }}>
+      {showAlert.message}
+    </div>
+  {/if}
   <TabBar bind:activeLabel={activeTab} />
 
   {#if activeTab === "HOME"}
-    <Home />
+    <Home refreshSettings={fetchSettings} />
   {:else if activeTab === "STYLES"}
     <Styles />
     <!-- {:else if activeTab === "PREVIEW"} -->
@@ -124,3 +161,15 @@
     <Settings />
   {/if}
 {/if}
+
+<style lang="scss">
+  .alert {
+    width: 100%;
+    text-align: center;
+    background-color: hsl(349 46% 12% / 1);
+    color: hsl(349 70% 45% / 1);
+    padding: 0.25rem 0.25rem 0.35rem 0.25rem;
+    border-radius: 2px;
+    margin-bottom: 1rem;
+  }
+</style>

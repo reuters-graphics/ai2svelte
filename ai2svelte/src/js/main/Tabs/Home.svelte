@@ -7,6 +7,8 @@
 
   import Logo from "../Components/Logo.svelte";
 
+  let { refreshSettings = () => {} } = $props();
+
   function delay(ms: number) {
     return new Promise((resolve) => setTimeout(resolve, ms));
   }
@@ -42,6 +44,7 @@
           });
         }
         saveSettings($settingsObject, $styles);
+        refreshSettings();
         ele.textContent = "Run AI2SVELTE";
         ele.removeAttribute("disabled");
       } else {

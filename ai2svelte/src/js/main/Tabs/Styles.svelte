@@ -60,8 +60,6 @@
   let cssString: string = $derived.by(() => {
     // don't update while its fetching settings from AI
     if (!$updateInProgress) {
-      const keys = Object.keys($styles);
-
       let string = styleObjectToString($styles);
 
       if (window.cep) {
