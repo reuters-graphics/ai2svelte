@@ -19,8 +19,9 @@
     editor?: EditorView;
     textValue: string;
     type: string;
-    onUpdate: (value: string) => void;
+    onUpdate?: (value: string) => void;
     autoCompletionTokens?: { label: string; type: string; info: string }[];
+    readonly: boolean;
   }
 
   interface tokenType {
@@ -36,6 +37,7 @@
     type = "yaml",
     onUpdate = $bindable(),
     autoCompletionTokens,
+    readonly = false,
   }: Props = $props();
 
   let isFocused: boolean = $state(false);
@@ -122,6 +124,7 @@
         updateListener,
         basicSetup,
         EditorView.lineWrapping,
+        EditorView.editable.of(readonly),
         keymap.of([
           indentWithTab,
           { key: "Enter", run: insertNewlineAndIndent },

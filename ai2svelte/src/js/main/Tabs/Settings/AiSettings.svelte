@@ -1,11 +1,19 @@
 <script lang="ts">
   import { onDestroy, onMount, untrack } from "svelte";
   import { fly } from "svelte/transition";
-  import { settingsObject, stylesString, styles } from "../../stores";
+  import {
+    settingsObject,
+    stylesString,
+    styles,
+    updateInProgress,
+  } from "../../stores";
   import SectionTitle from "../../Components/SectionTitle.svelte";
   import Input from "../../Components/Input.svelte";
   import CmTextArea from "../../Components/CMTextArea.svelte";
   import { aiSettingsTokens } from "../../utils/settingsTokens";
+
+  // BOLT IMPORTS
+  import { evalTS } from "../../../lib/utils/bolt";
 
   let { activeFormat = $bindable(), defaultProfile } = $props();
 
@@ -15,6 +23,9 @@
 
   // holds key-value pairs as string
   let yamlString: string = $derived.by(() => {
+    // if (window.cep && !updateInProgress) {
+    //   evalTS("updateAiSettings", "ai-settings", $settingsObject);
+    // }
     return Object.keys($settingsObject)
       .filter((key) => $settingsObject[key] !== null)
       .map((key) => `${key}: ${$settingsObject[key]}`)

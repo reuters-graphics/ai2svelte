@@ -62,9 +62,9 @@
     if (!$updateInProgress) {
       let string = styleObjectToString($styles);
 
-      if (window.cep) {
-        evalTS("updateAiSettings", "shadow-settings", string);
-      }
+      //   if (window.cep) {
+      //     evalTS("updateAiSettings", "shadow-settings", string);
+      //   }
       return string;
     }
     return "";

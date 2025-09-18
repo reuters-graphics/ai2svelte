@@ -4,7 +4,8 @@
   import { Markdown } from "@reuters-graphics/svelte-markdown";
 
   interface Props {
-    value: string;
+    message: string;
+    duration: number;
   }
 
   let { message = "Some text goes here...", duration = 1000 }: Props = $props();

@@ -9,6 +9,8 @@
   import defaultProfile from "./data/default-profile.json";
   import Toast from "../Components/Toast.svelte";
   import { tooltip } from "svooltip";
+  import { selectFolder } from "../../lib/utils/bolt";
+  import { fs } from "../../lib/cep/node";
 
   let profileNameDialog: HTMLElement;
   let profileListDialog: HTMLElement;
@@ -17,6 +19,7 @@
   let newProfileName: string = $state("");
   let isProfileNameModalOpen: boolean = $state(false);
   let isProfileListModalOpen: boolean = $state(false);
+  let fileLoader: HTMLInputElement;
   let refreshKey = $state(1);
   let existingProfiles = $derived.by(() => {
     if (window.cep) {
@@ -108,6 +111,76 @@
     }
   }
 
+  function saveProfilesFromFile(e) {
+    const file = e.files[0];
+
+    console.log(file);
+
+    let jsonData;
+
+    file?.text().then((text) => {
+      try {
+        jsonData = JSON.parse(text);
+
+        if (window.cep) {
+          writeFile("user-profiles.json", {
+            ...existingProfiles,
+            ...jsonData,
+          });
+
+          existingProfiles = readFile("user-profiles.json") || {};
+        }
+
+        mount(Toast, {
+          target: document.body,
+          props: {
+            message: `${Object.keys(jsonData).length} profiles loaded from ${file.name}`,
+            duration: 2000,
+          },
+        });
+      } catch (err) {
+        console.error("Invalid JSON format:", err);
+        mount(Toast, {
+          target: document.body,
+          props: {
+            message: `Error occured while loading ${file.name}. Try again.`,
+            duration: 2000,
+          },
+        });
+      }
+    });
+
+    isProfileListModalOpen = false;
+  }
+
+  function exportProfilesToFile() {
+    selectFolder("", "Save profiles at", (filePath) => {
+      const file = filePath + "/profiles.json";
+      try {
+        fs.writeFileSync(file, JSON.stringify(existingProfiles, null, 2));
+
+        mount(Toast, {
+          target: document.body,
+          props: {
+            message: `File saved successfully at ${file}.`,
+            duration: 4000,
+          },
+        });
+      } catch (err) {
+        console.error("Error writing file:", err);
+        mount(Toast, {
+          target: document.body,
+          props: {
+            message: `Error writing file: ${err}.`,
+            duration: 4000,
+          },
+        });
+      }
+    });
+
+    isProfileNameModalOpen = false;
+  }
+
   onMount(() => {
     if (window.cep) {
       tempActiveProfile = "default";
@@ -134,6 +207,7 @@
       >
       <button onclick={() => (isProfileNameModalOpen = false)}>Cancel</button>
     </form>
+    <button onclick={() => exportProfilesToFile()}>Export my profiles</button>
   </dialog>
 </div>
 
@@ -153,6 +227,18 @@
         options={Object.keys(existingProfiles)}
         bind:value={tempActiveProfile}
       />
+      <input
+        bind:this={fileLoader}
+        type="file"
+        id="avatar"
+        name="avatar"
+        accept="application/json"
+        style="display: none;"
+        onchange={function () {
+          saveProfilesFromFile(this);
+        }}
+      />
+      <button onclick={() => fileLoader?.click()}>Import from file</button>
       <button onclick={() => profileLoaded(tempActiveProfile)}>OK</button>
       <button onclick={() => profileLoaded(null)}>Cancel</button>
       {#if !tempActiveProfile == "default"}

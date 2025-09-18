@@ -84,6 +84,7 @@
       {@render tab("Home", true)}
       {@render tab("Settings", false)}
       {@render tab("Styles", false)}
+      {@render tab("Debug", false)}
     </div>
     <div class="theme-configs">
       <ThemeSwitcher bind:theme />

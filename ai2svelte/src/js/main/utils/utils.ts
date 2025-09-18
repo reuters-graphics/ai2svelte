@@ -7,7 +7,6 @@ import { csi, evalTS } from "../../lib/utils/bolt";
 import { currentBackdrop } from "../stores";
 import config from "../../../../cep.config";
 
-
 let userDataPath = window.cep ? csi.getSystemPath("userData") : "";
 let settingsFile;
 
@@ -42,6 +41,7 @@ export async function fetchNewImageURL() {
 
 export function saveSettings(aiSettings, styleSettings) {
   if (window.cep) {
+    console.log("saving data");
     evalTS("setVariable", "ai-settings", aiSettings);
     evalTS("setVariable", "css-settings", styleSettings);
   }
@@ -104,7 +104,6 @@ export function writeFile(fileName, data) {
   const filePath = path.join(userDataPath, config.id, fileName);
   if (!fs.existsSync(filePath)) {
     fs.mkdirSync(path.dirname(filePath), { recursive: true });
-
   }
   fs.writeFileSync(filePath, JSON.stringify(data));
 }

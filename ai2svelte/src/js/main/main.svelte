@@ -27,6 +27,7 @@
   import Settings from "./Tabs/Settings.svelte";
   import Styles from "./Tabs/Styles.svelte";
   import Home from "./Tabs/Home.svelte";
+  import Debug from "./Tabs/Debug.svelte";
 
   let splashScreen: boolean = $state(false);
   let activeTab: string = $state("HOME");
@@ -82,8 +83,9 @@
       savedSettings.set({ ...fetchedSettings });
       settingsObject.set({ ...fetchedSettings });
       const fetchedStyles = await evalTS("getVariable", "css-settings");
-      savedStyles.set(fetchedStyles);
-      styles.set(fetchedStyles);
+      console.log("fetching styles");
+      savedStyles.set({ ...fetchedStyles });
+      styles.set({ ...fetchedStyles });
     }
 
     updateInProgress.set(false);
@@ -159,6 +161,8 @@
     <!-- <Preview /> -->
   {:else if activeTab === "SETTINGS"}
     <Settings />
+  {:else if activeTab === "DEBUG"}
+    <Debug />
   {/if}
 {/if}
 
