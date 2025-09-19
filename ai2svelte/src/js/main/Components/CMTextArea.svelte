@@ -124,7 +124,7 @@
         updateListener,
         basicSetup,
         EditorView.lineWrapping,
-        EditorView.editable.of(readonly),
+        EditorView.editable.of(!readonly),
         keymap.of([
           indentWithTab,
           { key: "Enter", run: insertNewlineAndIndent },
