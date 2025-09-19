@@ -1,9 +1,12 @@
 <script lang="ts">
   import { settingsObject, stylesString, styles } from "../stores";
   import { evalTS } from "../../lib/utils/bolt";
-  import { saveSettings } from "../utils/utils";
+  import { saveSettings, tooltipSettings } from "../utils/utils";
   import { userData } from "../state.svelte";
   import { company, displayName, version } from "../../../shared/shared";
+  import { tooltip } from "svooltip";
+
+  import Toast from "../Components/Toast.svelte";
 
   import Logo from "../Components/Logo.svelte";
 
@@ -15,46 +18,66 @@
 </script>
 
 <div class="tab-content">
-  <button
-    id="hero-button"
-    onclick={async (e) => {
-      const ele = e.currentTarget;
-      ele.textContent = "Running...";
-      ele.setAttribute("disabled", "true");
-      // set show_completion_dialog_box
-      // unless set by user
-      if (window.cep) {
-        let missingFontFamilies = [];
-        // let disabled state kick in
-        await delay(500);
-        try {
-          missingFontFamilies = await evalTS("runNightly", {
-            settings: {
-              show_completion_dialog_box: true,
-              ...$settingsObject,
-            },
-            code: { css: $stylesString, fontsConfig: userData.fontsConfig },
-          });
-        } catch (error) {
-          console.log(error);
-        }
-        if (missingFontFamilies.length > 0) {
-          missingFontFamilies.forEach((family) => {
-            userData.fontsConfig[family] = "";
-          });
-        }
-        saveSettings($settingsObject, $styles);
-        refreshSettings();
-        ele.textContent = "Run AI2SVELTE";
-        ele.removeAttribute("disabled");
-      } else {
-        setTimeout(() => {
+  <div class="content">
+    <button
+      class="cta-button"
+      onclick={async (e) => {
+        const ele = e.currentTarget;
+        ele.textContent = "Running...";
+        ele.setAttribute("disabled", "true");
+        // set show_completion_dialog_box
+        // unless set by user
+        if (window.cep) {
+          let missingFontFamilies = [];
+          // let disabled state kick in
+          await delay(500);
+          try {
+            missingFontFamilies = await evalTS("runNightly", {
+              settings: {
+                show_completion_dialog_box: true,
+                ...$settingsObject,
+              },
+              code: { css: $stylesString, fontsConfig: userData.fontsConfig },
+            });
+          } catch (error) {
+            console.log(error);
+          }
+          if (missingFontFamilies.length > 0) {
+            missingFontFamilies.forEach((family) => {
+              userData.fontsConfig[family] = "";
+            });
+          }
+          saveSettings($settingsObject, $styles);
+          refreshSettings();
           ele.textContent = "Run AI2SVELTE";
           ele.removeAttribute("disabled");
-        }, 2000);
-      }
-    }}>Run AI2SVELTE</button
-  >
+        } else {
+          setTimeout(() => {
+            ele.textContent = "Run AI2SVELTE";
+            ele.removeAttribute("disabled");
+          }, 2000);
+        }
+      }}
+      use:tooltip={{
+        ...tooltipSettings,
+        content: "Run ai2svelte with current settings",
+      }}>Run AI2SVELTE</button
+    >
+
+    <button
+      class="cta-button"
+      onclick={async () => {
+        if (window.cep) {
+          saveSettings($settingsObject, $styles);
+          await evalTS("exportAsTemplate");
+        }
+      }}
+      use:tooltip={{
+        ...tooltipSettings,
+        content: "Export as a reusable template",
+      }}>Export as template</button
+    >
+  </div>
 
   <div id="credits">
     <!-- <img class="logo" src={logo} alt="ai2svelte logo" /> -->
@@ -74,6 +97,13 @@
     gap: 0.5rem;
   }
 
+  .content {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    gap: 0.25rem;
+  }
+
   .tab-content {
     height: 100%;
     display: flex;
@@ -82,7 +112,7 @@
     gap: 16px;
   }
 
-  #hero-button {
+  .cta-button {
     cursor: pointer;
     padding: 1rem;
     color: var(--color-text);

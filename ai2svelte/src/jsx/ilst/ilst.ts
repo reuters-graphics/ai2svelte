@@ -93,3 +93,9 @@ export const fetchSelectedItems = () => {
     return getSelectedItems();
   }
 };
+
+export const exportAsTemplate = () => {
+  if (app) {
+    return app.executeMenuCommand("saveastemplate");
+  }
+};
