@@ -54,15 +54,23 @@ export const myTheme = EditorView.theme(
       border: "unset !important",
     },
     "&.cm-focused": {
-      outline: "unset !important",
+      //   outline: "unset !important",
     },
     ".cm-scroller": {
       fontFamily: "inherit",
       overflow: "auto",
     },
-    "&.cm-focused .cm-cursor": {
+    // "&.cm-focused .cm-cursor": {
+    //   borderLeftColor: "var(--color-accent-primary) !important",
+    //   borderWidth: "2px !important",
+    // },
+    ".cm-cursor": {
+      display: "block",
       borderLeftColor: "var(--color-accent-primary) !important",
       borderWidth: "2px !important",
+    },
+    ".cm-cursorLayer": {
+      animation: "unset !important",
     },
     ".cm-gutters": {
       backgroundColor: "#ffffff00 !important",

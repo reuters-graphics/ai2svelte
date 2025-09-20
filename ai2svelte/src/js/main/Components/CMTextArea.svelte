@@ -1,11 +1,18 @@
 <script lang="ts">
   import { myTheme } from "../utils/utils";
   import { basicSetup } from "codemirror";
-  import { Compartment } from "@codemirror/state";
+  import { Compartment, Prec } from "@codemirror/state";
   import { EditorView, keymap } from "@codemirror/view";
   import type { EditorViewConfig } from "@codemirror/view";
   import { autocompletion } from "@codemirror/autocomplete";
-  import { indentWithTab, insertNewlineAndIndent } from "@codemirror/commands";
+  import {
+    insertNewlineAndIndent,
+    indentLess,
+    insertTab,
+    defaultKeymap,
+    indentWithTab,
+    indentMore,
+  } from "@codemirror/commands";
   import { css } from "@codemirror/lang-css";
   import { StreamLanguage } from "@codemirror/language";
   import { properties } from "@codemirror/legacy-modes/mode/properties";
@@ -35,12 +42,12 @@
     editor = $bindable(),
     textValue = $bindable(),
     type = "yaml",
-    onUpdate = $bindable(),
+    onUpdate = $bindable(() => {}),
     autoCompletionTokens,
     readonly = false,
   }: Props = $props();
 
-  let isFocused: boolean = $state(false);
+  let isFocused: boolean | null = $state(true);
 
   const themeConfig = new Compartment();
 
@@ -82,16 +89,6 @@
     }
   });
 
-  // Block all shortcuts when CodeMirror has focus
-  const blockAllShortcuts = EditorView.domEventHandlers({
-    keydown(event, view) {
-      // Stop all keyboard events from reaching Illustrator
-      event.stopPropagation();
-      event.stopImmediatePropagation();
-      return false; // Allow CodeMirror to handle the event
-    },
-  });
-
   onMount(() => {
     if (autoCompletionTokens) {
       setupAutoCompletions(autoCompletionTokens);
@@ -121,29 +118,62 @@
       doc: textValue,
       parent: editorEle,
       extensions: [
-        updateListener,
         basicSetup,
-        EditorView.lineWrapping,
+        Prec.highest(
+          keymap.of([
+            {
+              key: "Enter",
+              run: (view) => {
+                console.log("Enter command triggered");
+                return insertNewlineAndIndent(view);
+              },
+            },
+            {
+              key: "Shift-Tab",
+              preventDefault: true,
+              run: indentLess,
+            },
+            {
+              key: "Tab",
+              preventDefault: true,
+              run: (view) => {
+                console.log("Tab command triggered");
+                return indentMore(view);
+              },
+            },
+          ])
+        ),
+        updateListener,
         EditorView.editable.of(!readonly),
-        keymap.of([
-          indentWithTab,
-          { key: "Enter", run: insertNewlineAndIndent },
-        ]),
-        blockAllShortcuts,
-        type == "yaml" ? [StreamLanguage.define(properties)] : css(),
-        autocompletion({ override: [customCompletions] }),
         themeConfig.of([getTheme(userData.theme)]),
+        type == "yaml" ? [StreamLanguage.define(properties)] : css(),
+        autoCompletionTokens
+          ? autocompletion({ override: [customCompletions] })
+          : autocompletion(),
+        EditorView.lineWrapping,
         myTheme,
         EditorView.domEventHandlers({
           focusin: (e, v) => {
             isFocused = true;
+            console.log("focus in", editor?.hasFocus);
           },
           focusout: (e, v) => {
             isFocused = false;
+            console.log("focus out", editor?.hasFocus);
+          },
+          keydown(event, view) {
+            // Stop all keyboard events from bubbling up and reaching parent apps (e.g., Illustrator)
+
+            event.stopPropagation();
+            event.stopImmediatePropagation();
+            return false; // Allow CodeMirror to handle the event
           },
         }),
       ],
     } as EditorViewConfig);
+
+    editor.requestMeasure();
+    editor.focus();
   });
 
   // runs when styles are added by toggling cards

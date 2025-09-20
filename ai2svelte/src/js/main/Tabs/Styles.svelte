@@ -32,7 +32,6 @@
   import SectionTabBar from "../Components/SectionTabBar.svelte";
   import ShadowCard from "../Components/ShadowCard.svelte";
   import type { Style } from "./types";
-  import { css } from "@codemirror/lang-css";
 
   let activeTab: string = $state("");
   let activeFormat: string = $state("UI");
@@ -91,7 +90,8 @@
 
   async function detectIdentifier() {
     const identifier = await evalTS("fetchSelectedItems");
-    cssSelector = identifier || "";
+    cssSelector =
+      identifier || Object.keys($styles)[0] || 'p[class^="g-pstyle"]';
   }
 
   /**
