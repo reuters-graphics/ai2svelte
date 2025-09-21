@@ -13,6 +13,7 @@
     indentWithTab,
     indentMore,
   } from "@codemirror/commands";
+  import { selectNextOccurrence, searchKeymap } from "@codemirror/search";
   import { css } from "@codemirror/lang-css";
   import { StreamLanguage } from "@codemirror/language";
   import { properties } from "@codemirror/legacy-modes/mode/properties";
@@ -121,6 +122,8 @@
         basicSetup,
         Prec.highest(
           keymap.of([
+            ...defaultKeymap,
+            ...searchKeymap,
             {
               key: "Enter",
               run: (view) => {

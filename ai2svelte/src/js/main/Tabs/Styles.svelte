@@ -151,6 +151,10 @@
 
     changeSpecimen();
     backdrop = await fetchNewImageURL();
+
+    window.addEventListener("keydown", (e) => {
+      console.log("e", e);
+    });
   });
 
   // switches to UI format

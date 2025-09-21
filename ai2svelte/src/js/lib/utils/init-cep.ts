@@ -85,6 +85,6 @@ const buildContextMenu = () => {
 export const initializeCEP = () => {
   buildFlyoutMenu();
   buildContextMenu();
-  // keyRegisterOverride(); // Capture all Key Events Possible (many limitations on MacOS)
+  keyRegisterOverride(); // Capture all Key Events Possible (many limitations on MacOS)
   dropDisable(); // to prevent drop files on panel and taking over
 };

@@ -126,12 +126,12 @@
     @include animation-default;
   }
 
-  #hero-button:hover {
+  .cta-button:hover {
     background-color: var(--color-accent-primary);
     color: var(--color-white);
   }
 
-  #hero-button:disabled {
+  .cta-button:disabled {
     $primary-clr: var(--color-accent-primary);
     $secondary-clr: rgba(0, 0, 0, 0.25);
     cursor: not-allowed;
