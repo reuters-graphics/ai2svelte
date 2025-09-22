@@ -1,6 +1,6 @@
 <script lang="ts">
   import { userData } from "../state.svelte";
-  import { settingsObject, savedSettings } from "../stores";
+  import { settingsObject } from "../stores";
   import AiSettings from "./Settings/AiSettings.svelte";
   import FontSettings from "./Settings/FontSettings.svelte";
   import Input from "../Components/Input.svelte";

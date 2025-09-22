@@ -12,7 +12,8 @@ The current version provides:
 
 - **Snippet layers** - You can now embed your Svelte components in your Illustrator document
 - **Easy styling** - The plugin comes loaded with preset shadows and animations that can be applied to your art objects
-- **Easy font configuration** - Easily map Illustrator fonts to CSS `font-family`.
+- **Easy font configuration** - Easily map Illustrator fonts to CSS `font-family`
+- **Profiles** - Save and Load different ai2svelte settings in the form of profiles
 
 ## Getting Started
 
