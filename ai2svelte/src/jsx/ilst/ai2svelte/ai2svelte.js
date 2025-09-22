@@ -3795,6 +3795,7 @@ export function main(settingsArg) {
       css = formatCssRule(abId, {
         position: "relative",
         overflow: "hidden",
+        display: "none",
       });
 
     // classes for paragraph and character styles
