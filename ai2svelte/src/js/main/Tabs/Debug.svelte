@@ -16,34 +16,48 @@
 
   // holds key-value pairs for live settings as string
   let yamlSettingsString: string = $derived.by(() => {
-    return Object.keys($settingsObject)
-      .filter((key) => $settingsObject[key] !== null)
-      .map((key) => `${key}: ${$settingsObject[key]}`)
-      .join("\n")
-      .trim();
+    if ($settingsObject && !$updateInProgress) {
+      return Object.keys($settingsObject)
+        .filter((key) => $settingsObject[key] !== null)
+        .map((key) => `${key}: ${$settingsObject[key]}`)
+        .join("\n")
+        .trim();
+    } else {
+      return "";
+    }
   });
 
   // holds key-value pairs for saved settings as string
   let yamlSavedSettingsString: string = $derived.by(() => {
-    return Object.keys($savedSettings)
-      .filter((key) => $savedSettings[key] !== null)
-      .map((key) => `${key}: ${$savedSettings[key]}`)
-      .join("\n")
-      .trim();
+    if ($savedSettings && !$updateInProgress) {
+      return Object.keys($savedSettings)
+        .filter((key) => $savedSettings[key] !== null)
+        .map((key) => `${key}: ${$savedSettings[key]}`)
+        .join("\n")
+        .trim();
+    } else {
+      return "";
+    }
   });
 
   // holds styles object as string
   let liveCssString: string = $derived.by(() => {
-    let string = styleObjectToString($styles);
-    return string;
+    if ($styles && !$updateInProgress) {
+      let string = styleObjectToString($styles);
+      return string;
+    } else {
+      return "";
+    }
   });
 
   let savedCssString: string = $derived.by(() => {
-    let string = styleObjectToString($savedStyles);
-    return string;
+    if ($savedStyles && !$updateInProgress) {
+      let string = styleObjectToString($savedStyles);
+      return string;
+    } else {
+      return "";
+    }
   });
-
-  onMount(() => {});
 
   let activeTab = $state("Settings");
 </script>

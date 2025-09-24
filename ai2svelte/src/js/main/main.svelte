@@ -78,6 +78,9 @@
       } else {
         settingsObject.set(defaultProfile);
       }
+      savedSettings.set({});
+      styles.set({});
+      savedStyles.set({});
     } else {
       // settings found, use them
       savedSettings.set({ ...fetchedSettings });

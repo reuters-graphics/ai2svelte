@@ -181,15 +181,28 @@
 
   // runs when styles are added by toggling cards
   $effect(() => {
-    if (textValue !== editor?.state.doc.toString() && !isFocused) {
-      // console.log("updated programmatically");
-      editor?.dispatch({
-        changes: {
-          from: 0,
-          to: editor.state.doc.length,
-          insert: textValue,
-        },
-      });
+    if (!readonly) {
+      if (textValue !== editor?.state.doc.toString() && !isFocused) {
+        // console.log("updated programmatically");
+        editor?.dispatch({
+          changes: {
+            from: 0,
+            to: editor.state.doc.length,
+            insert: textValue,
+          },
+        });
+      }
+    } else {
+      if (textValue !== editor?.state.doc.toString()) {
+        // console.log("updated programmatically");
+        editor?.dispatch({
+          changes: {
+            from: 0,
+            to: editor.state.doc.length,
+            insert: textValue,
+          },
+        });
+      }
     }
   });
 </script>
