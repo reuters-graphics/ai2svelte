@@ -16,10 +16,12 @@ export const savedStyles: Writable<Style> = writable({});
 export const styles: Writable<Style> = writable({});
 
 export const stylesString = derived(styles, ($styles) => {
-  return generateAllMixins($styles) + "\n" + styleObjectToString($styles);
+  return generateAllMixins($styles) + "\n" + $styles.root.toString();
 });
 
 export const updateInProgress: Writable<boolean> = writable(false);
+
+export const ai2svelteInProgress: Writable<boolean> = writable(false);
 
 export const userTheme: Writable<string> = writable("dark");
 

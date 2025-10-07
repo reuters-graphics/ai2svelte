@@ -42,8 +42,8 @@
 
   // holds styles object as string
   let liveCssString: string = $derived.by(() => {
-    if ($styles && !$updateInProgress) {
-      let string = styleObjectToString($styles);
+    if ($styles?.root && !$updateInProgress) {
+      let string = $styles?.root?.toString() || "";
       return string;
     } else {
       return "";
@@ -51,8 +51,9 @@
   });
 
   let savedCssString: string = $derived.by(() => {
-    if ($savedStyles && !$updateInProgress) {
-      let string = styleObjectToString($savedStyles);
+    if ($savedStyles?.root && !$updateInProgress) {
+      let string = $savedStyles?.root?.toString() || "";
+      //   string = JSON.stringify($savedStyles);
       return string;
     } else {
       return "";
@@ -60,6 +61,11 @@
   });
 
   let activeTab = $state("Settings");
+
+  onMount(async () => {
+    console.log(await $savedStyles?.root);
+    console.log(await $styles?.root);
+  });
 </script>
 
 <div class="tab-content">

@@ -2,6 +2,10 @@ import JSON5 from "json5";
 import animationsRaw from "../Tabs/data/animations.json?raw";
 import shadowsRaw from "../Tabs/data/shadows.json?raw";
 import type { AnimationItem, ShadowItem } from "../Tabs/types";
+import safeParser from "postcss-safe-parser";
+import postcss from "postcss";
+import * as prettier from "prettier/standalone";
+import parserPostCSS from "prettier/plugins/postcss";
 
 const animations = JSON5.parse(animationsRaw);
 const shadows = JSON5.parse(shadowsRaw);
@@ -65,6 +69,14 @@ export function createShadowMixinFromCSS(shadow: ShadowItem) {
 export function createAnimationMixinFromCSS(animation: AnimationItem) {
   const name = "animation-" + animation.name;
   let str = `@mixin ${name}${animation.arguments}{\n`;
+
+  Object.keys(animation.cssVariables || {}).forEach((variableKey) => {
+    str += `${variableKey}: ${animation?.cssVariables?.[variableKey] || ""};\n`;
+  });
+
+  //   animation.cssVariables?.forEach(variable => {
+  // 	str += `  --${variable.name}: ${animation.cssVariables[variable]};\n`;
+  //   });
   str += animation.definition + "\n\r";
   str += "\n}";
 
@@ -122,6 +134,71 @@ export function styleObjectToString(stylesObject) {
  * @returns {string} A string containing all generated mixin code, joined by newlines.
  */
 export function generateAllMixins(stylesObject) {
+  const mixinShadowRegex = new RegExp(/shadow-(.*)\((#[0-9a-fA-F]+)\)/);
+  const mixinAnimationRegex = new RegExp(/animation-(.*)\((.*)\)/);
+
+  if (stylesObject?.root) {
+    const allShadows: Array<string> = [];
+
+    stylesObject.root.walkAtRules((rule) => {
+      if (mixinShadowRegex.test(rule.params)) {
+        const match = rule.params.match(mixinShadowRegex);
+        if (match) {
+          allShadows.push(match[1]);
+        }
+      }
+    });
+
+    // get all unique shadow styles
+    const allShadowStyles: Set<string> = new Set(allShadows);
+
+    const allAnimations: Array<string> = [];
+
+    stylesObject.root.walkAtRules((rule) => {
+      if (mixinAnimationRegex.test(rule.params)) {
+        const match = rule.params.match(mixinAnimationRegex);
+        if (match) {
+          allAnimations.push(match[1]);
+        }
+      }
+    });
+
+    // get all unique animation styles
+    const allAnimationStyles: Set<string> = new Set(allAnimations);
+
+    // get all shadows CSS
+    const allShadowStylesCSS = Array.from(allShadowStyles).map((x) =>
+      shadows.find(
+        (s) => s.id.toLowerCase().replace(" ", "") == x.toLowerCase()
+      )
+    );
+
+    // get all animations CSS
+    const allAnimationStylesCSS = Array.from(allAnimationStyles).map((x) =>
+      animations.find((s) => s.name.toLowerCase() == x.toLowerCase())
+    );
+
+    // generate all shadow mixins
+    const allShadowMixins = allShadowStylesCSS.map((shadow) =>
+      createShadowMixinFromCSS({ ...shadow, active: false } as ShadowItem)
+    );
+
+    // generate all animation mixins
+    const allAnimationMixins = allAnimationStylesCSS.map((animation) =>
+      createAnimationMixinFromCSS(animation as AnimationItem)
+    );
+
+    let allMixins = [...allShadowMixins, ...allAnimationMixins].join("\n\n");
+
+    console.log("allMixins", allMixins);
+
+    return allMixins;
+  } else {
+    return "";
+  }
+}
+
+export function _generateAllMixins(stylesObject) {
   const mixinShadowRegex = new RegExp(
     /@include\sshadow-(.*)\((#[0-9a-fA-F]+)\)/
   );
@@ -174,4 +251,28 @@ export function generateAllMixins(stylesObject) {
   let allMixins = [...allShadowMixins, ...allAnimationMixins].join("\n\n");
 
   return allMixins;
+}
+
+export async function parseCSS(css: string) {
+  let parsedAST;
+  if (css) {
+    const formatted = await prettier.format(css, {
+      parser: "css", // or "scss" if you're using SCSS
+      plugins: [parserPostCSS],
+    });
+
+    parsedAST = await postcss()
+      .process(formatted, { parser: safeParser })
+      .then(async (result) => {
+        return result;
+      });
+  } else {
+    parsedAST = await postcss()
+      .process("", { parser: safeParser })
+      .then(async (result) => {
+        return result;
+      });
+  }
+
+  return parsedAST;
 }
