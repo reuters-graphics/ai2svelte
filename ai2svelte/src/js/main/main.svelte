@@ -5,6 +5,7 @@
     settingsObject,
     styles,
     updateInProgress,
+    ai2svelteInProgress,
     savedSettings,
     savedStyles,
   } from "./stores";
@@ -21,7 +22,7 @@
   import { userData } from "./state.svelte";
   import { readFile, saveSettings } from "./utils/utils";
   import defaultProfile from "./Tabs/data/default-profile.json";
-
+  import { parseCSS } from "./utils/cssUtils";
   // TABS
   import TabBar from "./Components/TabBar.svelte";
   import Settings from "./Tabs/Settings.svelte";
@@ -44,6 +45,9 @@
       untrack(() => {
         // fetch current ai file's settings when document changed
         csi.addEventListener("documentAfterActivate", () => {
+          // don't fetch settings if ai2svelte is in progress
+          // the window might focus off and on while ai2svelte is running
+          if ($ai2svelteInProgress) return;
           fetchSettings();
         });
       });
@@ -86,9 +90,9 @@
       savedSettings.set({ ...fetchedSettings });
       settingsObject.set({ ...fetchedSettings });
       const fetchedStyles = await evalTS("getVariable", "css-settings");
-      console.log("fetching styles");
-      savedStyles.set({ ...fetchedStyles });
-      styles.set({ ...fetchedStyles });
+      const stylesAST = await parseCSS(fetchedStyles.styleText);
+      savedStyles.set(stylesAST);
+      styles.set(stylesAST);
     }
 
     updateInProgress.set(false);
@@ -122,7 +126,6 @@
         JSON.stringify(previousSettings) !== JSON.stringify($settingsObject)
       ) {
         saveSettings($settingsObject, $styles);
-        console.log("saved");
       }
     }
   });
@@ -133,8 +136,7 @@
     if ($settingsObject || $styles) {
       const settingsMatch =
         JSON.stringify($savedSettings) == JSON.stringify($settingsObject);
-      const stylesMatch =
-        JSON.stringify($savedStyles) == JSON.stringify($styles);
+      const stylesMatch = $savedStyles.css == $styles.css;
 
       if (stylesMatch && settingsMatch) {
         showAlert = { flag: false, message: "" };

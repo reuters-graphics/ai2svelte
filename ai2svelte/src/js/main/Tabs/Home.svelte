@@ -1,12 +1,15 @@
 <script lang="ts">
-  import { settingsObject, stylesString, styles } from "../stores";
+  import {
+    settingsObject,
+    stylesString,
+    styles,
+    ai2svelteInProgress,
+  } from "../stores";
   import { evalTS } from "../../lib/utils/bolt";
   import { saveSettings, tooltipSettings } from "../utils/utils";
   import { userData } from "../state.svelte";
   import { company, displayName, version } from "../../../shared/shared";
   import { tooltip } from "svooltip";
-
-  import Toast from "../Components/Toast.svelte";
 
   import Logo from "../Components/Logo.svelte";
 
@@ -30,6 +33,7 @@
         if (window.cep) {
           let missingFontFamilies = [];
           // let disabled state kick in
+          $ai2svelteInProgress = true;
           await delay(500);
           try {
             missingFontFamilies = await evalTS("runNightly", {
@@ -40,6 +44,7 @@
               code: { css: $stylesString, fontsConfig: userData.fontsConfig },
             });
           } catch (error) {
+            console.log("Error running ai2svelte");
             console.log(error);
           }
           if (missingFontFamilies.length > 0) {
@@ -47,10 +52,13 @@
               userData.fontsConfig[family] = "";
             });
           }
-          saveSettings($settingsObject, $styles);
+          saveSettings($settingsObject, {
+            styleText: $styles?.root?.toString(),
+          });
           refreshSettings();
           ele.textContent = "Run AI2SVELTE";
           ele.removeAttribute("disabled");
+          $ai2svelteInProgress = false;
         } else {
           setTimeout(() => {
             ele.textContent = "Run AI2SVELTE";

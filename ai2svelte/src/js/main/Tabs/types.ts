@@ -17,4 +17,5 @@ export type AnimationItem = {
   animationRule: string;
   definition: string;
   candidate: string;
+  cssVariables?: { [key: string]: string };
 };

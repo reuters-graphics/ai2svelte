@@ -158,11 +158,11 @@
         EditorView.domEventHandlers({
           focusin: (e, v) => {
             isFocused = true;
-            console.log("focus in", editor?.hasFocus);
+            // console.log("focus in", editor?.hasFocus);
           },
           focusout: (e, v) => {
             isFocused = false;
-            console.log("focus out", editor?.hasFocus);
+            // console.log("focus out", editor?.hasFocus);
           },
           keydown(event, view) {
             // Stop all keyboard events from bubbling up and reaching parent apps (e.g., Illustrator)

@@ -30,6 +30,18 @@
 
   let thisCard: Element | undefined = $state();
 
+  let argumentsString = $derived.by(() => {
+    let str = "";
+    str =
+      (animationArguments as String)
+        .replaceAll("$", "--")
+        .replaceAll(",", ";")
+        .replaceAll("(", "")
+        .replaceAll(")", "") + ";";
+
+    return str;
+  });
+
   onMount(() => {
     mounted = true;
 
@@ -94,7 +106,9 @@
     <div style="position: relative;">
       {#if candidate == "text"}
         <div class="animated-text-container">
-          <p style={`animation: ${animationRule};`}>lorem ipsum</p>
+          <p style={`${argumentsString} animation: ${animationRule};`}>
+            lorem ipsum
+          </p>
         </div>
       {:else}
         <svg width="100%" height="80px">
@@ -113,7 +127,7 @@
               cy="50%"
               r={20}
               fill={"url(#Gradient)"}
-              style={`animation: ${animationRule};`}
+              style={`${argumentsString} animation: ${animationRule};`}
             />
           {:else if candidate == "line"}
             <line
@@ -124,7 +138,7 @@
               y2="50%"
               stroke="var(--color-tertiary)"
               stroke-width="3px"
-              style={`animation: ${animationRule};`}
+              style={`${argumentsString} animation: ${animationRule};`}
             ></line>
           {/if}
         </svg>

@@ -6,19 +6,26 @@
   import { evalTS } from "../../lib/utils/bolt";
 
   // DATA IMPORTS
-  import { styles, updateInProgress, currentBackdrop } from "../stores";
+  import {
+    styles,
+    updateInProgress,
+    currentBackdrop,
+    ai2svelteInProgress,
+  } from "../stores";
   import animations from "./data/animations.json?raw";
   import shadows from "./data/shadowsBaked.json?raw";
   import specimens from "./data/specimens.json?raw";
+
   // OTHER LIB IMPORTS
   import JSON5 from "json5";
   import postcss from "postcss";
-  import scss from "postcss-scss";
+  import * as prettier from "prettier/standalone";
+  import parserPostCSS from "prettier/plugins/postcss";
   import ColorPicker from "svelte-awesome-color-picker";
   import { tooltip } from "svooltip";
   import { AIEvent, AIEventAdapter } from "../../../public/BoltHostAdapter.js";
+
   // UTILS
-  import { parseSCSS, styleObjectToString } from "../utils/cssUtils";
   import { fetchNewImageURL, tooltipSettings } from "../utils/utils";
   import type { AnimationItem, ShadowItem } from "./types";
   // MEDIA
@@ -32,6 +39,9 @@
   import SectionTabBar from "../Components/SectionTabBar.svelte";
   import ShadowCard from "../Components/ShadowCard.svelte";
   import type { Style } from "./types";
+
+  // TEMP imports
+  import safeParser from "postcss-safe-parser";
 
   let activeTab: string = $state("");
   let activeFormat: string = $state("UI");
@@ -55,11 +65,21 @@
 
   let previousStyles: Style = [];
 
+  let previousSelector = "";
+
   // holds styles object as string
   let cssString: string = $derived.by(() => {
     // don't update while its fetching settings from AI
     if (!$updateInProgress) {
-      let string = styleObjectToString($styles);
+      //   let string = styleObjectToString($styles);
+
+      //   const string = postcss().process($styles, {
+      //     parser: parse,
+      //     syntax: scss,
+      //   }).css;
+
+      //   console.log("styles:", generateAllMixins($styles));
+      const string = $styles?.root?.toString() || "";
 
       //   if (window.cep) {
       //     evalTS("updateAiSettings", "shadow-settings", string);
@@ -84,14 +104,18 @@
   // clear card selection
   $effect(() => {
     if (cssSelector) {
+      console.log("selector", cssSelector);
       clearShadowSelection();
+      previousSelector = cssSelector;
     }
   });
 
   async function detectIdentifier() {
     const identifier = await evalTS("fetchSelectedItems");
     cssSelector =
-      identifier || Object.keys($styles)[0] || 'p[class^="g-pstyle"]';
+      identifier ||
+      $styles?.root?.nodes?.[0]?.selector ||
+      'p[class^="g-pstyle"]';
   }
 
   /**
@@ -105,12 +129,23 @@
   function addSelectionChangeEventListener() {
     const adapter = AIEventAdapter.getInstance();
     adapter.addEventListener(AIEvent.ART_SELECTION_CHANGED, async (e: any) => {
+      if ($ai2svelteInProgress) return;
       console.log("Selection changed:");
       await detectIdentifier();
     });
   }
 
   onMount(async () => {
+    if ($styles == undefined || Object.keys($styles).length == 0) {
+      $styles = await postcss()
+        .process("", { parser: safeParser })
+        .then(async (result) => {
+          return result;
+        });
+    }
+
+    console.log($styles);
+
     allShadows = [...JSON5.parse(shadows)]
       .map((x) => ({
         id: x.id,
@@ -137,9 +172,7 @@
     activeTab = "shadows";
 
     // set first selector from styles object as css selector
-    if ($styles) {
-      cssSelector = Object.keys($styles)[0] || 'p[class^="g-pstyle"]';
-    }
+    cssSelector = $styles?.root?.nodes?.[0]?.selector || 'p[class^="g-pstyle"]';
 
     if (window.cep) {
       initialLoad = true;
@@ -151,10 +184,6 @@
 
     changeSpecimen();
     backdrop = await fetchNewImageURL();
-
-    window.addEventListener("keydown", (e) => {
-      console.log("e", e);
-    });
   });
 
   // switches to UI format
@@ -203,26 +232,35 @@
    * Updates the `$styles` store with the new styles.
    * Ignores errors to allow for incomplete or in-progress user input.
    */
-  function updateStyle(string: string) {
-    let obj;
-
+  async function updateStyle(string: string) {
     // const ast = postcss.parse(string, { parser: scss });
-    // console.log(ast);
+    // ast.walk((node) => {
+    //   console.log(node);
+    // });
 
     try {
-      obj = postcss.parse(string, { parser: scss }).nodes.map((x) => {
-        return {
-          selector: x.selector,
-          styles: x.nodes.map((s, i) => parseSCSS(s)),
-        };
-      });
+      let object;
+      let formatted = string;
 
-      const newStyles: Style = {};
-      obj.forEach((x) => {
-        newStyles[x.selector] = x.styles;
-      });
+      try {
+        formatted = await prettier.format(string, {
+          parser: "scss", // or "scss" if you're using SCSS
+          plugins: [parserPostCSS],
+        });
+      } catch (error) {
+        console.log("Prettier formatting error:");
+        console.log(error);
+      }
 
-      styles.set(newStyles);
+      await postcss()
+        .process(formatted, { parser: safeParser })
+        .then(async (result) => {
+          object = await result;
+        });
+
+      console.log("styles", $styles.root?.nodes);
+
+      styles.set(object);
     } catch (error) {
       // ignore errors cause user might still be typing the style
     }
@@ -239,6 +277,12 @@
     }
 
     specimenWeight = ((specimenWeight + 50) % 900) + 50;
+  }
+
+  function checkIfRuleIsEmpty(rule) {
+    if (!rule.nodes || rule.nodes.length === 0) {
+      rule.remove(); // Clean up empty rules
+    }
   }
 
   /**
@@ -263,96 +307,175 @@
     const mixinCheck = animationUsage?.match(animationMixinRegex);
     const animationIdentifier = mixinCheck ? mixinCheck[1] : undefined;
 
+    let rule =
+      $styles.root?.nodes.find((node) => node.selector === cssSelector) || null;
+
+    const animationParam = `animation-${animationName}()`;
+
     if (operation) {
-      if (!$styles[cssSelector]) {
-        $styles[cssSelector] = [];
+      if (!rule) {
+        rule = postcss.rule({ selector: cssSelector });
+        $styles.root.append(rule);
       }
+      //   if (!$styles[cssSelector]) {
+      //     $styles[cssSelector] = {};
+      //   }
 
-      const animationStyle = $styles[cssSelector].find((x: string) =>
-        x.includes("animation:")
-      );
+      //   const animationStyle = Object.keys($styles[cssSelector]).find(
+      //     (x: string) => x.includes("animation:")
+      //   );
 
-      $styles[cssSelector].push(
-        `/* ${animationIdentifier} ${animationDefinition} */`
-      );
-      $styles[cssSelector].push(animationUsage);
+      //   const animationKey = Object.keys($styles[cssSelector]).includes(
+      //     "animation"
+      //   );
+
+      // Create a comment node
+      const comment = postcss.comment({
+        text: `${animationIdentifier} ${animationDefinition}`,
+      });
+
+      rule.append(comment);
+
+      // Create an @include AtRule
+      const animationInclude = postcss.atRule({
+        name: "include",
+        params: animationParam,
+      });
+
+      // Add or update a declaration
+      rule.append(animationInclude);
+
+      //   $styles[cssSelector].push(
+      //     `/* ${animationIdentifier} ${animationDefinition} */`
+      //   );
+      //   $styles[cssSelector].push(animationUsage);
+
+      let animationDeclExists = false;
+      let existingValue = "";
+      rule.walkDecls((decl) => {
+        if (decl.prop === "animation") {
+          animationDeclExists = true;
+          existingValue = decl.value;
+          decl.value = existingValue + ", " + animationRule;
+        }
+      });
+
+      if (!animationDeclExists) {
+        // Add animation declaration
+        rule.append({ prop: "animation", value: animationRule });
+      }
 
       // if 'animation' rule isn't included, add it
-      if (!animationStyle) {
-        $styles[cssSelector].push(`animation: ${animationRule}`);
-      } else {
-        const regex = new RegExp(/.*animation:\s(.*)/);
-        const existingAnimations = animationStyle.match(regex);
-        if (existingAnimations) {
-          const index = $styles[cssSelector].findIndex(
-            (x) => x == animationStyle
-          );
-
-          if (index > -1) {
-            $styles[cssSelector].splice(index, 1);
-            $styles[cssSelector].push(
-              `animation: ${existingAnimations[1]}, ${animationRule}`
-            );
-          }
-        }
-      }
+      //   if (!animationKey) {
+      //     // $styles[cssSelector].push(`animation: ${animationRule}`);
+      //     // $styles[cssSelector] = {
+      //     //   ...$styles[cssSelector],
+      //     //   animation: animationRule,
+      //     // };
+      //   } else {
+      //     // const regex = new RegExp(/.*animation:\s(.*)/);
+      //     // const existingAnimations = $styles[cssSelector]["animation"];
+      //     // if (existingAnimations) {
+      //     //   $styles[cssSelector]["animation"] =
+      //     //     `${existingAnimations}, ${animationRule}`;
+      //     // }
+      //   }
     } else {
-      // console.log("id:" + animationIdentifier);
-      const regexCheck = new RegExp(`\\b${animationIdentifier}\\b`);
-
-      const animationStyle = $styles[cssSelector].find((x: string) =>
-        x.includes("animation:")
-      );
-
-      if (animationStyle) {
-        const regex = new RegExp(/.*animation:(.*)/);
-        const existingAnimations = animationStyle.match(regex);
-        const animString = existingAnimations
-          ? existingAnimations[1]
-          : undefined;
-
-        if (animString) {
+      rule.walkDecls((decl) => {
+        if (decl.prop === "animation") {
           const animRegex = new RegExp(`\\s*${animationName}([^,)]*)`);
-          const newAnimString = animString
+          let newAnimString = decl.value
             .replace(animRegex, "")
             .split(",")
             .filter((x) => x !== "")
             .join(",");
-
-          const index = $styles[cssSelector].findIndex(
-            (x) => x == animationStyle
-          );
-
-          if (index > -1) {
-            if (newAnimString == "") {
-              $styles[cssSelector].splice(index, 1);
-            } else {
-              $styles[cssSelector][index] = `animation: ${newAnimString}`;
-            }
+          if (newAnimString == "") {
+            decl.remove();
+          } else {
+            decl.value = newAnimString;
           }
         }
-      }
+      });
 
-      const indexes = $styles[cssSelector]
-        .map((x, i) => (regexCheck.test(x) ? i : null))
-        .filter((x) => x !== null && x >= 0);
+      rule.walkAtRules("include", (atRule) => {
+        if (atRule.params === animationParam) {
+          atRule.remove();
+        }
+      });
 
-      const indexSet = new Set(indexes);
+      rule.walkComments((comment) => {
+        if (comment.text == `${animationIdentifier} ${animationDefinition}`) {
+          comment.remove();
+        }
+      });
 
-      const arrayWithValuesRemoved = $styles[cssSelector].filter(
-        (value, i) => !indexSet.has(i)
-      );
+      checkIfRuleIsEmpty(rule);
 
-      $styles[cssSelector] = [...arrayWithValuesRemoved];
+      // console.log("id:" + animationIdentifier);
+      //   const regexCheck = new RegExp(`\\b${animationIdentifier}\\b`);
+
+      //   const animationStyle = Object.keys($styles[cssSelector]).find(
+      //     (x: string) => x.includes("animation:")
+      //   );
+
+      //   if (animationStyle) {
+      //     const regex = new RegExp(/.*animation:(.*)/);
+      //     const existingAnimations = animationStyle.match(regex);
+      //     const animString = existingAnimations
+      //       ? existingAnimations[1]
+      //       : undefined;
+
+      //     if (animString) {
+      //       const animRegex = new RegExp(`\\s*${animationName}([^,)]*)`);
+      //       const newAnimString = animString
+      //         .replace(animRegex, "")
+      //         .split(",")
+      //         .filter((x) => x !== "")
+      //         .join(",");
+
+      //       const index = Object.keys($styles[cssSelector]).findIndex(
+      //         (x) => x == animationStyle
+      //       );
+
+      //       if (index > -1) {
+      //         if (newAnimString == "") {
+      //           //   $styles[cssSelector].splice(index, 1);
+      //           delete $styles[cssSelector][animationStyle];
+      //         } else {
+      //           //   $styles[cssSelector][index] = `animation: ${newAnimString}`;
+      //           $styles[cssSelector] = {
+      //             ...$styles[cssSelector],
+      //             [`animation: ${newAnimString}`]: true,
+      //           };
+      //         }
+      //       }
+      //   }
     }
 
-    if ($styles[cssSelector].length == 0) {
-      delete $styles[cssSelector];
-    } else {
-      // add all animations
-    }
+    //   const indexes = $styles[cssSelector]
+    //     .map((x, i) => (regexCheck.test(x) ? i : null))
+    //     .filter((x) => x !== null && x >= 0);
+
+    //   const indexSet = new Set(indexes);
+
+    //   const arrayWithValuesRemoved = $styles[cssSelector].filter(
+    //     (value, i) => !indexSet.has(i)
+    //   );
+
+    //   $styles[cssSelector] = [...arrayWithValuesRemoved];
+    // }
+
+    // if ($styles[cssSelector].length == 0) {
+    //   delete $styles[cssSelector];
+    // } else {
+    //   // add all animations
+    // }
 
     $styles = $styles;
+  }
+
+  function isRuleEmpty(rule) {
+    return rule.nodes.every((node) => node.type !== "decl");
   }
 
   /**
@@ -368,25 +491,48 @@
   function toggleShadowCard(shadowName: string, operation: boolean) {
     const shadowString: string =
       "@include shadow-" + shadowName + "(" + shadowColor + ")";
+    const shadowParam = `shadow-${shadowName}(${shadowColor})`;
 
+    let rule =
+      $styles.root?.nodes.find((node) => node.selector === cssSelector) || null;
     // true to add
     // false to remove
     if (operation) {
-      if (!$styles[cssSelector]) {
-        $styles[cssSelector] = [];
+      if (!rule) {
+        rule = postcss.rule({ selector: cssSelector });
+        $styles.root.append(rule);
       }
-      $styles[cssSelector].push(shadowString);
+      // Create an @include AtRule
+      const shadowInclude = postcss.atRule({
+        name: "include",
+        params: shadowParam,
+      });
+      // Add or update a declaration
+      rule.append(shadowInclude);
+      //   $styles[cssSelector] = {
+      //     ...$styles[cssSelector],
+      //     [`${shadowString}`]: true,
+      //   };
+      //   $styles[cssSelector].push(shadowString);
     } else {
-      const index: number = $styles[cssSelector].findIndex(
-        (x) => x == shadowString
-      );
-      $styles[cssSelector].splice(index, 1);
-    }
+      //   const index: number = $styles[cssSelector].findIndex(
+      //     (x) => x == shadowString
+      //   );
+      //   delete $styles[cssSelector][`${shadowString}`];
+      //   rule = postcss.rule({ selector: cssSelector });
+      rule.walkAtRules("include", (atRule) => {
+        if (atRule.params === shadowParam) {
+          atRule.remove();
+        }
+      });
 
-    if ($styles[cssSelector].length == 0) {
-      delete $styles[cssSelector];
+      checkIfRuleIsEmpty(rule);
+      //   $styles[cssSelector].splice(index, 1);
     }
-
+    // const ruleEmpty = isRuleEmpty(rule);
+    // if (ruleEmpty) {
+    //   delete $styles[cssSelector];
+    // }
     $styles = $styles;
   }
 
@@ -399,15 +545,20 @@
     allShadows.forEach((x) => {
       const shadowMixin =
         "@include shadow-" + x.dataName + "(" + shadowColor + ")";
+      const shadowParam = `shadow-${x.dataName}(${shadowColor})`;
 
-      if ($styles[cssSelector]) {
-        if ($styles[cssSelector].includes(shadowMixin)) {
-          x.active = true;
-        } else {
-          x.active = false;
-        }
-      } else {
-        x.active = false;
+      x.active = false;
+
+      let rule =
+        $styles.root?.nodes.find((node) => node.selector === cssSelector) ||
+        null;
+
+      if (rule) {
+        rule.walkAtRules("include", (atRule) => {
+          if (atRule.params === shadowParam) {
+            x.active = true;
+          }
+        });
       }
     });
 
@@ -417,23 +568,41 @@
       const animationIdentifier = mixinCheck ? mixinCheck[1] : undefined;
       const regexCheck = new RegExp(`\\b${animationIdentifier}\\b`);
 
-      if ($styles[cssSelector]) {
-        if ($styles[cssSelector].some((x) => regexCheck.test(x))) {
-          x.active = true;
-        } else {
-          x.active = false;
-        }
-      } else {
-        x.active = false;
+      x.active = false;
+
+      let rule =
+        $styles.root?.nodes.find((node) => node.selector === cssSelector) ||
+        null;
+
+      let animationParam = `animation-${x.name}()`;
+
+      if (rule) {
+        rule.walkAtRules("include", (atRule) => {
+          if (atRule.params === animationParam) {
+            x.active = true;
+          }
+        });
       }
+
+      //   if ($styles && $styles[cssSelector]) {
+      //     if (Object.keys($styles[cssSelector]).some((x) => regexCheck.test(x))) {
+      //       x.active = true;
+      //     } else {
+      //       x.active = false;
+      //     }
+      //   } else {
+      //     x.active = false;
+      //   }
     });
   }
 </script>
 
 <div class="shadow-content" in:fly={{ y: -50, duration: 300 }}>
-  {#if Object.keys($styles).length}
+  {#if $styles.root?.nodes.length}
     <div class="pills-container" transition:slide={{ duration: 200 }}>
-      {#each Object.keys($styles) as selector}
+      {#each $styles.root?.nodes
+        .filter((x) => x.selector)
+        .map((x) => x.selector) as selector}
         <Pill
           name={selector}
           active={selector == cssSelector}
@@ -441,10 +610,16 @@
             cssSelector = selector;
           }}
           onRemove={() => {
-            delete $styles[selector];
+            // delete $styles[selector];
+            $styles.root.nodes.splice(
+              $styles.root.nodes.findIndex((x) => x.selector == selector),
+              1
+            );
             $styles = $styles;
             // replace identifier with default style
-            cssSelector = Object.keys($styles).at(-1) || `p[class^="g-pstyle"]`;
+            cssSelector =
+              $styles.root?.nodes?.[0]?.selector || `p[class^="g-pstyle"]`;
+            // cssSelector = Object.keys($styles).at(-1) || `p[class^="g-pstyle"]`;
           }}
         />
       {/each}
