@@ -213,7 +213,8 @@
       $currentBackdrop = ($currentBackdrop + 1) % maxBackdropCount;
       newImageURL = await fetchNewImageURL();
     } catch (error) {
-      changeBackdrop();
+      newImageURL = `https://picsum.photos/200`;
+      console.log(error);
       return;
     }
 

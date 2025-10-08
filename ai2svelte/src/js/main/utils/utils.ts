@@ -31,7 +31,12 @@ export const tooltipSettings: Options = {
 export async function fetchNewImageURL() {
   let currBackdrop = get(currentBackdrop);
   try {
-    const imgURL = `../../../assets/images/backdrops/backdrop_${currBackdrop}.jpg`;
+    let imgURL = "";
+    if (window.cep) {
+      imgURL = `../public/backdrops/backdrop_${currBackdrop}.jpg`;
+    } else {
+      imgURL = `../../../assets/images/backdrops/backdrop_${currBackdrop}.jpg`;
+    }
     return imgURL;
   } catch (error) {
     console.log(error);
