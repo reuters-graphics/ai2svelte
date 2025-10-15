@@ -4287,7 +4287,6 @@ function main() {
     var aspectRatio = '';
 
     aspectRatio = "aspect-ratio: " + (abBox.width / abBox.height )+ ";";
-    maxWidth = (settings.responsiveness === 'fixed') ? "max-width: " + abBox.width + "px;" : "";
 
     html +=
       '\t<div id="' +
@@ -4297,7 +4296,6 @@ function main() {
       '" style="' +
       inlineStyle +
       aspectRatio +
-      maxWidth +
       '"';
     html += ">\r";
     return html;
