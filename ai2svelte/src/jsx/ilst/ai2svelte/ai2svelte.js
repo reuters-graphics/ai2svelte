@@ -213,8 +213,36 @@ export function main(settingsArg) {
     });
     validateArtboardNames(docSettings); // warn about duplicate artboard names
 
-    // textBlockData.code can be an Object of various langs (html, css, js) to be added to the final output
-    renderDocument(docSettings, textBlockData.code);
+    var { isWild, projectNameTemplate, start, end } =
+      checkForWildcardExports(docSettings);
+
+    if (isWild) {
+      // wildcard exports
+      var numberCheck = /\D*(\d+)$/;
+      for (var i = start; i <= end; i++) {
+        docSlug = projectNameTemplate.replace("*", i);
+        docSettings.project_name = docSlug;
+        alert(docSlug);
+        // hide layers ending with other numbers
+        // unhide layer ending with current number
+        forEach(doc.layers, function (layer) {
+          if (layer.name.match(numberCheck)) {
+            var layerNumber = parseInt(layer.name.match(numberCheck)[1]);
+            if (layerNumber == i) {
+              layer.visible = true;
+            } else if (layerNumber >= start && layerNumber <= end) {
+              // only take [start..end] into account
+              layer.visible = false;
+            }
+          }
+        });
+        renderDocument(docSettings, textBlockData.code);
+      }
+    } else {
+      // normal single file export
+      // textBlockData.code can be an Object of various langs (html, css, js) to be added to the final output
+      renderDocument(docSettings, textBlockData.code);
+    }
   } catch (e) {
     errors.push(formatError(e));
   }
@@ -380,6 +408,32 @@ export function main(settingsArg) {
   // =====================================
   // ai2svelte specific utility functions
   // =====================================
+
+  function checkForWildcardExports(settings) {
+    var start = 0;
+    var end = 0;
+    var projectNameTemplate = "";
+    var wildcardCheck = /^(.*)\{(\d+),(\d+)\}(.*)/;
+
+    var isProjectNameWild = wildcardCheck.test(settings.project_name);
+
+    if (isProjectNameWild) {
+      start = parseInt(settings.project_name.match(wildcardCheck)[2]);
+      end = start + parseInt(settings.project_name.match(wildcardCheck)[3]) - 1;
+      projectNameTemplate =
+        settings.project_name.match(wildcardCheck)[1] +
+        (settings.project_name.match(wildcardCheck)[4]
+          ? "*" + settings.project_name.match(wildcardCheck)[4]
+          : "*");
+    }
+
+    return {
+      isWild: isProjectNameWild,
+      projectNameTemplate: projectNameTemplate,
+      start: start,
+      end: end,
+    };
+  }
 
   function checkForOutputFolder(folderPath, nickname) {
     var outputFolder = new Folder(folderPath);
