@@ -5,38 +5,37 @@ if (ExternalObject.AdobeXMPScript == undefined) {
 // Corrected XMP implementation
 export function storeHiddenData(key, value) {
   try {
-    var doc = app.activeDocument;
+    // Load AdobeXMPScript if not already loaded
+    if (ExternalObject.AdobeXMPScript === undefined) {
+      ExternalObject.AdobeXMPScript = new ExternalObject("lib:AdobeXMPScript");
+    }
 
-    var xmp = doc.XMPString;
-    var xmpMeta = new XMPMeta(xmp);
+    var doc = app.activeDocument;
+    var filePath = doc.fullName.fsName; // Full path to the .ai file
+
+    // Open the file for update
+    var xmpFile = new XMPFile(
+      filePath,
+      XMPConst.UNKNOWN,
+      XMPConst.OPEN_FOR_UPDATE
+    );
+    var xmpMeta = xmpFile.getXMP(); // Get current metadata
 
     // Define namespace and prefix
     var namespace = "reuters-graphics";
     var prefix = "ai2svelte-companion";
 
-    // Register the namespace BEFORE using it
-    XMPMeta.registerNamespace(namespace, prefix);
+    // Register namespace if needed
+    if (!XMPMeta.getNamespacePrefix(namespace)) {
+      XMPMeta.registerNamespace(namespace, prefix);
+    }
 
     // Set the property
     xmpMeta.setProperty(namespace, key, JSON.stringify(value));
 
-    // Save back to document
-    doc.XMPString = xmpMeta.serialize();
-
-    // Minimal artboard change
-    var artboard = doc.artboards[0];
-    var originalRect = artboard.artboardRect;
-
-    // Make tiny change and revert
-    artboard.artboardRect = [
-      originalRect[0],
-      originalRect[1],
-      originalRect[2] + 0.001,
-      originalRect[3],
-    ];
-    artboard.artboardRect = originalRect;
-
-    doc.save();
+    // Write metadata back to file
+    xmpFile.putXMP(xmpMeta);
+    xmpFile.closeFile(XMPConst.CLOSE_UPDATE_SAFELY);
 
     return true;
   } catch (e) {
@@ -47,22 +46,38 @@ export function storeHiddenData(key, value) {
 
 export function getHiddenData(key) {
   try {
-    var doc = app.activeDocument;
+    // Load AdobeXMPScript if not already loaded
+    if (ExternalObject.AdobeXMPScript === undefined) {
+      ExternalObject.AdobeXMPScript = new ExternalObject("lib:AdobeXMPScript");
+    }
 
-    var xmp = doc.XMPString;
-    var xmpMeta = new XMPMeta(xmp);
+    var doc = app.activeDocument;
+    var filePath = doc.fullName.fsName; // Full path to the .ai file
+
+    // Open the file for reading
+    var xmpFile = new XMPFile(
+      filePath,
+      XMPConst.UNKNOWN,
+      XMPConst.OPEN_FOR_READ
+    );
+    var xmpMeta = xmpFile.getXMP();
 
     var namespace = "reuters-graphics";
     var prefix = "ai2svelte-companion";
 
-    // Register namespace again for reading
-    XMPMeta.registerNamespace(namespace, prefix);
+    // Register namespace if needed
+    if (!XMPMeta.getNamespacePrefix(namespace)) {
+      XMPMeta.registerNamespace(namespace, prefix);
+    }
 
-    if (xmpMeta.doesPropertyExist(namespace, key)) {
+    // Check and retrieve the property
+    if (xmpMeta && xmpMeta.doesPropertyExist(namespace, key)) {
       var value = xmpMeta.getProperty(namespace, key);
+      xmpFile.closeFile(); // Close after reading
       return JSON.parse(value.value);
     }
 
+    xmpFile.closeFile(); // Close even if not found
     return {};
   } catch (e) {
     $.writeln("Error retrieving data: " + e.message);

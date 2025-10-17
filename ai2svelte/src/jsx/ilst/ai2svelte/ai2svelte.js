@@ -42,8 +42,6 @@ import {
   cssPrecision,
 } from "./cssStyles";
 
-// import { cropSVG } from "./cropSVG";
-
 import {
   testBoundsIntersection,
   shiftBounds,
@@ -88,6 +86,7 @@ import {
   applyTemplate,
   pathJoin,
   pathSplit,
+  replaceAll,
 } from "./utils";
 
 export function main(settingsArg) {
@@ -3085,7 +3084,7 @@ export function main(settingsArg) {
       if (!svgOutput) {
         return ""; // no image was created
       }
-      rewriteSVGFile(outputPath, imgId);
+      rewriteSVGFile(outputPath, imgId, settings);
 
       if (inlineSvg) {
         if (settings.tagPrefix == "svg") {
@@ -3587,8 +3586,9 @@ export function main(settingsArg) {
     opts.documentEncoding = SVGDocumentEncoding.UTF8;
     opts.embedRasterImages = isTrue(settings.svg_embed_images);
     // opts.DTD                   = SVGDTDVersion.SVG1_1;
-    opts.DTD = SVGDTDVersion.SVGTINY1_2;
-    opts.cssProperties = SVGCSSPropertyLocation.STYLEATTRIBUTES;
+    // SVG1_1 exports better for elements with opacity
+    opts.DTD = SVGDTDVersion.SVG1_1;
+    opts.cssProperties = SVGCSSPropertyLocation.PRESENTATIONATTRIBUTES;
 
     // SVGTINY* DTD variants:
     //  * Smaller file size (50% on one test file)
@@ -3596,30 +3596,31 @@ export function main(settingsArg) {
 
     exportDoc.activate();
 
-    if (settings.tagPrefix == "svg") {
-      // Run menu command to trim svg to visible items
-      app.executeMenuCommand("Fit Artboard to artwork bounds");
-      var svgBounds = convertAiBounds(exportDoc.artboards[0].artboardRect);
-      // trimming artboard repositions final artboard
-      // to artwork's x, y
-      left = svgBounds.left - parentArtboardBounds.left;
-      top = svgBounds.top - parentArtboardBounds.top;
-
-      // if svg bounds exceed parent artboard's bounds,
-      // revert trimming operation and use parent artboard's bounds
-      if (
-        svgBounds.width > parentArtboardBounds.width ||
-        svgBounds.height > parentArtboardBounds.height
-      ) {
-        app.executeMenuCommand("undo");
-        svgBounds = convertAiBounds(exportDoc.artboards[0].artboardRect);
-        left = 0;
-        top = 0;
-      }
-
-      width = svgBounds.width;
-      height = svgBounds.height;
-    }
+    // It's better to export SVG layers at the original artboard size.
+    // That allows users to perform modifications based on the original size
+    // rather than trimming it to visible artwork
+    // if (settings.tagPrefix == "svg") {
+    // Run menu command to trim svg to visible items
+    //   app.executeMenuCommand("Fit Artboard to artwork bounds");
+    //   var svgBounds = convertAiBounds(exportDoc.artboards[0].artboardRect);
+    // trimming artboard repositions final artboard
+    // to artwork's x, y
+    //   left = svgBounds.left - parentArtboardBounds.left;
+    //   top = svgBounds.top - parentArtboardBounds.top;
+    // if svg bounds exceed parent artboard's bounds,
+    // revert trimming operation and use parent artboard's bounds
+    //   if (
+    //     svgBounds.width > parentArtboardBounds.width ||
+    //     svgBounds.height > parentArtboardBounds.height
+    //   ) {
+    //     app.executeMenuCommand("undo");
+    //     svgBounds = convertAiBounds(exportDoc.artboards[0].artboardRect);
+    //     left = 0;
+    //     top = 0;
+    //   }
+    //   width = svgBounds.width;
+    //   height = svgBounds.height;
+    // }
     exportDoc.exportFile(new File(ofile), ExportType.SVG, opts);
 
     doc.activate();
@@ -3627,8 +3628,8 @@ export function main(settingsArg) {
     exportDoc.close(SaveOptions.DONOTSAVECHANGES);
 
     var response = {
-      width: width,
-      height: height,
+      width: parentArtboardBounds.width,
+      height: parentArtboardBounds.height,
       left: left,
       top: top,
     };
@@ -3644,7 +3645,7 @@ export function main(settingsArg) {
     saveTextFile(path, newSVG);
   }
 
-  function rewriteSVGFile(path, id) {
+  function rewriteSVGFile(path, id, settings) {
     var svg = readFile(path);
     var selector;
     if (!svg) return;
@@ -3665,7 +3666,11 @@ export function main(settingsArg) {
       selector + " { vector-effect: non-scaling-stroke; }"
     );
     // remove images from filesystem and SVG file
-    svg = removeImagesInSVG(svg, path);
+    // removeImagesInSVG seems to be doing nothing
+    // svg = removeImagesInSVG(svg, path);
+    // fixes url path for images in SVG
+    // uses settings.image_source_path to prepend to image hrefs
+    svg = fixURLinSVG(svg, settings);
     saveTextFile(path, svg);
   }
 
@@ -3716,6 +3721,35 @@ export function main(settingsArg) {
       );
     }
     return content;
+  }
+
+  function fixURLinSVG(content, settings) {
+    var result = "";
+    var lastIndex = 0;
+    var regex = /<image\b[^>]*\bxlink:href="([^"]+)"/g;
+    var match;
+    var urlToPrepend =
+      "{ assetsPath.replace(new RegExp('/([^/.]+)$'), '/$1/') || '/' }" +
+      settings.image_source_path;
+
+    while ((match = regex.exec(content)) !== null) {
+      var href = match[1];
+      var updatedHref = urlToPrepend + href;
+
+      // Replace the href inside the matched string
+      var updatedTag = replaceAll(match[0], href, updatedHref);
+
+      // Append content before the match, then the updated tag
+      result += content.substring(lastIndex, match.index) + updatedTag;
+
+      // Update lastIndex to continue from end of current match
+      lastIndex = match.index + match[0].length;
+    }
+
+    // Append any remaining content after the last match
+    result += content.substring(lastIndex);
+
+    return result;
   }
 
   // Note: stopped wrapping CSS in CDATA tags (caused problems with NYT cms)

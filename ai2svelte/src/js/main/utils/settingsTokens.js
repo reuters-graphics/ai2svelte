@@ -180,7 +180,7 @@ export let aiSettingsTokens = [
   {
     label: "svg_embed_images",
     type: "variable",
-    info: "Options: true, false",
+    info: "Embed images inside SVG as base64. \n ⚠️Results into longer export durations. Use only if the images are super small. Options: true, false",
     default: "false",
     inputType: "select",
     options: ["true", "false"],
