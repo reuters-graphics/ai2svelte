@@ -4055,11 +4055,30 @@ export function main(settingsArg) {
     }
   }
 
+  function addArtboardChangeEffect() {
+    let effectCode =
+      "$effect(() => {\n" +
+      "if (aiBoxWidth) {\n" +
+      "const currentArtboard = allArtboards.filter((artboard) => {\n" +
+      "const minWidth = parseFloat(artboard.dataset.minWidth);\n" +
+      "const maxWidth = parseFloat(artboard.dataset.maxWidth) || Infinity;\n" +
+      "return minWidth <= aiBoxWidth && maxWidth >= aiBoxWidth;\n" +
+      "})[0];\n" +
+      "if (currentArtboard?.id !== activeArtboard?.id) {\n" +
+      "activeArtboard = untrack(() => currentArtboard);\n" +
+      "onArtboardChange(activeArtboard);\n" +
+      "}\n" +
+      "}\n" +
+      "});\n";
+    return effectCode;
+  }
+
   // generates <script> code
-  function generateSvelteScript() {
+  function generateSvelteScript(group, settings) {
     var script = "<script>\r\t";
 
-    script += "let { assetsPath = '/', onAiMounted = () => {}";
+    script +=
+      "let { assetsPath = '/', activeArtboard = $bindable(), onAiMounted = () => {}, onArtboardChange = () => {}";
 
     if (docSettings.snippetProps) {
       script += ", " + docSettings.snippetProps.join(", ");
@@ -4074,8 +4093,18 @@ export function main(settingsArg) {
     }
 
     // add prop for onmount function that defaults to noop
-    script += "import { onMount } from 'svelte';\n";
-    script += "onMount(() => {\r  onAiMounted();\r});\r";
+    script += "import { onMount, untrack } from 'svelte';\n";
+    script += "let aiBox;\n";
+    script += "let aiBoxWidth = $state(undefined);\n";
+    script += "let allArtboards = $state([]);\n";
+    script +=
+      "onMount(() => {\rallArtboards = Array.from(aiBox.querySelectorAll('" +
+      "." +
+      nameSpace +
+      "artboard" +
+      "'));\ronAiMounted();\r});\r";
+
+    script += addArtboardChangeEffect();
 
     script += "\r</script>\r";
 
@@ -4115,7 +4144,7 @@ export function main(settingsArg) {
       " -->\r";
 
     // SCRIPT
-    html = generateSvelteScript();
+    html = generateSvelteScript(group, settings);
 
     // HTML
     html +=
@@ -4125,7 +4154,9 @@ export function main(settingsArg) {
       containerClasses +
       '"' +
       ariaAttrs +
-      (settings.include_resizer_css ? "" : "bind:clientWidth={width}") +
+      (settings.include_resizer_css
+        ? "bind:this={aiBox} bind:clientWidth={aiBoxWidth}"
+        : "bind:clientWidth={width}") +
       ">\r";
 
     if (settings.alt_text) {
