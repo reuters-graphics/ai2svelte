@@ -16,8 +16,10 @@
   },
   "dependencies": {
     "@codemirror/lang-css": "^6.3.1",
+    "@codemirror/lang-sass": "^6.0.2",
     "@codemirror/lang-yaml": "^6.1.2",
     "@codemirror/legacy-modes": "^6.5.1",
+    "@eslint/css": "^0.13.0",
     "@floating-ui/dom": "^1.7.2",
     "@fsegurai/codemirror-theme-bundle": "^6.2.0",
     "@reuters-graphics/svelte-markdown": "^0.0.3",
@@ -26,7 +28,9 @@
     "json5": "^2.2.3",
     "postcss": "^8.5.6",
     "postcss-safe-parser": "^7.0.1",
-    "prettier": "^3.6.2"
+    "prettier": "^3.6.2",
+    "vscode-css-languageservice": "^6.3.8",
+    "vscode-languageserver-textdocument": "^1.0.12"
   },
   "devDependencies": {
     "@babel/core": "^7.19.0",
@@ -38,6 +42,7 @@
     "@babel/preset-react": "^7.27.1",
     "@babel/preset-typescript": "^7.16.0",
     "@babel/runtime": "^7.16.3",
+    "@codemirror/lint": "^6.9.0",
     "@rollup/plugin-babel": "^6.0.4",
     "@rollup/plugin-commonjs": "^28.0.3",
     "@rollup/plugin-image": "^3.0.3",
@@ -53,11 +58,13 @@
     "babel-preset-env": "^1.7.0",
     "core-js": "3",
     "cross-env": "^7.0.3",
+    "csslint": "^1.0.5",
     "es-check": "^9.1.4",
     "eslint": "^9.30.1",
     "extendscriptr": "^1.2.5",
     "fs-extra": "^10.0.0",
     "postcss-prettify": "^0.3.4",
+    "postcss-scss": "^4.0.9",
     "rimraf": "^3.0.2",
     "rollup": "^4.42.0",
     "rollup-plugin-multi-input": "^1.5.0",
