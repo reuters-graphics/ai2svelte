@@ -8,18 +8,19 @@
   import {
     insertNewlineAndIndent,
     indentLess,
-    insertTab,
     defaultKeymap,
-    indentWithTab,
     indentMore,
   } from "@codemirror/commands";
-  import { selectNextOccurrence, searchKeymap } from "@codemirror/search";
-  import { css } from "@codemirror/lang-css";
+  import { searchKeymap } from "@codemirror/search";
+  import { lintGutter, linter, openLintPanel } from "@codemirror/lint";
+  import { sass } from "@codemirror/lang-sass";
   import { StreamLanguage } from "@codemirror/language";
   import { properties } from "@codemirror/legacy-modes/mode/properties";
   import { vsCodeDark, vsCodeLight } from "@fsegurai/codemirror-theme-bundle";
   import { onMount } from "svelte";
   import { userData } from "../state.svelte";
+  import { getSCSSLanguageService } from "vscode-css-languageservice";
+  import { TextDocument } from "vscode-languageserver-textdocument";
 
   let editorEle: HTMLElement | undefined = $state();
 
@@ -84,6 +85,39 @@
     });
   }
 
+  function setupLinter() {
+    const cssLinter = linter(async (view) => {
+      const document = TextDocument.create(
+        "file.scss",
+        "scss",
+        1,
+        view.state.doc.toString()
+      );
+
+      const scssService = getSCSSLanguageService();
+      const stylesheet = scssService.parseStylesheet(document);
+      const scssDiagnostics = scssService.doValidation(document, stylesheet);
+
+      const diagnostics = [];
+
+      scssDiagnostics.forEach((message) => {
+        const fromCol = message.range.start.character ?? 0;
+        const toCol = message.range.end.character ?? fromCol;
+        diagnostics.push({
+          from:
+            view.state.doc.line(message.range.start.line + 1).from + fromCol,
+          to: view.state.doc.line(message.range.end.line + 1).from + toCol,
+          severity: message.severity === 1 ? "error" : "warning",
+          message: message.message,
+        });
+      });
+
+      return diagnostics;
+    });
+
+    return cssLinter;
+  }
+
   $effect(() => {
     if (userData.theme) {
       changeTheme(userData.theme);
@@ -127,7 +161,7 @@
             {
               key: "Enter",
               run: (view) => {
-                console.log("Enter command triggered");
+                // console.log("Enter command triggered");
                 return insertNewlineAndIndent(view);
               },
             },
@@ -140,7 +174,7 @@
               key: "Tab",
               preventDefault: true,
               run: (view) => {
-                console.log("Tab command triggered");
+                // console.log("Tab command triggered");
                 return indentMore(view);
               },
             },
@@ -149,11 +183,13 @@
         updateListener,
         EditorView.editable.of(!readonly),
         themeConfig.of([getTheme(userData.theme)]),
-        type == "yaml" ? [StreamLanguage.define(properties)] : css(),
+        type == "yaml" ? [StreamLanguage.define(properties)] : sass(),
         autoCompletionTokens
           ? autocompletion({ override: [customCompletions] })
           : autocompletion(),
         EditorView.lineWrapping,
+        type == "css" ? setupLinter() : [],
+        type == "css" ? lintGutter() : [],
         myTheme,
         EditorView.domEventHandlers({
           focusin: (e, v) => {

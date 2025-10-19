@@ -3,17 +3,15 @@ import { version } from "./package.json";
 
 const config: CEP_Config = {
   version,
-  id: "com.reuters-graphics.ai2svelte", 
-  displayName: "ai2svelte-ui", 
+  id: "com.reuters-graphics.ai2svelte",
+  displayName: "ai2svelte-ui",
   symlink: "local",
   port: 3000,
   servePort: 5000,
   startingDebugPort: 8860,
   extensionManifestVersion: 6.0,
   requiredRuntimeVersion: 9.0,
-  hosts: [
-    { name: "ILST", version: "[0.0,99.9]" }, 
-  ],
+  hosts: [{ name: "ILST", version: "[0.0,99.9]" }],
 
   type: "Panel",
   iconDarkNormal: "./src/assets/light-icon.png",
@@ -28,7 +26,7 @@ const config: CEP_Config = {
     {
       mainPath: "./main/index.html",
       name: "main",
-      panelDisplayName: "ai2svelte", 
+      panelDisplayName: "ai2svelte",
       autoVisible: true,
       width: 300,
       height: 350,

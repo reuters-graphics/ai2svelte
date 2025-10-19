@@ -71,14 +71,6 @@
   let cssString: string = $derived.by(() => {
     // don't update while its fetching settings from AI
     if (!$updateInProgress) {
-      //   let string = styleObjectToString($styles);
-
-      //   const string = postcss().process($styles, {
-      //     parser: parse,
-      //     syntax: scss,
-      //   }).css;
-
-      //   console.log("styles:", generateAllMixins($styles));
       const string = $styles?.root?.toString() || "";
 
       //   if (window.cep) {
@@ -104,7 +96,6 @@
   // clear card selection
   $effect(() => {
     if (cssSelector) {
-      console.log("selector", cssSelector);
       clearShadowSelection();
       previousSelector = cssSelector;
     }
@@ -130,7 +121,6 @@
     const adapter = AIEventAdapter.getInstance();
     adapter.addEventListener(AIEvent.ART_SELECTION_CHANGED, async (e: any) => {
       if ($ai2svelteInProgress) return;
-      console.log("Selection changed:");
       await detectIdentifier();
     });
   }
@@ -143,8 +133,6 @@
           return result;
         });
     }
-
-    console.log($styles);
 
     allShadows = [...JSON5.parse(shadows)]
       .map((x) => ({
@@ -259,8 +247,6 @@
           object = await result;
         });
 
-      console.log("styles", $styles.root?.nodes);
-
       styles.set(object);
     } catch (error) {
       // ignore errors cause user might still be typing the style
@@ -318,17 +304,6 @@
         rule = postcss.rule({ selector: cssSelector });
         $styles.root.append(rule);
       }
-      //   if (!$styles[cssSelector]) {
-      //     $styles[cssSelector] = {};
-      //   }
-
-      //   const animationStyle = Object.keys($styles[cssSelector]).find(
-      //     (x: string) => x.includes("animation:")
-      //   );
-
-      //   const animationKey = Object.keys($styles[cssSelector]).includes(
-      //     "animation"
-      //   );
 
       // Create a comment node
       const comment = postcss.comment({
@@ -346,11 +321,6 @@
       // Add or update a declaration
       rule.append(animationInclude);
 
-      //   $styles[cssSelector].push(
-      //     `/* ${animationIdentifier} ${animationDefinition} */`
-      //   );
-      //   $styles[cssSelector].push(animationUsage);
-
       let animationDeclExists = false;
       let existingValue = "";
       rule.walkDecls((decl) => {
@@ -365,22 +335,6 @@
         // Add animation declaration
         rule.append({ prop: "animation", value: animationRule });
       }
-
-      // if 'animation' rule isn't included, add it
-      //   if (!animationKey) {
-      //     // $styles[cssSelector].push(`animation: ${animationRule}`);
-      //     // $styles[cssSelector] = {
-      //     //   ...$styles[cssSelector],
-      //     //   animation: animationRule,
-      //     // };
-      //   } else {
-      //     // const regex = new RegExp(/.*animation:\s(.*)/);
-      //     // const existingAnimations = $styles[cssSelector]["animation"];
-      //     // if (existingAnimations) {
-      //     //   $styles[cssSelector]["animation"] =
-      //     //     `${existingAnimations}, ${animationRule}`;
-      //     // }
-      //   }
     } else {
       rule.walkDecls((decl) => {
         if (decl.prop === "animation") {
@@ -411,66 +365,7 @@
       });
 
       checkIfRuleIsEmpty(rule);
-
-      // console.log("id:" + animationIdentifier);
-      //   const regexCheck = new RegExp(`\\b${animationIdentifier}\\b`);
-
-      //   const animationStyle = Object.keys($styles[cssSelector]).find(
-      //     (x: string) => x.includes("animation:")
-      //   );
-
-      //   if (animationStyle) {
-      //     const regex = new RegExp(/.*animation:(.*)/);
-      //     const existingAnimations = animationStyle.match(regex);
-      //     const animString = existingAnimations
-      //       ? existingAnimations[1]
-      //       : undefined;
-
-      //     if (animString) {
-      //       const animRegex = new RegExp(`\\s*${animationName}([^,)]*)`);
-      //       const newAnimString = animString
-      //         .replace(animRegex, "")
-      //         .split(",")
-      //         .filter((x) => x !== "")
-      //         .join(",");
-
-      //       const index = Object.keys($styles[cssSelector]).findIndex(
-      //         (x) => x == animationStyle
-      //       );
-
-      //       if (index > -1) {
-      //         if (newAnimString == "") {
-      //           //   $styles[cssSelector].splice(index, 1);
-      //           delete $styles[cssSelector][animationStyle];
-      //         } else {
-      //           //   $styles[cssSelector][index] = `animation: ${newAnimString}`;
-      //           $styles[cssSelector] = {
-      //             ...$styles[cssSelector],
-      //             [`animation: ${newAnimString}`]: true,
-      //           };
-      //         }
-      //       }
-      //   }
     }
-
-    //   const indexes = $styles[cssSelector]
-    //     .map((x, i) => (regexCheck.test(x) ? i : null))
-    //     .filter((x) => x !== null && x >= 0);
-
-    //   const indexSet = new Set(indexes);
-
-    //   const arrayWithValuesRemoved = $styles[cssSelector].filter(
-    //     (value, i) => !indexSet.has(i)
-    //   );
-
-    //   $styles[cssSelector] = [...arrayWithValuesRemoved];
-    // }
-
-    // if ($styles[cssSelector].length == 0) {
-    //   delete $styles[cssSelector];
-    // } else {
-    //   // add all animations
-    // }
 
     $styles = $styles;
   }
