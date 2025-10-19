@@ -35,8 +35,11 @@ Each animation definition is a JSON object that includes properties such as `nam
   "name": "pulse",
   "usage": "@include animation-pulse()",
   "arguments": "($scale: 0.8)",
+  "cssVariables": {
+    "--scale": "#{$scale}"
+  },
   "animationRule": "pulse 1s ease-in-out 0s infinite",
-  "definition": "@keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale($scale); } }",
+  "definition": "@keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(var(--scale)); } }",
   "candidate": "shape"
 }
 ```
