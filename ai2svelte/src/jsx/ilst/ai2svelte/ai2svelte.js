@@ -222,7 +222,6 @@ export function main(settingsArg) {
       for (var i = start; i <= end; i++) {
         docSlug = projectNameTemplate.replace("*", i);
         docSettings.project_name = docSlug;
-        alert(docSlug);
         // hide layers ending with other numbers
         // unhide layer ending with current number
         forEach(doc.layers, function (layer) {

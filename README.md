@@ -14,6 +14,7 @@ The current version provides:
 - **Easy styling** - The plugin comes loaded with preset shadows and animations that can be applied to your art objects
 - **Easy font configuration** - Easily map Illustrator fonts to CSS `font-family`
 - **Profiles** - Save and Load different ai2svelte settings in the form of profiles
+- **Multiple exports** - Export sequence layers using the {start, number_of_layers} syntax in the project name (for example, myMap{1,5})
 
 ## Getting Started
 
