@@ -1,0 +1,29 @@
+---
+title: Multiple exports
+description: Export multiple Svelte files from a single Adobe Illustrator document.
+slug: users/multiple-exports
+sidebar:
+  order: 109
+---
+
+import { Aside } from "@astrojs/starlight/components";
+import { Image } from "astro:assets";
+import Image_Multiple_Exports from "../../../../public/images/multiple_exports.png";
+
+ai2svelte can export multiple Svelte components from a single Adobe Illustrator document. This is particularly useful for complex projects where different parts of the design need to be modularized into separate components or when exporting for scrollers.
+
+To export multiple files, structure your Illustrator document with layers ending with sequence numbers (e.g. map1, map2, map3, ...). Each of these layers will be exported separately, along with the rest of the visible-all-the-times layers, as Svelte components.
+
+In your ai2svelte settings, configure `project_name` to include a placeholder for the sequence number following the syntax - `{start_number, number_of_layers}`. For example, setting `project_name: map{1,3}layer` exports three Svelte files named `map1layer.svelte`, `map2layer.svelte`, and `map3layer.svelte`.
+
+<Aside type="tip">
+  This works irrespective of the order of layers or layer name in the
+  Illustrator document as long as the layer names end with the correct sequence
+  numbers. You can have multiple layers with same sequence number; they will be
+  all included in the respective exported Svelte file.m
+</Aside>
+
+<Image
+  src={Image_Multiple_Exports}
+  alt="Screenshot showing Layer panel in Adobe Illustrator"
+/>

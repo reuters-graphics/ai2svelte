@@ -1,0 +1,21 @@
+---
+title: Custom styles
+description: Set up custom styles for your ai2svelte elements.
+slug: users/custom-styles
+sidebar:
+  order: 104
+---
+
+import { Aside } from "@astrojs/starlight/components";
+
+You can further customize styling data by adding user-defined shadows and animations. This lets you extend the plugin's preset styles and give your components a more personalized appearance.
+
+<Aside type="note">
+  Follow the structure used by the preset styles when adding custom styles.
+</Aside>
+
+Style data is created the first time you run the plugin and is stored in `JSON5` format at:
+
+```plaintext
+/Library/Application Support/com.reuters-graphics.ai2svelte/
+```

@@ -6,6 +6,7 @@ import { fs, path } from "../../lib/cep/node";
 import { csi, evalTS } from "../../lib/utils/bolt";
 import { currentBackdrop } from "../stores";
 import config from "../../../../cep.config";
+import JSON5 from "json5";
 
 let userDataPath = window.cep ? csi.getSystemPath("userData") : "";
 let settingsFile;
@@ -107,7 +108,7 @@ export const myTheme = EditorView.theme(
 export function readFile(fileName) {
   const filePath = path.join(userDataPath, config.id, fileName);
   if (fs.existsSync(filePath)) {
-    var data = JSON.parse(fs.readFileSync(filePath, "utf8"));
+    var data = JSON5.parse(fs.readFileSync(filePath, "utf8"));
     return data;
   }
   return {};

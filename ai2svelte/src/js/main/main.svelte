@@ -8,6 +8,9 @@
     ai2svelteInProgress,
     savedSettings,
     savedStyles,
+    userAnimations,
+    userShadows,
+    userSpecimens,
   } from "./stores";
   import { fly } from "svelte/transition";
 
@@ -17,10 +20,14 @@
   // STYLE IMPORT
   import "./index.scss";
   import "./styles/main.scss";
+  import defaultAnimations from "./Tabs/data/animations.json?raw";
+  import defaultShadows from "./Tabs/data/shadowsBaked.json?raw";
+  import defaultSpecimens from "./Tabs/data/specimens.json?raw";
 
   // OTHER IMPORTS
+  import JSON5 from "json5";
   import { userData } from "./state.svelte";
-  import { readFile, saveSettings } from "./utils/utils";
+  import { readFile, saveSettings, writeFile } from "./utils/utils";
   import defaultProfile from "./Tabs/data/default-profile.json";
   import { parseCSS } from "./utils/cssUtils";
   // TABS
@@ -49,6 +56,7 @@
           // the window might focus off and on while ai2svelte is running
           if ($ai2svelteInProgress) return;
           fetchSettings();
+          fetchStyleJSONs();
         });
       });
     }
@@ -103,13 +111,57 @@
     }
   }
 
+  /**
+   * Fetches users style JSONs from user data
+   */
+  function fetchStyleJSONs() {
+    if (window.cep == undefined) {
+      // take defaults into account for browser
+      $userAnimations = JSON5.parse(defaultAnimations);
+      $userShadows = JSON5.parse(defaultShadows);
+      $userSpecimens = JSON5.parse(defaultSpecimens);
+      return;
+    }
+    // handle user animations
+    let animations = readFile("user-animations.json");
+    if (Object.keys(animations).length !== 0) {
+      $userAnimations = animations;
+    } else {
+      let defAnimations = JSON5.parse(defaultAnimations);
+      writeFile("user-animations.json", defAnimations);
+      $userAnimations = defAnimations;
+    }
+
+    // handle user shadows
+    let shadows = readFile("user-shadows.json");
+    if (Object.keys(shadows).length !== 0) {
+      $userShadows = shadows;
+    } else {
+      let defShadows = JSON5.parse(defaultShadows);
+      writeFile("user-shadows.json", defShadows);
+      $userShadows = defShadows;
+    }
+
+    // handle user specimens
+    let specimens = readFile("user-specimens.json");
+    if (Object.keys(specimens).length !== 0) {
+      $userSpecimens = specimens;
+    } else {
+      let defSpecimens = JSON5.parse(defaultSpecimens);
+      writeFile("user-specimens.json", defSpecimens);
+      $userSpecimens = defSpecimens;
+    }
+  }
+
   onMount(() => {
     if (window.cep) {
       $updateInProgress = true;
       fetchSettings();
+      fetchStyleJSONs();
       previousSettings = { ...$settingsObject };
       splashScreen = true;
     } else {
+      fetchStyleJSONs();
       // handle splash for testing
       setTimeout(() => {
         splashScreen = true;

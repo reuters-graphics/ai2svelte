@@ -11,10 +11,10 @@
     updateInProgress,
     currentBackdrop,
     ai2svelteInProgress,
+    userAnimations,
+    userShadows,
+    userSpecimens,
   } from "../stores";
-  import animations from "./data/animations.json?raw";
-  import shadows from "./data/shadowsBaked.json?raw";
-  import specimens from "./data/specimens.json?raw";
 
   // OTHER LIB IMPORTS
   import JSON5 from "json5";
@@ -134,7 +134,7 @@
         });
     }
 
-    allShadows = [...JSON5.parse(shadows)]
+    allShadows = [...$userShadows]
       .map((x) => ({
         id: x.id,
         shadow: x.shadow,
@@ -143,7 +143,7 @@
       }))
       .sort((a, b) => a.id.localeCompare(b.id));
 
-    allAnimations = [...JSON5.parse(animations)]
+    allAnimations = [...$userAnimations]
       .map((x) => ({
         name: x.name,
         usage: x.usage,
@@ -155,7 +155,7 @@
       }))
       .sort((a, b) => a.name.localeCompare(b.name));
 
-    allSpecimens = [...JSON5.parse(specimens)];
+    allSpecimens = [...$userSpecimens];
 
     activeTab = "shadows";
 
@@ -222,11 +222,6 @@
    * Ignores errors to allow for incomplete or in-progress user input.
    */
   async function updateStyle(string: string) {
-    // const ast = postcss.parse(string, { parser: scss });
-    // ast.walk((node) => {
-    //   console.log(node);
-    // });
-
     try {
       let object;
       let formatted = string;
@@ -405,17 +400,7 @@
       });
       // Add or update a declaration
       rule.append(shadowInclude);
-      //   $styles[cssSelector] = {
-      //     ...$styles[cssSelector],
-      //     [`${shadowString}`]: true,
-      //   };
-      //   $styles[cssSelector].push(shadowString);
     } else {
-      //   const index: number = $styles[cssSelector].findIndex(
-      //     (x) => x == shadowString
-      //   );
-      //   delete $styles[cssSelector][`${shadowString}`];
-      //   rule = postcss.rule({ selector: cssSelector });
       rule.walkAtRules("include", (atRule) => {
         if (atRule.params === shadowParam) {
           atRule.remove();
@@ -423,12 +408,7 @@
       });
 
       checkIfRuleIsEmpty(rule);
-      //   $styles[cssSelector].splice(index, 1);
     }
-    // const ruleEmpty = isRuleEmpty(rule);
-    // if (ruleEmpty) {
-    //   delete $styles[cssSelector];
-    // }
     $styles = $styles;
   }
 
@@ -462,7 +442,6 @@
       const animationMixinRegex = new RegExp(/.*@include (.*)\(\)/);
       const mixinCheck = x.usage?.match(animationMixinRegex);
       const animationIdentifier = mixinCheck ? mixinCheck[1] : undefined;
-      const regexCheck = new RegExp(`\\b${animationIdentifier}\\b`);
 
       x.active = false;
 
@@ -479,16 +458,6 @@
           }
         });
       }
-
-      //   if ($styles && $styles[cssSelector]) {
-      //     if (Object.keys($styles[cssSelector]).some((x) => regexCheck.test(x))) {
-      //       x.active = true;
-      //     } else {
-      //       x.active = false;
-      //     }
-      //   } else {
-      //     x.active = false;
-      //   }
     });
   }
 </script>

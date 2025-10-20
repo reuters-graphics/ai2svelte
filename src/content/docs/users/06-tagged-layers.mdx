@@ -1,0 +1,41 @@
+---
+title: Tagged layers
+description: Learn about tagged layers in ai2svelte.
+slug: users/tagged-layers
+sidebar:
+  order: 106
+---
+
+import { Aside } from "@astrojs/starlight/components";
+
+ai2svelte allows users to create tagged layers in their Illustrator documents. Tagged layers are special layers that ai2svelte recognizes and processes differently during the export process.
+
+To create a tagged layer, add a specific tag to the end of the layer name in Illustrator. For example, to designate a layer for SVG export, name it `layer_name:svg`.
+
+### :div
+
+Layers with the `:div` suffix will render rectangles and circles as scaling `<div>` elements in the final output. This enables responsive layouts, allowing these shapes to scale with the viewport size.
+
+### :symbol
+
+Layers with the `:symbol` suffix will render rectangles and circles as non-scaling `<div>` elements. These shapes will retain their original size and position, regardless of viewport changes.
+
+### :png
+
+Layers with the `:png` suffix will have their contents exported as PNG images, which are then included as separate `<img>` tags in the output. Use this tag for rasterized portions of your artwork that require special handling.
+
+### :svg
+
+Layers with the `:svg` suffix will have their contents exported as SVG images and embedded as SVG in the final output. This is ideal for vector graphics that need to remain crisp at any size.
+
+<Aside type="note">
+By default, SVG content is rendered using an `<img>` tag. To embed the SVG code directly in your HTML, enable the `inline_svg` option in your ai2svelte configuration.
+</Aside>
+
+### Artboard tags
+
+In addition to layer tags, you can apply special directives to artboard names to control export behavior.
+
+For example, naming an artboard `Artboard1:600,fixed` sets its responsiveness to `fixed` and displays it only when the viewport width is at least 600 pixels.
+
+Naming an artboard `Artboard2:image_only` exports only the image content, omitting any text or other elements.
