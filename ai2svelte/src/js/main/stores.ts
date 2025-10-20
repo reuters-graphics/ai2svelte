@@ -32,3 +32,7 @@ export const alertObject: Writable<{ flag: boolean; message: string }> =
     flag: false,
     message: "",
   });
+
+export const userAnimations = writable({});
+export const userShadows = writable({});
+export const userSpecimens = writable({});
