@@ -28,6 +28,7 @@
   // UTILS
   import { fetchNewImageURL, tooltipSettings } from "../utils/utils";
   import type { AnimationItem, ShadowItem } from "./types";
+  import { bakeShadows } from "../utils/bakeShadows";
   // MEDIA
   import replaceImageIcon from "../../assets/replace_image.svg";
   import typeSpecimenIcon from "../../assets/type_specimen.svg";
@@ -134,7 +135,7 @@
         });
     }
 
-    allShadows = [...$userShadows]
+    allShadows = [...bakeShadows($userShadows)]
       .map((x) => ({
         id: x.id,
         shadow: x.shadow,

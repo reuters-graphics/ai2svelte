@@ -21,7 +21,7 @@
   import "./index.scss";
   import "./styles/main.scss";
   import defaultAnimations from "./Tabs/data/animations.json?raw";
-  import defaultShadows from "./Tabs/data/shadowsBaked.json?raw";
+  import defaultShadows from "./Tabs/data/shadows.json?raw";
   import defaultSpecimens from "./Tabs/data/specimens.json?raw";
 
   // OTHER IMPORTS
