@@ -30,7 +30,7 @@
     type: string;
     onUpdate?: (value: string) => void;
     autoCompletionTokens?: { label: string; type: string; info: string }[];
-    readonly: boolean;
+    readonly?: boolean;
   }
 
   interface tokenType {
@@ -147,7 +147,7 @@
       }
     });
 
-    const theme = document.documentElement.getAttribute("data-theme");
+    // const theme = document.documentElement.getAttribute("data-theme");
 
     editor = new EditorView({
       doc: textValue,
@@ -202,7 +202,6 @@
           },
           keydown(event, view) {
             // Stop all keyboard events from bubbling up and reaching parent apps (e.g., Illustrator)
-
             event.stopPropagation();
             event.stopImmediatePropagation();
             return false; // Allow CodeMirror to handle the event

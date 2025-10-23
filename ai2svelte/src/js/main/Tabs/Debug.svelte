@@ -12,8 +12,6 @@
   import CmTextArea from "../Components/CMTextArea.svelte";
   import SectionTitle from "../Components/SectionTitle.svelte";
 
-  import { styleObjectToString } from "../utils/cssUtils";
-
   // holds key-value pairs for live settings as string
   let yamlSettingsString: string = $derived.by(() => {
     if ($settingsObject && !$updateInProgress) {

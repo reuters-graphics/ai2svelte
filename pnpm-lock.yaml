@@ -47,6 +47,9 @@ importers:
       svelte-preprocess:
         specifier: ^6.0.3
         version: 6.0.3(postcss@8.5.6)(sass@1.91.0)(svelte@5.38.6)(typescript@5.8.3)
+      svelte-render-scan:
+        specifier: ^1.1.0
+        version: 1.1.0(svelte@5.38.6)
 
 packages:
 
@@ -2299,6 +2302,11 @@ packages:
         optional: true
       typescript:
         optional: true
+
+  svelte-render-scan@1.1.0:
+    resolution: {integrity: sha512-9S73wEtcnn9Hn0HsOSufm+AC+3Es2rMXoWMEWk6Fa3w3yORBg6khOSsZ8+kj/rY4BJRZTyjuFQBytFPGC8YHGQ==}
+    peerDependencies:
+      svelte: ^5.0.0
 
   svelte2tsx@0.7.42:
     resolution: {integrity: sha512-PSNrKS16aVdAajoFjpF5M0t6TA7ha7GcKbBajD9RG3M+vooAuvLnWAGUSC6eJL4zEOVbOWKtcS2BuY4rxPljoA==}
@@ -5425,6 +5433,10 @@ snapshots:
       postcss: 8.5.6
       sass: 1.91.0
       typescript: 5.8.3
+
+  svelte-render-scan@1.1.0(svelte@5.38.6):
+    dependencies:
+      svelte: 5.38.6
 
   svelte2tsx@0.7.42(svelte@5.38.6)(typescript@5.8.3):
     dependencies:

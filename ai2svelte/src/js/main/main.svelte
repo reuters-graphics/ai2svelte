@@ -11,6 +11,7 @@
     userAnimations,
     userShadows,
     userSpecimens,
+    userShadowsBaked,
   } from "./stores";
   import { fly } from "svelte/transition";
 
@@ -30,6 +31,10 @@
   import { readFile, saveSettings, writeFile } from "./utils/utils";
   import defaultProfile from "./Tabs/data/default-profile.json";
   import { parseCSS } from "./utils/cssUtils";
+  import { bakeShadows } from "./utils/bakeShadows";
+  import postcss from "postcss";
+  import safeParser from "postcss-safe-parser";
+
   // TABS
   import TabBar from "./Components/TabBar.svelte";
   import Settings from "./Tabs/Settings.svelte";
@@ -69,7 +74,7 @@
    * @async
    * @returns {Promise<void>} Resolves when settings and styles have been fetched and updated.
    */
-  async function fetchSettings() {
+  async function fetchSettings(): Promise<void> {
     // fetch user settings
     // and update the store
     const userSettings = readFile("user-settings.json");
@@ -80,6 +85,7 @@
     }
 
     const fetchedSettings = await evalTS("getVariable", "ai-settings");
+    console.log("fetching settings...");
 
     if (Object.keys(fetchedSettings).length == 0) {
       // no settings found, probably first time use
@@ -91,16 +97,20 @@
         settingsObject.set(defaultProfile);
       }
       savedSettings.set({});
-      styles.set({});
-      savedStyles.set({});
+      $styles = await postcss().process("", { parser: safeParser });
+      $savedStyles = await postcss().process("", { parser: safeParser });
     } else {
       // settings found, use them
       savedSettings.set({ ...fetchedSettings });
       settingsObject.set({ ...fetchedSettings });
       const fetchedStyles = await evalTS("getVariable", "css-settings");
       const stylesAST = await parseCSS(fetchedStyles.styleText);
-      savedStyles.set(stylesAST);
-      styles.set(stylesAST);
+      $savedStyles = await postcss().process(stylesAST.root.clone(), {
+        from: undefined,
+      });
+      $styles = await postcss().process(stylesAST.root.clone(), {
+        from: undefined,
+      });
     }
 
     updateInProgress.set(false);
@@ -114,12 +124,13 @@
   /**
    * Fetches users style JSONs from user data
    */
-  function fetchStyleJSONs() {
+  function fetchStyleJSONs(): void {
     if (window.cep == undefined) {
       // take defaults into account for browser
       $userAnimations = JSON5.parse(defaultAnimations);
       $userShadows = JSON5.parse(defaultShadows);
       $userSpecimens = JSON5.parse(defaultSpecimens);
+      $userShadowsBaked = bakeShadows($userShadows);
       return;
     }
     // handle user animations
@@ -142,6 +153,8 @@
       $userShadows = defShadows;
     }
 
+    $userShadowsBaked = bakeShadows($userShadows);
+
     // handle user specimens
     let specimens = readFile("user-specimens.json");
     if (Object.keys(specimens).length !== 0) {
@@ -153,7 +166,29 @@
     }
   }
 
+  // if settings/styles changes,
+  // show alert saying there are unsaved changes
+  $effect(() => {
+    if ($settingsObject || $styles) {
+      const settingsMatch =
+        JSON.stringify($savedSettings) == JSON.stringify($settingsObject);
+      const savedCSS = $savedStyles?.css || "";
+      const currentCSS = $styles?.css || "";
+      const stylesMatch = savedCSS == currentCSS;
+
+      if (stylesMatch && settingsMatch) {
+        showAlert = { flag: false, message: "" };
+      } else {
+        showAlert = {
+          flag: true,
+          message: "There are unsaved changes. Run ai2svelte to save changes.",
+        };
+      }
+    }
+  });
+
   onMount(() => {
+    // load user settings and styles on mount
     if (window.cep) {
       $updateInProgress = true;
       fetchSettings();
@@ -178,25 +213,6 @@
         JSON.stringify(previousSettings) !== JSON.stringify($settingsObject)
       ) {
         saveSettings($settingsObject, $styles);
-      }
-    }
-  });
-
-  // if settings/styles changes,
-  // show alert saying there are unsaved changes
-  $effect(() => {
-    if ($settingsObject || $styles) {
-      const settingsMatch =
-        JSON.stringify($savedSettings) == JSON.stringify($settingsObject);
-      const stylesMatch = $savedStyles.css == $styles.css;
-
-      if (stylesMatch && settingsMatch) {
-        showAlert = { flag: false, message: "" };
-      } else {
-        showAlert = {
-          flag: true,
-          message: "There are unsaved changes. Run ai2svelte to save changes.",
-        };
       }
     }
   });

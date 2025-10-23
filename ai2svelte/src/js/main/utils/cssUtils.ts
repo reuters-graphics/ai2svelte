@@ -1,7 +1,7 @@
 import JSON5 from "json5";
 import animationsRaw from "../Tabs/data/animations.json?raw";
 import shadowsRaw from "../Tabs/data/shadows.json?raw";
-import type { AnimationItem, ShadowItem } from "../Tabs/types";
+import type { AnimationItem, ShadowCardItem } from "../Tabs/types";
 import safeParser from "postcss-safe-parser";
 import postcss from "postcss";
 import * as prettier from "prettier/standalone";
@@ -30,7 +30,7 @@ if (window.cep) {
   shadows = JSON5.parse(shadowsRaw);
 }
 
-export function createMixinsFile(shadows: ShadowItem[]) {
+export function createMixinsFile(shadows: ShadowCardItem[]) {
   const mixins: string[] = [];
 
   shadows.forEach((shadow) => {
@@ -65,13 +65,13 @@ export function toCamelCase(str: string) {
 }
 
 /**
- * Generates a SASS mixin string from a given ShadowItem object.
+ * Generates a SASS mixin string from a given ShadowCardItem object.
  * The mixin allows dynamic color substitution for the shadow.
  *
- * @param {ShadowItem} shadow - The shadow object containing an id and shadow CSS string.
+ * @param {ShadowCardItem} shadow - The shadow object containing an id and shadow CSS string.
  * @returns {string} The generated SASS mixin as a string.
  */
-export function createShadowMixinFromCSS(shadow: ShadowItem) {
+export function createShadowMixinFromCSS(shadow: ShadowCardItem) {
   const name = "shadow-" + toCamelCase(shadow.id);
   let str = `@mixin ${name}($clr){\n`;
   str += shadow.shadow.replaceAll("rgba(0, 0, 0", "rgba($clr");
@@ -200,7 +200,7 @@ export function generateAllMixins(stylesObject) {
 
     // generate all shadow mixins
     const allShadowMixins = allShadowStylesCSS.map((shadow) =>
-      createShadowMixinFromCSS({ ...shadow, active: false } as ShadowItem)
+      createShadowMixinFromCSS({ ...shadow, active: false } as ShadowCardItem)
     );
 
     // generate all animation mixins
@@ -260,7 +260,7 @@ export function _generateAllMixins(stylesObject) {
 
   // generate all shadow mixins
   const allShadowMixins = allShadowStylesCSS.map((shadow) =>
-    createShadowMixinFromCSS({ ...shadow, active: false } as ShadowItem)
+    createShadowMixinFromCSS({ ...shadow, active: false } as ShadowCardItem)
   );
 
   // generate all animation mixins
@@ -281,17 +281,9 @@ export async function parseCSS(css: string) {
       plugins: [parserPostCSS],
     });
 
-    parsedAST = await postcss()
-      .process(formatted, { parser: safeParser })
-      .then(async (result) => {
-        return result;
-      });
+    parsedAST = await postcss().process(formatted, { parser: safeParser });
   } else {
-    parsedAST = await postcss()
-      .process("", { parser: safeParser })
-      .then(async (result) => {
-        return result;
-      });
+    parsedAST = await postcss().process("", { parser: safeParser });
   }
 
   return parsedAST;

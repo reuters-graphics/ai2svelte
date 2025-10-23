@@ -2,11 +2,17 @@ export interface Style {
   [key: string]: string[];
 }
 
-export type ShadowItem = {
+export type ShadowCardItem = {
   id: string;
   shadow: string;
   active: boolean;
   dataName: string;
+};
+
+export type ShadowItem = {
+  id: string;
+  src?: string;
+  shadow: string;
 };
 
 export type AnimationItem = {
@@ -18,4 +24,12 @@ export type AnimationItem = {
   definition: string;
   candidate: string;
   cssVariables?: { [key: string]: string };
+};
+
+export type UserProfile = {
+  [key: string]: string | number | boolean | unknown;
+};
+
+export type UserProfiles = {
+  [key: string]: UserProfile;
 };
