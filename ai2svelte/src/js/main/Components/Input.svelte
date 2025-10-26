@@ -1,7 +1,7 @@
 <script lang="ts">
-  import Dropdown, { type DropdownProps } from "./Dropdown.svelte";
-  import InputText, { type TextProps } from "./InputText.svelte";
-  import InputRange, { type RangeProps } from "./InputRange.svelte";
+  import Dropdown from "./Dropdown.svelte";
+  import InputText from "./InputText.svelte";
+  import InputRange from "./InputRange.svelte";
   import { fly } from "svelte/transition";
   import { onMount } from "svelte";
 

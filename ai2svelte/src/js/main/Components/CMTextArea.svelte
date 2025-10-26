@@ -147,8 +147,6 @@
       }
     });
 
-    // const theme = document.documentElement.getAttribute("data-theme");
-
     editor = new EditorView({
       doc: textValue,
       parent: editorEle,
