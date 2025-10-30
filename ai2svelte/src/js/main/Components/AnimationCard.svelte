@@ -4,7 +4,6 @@
 
   interface Props {
     name: string;
-    animation: string;
     animationArguments: string;
     animationRule: string;
     candidate: string;
@@ -16,7 +15,6 @@
 
   let {
     name,
-    animation,
     animationArguments,
     animationRule,
     definition,

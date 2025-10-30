@@ -1,6 +1,6 @@
 <script lang="ts">
   // SVELTE IMPORTS
-  import { onDestroy, onMount, untrack } from "svelte";
+  import { onMount, untrack } from "svelte";
   import { fly, slide } from "svelte/transition";
   // BOLT IMPORTS
   import { evalTS } from "../../lib/utils/bolt";
@@ -651,7 +651,6 @@
           {#each allAnimations as animation, index}
             <AnimationCard
               name={animation.name}
-              animation={animation.usage}
               animationArguments={animation.arguments}
               bind:active={animation.active}
               animationRule={animation.animationRule}
