@@ -25,7 +25,7 @@
   let editorEle: HTMLElement | undefined = $state();
 
   interface Props {
-    editor?: EditorView;
+    editor?: EditorView | undefined | unknown;
     textValue: string;
     type: string;
     onUpdate?: (value: string) => void;

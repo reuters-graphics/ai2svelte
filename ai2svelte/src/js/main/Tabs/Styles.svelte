@@ -44,6 +44,9 @@
   // @ts-ignore
   import safeParser from "postcss-safe-parser";
 
+  // MISC
+  import { syntaxTree } from "@codemirror/language";
+
   let activeTab: string = $state("");
   let activeFormat: string = $state("UI");
 
@@ -68,6 +71,8 @@
 
   let previousSelector: string = "";
 
+  let codeEditor = $state();
+
   // holds styles object as string
   let cssString: string = $derived.by(() => {
     // don't update while its fetching settings from AI
@@ -77,6 +82,7 @@
       //   if (window.cep) {
       //     evalTS("updateAiSettings", "shadow-settings", string);
       //   }
+
       return string;
     }
     return "";
@@ -102,12 +108,22 @@
     }
   });
 
+  function getStyleIdentifier(): void {
+    const totalStyles = $styles?.root?.nodes?.length || 0;
+    const node = $styles?.root?.nodes?.[totalStyles - 1];
+    if (node && "type" in node && node.type === "rule") {
+      cssSelector = (node as Rule).selector || 'p[class^="g-pstyle"]';
+    }
+  }
+
   async function detectIdentifier(): Promise<void> {
     const identifier = await evalTS("fetchSelectedItems");
-    const node = $styles?.root?.nodes?.[0];
-    if (node && "type" in node && node.type === "rule") {
-      cssSelector =
-        identifier || (node as Rule).selector || 'p[class^="g-pstyle"]';
+    // const node = $styles?.root?.nodes?.[0];
+
+    // console.log(identifier);
+
+    if (identifier) {
+      cssSelector = identifier;
     } else {
       cssSelector = 'p[class^="g-pstyle"]';
     }
@@ -124,6 +140,7 @@
   function addSelectionChangeEventListener(): void {
     const adapter = AIEventAdapter.getInstance();
     adapter.addEventListener(AIEvent.ART_SELECTION_CHANGED, async (e: any) => {
+      console.log("checking", $ai2svelteInProgress);
       if ($ai2svelteInProgress) return;
       await detectIdentifier();
     });
@@ -679,10 +696,34 @@
         out:fly={{ y: 50, duration: 300 }}
       >
         <CmTextArea
+          bind:editor={codeEditor}
           bind:textValue={editableCssString}
           type="css"
           onUpdate={(e: string) => {
             updateStyle(e);
+            getStyleIdentifier();
+
+            let head = codeEditor.state.selection.main.head;
+
+            const tree = syntaxTree(codeEditor.state);
+            let node = tree.resolve(head, -1);
+            while (
+              node &&
+              node.type.name !== "RuleSet" &&
+              node.type.name !== "StyleRule"
+            ) {
+              if (node && node.parent) {
+                node = node.parent;
+              } else {
+                break;
+              }
+            }
+
+            const selectorNode = node.firstChild;
+            const selector = selectorNode?.type.name.includes("Selector")
+              ? codeEditor.state.sliceDoc(selectorNode.from, selectorNode.to)
+              : null;
+            console.log(selector);
           }}
         />
       </div>

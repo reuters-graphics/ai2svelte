@@ -72,6 +72,7 @@ export function toCamelCase(str: string) {
  * @returns {string} The generated SASS mixin as a string.
  */
 export function createShadowMixinFromCSS(shadow: ShadowCardItem) {
+  if (shadow.id === undefined) return "";
   const name = "shadow-" + toCamelCase(shadow.id);
   let str = `@mixin ${name}($clr){\n`;
   str += shadow.shadow.replaceAll("rgba(0, 0, 0", "rgba($clr");
