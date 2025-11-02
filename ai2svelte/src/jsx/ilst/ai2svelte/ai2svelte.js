@@ -2988,6 +2988,8 @@ export function main(settingsArg) {
       });
       // var name = getLayerImageName(lyr, activeArtboard, settings);
       var name = /(.*):png/.exec(lyr.name)[1];
+      var imgName =
+        "png-layer-" + getArtboardImageName(activeArtboard, settings);
       var fmt = contains(settings.image_format || [], "png24")
         ? "png24"
         : "png";
@@ -2996,7 +2998,7 @@ export function main(settingsArg) {
       // consider only testing if an option is set by the user.
       if (testLayerArtboardIntersection(lyr, activeArtboard)) {
         var pngHtml =
-          exportImage(name, fmt, activeArtboard, null, null, opts, group) +
+          exportImage(imgName, fmt, activeArtboard, null, null, opts, group) +
           "\r";
         layerHtml.push({
           z: lyrZ,
