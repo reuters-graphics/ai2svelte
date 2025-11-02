@@ -46,6 +46,7 @@
 
   // MISC
   import { syntaxTree } from "@codemirror/language";
+  import type { EditorView } from "codemirror";
 
   let activeTab: string = $state("");
   let activeFormat: string = $state("UI");
@@ -71,7 +72,7 @@
 
   let previousSelector: string = "";
 
-  let codeEditor = $state();
+  let codeEditor: EditorView | undefined = $state();
 
   // holds styles object as string
   let cssString: string = $derived.by(() => {
@@ -254,8 +255,8 @@
           plugins: [parserPostCSS],
         });
       } catch (error) {
-        console.log("Prettier formatting error:");
-        console.log(error);
+        // console.log("Prettier formatting error:");
+        // console.log(error);
       }
 
       object = await postcss().process(formatted, { parser: safeParser });
@@ -508,6 +509,32 @@
       }
     });
   }
+
+  function fetchSelectorFromEditor(): void {
+    if (!codeEditor) return;
+
+    let head = codeEditor.state.selection.main.head;
+
+    const tree = syntaxTree(codeEditor.state);
+    let node = tree.resolve(head, -1);
+    while (
+      node &&
+      node.type.name !== "RuleSet" &&
+      node.type.name !== "StyleRule"
+    ) {
+      if (node && node.parent) {
+        node = node.parent;
+      } else {
+        break;
+      }
+    }
+
+    const selectorNode = node.firstChild;
+    const selector = selectorNode?.type.name.includes("Selector")
+      ? codeEditor.state.sliceDoc(selectorNode.from, selectorNode.to)
+      : null;
+    cssSelector = selector || 'p[class^="g-pstyle"]';
+  }
 </script>
 
 <div class="shadow-content" in:fly={{ y: -50, duration: 300 }}>
@@ -702,28 +729,7 @@
           onUpdate={(e: string) => {
             updateStyle(e);
             getStyleIdentifier();
-
-            let head = codeEditor.state.selection.main.head;
-
-            const tree = syntaxTree(codeEditor.state);
-            let node = tree.resolve(head, -1);
-            while (
-              node &&
-              node.type.name !== "RuleSet" &&
-              node.type.name !== "StyleRule"
-            ) {
-              if (node && node.parent) {
-                node = node.parent;
-              } else {
-                break;
-              }
-            }
-
-            const selectorNode = node.firstChild;
-            const selector = selectorNode?.type.name.includes("Selector")
-              ? codeEditor.state.sliceDoc(selectorNode.from, selectorNode.to)
-              : null;
-            console.log(selector);
+            fetchSelectorFromEditor();
           }}
         />
       </div>

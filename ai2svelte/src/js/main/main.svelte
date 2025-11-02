@@ -49,6 +49,7 @@
     flag: true,
     message: "",
   });
+  let inspectMode: boolean = $state(false);
 
   // if plugin is running in Illustrator,
   // listen to document change event
@@ -166,6 +167,25 @@
     }
   }
 
+  function keyboardListener(e: KeyboardEvent) {
+    const isCtrl = e.ctrlKey;
+    const isShift = e.shiftKey;
+    const isIKey = e.key.toLowerCase() === "i";
+
+    if (isCtrl && isShift && isIKey) {
+      e.preventDefault(); // Optional: prevent default DevTools opening
+      inspectMode = !inspectMode;
+
+      if (!inspectMode && activeTab === "DEBUG") {
+        document.querySelector("#label-Home")?.click();
+      } else if (inspectMode && activeTab !== "DEBUG") {
+        setTimeout(() => {
+          document.querySelector("#label-Debug")?.click();
+        }, 100);
+      }
+    }
+  }
+
   // if settings/styles changes,
   // show alert saying there are unsaved changes
   $effect(() => {
@@ -202,6 +222,8 @@
         splashScreen = true;
       }, 300);
     }
+
+    window.addEventListener("keydown", keyboardListener);
   });
 
   onDestroy(() => {
@@ -224,7 +246,7 @@
       {showAlert.message}
     </div>
   {/if}
-  <TabBar bind:activeLabel={activeTab} />
+  <TabBar bind:activeLabel={activeTab} {inspectMode} />
 
   {#if activeTab === "HOME"}
     <Home refreshSettings={fetchSettings} />

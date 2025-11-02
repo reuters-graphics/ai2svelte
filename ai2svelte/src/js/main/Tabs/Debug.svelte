@@ -59,11 +59,6 @@
   });
 
   let activeTab = $state("Settings");
-
-  onMount(async () => {
-    console.log(await $savedStyles?.root);
-    console.log(await $styles?.root);
-  });
 </script>
 
 <div class="tab-content">
