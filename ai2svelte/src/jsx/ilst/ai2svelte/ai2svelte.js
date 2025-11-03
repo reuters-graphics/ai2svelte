@@ -2988,8 +2988,7 @@ export function main(settingsArg) {
       });
       // var name = getLayerImageName(lyr, activeArtboard, settings);
       var name = /(.*):png/.exec(lyr.name)[1];
-      var imgName =
-        "png-layer-" + getArtboardImageName(activeArtboard, settings);
+      var imgName = "layer-" + name + "-" + getArtboardName(activeArtboard);
       var fmt = contains(settings.image_format || [], "png24")
         ? "png24"
         : "png";
