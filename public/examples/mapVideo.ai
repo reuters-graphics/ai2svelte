@@ -39,7 +39,7 @@
    ai2svelte-companion:msg="{&quot;image_format&quot;:&quot;jpg&quot;,&quot;responsiveness&quot;:&quot;dynamic&quot;,&quot;output&quot;:&quot;one-file&quot;,&quot;html_output_path&quot;:&quot;../src/lib/ai2svelte/&quot;,&quot;html_output_extension&quot;:&quot;.svelte&quot;,&quot;image_output_path&quot;:&quot;../../statics/images/graphics/&quot;,&quot;image_source_path&quot;:&quot;images/graphics/&quot;,&quot;png_transparent&quot;:&quot;yes&quot;,&quot;png_number_of_colors&quot;:256,&quot;jpg_quality&quot;:90,&quot;inline_svg&quot;:&quot;true&quot;,&quot;max-width&quot;:&quot;999&quot;}"
    ai2svelte-companion:ai-settings="{&quot;image_format&quot;:&quot;png24&quot;,&quot;responsiveness&quot;:&quot;dynamic&quot;,&quot;output&quot;:&quot;one-file&quot;,&quot;html_output_path&quot;:&quot;../../src/components/ai2svelte/&quot;,&quot;html_output_extension&quot;:&quot;.svelte&quot;,&quot;image_output_path&quot;:&quot;../images/graphics/&quot;,&quot;image_source_path&quot;:&quot;images/graphics/&quot;,&quot;png_transparent&quot;:&quot;yes&quot;,&quot;png_number_of_colors&quot;:256,&quot;jpg_quality&quot;:90,&quot;inline_svg&quot;:&quot;true&quot;,&quot;max_width&quot;:null}"
    ai2svelte-companion:preview-timestamp="&quot;2025-07-15T12:27:09Z&quot;"
-   ai2svelte-companion:css-settings="{&quot;styleText&quot;:&quot;&quot;}">
+   ai2svelte-companion:css-settings="{&quot;styleText&quot;:&quot;.g-text {\n    @include shadow-feta(#000000)\n}\n&quot;}">
    <xmp:Thumbnails>
     <rdf:Alt>
      <rdf:li
@@ -2568,8 +2568,7 @@
                                                                                                     
                                                                                                     
                                                                                                     
-                                                                                                    
-       
+                                                           
 <?xpacket end="w"?>endstreamendobj3 0 obj<</Count 1/Kids[6 0 R]/Type/Pages>>endobj6 0 obj<</ArtBox[4.0 4.0 1204.0 823.0]/BleedBox[0.0 0.0 1208.0 827.0]/Contents 7 0 R/CropBox[0.0 0.0 1208.0 827.0]/Group 8 0 R/LastModified(D:20251103171849+05'30')/MediaBox[0.0 0.0 1208.0 827.0]/Parent 3 0 R/Resources<</XObject<</Fm0 9 0 R>>>>/Thumb 10 0 R/TrimBox[4.0 4.0 1204.0 823.0]/Type/Page/PieceInfo<</Illustrator 11 0 R>>>>endobj7 0 obj<</Filter/FlateDecode/Length 144>>stream
 HKŒÏ1A…áSpE†é•Í&&ÀX®f½áØMã†Ğ¼‚¯øw`ŒÒP
 .¿õyÂ_°ƒ [¥¹—ÚÛø3'7cS|lÃŞ®§ËÆx~Ãú¨4
