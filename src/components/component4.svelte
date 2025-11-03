@@ -23,7 +23,7 @@
   });
 
   const beforeAfterAttachment = () => {
-    afterImage = document.querySelector(`#g-png-after-${artboard}`);
+    afterImage = document.querySelector(`#g-png-layer-after-${artboard}`);
     console.log(afterImage);
   };
 
