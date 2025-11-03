@@ -1,5 +1,4 @@
 <script lang="ts">
-  import type { Snippet } from "svelte";
   import Selector from "./Selector.svelte";
 
   interface Props {

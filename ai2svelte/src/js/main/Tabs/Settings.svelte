@@ -11,6 +11,7 @@
   import { tooltip } from "svooltip";
   import { selectFolder } from "../../lib/utils/bolt";
   import { fs } from "../../lib/cep/node";
+  import type { UserProfiles } from "./types";
 
   let profileNameDialog: HTMLElement;
   let profileListDialog: HTMLElement;
@@ -20,8 +21,8 @@
   let isProfileNameModalOpen: boolean = $state(false);
   let isProfileListModalOpen: boolean = $state(false);
   let fileLoader: HTMLInputElement;
-  let refreshKey = $state(1);
-  let existingProfiles = $derived.by(() => {
+  let refreshKey: number = $state(1);
+  let existingProfiles: UserProfiles = $derived.by(() => {
     if (window.cep) {
       let usersProfiles = readFile("user-profiles.json") || {};
       if (!Object.keys(usersProfiles).includes("default")) {
@@ -37,7 +38,7 @@
     }
   });
 
-  function resetUI() {
+  function resetUI(): void {
     userData.accentColor = "#dc4300";
     userData.theme = "dark";
 
@@ -47,7 +48,7 @@
     });
   }
 
-  function resetConfig() {
+  function resetConfig(): void {
     $settingsObject = { ...existingProfiles.default };
     refreshKey++;
 
@@ -57,24 +58,28 @@
     });
   }
 
-  function saveProfile() {
+  function saveProfile(): void {
     isProfileNameModalOpen = true;
   }
 
-  function loadProfile() {
+  function loadProfile(): void {
     isProfileListModalOpen = true;
   }
 
-  function deleteProfile(profile) {
+  function deleteProfile(profile: string): void {
     if (window.cep && profile !== "default") {
       delete existingProfiles[profile];
       writeFile("user-profiles.json", existingProfiles);
+      mount(Toast, {
+        target: document.body,
+        props: { message: `Profile deleted successfully` },
+      });
       isProfileListModalOpen = false;
       refreshProfile();
     }
   }
 
-  function handleNewProfile() {
+  function handleNewProfile(): void {
     if (window.cep) {
       writeFile("user-profiles.json", {
         ...existingProfiles,
@@ -91,7 +96,7 @@
     isProfileNameModalOpen = false;
   }
 
-  function profileLoaded(profile) {
+  function profileLoaded(profile: string | null): void {
     if (profile && existingProfiles[profile]) {
       activeProfile = profile;
       refreshKey++;
@@ -105,20 +110,20 @@
     isProfileListModalOpen = false;
   }
 
-  function refreshProfile() {
+  function refreshProfile(): void {
     if (window.cep) {
       existingProfiles = readFile("user-profiles.json") || {};
     }
   }
 
-  function saveProfilesFromFile(e) {
-    const file = e.files[0];
+  function saveProfilesFromFile(e: unknown): void {
+    const file = (e as any).files[0];
 
     console.log(file);
 
     let jsonData;
 
-    file?.text().then((text) => {
+    file?.text().then((text: string) => {
       try {
         jsonData = JSON.parse(text);
 
@@ -138,7 +143,7 @@
             duration: 2000,
           },
         });
-      } catch (err) {
+      } catch (err: Error | unknown) {
         console.error("Invalid JSON format:", err);
         mount(Toast, {
           target: document.body,
@@ -153,8 +158,8 @@
     isProfileListModalOpen = false;
   }
 
-  function exportProfilesToFile() {
-    selectFolder("", "Save profiles at", (filePath) => {
+  function exportProfilesToFile(): void {
+    selectFolder("", "Save profiles at", (filePath: string) => {
       const file = filePath + "/profiles.json";
       try {
         fs.writeFileSync(file, JSON.stringify(existingProfiles, null, 2));
@@ -166,7 +171,7 @@
             duration: 4000,
           },
         });
-      } catch (err) {
+      } catch (err: Error | unknown) {
         console.error("Error writing file:", err);
         mount(Toast, {
           target: document.body,
@@ -241,8 +246,8 @@
       <button onclick={() => fileLoader?.click()}>Import from file</button>
       <button onclick={() => profileLoaded(tempActiveProfile)}>OK</button>
       <button onclick={() => profileLoaded(null)}>Cancel</button>
-      {#if !tempActiveProfile == "default"}
-        <button onclick={() => deleteProfile(null)}
+      {#if tempActiveProfile !== "default"}
+        <button onclick={() => deleteProfile(tempActiveProfile)}
           >Delete {tempActiveProfile} Profile</button
         >
       {/if}

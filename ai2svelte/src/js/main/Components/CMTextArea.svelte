@@ -12,7 +12,7 @@
     indentMore,
   } from "@codemirror/commands";
   import { searchKeymap } from "@codemirror/search";
-  import { lintGutter, linter, openLintPanel } from "@codemirror/lint";
+  import { lintGutter, linter, type Diagnostic } from "@codemirror/lint";
   import { sass } from "@codemirror/lang-sass";
   import { StreamLanguage } from "@codemirror/language";
   import { properties } from "@codemirror/legacy-modes/mode/properties";
@@ -25,12 +25,12 @@
   let editorEle: HTMLElement | undefined = $state();
 
   interface Props {
-    editor?: EditorView;
+    editor?: EditorView | undefined;
     textValue: string;
     type: string;
     onUpdate?: (value: string) => void;
     autoCompletionTokens?: { label: string; type: string; info: string }[];
-    readonly: boolean;
+    readonly?: boolean;
   }
 
   interface tokenType {
@@ -86,7 +86,7 @@
   }
 
   function setupLinter() {
-    const cssLinter = linter(async (view) => {
+    const cssLinter = linter((view: EditorView) => {
       const document = TextDocument.create(
         "file.scss",
         "scss",
@@ -98,7 +98,7 @@
       const stylesheet = scssService.parseStylesheet(document);
       const scssDiagnostics = scssService.doValidation(document, stylesheet);
 
-      const diagnostics = [];
+      const diagnostics: Diagnostic[] = [];
 
       scssDiagnostics.forEach((message) => {
         const fromCol = message.range.start.character ?? 0;
@@ -133,11 +133,18 @@
       if (!update.docChanged) return;
 
       // test if the text change is made by user input
-      const userInput = update.transactions[0].annotations.some(
-        (x) =>
-          x.value.toString().match(/input/) ||
-          x.value.toString().match(/delete/)
-      );
+      let userInput;
+
+      if (
+        update.transactions.length > 0 &&
+        update.transactions[0].annotations
+      ) {
+        userInput = update.transactions[0].annotations.some(
+          (x) =>
+            x.value.toString().match(/input/) ||
+            x.value.toString().match(/delete/)
+        );
+      }
 
       // if made by the user input,
       // run onUpdate
@@ -146,8 +153,6 @@
         onUpdate(update.state.doc.toString());
       }
     });
-
-    const theme = document.documentElement.getAttribute("data-theme");
 
     editor = new EditorView({
       doc: textValue,
@@ -202,7 +207,6 @@
           },
           keydown(event, view) {
             // Stop all keyboard events from bubbling up and reaching parent apps (e.g., Illustrator)
-
             event.stopPropagation();
             event.stopImmediatePropagation();
             return false; // Allow CodeMirror to handle the event

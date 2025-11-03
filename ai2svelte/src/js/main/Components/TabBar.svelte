@@ -13,9 +13,10 @@
 
   interface Props {
     activeLabel: string;
+    inspectMode?: boolean;
   }
 
-  let { activeLabel = $bindable() }: Props = $props();
+  let { activeLabel = $bindable(), inspectMode = false }: Props = $props();
 
   let accentColor: string = $derived(userData.accentColor);
 
@@ -84,7 +85,9 @@
       {@render tab("Home", true)}
       {@render tab("Settings", false)}
       {@render tab("Styles", false)}
-      {@render tab("Debug", false)}
+      {#if inspectMode}
+        {@render tab("Debug", false)}
+      {/if}
     </div>
     <div class="theme-configs">
       <ThemeSwitcher bind:theme />

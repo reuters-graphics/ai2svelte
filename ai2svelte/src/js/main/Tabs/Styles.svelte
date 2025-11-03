@@ -1,6 +1,6 @@
 <script lang="ts">
   // SVELTE IMPORTS
-  import { onDestroy, onMount, untrack } from "svelte";
+  import { onMount, untrack } from "svelte";
   import { fly, slide } from "svelte/transition";
   // BOLT IMPORTS
   import { evalTS } from "../../lib/utils/bolt";
@@ -12,26 +12,28 @@
     currentBackdrop,
     ai2svelteInProgress,
     userAnimations,
-    userShadows,
+    userShadowsBaked,
     userSpecimens,
   } from "../stores";
 
   // OTHER LIB IMPORTS
-  import JSON5 from "json5";
   import postcss from "postcss";
+  import { Rule, type Result, type Root } from "postcss";
   import * as prettier from "prettier/standalone";
   import parserPostCSS from "prettier/plugins/postcss";
   import ColorPicker from "svelte-awesome-color-picker";
   import { tooltip } from "svooltip";
+  // @ts-ignore
   import { AIEvent, AIEventAdapter } from "../../../public/BoltHostAdapter.js";
 
   // UTILS
   import { fetchNewImageURL, tooltipSettings } from "../utils/utils";
-  import type { AnimationItem, ShadowItem } from "./types";
-  import { bakeShadows } from "../utils/bakeShadows";
+  import type { AnimationItem, ShadowCardItem } from "./types";
+
   // MEDIA
   import replaceImageIcon from "../../assets/replace_image.svg";
   import typeSpecimenIcon from "../../assets/type_specimen.svg";
+
   // COMPONENT IMPORTS
   import AnimationCard from "../Components/AnimationCard.svelte";
   import CmTextArea from "../Components/CMTextArea.svelte";
@@ -39,10 +41,12 @@
   import Pill from "../Components/Pill.svelte";
   import SectionTabBar from "../Components/SectionTabBar.svelte";
   import ShadowCard from "../Components/ShadowCard.svelte";
-  import type { Style } from "./types";
-
-  // TEMP imports
+  // @ts-ignore
   import safeParser from "postcss-safe-parser";
+
+  // MISC
+  import { syntaxTree } from "@codemirror/language";
+  import type { EditorView } from "codemirror";
 
   let activeTab: string = $state("");
   let activeFormat: string = $state("UI");
@@ -58,15 +62,17 @@
 
   let initialLoad: boolean = $state(false);
 
-  let allShadows: ShadowItem[] = $state([]);
+  let allShadows: ShadowCardItem[] = $state([]);
 
   let allAnimations: AnimationItem[] = $state([]);
 
   let allSpecimens: string[] = $state([]);
 
-  let previousStyles: Style = [];
+  let previousStyles: Result<Root> | undefined = undefined;
 
-  let previousSelector = "";
+  let previousSelector: string = "";
+
+  let codeEditor: EditorView | undefined = $state();
 
   // holds styles object as string
   let cssString: string = $derived.by(() => {
@@ -77,6 +83,7 @@
       //   if (window.cep) {
       //     evalTS("updateAiSettings", "shadow-settings", string);
       //   }
+
       return string;
     }
     return "";
@@ -102,12 +109,25 @@
     }
   });
 
-  async function detectIdentifier() {
+  function getStyleIdentifier(): void {
+    const totalStyles = $styles?.root?.nodes?.length || 0;
+    const node = $styles?.root?.nodes?.[totalStyles - 1];
+    if (node && "type" in node && node.type === "rule") {
+      cssSelector = (node as Rule).selector || 'p[class^="g-pstyle"]';
+    }
+  }
+
+  async function detectIdentifier(): Promise<void> {
     const identifier = await evalTS("fetchSelectedItems");
-    cssSelector =
-      identifier ||
-      $styles?.root?.nodes?.[0]?.selector ||
-      'p[class^="g-pstyle"]';
+    // const node = $styles?.root?.nodes?.[0];
+
+    // console.log(identifier);
+
+    if (identifier) {
+      cssSelector = identifier;
+    } else {
+      cssSelector = 'p[class^="g-pstyle"]';
+    }
   }
 
   /**
@@ -118,9 +138,10 @@
    * Responsible for populating active css identifier when art selection changes.
    *
    */
-  function addSelectionChangeEventListener() {
+  function addSelectionChangeEventListener(): void {
     const adapter = AIEventAdapter.getInstance();
     adapter.addEventListener(AIEvent.ART_SELECTION_CHANGED, async (e: any) => {
+      console.log("checking", $ai2svelteInProgress);
       if ($ai2svelteInProgress) return;
       await detectIdentifier();
     });
@@ -128,14 +149,10 @@
 
   onMount(async () => {
     if ($styles == undefined || Object.keys($styles).length == 0) {
-      $styles = await postcss()
-        .process("", { parser: safeParser })
-        .then(async (result) => {
-          return result;
-        });
+      $styles = await postcss().process("", { parser: safeParser });
     }
 
-    allShadows = [...bakeShadows($userShadows)]
+    allShadows = [...$userShadowsBaked]
       .map((x) => ({
         id: x.id,
         shadow: x.shadow,
@@ -161,7 +178,12 @@
     activeTab = "shadows";
 
     // set first selector from styles object as css selector
-    cssSelector = $styles?.root?.nodes?.[0]?.selector || 'p[class^="g-pstyle"]';
+    const node = $styles?.root?.nodes?.[0];
+    if (node && "type" in node && node.type === "rule") {
+      cssSelector = (node as Rule).selector || 'p[class^="g-pstyle"]';
+    } else {
+      cssSelector = 'p[class^="g-pstyle"]';
+    }
 
     if (window.cep) {
       initialLoad = true;
@@ -169,7 +191,7 @@
       detectIdentifier();
     }
 
-    previousStyles = { ...$styles };
+    previousStyles = $styles;
 
     changeSpecimen();
     backdrop = await fetchNewImageURL();
@@ -196,7 +218,7 @@
    * @async
    * @returns {Promise<void>} Resolves when the backdrop is updated.
    */
-  async function changeBackdrop() {
+  async function changeBackdrop(): Promise<void> {
     let newImageURL;
     try {
       $currentBackdrop = ($currentBackdrop + 1) % maxBackdropCount;
@@ -222,7 +244,7 @@
    * Updates the `$styles` store with the new styles.
    * Ignores errors to allow for incomplete or in-progress user input.
    */
-  async function updateStyle(string: string) {
+  async function updateStyle(string: string): Promise<void> {
     try {
       let object;
       let formatted = string;
@@ -233,15 +255,11 @@
           plugins: [parserPostCSS],
         });
       } catch (error) {
-        console.log("Prettier formatting error:");
-        console.log(error);
+        // console.log("Prettier formatting error:");
+        // console.log(error);
       }
 
-      await postcss()
-        .process(formatted, { parser: safeParser })
-        .then(async (result) => {
-          object = await result;
-        });
+      object = await postcss().process(formatted, { parser: safeParser });
 
       styles.set(object);
     } catch (error) {
@@ -252,7 +270,7 @@
   /**
    * Changes the type specimen and increments the type weight from 100-900.
    */
-  function changeSpecimen() {
+  function changeSpecimen(): void {
     if (allSpecimens.length) {
       specimen = allSpecimens[Math.floor(Math.random() * allSpecimens.length)];
     } else {
@@ -262,7 +280,7 @@
     specimenWeight = ((specimenWeight + 50) % 900) + 50;
   }
 
-  function checkIfRuleIsEmpty(rule) {
+  function checkIfRuleIsEmpty(rule: Rule) {
     if (!rule.nodes || rule.nodes.length === 0) {
       rule.remove(); // Clean up empty rules
     }
@@ -285,13 +303,15 @@
     animationDefinition: string,
     animationRule: string,
     operation: boolean
-  ) {
+  ): void {
     const animationMixinRegex = new RegExp(/.*@include (.*)\(\)/);
     const mixinCheck = animationUsage?.match(animationMixinRegex);
     const animationIdentifier = mixinCheck ? mixinCheck[1] : undefined;
 
     let rule =
-      $styles.root?.nodes.find((node) => node.selector === cssSelector) || null;
+      $styles.root?.nodes.find(
+        (node) => node.type === "rule" && node.selector === cssSelector
+      ) || null;
 
     const animationParam = `animation-${animationName}()`;
 
@@ -306,7 +326,10 @@
         text: `${animationIdentifier} ${animationDefinition}`,
       });
 
-      rule.append(comment);
+      // add animation definition as comment
+      if ("type" in rule && rule.type === "rule") {
+        (rule as Rule).append(comment);
+      }
 
       // Create an @include AtRule
       const animationInclude = postcss.atRule({
@@ -315,59 +338,65 @@
       });
 
       // Add or update a declaration
-      rule.append(animationInclude);
+      if ("type" in rule && rule.type === "rule") {
+        (rule as Rule).append(animationInclude);
+      }
 
       let animationDeclExists = false;
       let existingValue = "";
-      rule.walkDecls((decl) => {
-        if (decl.prop === "animation") {
-          animationDeclExists = true;
-          existingValue = decl.value;
-          decl.value = existingValue + ", " + animationRule;
-        }
-      });
+      if ("walkDecls" in rule && typeof rule.walkDecls === "function") {
+        rule.walkDecls((decl) => {
+          if (decl.prop === "animation") {
+            animationDeclExists = true;
+            existingValue = decl.value;
+            decl.value = existingValue + ", " + animationRule;
+          }
+        });
+      }
 
       if (!animationDeclExists) {
         // Add animation declaration
-        rule.append({ prop: "animation", value: animationRule });
+        if ("type" in rule && rule.type === "rule") {
+          (rule as Rule).append({ prop: "animation", value: animationRule });
+        }
       }
     } else {
-      rule.walkDecls((decl) => {
-        if (decl.prop === "animation") {
-          const animRegex = new RegExp(`\\s*${animationName}([^,)]*)`);
-          let newAnimString = decl.value
-            .replace(animRegex, "")
-            .split(",")
-            .filter((x) => x !== "")
-            .join(",");
-          if (newAnimString == "") {
-            decl.remove();
-          } else {
-            decl.value = newAnimString;
+      if (rule && "walkDecls" in rule && typeof rule.walkDecls === "function") {
+        rule.walkDecls((decl) => {
+          if (decl.prop === "animation") {
+            const animRegex = new RegExp(`\\s*${animationName}([^,)]*)`);
+            let newAnimString = decl.value
+              .replace(animRegex, "")
+              .split(",")
+              .filter((x) => x !== "")
+              .join(",");
+            if (newAnimString == "") {
+              decl.remove();
+            } else {
+              decl.value = newAnimString;
+            }
           }
-        }
-      });
+        });
 
-      rule.walkAtRules("include", (atRule) => {
-        if (atRule.params === animationParam) {
-          atRule.remove();
-        }
-      });
+        rule.walkAtRules("include", (atRule) => {
+          if (atRule.params === animationParam) {
+            atRule.remove();
+          }
+        });
 
-      rule.walkComments((comment) => {
-        if (comment.text == `${animationIdentifier} ${animationDefinition}`) {
-          comment.remove();
-        }
-      });
+        rule.walkComments((comment) => {
+          if (comment.text == `${animationIdentifier} ${animationDefinition}`) {
+            comment.remove();
+          }
+        });
 
-      checkIfRuleIsEmpty(rule);
+        if (rule.type == "rule") {
+          checkIfRuleIsEmpty(rule);
+        }
+      }
     }
 
     $styles = $styles;
-  }
-
-  function isRuleEmpty(rule) {
-    return rule.nodes.every((node) => node.type !== "decl");
   }
 
   /**
@@ -386,7 +415,9 @@
     const shadowParam = `shadow-${shadowName}(${shadowColor})`;
 
     let rule =
-      $styles.root?.nodes.find((node) => node.selector === cssSelector) || null;
+      $styles.root?.nodes.find(
+        (node) => node.type === "rule" && node.selector === cssSelector
+      ) || null;
     // true to add
     // false to remove
     if (operation) {
@@ -400,15 +431,21 @@
         params: shadowParam,
       });
       // Add or update a declaration
-      rule.append(shadowInclude);
+      if ("type" in rule && rule.type === "rule") {
+        (rule as Rule).append(shadowInclude);
+      }
     } else {
-      rule.walkAtRules("include", (atRule) => {
-        if (atRule.params === shadowParam) {
-          atRule.remove();
-        }
-      });
+      if (rule && "walkDecls" in rule && typeof rule.walkDecls === "function") {
+        rule.walkAtRules("include", (atRule) => {
+          if (atRule.params === shadowParam) {
+            atRule.remove();
+          }
+        });
 
-      checkIfRuleIsEmpty(rule);
+        if (rule.type == "rule") {
+          checkIfRuleIsEmpty(rule);
+        }
+      }
     }
     $styles = $styles;
   }
@@ -420,55 +457,92 @@
    */
   function clearShadowSelection() {
     allShadows.forEach((x) => {
-      const shadowMixin =
-        "@include shadow-" + x.dataName + "(" + shadowColor + ")";
       const shadowParam = `shadow-${x.dataName}(${shadowColor})`;
 
       x.active = false;
 
       let rule =
-        $styles.root?.nodes.find((node) => node.selector === cssSelector) ||
-        null;
+        $styles.root?.nodes.find(
+          (node) => node.type === "rule" && node.selector === cssSelector
+        ) || null;
 
       if (rule) {
-        rule.walkAtRules("include", (atRule) => {
-          if (atRule.params === shadowParam) {
-            x.active = true;
-          }
-        });
+        if (
+          rule &&
+          "walkDecls" in rule &&
+          typeof rule.walkDecls === "function"
+        ) {
+          rule.walkAtRules("include", (atRule) => {
+            if (atRule.params === shadowParam) {
+              x.active = true;
+            }
+          });
+        }
       }
     });
 
     allAnimations.forEach((x) => {
       const animationMixinRegex = new RegExp(/.*@include (.*)\(\)/);
       const mixinCheck = x.usage?.match(animationMixinRegex);
-      const animationIdentifier = mixinCheck ? mixinCheck[1] : undefined;
 
       x.active = false;
 
       let rule =
-        $styles.root?.nodes.find((node) => node.selector === cssSelector) ||
-        null;
+        $styles.root?.nodes.find(
+          (node) => node.type === "rule" && node.selector === cssSelector
+        ) || null;
 
       let animationParam = `animation-${x.name}()`;
 
       if (rule) {
-        rule.walkAtRules("include", (atRule) => {
-          if (atRule.params === animationParam) {
-            x.active = true;
-          }
-        });
+        if (
+          rule &&
+          "walkDecls" in rule &&
+          typeof rule.walkDecls === "function"
+        ) {
+          rule.walkAtRules("include", (atRule) => {
+            if (atRule.params === animationParam) {
+              x.active = true;
+            }
+          });
+        }
       }
     });
+  }
+
+  function fetchSelectorFromEditor(): void {
+    if (!codeEditor) return;
+
+    let head = codeEditor.state.selection.main.head;
+
+    const tree = syntaxTree(codeEditor.state);
+    let node = tree.resolve(head, -1);
+    while (
+      node &&
+      node.type.name !== "RuleSet" &&
+      node.type.name !== "StyleRule"
+    ) {
+      if (node && node.parent) {
+        node = node.parent;
+      } else {
+        break;
+      }
+    }
+
+    const selectorNode = node.firstChild;
+    const selector = selectorNode?.type.name.includes("Selector")
+      ? codeEditor.state.sliceDoc(selectorNode.from, selectorNode.to)
+      : null;
+    cssSelector = selector || 'p[class^="g-pstyle"]';
   }
 </script>
 
 <div class="shadow-content" in:fly={{ y: -50, duration: 300 }}>
-  {#if $styles.root?.nodes.length}
+  {#if $styles && $styles.root?.nodes.length}
     <div class="pills-container" transition:slide={{ duration: 200 }}>
       {#each $styles.root?.nodes
-        .filter((x) => x.selector)
-        .map((x) => x.selector) as selector}
+        .filter((x) => x.type === "rule" && x.selector)
+        .map((x) => (x.type === "rule" ? x.selector : "")) as selector}
         <Pill
           name={selector}
           active={selector == cssSelector}
@@ -478,14 +552,17 @@
           onRemove={() => {
             // delete $styles[selector];
             $styles.root.nodes.splice(
-              $styles.root.nodes.findIndex((x) => x.selector == selector),
+              $styles.root.nodes.findIndex(
+                (x) => x.type === "rule" && x.selector == selector
+              ),
               1
             );
             $styles = $styles;
             // replace identifier with default style
-            cssSelector =
-              $styles.root?.nodes?.[0]?.selector || `p[class^="g-pstyle"]`;
-            // cssSelector = Object.keys($styles).at(-1) || `p[class^="g-pstyle"]`;
+            const node = $styles?.root?.nodes?.[0] || null;
+            if (node && node.type === "rule") {
+              cssSelector = node.selector || `p[class^="g-pstyle"]`;
+            }
           }}
         />
       {/each}
@@ -604,7 +681,7 @@
               {fillColor}
               bind:active={shadow.active}
               bind:dataName={shadow.dataName}
-              onChange={(e: Event) => {
+              onChange={() => {
                 allShadows[index].active = shadow.active;
                 allShadows = [...allShadows];
                 toggleShadowCard(shadow.dataName, shadow.active);
@@ -618,13 +695,12 @@
           {#each allAnimations as animation, index}
             <AnimationCard
               name={animation.name}
-              animation={animation.usage}
               animationArguments={animation.arguments}
               bind:active={animation.active}
               animationRule={animation.animationRule}
               definition={animation.definition}
               candidate={animation.candidate}
-              onChange={(e: Event) => {
+              onChange={() => {
                 allAnimations[index].active = animation.active;
                 allAnimations = [...allAnimations];
                 toggleAnimationCard(
@@ -647,10 +723,13 @@
         out:fly={{ y: 50, duration: 300 }}
       >
         <CmTextArea
+          bind:editor={codeEditor}
           bind:textValue={editableCssString}
           type="css"
           onUpdate={(e: string) => {
             updateStyle(e);
+            getStyleIdentifier();
+            fetchSelectorFromEditor();
           }}
         />
       </div>

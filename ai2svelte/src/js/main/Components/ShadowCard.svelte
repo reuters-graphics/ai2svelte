@@ -7,10 +7,9 @@
     shadow: string;
     specimen: string;
     specimenWeight: number;
-    shadowName: string;
     shadowColor: string;
     fillColor: string;
-    backdrop: string;
+    backdrop: string | undefined;
     active: boolean;
     delay?: number;
     dataName: string;
@@ -45,9 +44,13 @@
     shadow.replaceAll("#000000", shadowColor)
   );
 
-  dataName = shadowName;
-
   let mounted = $state(false);
+
+  $effect(() => {
+    if (shadowName) {
+      dataName = shadowName;
+    }
+  });
 
   onMount(() => {
     mounted = true;

@@ -224,4 +224,12 @@ export let aiSettingsTokens = [
     default: null,
     inputType: "text",
   },
+  {
+    label: "priority_fetch",
+    type: "variable",
+    info: "Whether to prioritize fetching of images \n ⚠️ To be used only for hero graphics. \n Options: true, false",
+    default: null,
+    inputType: "select",
+    options: ["true", "false"],
+  },
 ];

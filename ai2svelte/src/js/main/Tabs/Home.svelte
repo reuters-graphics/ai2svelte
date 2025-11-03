@@ -48,7 +48,7 @@
             console.log(error);
           }
           if (missingFontFamilies.length > 0) {
-            missingFontFamilies.forEach((family) => {
+            missingFontFamilies.forEach((family: string) => {
               userData.fontsConfig[family] = "";
             });
           }
@@ -88,7 +88,6 @@
   </div>
 
   <div id="credits">
-    <!-- <img class="logo" src={logo} alt="ai2svelte logo" /> -->
     <Logo />
     <p id="about-line">{displayName} v{version} by {company}</p>
   </div>

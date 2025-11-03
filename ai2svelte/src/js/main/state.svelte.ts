@@ -5,5 +5,5 @@ export const userData = $state({
     Knowledge2017: "var(--theme-font-family-sans-serif), Knowledge, sans-serif",
     Knowledge2017TF:
       "var(--theme-font-family-sans-serif), Knowledge, sans-serif",
-  },
+  } as { [key: string]: string },
 });

@@ -128,6 +128,7 @@ export function main(settingsArg) {
   let JSON;
   let fontsConfig;
   let missingFontFamilies = [];
+  let priorityFetches = [];
 
   initJSON();
 
@@ -361,7 +362,8 @@ export function main(settingsArg) {
           activeArtboard,
           textFrames,
           masks,
-          settings
+          settings,
+          group
         );
       } else {
         imageData = { html: "" };
@@ -2892,7 +2894,7 @@ export function main(settingsArg) {
   }
 
   // Generate images and return HTML embed code
-  function convertArtItems(activeArtboard, textFrames, masks, settings) {
+  function convertArtItems(activeArtboard, textFrames, masks, settings, group) {
     var imgName = getArtboardImageName(activeArtboard, settings);
     var hideTextFrames =
       !isTrue(settings.testing_mode) && settings.render_text_as != "image";
@@ -2962,7 +2964,8 @@ export function main(settingsArg) {
         activeArtboard,
         masks,
         lyr,
-        opts
+        opts,
+        group
       );
       var lyrZ = lyr.zOrderPosition;
       if (svgHtml) {
@@ -2985,6 +2988,8 @@ export function main(settingsArg) {
       });
       // var name = getLayerImageName(lyr, activeArtboard, settings);
       var name = /(.*):png/.exec(lyr.name)[1];
+      var imgName =
+        "png-layer-" + getArtboardImageName(activeArtboard, settings);
       var fmt = contains(settings.image_format || [], "png24")
         ? "png24"
         : "png";
@@ -2993,7 +2998,8 @@ export function main(settingsArg) {
       // consider only testing if an option is set by the user.
       if (testLayerArtboardIntersection(lyr, activeArtboard)) {
         var pngHtml =
-          exportImage(name, fmt, activeArtboard, null, null, opts) + "\r";
+          exportImage(imgName, fmt, activeArtboard, null, null, opts, group) +
+          "\r";
         layerHtml.push({
           z: lyrZ,
           html: pngHtml,
@@ -3035,7 +3041,7 @@ export function main(settingsArg) {
 
     // placing ab image before other elements
     html =
-      captureArtboardImage(imgName, activeArtboard, masks, settings) +
+      captureArtboardImage(imgName, activeArtboard, masks, settings, group) +
       accumulatedHTML.join("");
     // unhide hidden layers (if any)
     forEach(hiddenLayers, function (lyr) {
@@ -3097,7 +3103,7 @@ export function main(settingsArg) {
 
   // Capture and save an image to the filesystem and return html embed code
   //
-  function exportImage(imgName, format, ab, masks, layer, settings) {
+  function exportImage(imgName, format, ab, masks, layer, settings, group) {
     var imgFile = getImageFileName(imgName, format);
     var outputPath = pathJoin(getImageFolder(settings), imgFile);
     var imgId = getImageId(imgName);
@@ -3178,7 +3184,8 @@ export function main(settingsArg) {
           imgClass,
           svgInlineStyle,
           ab,
-          settings
+          settings,
+          group
         );
         if (layer) {
           message("Exported an SVG layer as " + outputPath.replace(/.*\//, ""));
@@ -3187,7 +3194,15 @@ export function main(settingsArg) {
     } else {
       // export raster image & generate link
       exportRasterImage(outputPath, ab, format, settings);
-      html = generateImageHtml(imgFile, imgId, imgClass, null, ab, settings);
+      html = generateImageHtml(
+        imgFile,
+        imgId,
+        imgClass,
+        null,
+        ab,
+        settings,
+        group
+      );
     }
 
     return html;
@@ -3290,7 +3305,7 @@ export function main(settingsArg) {
   }
 
   // ab: artboard (assumed to be the active artboard)
-  function captureArtboardImage(imgName, ab, masks, settings) {
+  function captureArtboardImage(imgName, ab, masks, settings, group) {
     var formats = settings.image_format;
     var imgHtml;
 
@@ -3319,7 +3334,7 @@ export function main(settingsArg) {
     forEach(formats, function (fmt) {
       var html;
       fmt = resolveArtboardImageFormat(fmt, ab);
-      html = exportImage(imgName, fmt, ab, masks, null, settings);
+      html = exportImage(imgName, fmt, ab, masks, null, settings, group);
       if (!imgHtml) {
         // use embed code for first of multiple formats
         imgHtml = html;
@@ -3329,7 +3344,15 @@ export function main(settingsArg) {
   }
 
   // Create an <img> tag for the artboard image
-  function generateImageHtml(imgFile, imgId, imgClass, imgStyle, ab, settings) {
+  function generateImageHtml(
+    imgFile,
+    imgId,
+    imgClass,
+    imgStyle,
+    ab,
+    settings,
+    group
+  ) {
     var imgDir;
 
     imgDir =
@@ -3373,6 +3396,26 @@ export function main(settingsArg) {
     }
 
     html += "></div>";
+
+    if (settings.priority_fetch == "true") {
+      var visibleRange = getArtboardVisibilityRange(ab, group, settings);
+      var media = "";
+
+      if (visibleRange) {
+        media = "(min-width: " + (visibleRange[0] || 0) + "px)";
+        if (visibleRange[1] < Infinity) {
+          media += " and (max-width: " + visibleRange[1] + "px)";
+        }
+      }
+
+      var linkTag =
+        '<link rel="preload" as="image" fetchpriority="high" media="' +
+        media +
+        '" href="' +
+        src +
+        '"/>';
+      priorityFetches.push(linkTag);
+    }
 
     return html;
   }
@@ -4145,6 +4188,14 @@ export function main(settingsArg) {
 
     // SCRIPT
     html = generateSvelteScript(group, settings);
+
+    if (settings.priority_fetch == "true") {
+      html += "<svelte:head>\r";
+      for (let i = 0; i < priorityFetches.length; i++) {
+        html += priorityFetches[i] + "\r";
+      }
+      html += "</svelte:head>\r";
+    }
 
     // HTML
     html +=

@@ -5,7 +5,7 @@
 
   interface Props {
     message: string;
-    duration: number;
+    duration?: number;
   }
 
   let { message = "Some text goes here...", duration = 1000 }: Props = $props();
