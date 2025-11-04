@@ -4124,7 +4124,7 @@ export function main(settingsArg) {
     var script = "<script>\r\t";
 
     script +=
-      "let { assetsPath = '/', activeArtboard = $bindable(), onAiMounted = () => {}, onArtboardChange = () => {}";
+      "let { assetsPath = '/', onAiMounted = () => {}, onArtboardChange = () => {}";
 
     if (docSettings.snippetProps) {
       script += ", " + docSettings.snippetProps.join(", ");
@@ -4143,6 +4143,7 @@ export function main(settingsArg) {
     script += "let aiBox;\n";
     script += "let aiBoxWidth = $state(undefined);\n";
     script += "let allArtboards = $state([]);\n";
+    script += "let activeArtboard = $state(undefined);\n";
     script +=
       "onMount(() => {\rallArtboards = Array.from(aiBox.querySelectorAll('" +
       "." +

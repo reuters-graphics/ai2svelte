@@ -4,7 +4,7 @@
 
 ## Looking for the Legacy Scripts?
 
-If you need access to the original command-line scripts and legacy functionality, you can find them in the [legacy directory](./legacy).
+If you need access to the previous legacy scripts, you can find them in the [legacy directory](./legacy).
 
 ## What's New
 

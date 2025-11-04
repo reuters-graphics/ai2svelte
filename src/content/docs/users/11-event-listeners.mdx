@@ -1,0 +1,41 @@
+---
+title: Event Listeners
+description: Handle component lifecycle and state changes with ai2svelte's powerful event system
+slug: users/event-listeners
+sidebar:
+  order: 111
+---
+
+ai2svelte provides an event system that lets you respond to component lifecycle events and state changes. Use these events to create dynamic, interactive experiences that react to user interactions and component updates.
+
+### onAiMounted
+
+Fired when your ai2svelte component has fully loaded and is ready for interaction. This event is perfect for initializing additional functionality, setting up third-party integrations, or performing actions that require the component to be completely rendered.
+
+```svelte
+<script>
+	function handleAiMounted() {
+	  console.log("ai2svelte component has been mounted");
+	}
+</script>
+
+<MyComponent assetsPath={assets || '/'} onAiMounted="{handleAiMounted}" />
+```
+
+### onArtboardChange
+
+Triggers whenever the active artboard changes. Since ai2svelte uses container queries, all the artboards are added to the DOM on initial load. `onArtboardChange` can be useful when you want to target elements with same CSS selector across multiple artboards.
+
+```svelte
+<script>
+	function handleArtboardChange(artboard) {
+	  // artboard is the newly active artboard element
+	  console.log("Active artboard has changed:", artboard);
+
+	  // perform object fetching or other actions based on the new artboard
+	  const POIs = artboard.querySelector(".PointOfInterest");
+	}
+</script>
+
+<MyComponent assetsPath={assets || '/'} onArtboardChange="{handleArtboardChange}" />
+```
