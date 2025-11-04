@@ -9,7 +9,6 @@ import config from "../../../../cep.config";
 import JSON5 from "json5";
 
 let userDataPath = window.cep ? csi.getSystemPath("userData") : "";
-let settingsFile;
 
 export function constrain(n: number, low: number, high: number) {
   return Math.max(Math.min(n, high), low);
@@ -33,10 +32,10 @@ export async function fetchNewImageURL() {
   let currBackdrop = get(currentBackdrop);
   try {
     let imgURL = "";
-    if (window.cep) {
-      imgURL = `../public/backdrops/backdrop_${currBackdrop}.jpg`;
+    if (process.env.NODE_ENV === "production") {
+      imgURL = `../js/assets/images/backdrops/backdrop_${currBackdrop}.jpg`;
     } else {
-      imgURL = `../../../assets/images/backdrops/backdrop_${currBackdrop}.jpg`;
+      imgURL = `../../assets/images/backdrops/backdrop_${currBackdrop}.jpg`;
     }
     return imgURL;
   } catch (error) {

@@ -54,7 +54,7 @@ const config: CEP_Config = {
     jsxBin: "off",
   },
   installModules: [],
-  copyAssets: ["public"],
+  copyAssets: ["public", "js/assets/images/backdrops"],
   copyZipAssets: [],
 };
 export default config;

@@ -2988,7 +2988,7 @@ export function main(settingsArg) {
       });
       // var name = getLayerImageName(lyr, activeArtboard, settings);
       var name = /(.*):png/.exec(lyr.name)[1];
-      var imgName = "layer-" + name + "-" + getArtboardName(activeArtboard);
+      var imgName = "layer-" + name;
       var fmt = contains(settings.image_format || [], "png24")
         ? "png24"
         : "png";
@@ -3104,13 +3104,11 @@ export function main(settingsArg) {
   //
   function exportImage(imgName, format, ab, masks, layer, settings, group) {
     var imgFile = getImageFileName(imgName, format);
+    if (settings.tagPrefix == "png") {
+      imgFile = getImageFileName(imgName + "-" + getArtboardName(ab), format);
+    }
     var outputPath = pathJoin(getImageFolder(settings), imgFile);
     var imgId = getImageId(imgName);
-
-    // separate id convention for tagged png layers
-    if (settings.tagPrefix == "png") {
-      imgId = nameSpace + "png-" + imgName;
-    }
 
     // imgClass: // remove artboard size (careful not to remove deduplication annotations)
     var imgClass = imgId.replace(/-[1-9][0-9]+-/, "-");
@@ -3121,6 +3119,12 @@ export function main(settingsArg) {
     var svgInlineStyle, svgLayersArg;
     var svgOutput, html;
     // var divId = nameSpace + "svg-" + imgName;
+
+    // separate id convention for tagged png layers
+    if (settings.tagPrefix == "png") {
+      imgId = nameSpace + "png-" + imgName + "-" + getArtboardName(ab);
+      imgClass = nameSpace + "png-" + imgName;
+    }
 
     imgClass += " " + nameSpace + "aiImg";
 

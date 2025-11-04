@@ -1,34 +1,28 @@
 <script lang="ts">
   import Fire from "./ai2svelte/fire.svelte";
   import { onMount } from "svelte";
-  import { Block } from "@reuters-graphics/graphics-components";
-  import { Tween } from "svelte/motion";
 
   let screenWidth = $state(0);
   let screenHeight = $state(0);
-  let progress = new Tween(0, { duration: 400 });
+  let progress: number = 0;
 
-  let graphicEle = $state(null);
-  let graphicHeight = $state(null);
+  let graphicEle: HTMLDivElement | null | undefined = $state(undefined);
+  let graphicHeight: number | undefined = $state(undefined);
 
-  let swirImage;
-
-  const artboard = $derived.by(() => {
-    if (screenWidth < 660) {
-      return "xs";
-    } else if (screenWidth < 1200) {
-      return "md";
-    } else {
-      return "xl";
-    }
-  });
+  let swirImage: HTMLElement | null | undefined = undefined;
+  let activeArtboard: HTMLElement | null | undefined = $state(undefined);
 
   function getSWIRImage() {
-    swirImage = document.querySelector(`#g-png-swir-${artboard}`);
-    swirImage.style.maskImage = `linear-gradient(to bottom, black 0%, transparent 0%, transparent 100%)`;
+    swirImage = activeArtboard?.querySelector(`.g-png-layer-swir`);
+    swirImage?.style.setProperty(
+      "mask-image",
+      `linear-gradient(to bottom, black 0%, transparent 0%, transparent 100%)`
+    );
   }
 
   function handleScroll() {
+    if (!graphicEle || !graphicHeight) return;
+
     const boundingRect = graphicEle.getBoundingClientRect();
     const top = boundingRect.top;
 
@@ -46,7 +40,7 @@
   });
 
   $effect(() => {
-    if (artboard) {
+    if (activeArtboard) {
       getSWIRImage();
     }
   });
@@ -55,7 +49,7 @@
 <svelte:window bind:innerWidth={screenWidth} bind:innerHeight={screenHeight} />
 
 <div bind:this={graphicEle} bind:clientHeight={graphicHeight}>
-  <Fire assetsPath="/ai2svelte/" onAiMounted={getSWIRImage} />
+  <Fire assetsPath="/ai2svelte/" bind:activeArtboard />
 </div>
 
 <style lang="scss">
