@@ -18,11 +18,11 @@
 
   let { activeLabel = $bindable(), inspectMode = false }: Props = $props();
 
-  let accentColor: string = $derived(userData.accentColor);
+  let accentColor: string = $derived(userData.accentColor || "#dc4300");
 
   let activeTab: HTMLElement | undefined = $state();
 
-  let theme = $derived(userData.theme);
+  let theme = $derived(userData.theme || "dark");
 
   function handleClick(e: Event) {
     if (e.target && e.target instanceof HTMLElement) {

@@ -79,10 +79,14 @@
     // fetch user settings
     // and update the store
     const userSettings = readFile("user-settings.json");
-    if (userSettings) {
+    if (Object.keys(userSettings).length != 0) {
       userData.theme = userSettings.theme;
       userData.accentColor = userSettings.accentColor;
       userData.fontsConfig = userSettings.fontsConfig || {};
+      console.log("found user settings");
+    } else {
+      console.log("no user settings found, creating settings file");
+      writeFile("user-settings.json", userData);
     }
 
     const fetchedSettings = await evalTS("getVariable", "ai-settings");
