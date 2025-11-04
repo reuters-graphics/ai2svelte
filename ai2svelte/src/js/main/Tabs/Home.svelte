@@ -6,7 +6,7 @@
     ai2svelteInProgress,
   } from "../stores";
   import { evalTS } from "../../lib/utils/bolt";
-  import { saveSettings, tooltipSettings } from "../utils/utils";
+  import { saveSettings, tooltipSettings, writeFile } from "../utils/utils";
   import { userData } from "../state.svelte";
   import { company, displayName, version } from "../../../shared/shared";
   import { tooltip } from "svooltip";
@@ -51,6 +51,8 @@
             missingFontFamilies.forEach((family: string) => {
               userData.fontsConfig[family] = "";
             });
+            // update user settings file with missing font families
+            writeFile("user-settings.json", userData);
           }
           saveSettings($settingsObject, {
             styleText: $styles?.root?.toString(),

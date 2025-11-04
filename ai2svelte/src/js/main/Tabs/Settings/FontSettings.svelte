@@ -4,14 +4,11 @@
 
   import { userData } from "../../state.svelte";
 
-  import { fly } from "svelte/transition";
-
   let { activeFormat = "UI" } = $props();
 
   // holds key-value pairs as string
   let yamlString: string = $derived.by(() => {
     return Object.keys(userData.fontsConfig)
-      .filter((key) => userData.fontsConfig[key] !== null)
       .map((key) => `${key}: ${userData.fontsConfig[key]}`)
       .join("\n")
       .trim();
