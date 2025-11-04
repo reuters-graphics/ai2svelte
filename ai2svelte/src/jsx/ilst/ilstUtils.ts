@@ -70,7 +70,7 @@ export function getSelectedItems() {
       } else if (tag == "png") {
         // g-snippet-snippetName
         let imageName = (/(.*):png/.exec(objectLayerName) || [])[1] || "";
-        identifier = `#${namespace}png-${imageName}`;
+        identifier = `.${namespace}png-layer-${imageName}`;
       } else if (tag == "div" && (objectName || objectLayerName)) {
         // g-snippet-snippetName
         let imageName = (/(.*):div/.exec(objectLayerName) || [])[1] || "";
