@@ -1,7 +1,7 @@
 {
   "default": {
     "image_format": "jpg",
-    "responsiveness": "fixed",
+    "responsiveness": "dynamic",
     "output": "one-file",
     "html_output_path": "../src/lib/ai2svelte/",
     "html_output_extension": ".svelte",
