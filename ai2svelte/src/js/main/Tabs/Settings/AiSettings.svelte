@@ -88,7 +88,7 @@
         {#if $settingsObject && aiSettingsTokens}
           {#each Object.keys($settingsObject) as key, index}
             {@const type =
-              aiSettingsTokens.find((item) => item.label == key).inputType ||
+              aiSettingsTokens.find((item) => item.label == key)?.inputType ||
               "text"}
             <div class="ai-setting">
               {#if type == "select"}
