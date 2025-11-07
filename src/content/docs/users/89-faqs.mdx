@@ -1,0 +1,77 @@
+---
+title: FAQs
+description: Get quick answers to the most common ai2svelte questions and troubleshooting tips
+slug: users/faqs
+sidebar:
+  order: 890
+---
+
+## Troubleshooting
+
+<details>
+<summary>Why isn't the Identifier field updating when I select elements?</summary>
+
+If the Identifier field in the ai2svelte panel doesn't change when you select different elements in your Illustrator document, the issue is likely with the AiHostAdapter plugin installation.
+
+**Solution:** Verify that you've correctly installed the AiHostAdapter.aip file in the proper location. Check our [Auto-detect selectors guide](../auto-detect/) for detailed installation instructions and troubleshooting steps.
+
+</details>
+
+<details>
+<summary>Why does the Identifier only show the parent layer instead of child elements?</summary>
+
+This is a limitation of how Illustrator handles single-element layers. When a layer contains only one element, Illustrator treats the element and its parent layer as the same object.
+
+**Solution:**
+To correctly identify child elements, ensure you have more than one element within the layer. Illustrator can't distinguish between a single element and its parent layer. Always rename the elements that you want to stylise to identify them correctly.
+
+</details>
+
+## Layer Organization
+
+<details>
+<summary>Do I need separate tagged layers for each artboard?</summary>
+
+**No!** ai2svelte is smart enough to handle multiple artboards within a single tagged layer, which can significantly simplify your workflow.
+
+**Best practices:**
+
+- Use one tagged layer that spans across all artboards you want to export
+- Organize elements logically within the layer structure for easier identification
+- This approach reduces complexity while maintaining full styling control
+
+</details>
+
+<details>
+<summary>Why can't I style elements in non-tagged layers?</summary>
+
+ai2svelte only exports and makes available elements that are within tagged layers. Elements in non-tagged layers are treated as background content and aren't individually accessible for styling.
+
+**Solution:** Move any elements you want to style into a properly tagged layer:
+
+- **`:svg`** for vector graphics that need to scale and be styled with CSS
+- **`:png`** for raster images and complex graphics that should remain as images
+
+This tagging system ensures optimal performance and gives you precise control over which elements can be customized.
+
+</details>
+
+## Performance Optimization
+
+<details>
+<summary>How can I optimize loading speed for above-the-fold hero graphics?</summary>
+
+For critical graphics that users see immediately (like hero images), you can prioritize their loading to improve perceived performance.
+
+**Solution:** Add `priority_fetch: true` to your ai2svelte configuration:
+
+```yaml
+// ... other settings
+priority_fetch: true
+```
+
+**⚠️ Important:** Only use `priority_fetch` for truly critical, above-the-fold content. Overusing this setting can actually slow down your overall page performance by competing for bandwidth with other essential resources.
+
+**Best for:** Hero images, key visual elements, essential UI components visible on initial page load.
+
+</details>
