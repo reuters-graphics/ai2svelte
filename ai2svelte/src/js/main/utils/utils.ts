@@ -44,11 +44,12 @@ export async function fetchNewImageURL() {
   }
 }
 
-export function saveSettings(aiSettings, styleSettings) {
+export function saveSettings(aiSettings, styleSettings, version) {
   if (window.cep) {
     console.log("saving data");
     evalTS("setVariable", "ai-settings", aiSettings);
     evalTS("setVariable", "css-settings", styleSettings);
+    evalTS("setVariable", "version", { version: version });
   }
 }
 
@@ -107,16 +108,28 @@ export const myTheme = EditorView.theme(
 export function readFile(fileName) {
   const filePath = path.join(userDataPath, config.id, fileName);
   if (fs.existsSync(filePath)) {
-    var data = JSON5.parse(fs.readFileSync(filePath, "utf8"));
-    return data;
+    try {
+      // valid json data
+      var data = JSON5.parse(fs.readFileSync(filePath, "utf8"));
+      return data;
+    } catch (error) {
+      console.log("Error reading flags:", error);
+      return null;
+    }
   }
-  return {};
+  return null;
 }
 
 export function writeFile(fileName, data) {
-  const filePath = path.join(userDataPath, config.id, fileName);
-  if (!fs.existsSync(filePath)) {
-    fs.mkdirSync(path.dirname(filePath), { recursive: true });
+  try {
+    const filePath = path.join(userDataPath, config.id, fileName);
+    if (!fs.existsSync(filePath)) {
+      fs.mkdirSync(path.dirname(filePath), { recursive: true });
+    }
+    fs.writeFileSync(filePath, JSON.stringify(data));
+    return true;
+  } catch (error) {
+    console.error("Error writing file:", error);
+    return false;
   }
-  fs.writeFileSync(filePath, JSON.stringify(data));
 }

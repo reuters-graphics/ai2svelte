@@ -54,9 +54,13 @@
             // update user settings file with missing font families
             writeFile("user-settings.json", userData);
           }
-          saveSettings($settingsObject, {
-            styleText: $styles?.root?.toString(),
-          });
+          saveSettings(
+            $settingsObject,
+            {
+              styleText: $styles?.root?.toString(),
+            },
+            version
+          );
           refreshSettings();
           ele.textContent = "Run AI2SVELTE";
           ele.removeAttribute("disabled");
@@ -78,7 +82,7 @@
       class="cta-button"
       onclick={async () => {
         if (window.cep) {
-          saveSettings($settingsObject, $styles);
+          saveSettings($settingsObject, $styles, version);
           await evalTS("exportAsTemplate");
         }
       }}

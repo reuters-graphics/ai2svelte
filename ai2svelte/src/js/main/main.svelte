@@ -17,6 +17,7 @@
 
   // BOLT IMPORTS
   import { csi, evalTS } from "../lib/utils/bolt";
+  import { version } from "../../shared/shared";
 
   // STYLE IMPORT
   import "./index.scss";
@@ -34,13 +35,14 @@
   import { bakeShadows } from "./utils/bakeShadows";
   import postcss from "postcss";
   import safeParser from "postcss-safe-parser";
+  import { precheck } from "./precheck/precheck.js";
 
   // TABS
   import TabBar from "./Components/TabBar.svelte";
   import Settings from "./Tabs/Settings.svelte";
   import Styles from "./Tabs/Styles.svelte";
   import Home from "./Tabs/Home.svelte";
-  import Debug from "./Tabs/Debug.svelte";
+  import Inspect from "./Tabs/Inspect.svelte";
 
   let splashScreen: boolean = $state(false);
   let activeTab: string = $state("HOME");
@@ -79,7 +81,7 @@
     // fetch user settings
     // and update the store
     const userSettings = readFile("user-settings.json");
-    if (Object.keys(userSettings).length != 0) {
+    if (userSettings && Object.keys(userSettings).length != 0) {
       userData.theme = userSettings.theme;
       userData.accentColor = userSettings.accentColor;
       userData.fontsConfig = userSettings.fontsConfig || {};
@@ -95,11 +97,12 @@
     if (Object.keys(fetchedSettings).length == 0) {
       // no settings found, probably first time use
       // use user's default settings
-      let usersProfiles = readFile("user-profiles.json");
+      let usersProfiles = await readFile("user-profiles.json");
+
       if (usersProfiles && Object.keys(usersProfiles).includes("default")) {
         settingsObject.set(usersProfiles.default);
       } else {
-        settingsObject.set(defaultProfile);
+        settingsObject.set(defaultProfile.default);
       }
       savedSettings.set({});
       $styles = await postcss().process("", { parser: safeParser });
@@ -140,7 +143,7 @@
     }
     // handle user animations
     let animations = readFile("user-animations.json");
-    if (Object.keys(animations).length !== 0) {
+    if (animations && Object.keys(animations).length !== 0) {
       $userAnimations = animations;
     } else {
       let defAnimations = JSON5.parse(defaultAnimations);
@@ -150,7 +153,7 @@
 
     // handle user shadows
     let shadows = readFile("user-shadows.json");
-    if (Object.keys(shadows).length !== 0) {
+    if (shadows && Object.keys(shadows).length !== 0) {
       $userShadows = shadows;
     } else {
       let defShadows = JSON5.parse(defaultShadows);
@@ -162,7 +165,7 @@
 
     // handle user specimens
     let specimens = readFile("user-specimens.json");
-    if (Object.keys(specimens).length !== 0) {
+    if (specimens && Object.keys(specimens).length !== 0) {
       $userSpecimens = specimens;
     } else {
       let defSpecimens = JSON5.parse(defaultSpecimens);
@@ -180,11 +183,11 @@
       e.preventDefault(); // Optional: prevent default DevTools opening
       inspectMode = !inspectMode;
 
-      if (!inspectMode && activeTab === "DEBUG") {
+      if (!inspectMode && activeTab === "INSPECT") {
         document.querySelector("#label-Home")?.click();
-      } else if (inspectMode && activeTab !== "DEBUG") {
+      } else if (inspectMode && activeTab !== "INSPECT") {
         setTimeout(() => {
-          document.querySelector("#label-Debug")?.click();
+          document.querySelector("#label-Inspect")?.click();
         }, 100);
       }
     }
@@ -215,6 +218,10 @@
     // load user settings and styles on mount
     if (window.cep) {
       $updateInProgress = true;
+
+      // do initial checks
+      precheck();
+
       fetchSettings();
       fetchStyleJSONs();
       previousSettings = { ...$settingsObject };
@@ -238,7 +245,7 @@
       if (
         JSON.stringify(previousSettings) !== JSON.stringify($settingsObject)
       ) {
-        saveSettings($settingsObject, $styles);
+        saveSettings($settingsObject, $styles, version);
       }
     }
   });
@@ -260,8 +267,8 @@
     <!-- <Preview /> -->
   {:else if activeTab === "SETTINGS"}
     <Settings />
-  {:else if activeTab === "DEBUG"}
-    <Debug />
+  {:else if activeTab === "INSPECT"}
+    <Inspect />
   {/if}
 {/if}
 
@@ -269,10 +276,10 @@
   .alert {
     width: 100%;
     text-align: center;
-    background-color: hsl(349 46% 12% / 1);
+    background-color: hsl(349 70% 45% / 0.2);
     color: hsl(349 70% 45% / 1);
     padding: 0.25rem 0.25rem 0.35rem 0.25rem;
-    border-radius: 2px;
+    border-radius: 0.25rem;
     margin-bottom: 1rem;
   }
 </style>

@@ -13,14 +13,14 @@ let shadows;
 
 if (window.cep) {
   let userAnimations = readFile("user-animations.json");
-  if (Object.keys(userAnimations).length !== 0) {
+  if (userAnimations && Object.keys(userAnimations).length !== 0) {
     animations = userAnimations;
   } else {
     animations = JSON5.parse(animationsRaw);
   }
 
   let userShadows = readFile("user-shadows.json");
-  if (Object.keys(userShadows).length !== 0) {
+  if (userShadows && Object.keys(userShadows).length !== 0) {
     shadows = userShadows;
   } else {
     shadows = JSON5.parse(shadowsRaw);

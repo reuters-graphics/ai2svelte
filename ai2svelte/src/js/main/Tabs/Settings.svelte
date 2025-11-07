@@ -25,7 +25,7 @@
   let existingProfiles: UserProfiles = $derived.by(() => {
     if (window.cep) {
       let usersProfiles = readFile("user-profiles.json") || {};
-      if (!Object.keys(usersProfiles).includes("default")) {
+      if (usersProfiles && !Object.keys(usersProfiles).includes("default")) {
         writeFile("user-profiles.json", {
           ...usersProfiles,
           ...defaultProfile,

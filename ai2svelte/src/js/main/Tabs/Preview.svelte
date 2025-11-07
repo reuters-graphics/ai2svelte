@@ -12,6 +12,7 @@
   import { csi } from "../../lib/utils/bolt";
   import { evalTS } from "../../lib/utils/bolt";
   import { fs, path } from "../../lib/cep/node";
+  import { version } from "../../../shared/shared";
 
   // OTHER IMPORTS
   // @ts-ignore
@@ -30,7 +31,7 @@
     previewHeight.target = 0.8 * window.innerHeight;
 
     if (window.cep) {
-      saveSettings($settingsObject, $styles);
+      saveSettings($settingsObject, $styles, version);
       loadPreview();
       getSvelteFile();
     }

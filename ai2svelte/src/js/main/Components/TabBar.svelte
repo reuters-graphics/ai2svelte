@@ -86,7 +86,7 @@
       {@render tab("Settings", false)}
       {@render tab("Styles", false)}
       {#if inspectMode}
-        {@render tab("Debug", false)}
+        {@render tab("Inspect", false)}
       {/if}
     </div>
     <div class="theme-configs">

@@ -3107,7 +3107,30 @@ export function main(settingsArg) {
     if (settings.tagPrefix == "png") {
       imgFile = getImageFileName(imgName + "-" + getArtboardName(ab), format);
     }
-    var outputPath = pathJoin(getImageFolder(settings), imgFile);
+
+    var outputPath;
+
+    if (
+      settings.tagPrefix == "png" ||
+      settings.tagPrefix == "png24" ||
+      settings.tagPrefix == "svg"
+    ) {
+      // get project name
+      var pageName = settings.project_name || group.groupName;
+
+      // check if tagged folder exists, if not create it
+      var folderPath = pathJoin(getImageFolder(settings), "tagged", pageName);
+      var outputFolder = new Folder(folderPath);
+      if (!outputFolder.exists) {
+        outputFolder.create();
+      }
+
+      outputPath = pathJoin(folderPath, imgFile);
+    } else {
+      outputPath = pathJoin(getImageFolder(settings), imgFile);
+    }
+
+    // var outputPath = pathJoin(getImageFolder(settings), imgFile);
     var imgId = getImageId(imgName);
 
     // imgClass: // remove artboard size (careful not to remove deduplication annotations)
@@ -3362,6 +3385,17 @@ export function main(settingsArg) {
       "{ assetsPath.replace(new RegExp('/([^/.]+)$'), '/$1/') || '/' }" +
       settings.image_source_path;
 
+    // if tagged layer image, adjust path to include 'tagged' folder and project name
+    if (
+      settings.tagPrefix == "png" ||
+      settings.tagPrefix == "png24" ||
+      settings.tagPrefix == "jpg"
+    ) {
+      // get project name
+      var pageName = settings.project_name || group.groupName;
+      imgDir = pathJoin(imgDir, "tagged", pageName);
+    }
+
     var imgAlt = encodeHtmlEntities(settings.image_alt_text || ""),
       html,
       src;
@@ -3499,6 +3533,7 @@ export function main(settingsArg) {
     exportOptions.verticalScale = imageScale;
     exportOptions.artBoardClipping = true;
     exportOptions.antiAliasing = false;
+
     app.activeDocument.exportFile(new File(imgPath), fileType, exportOptions);
   }
 
@@ -3684,7 +3719,6 @@ export function main(settingsArg) {
     opts.compressed = false;
     opts.documentEncoding = SVGDocumentEncoding.UTF8;
     opts.embedRasterImages = isTrue(settings.svg_embed_images);
-    // opts.DTD                   = SVGDTDVersion.SVG1_1;
     // SVG1_1 exports better for elements with opacity
     opts.DTD = SVGDTDVersion.SVG1_1;
     opts.cssProperties = SVGCSSPropertyLocation.PRESENTATIONATTRIBUTES;
@@ -3769,7 +3803,9 @@ export function main(settingsArg) {
     // svg = removeImagesInSVG(svg, path);
     // fixes url path for images in SVG
     // uses settings.image_source_path to prepend to image hrefs
-    svg = fixURLinSVG(svg, settings);
+    if (!isTrue(settings.svg_embed_images)) {
+      checkForImagesInSVG(svg);
+    }
     saveTextFile(path, svg);
   }
 
@@ -3822,33 +3858,15 @@ export function main(settingsArg) {
     return content;
   }
 
-  function fixURLinSVG(content, settings) {
-    var result = "";
-    var lastIndex = 0;
+  function checkForImagesInSVG(content) {
     var regex = /<image\b[^>]*\bxlink:href="([^"]+)"/g;
     var match;
-    var urlToPrepend =
-      "{ assetsPath.replace(new RegExp('/([^/.]+)$'), '/$1/') || '/' }" +
-      settings.image_source_path;
 
-    while ((match = regex.exec(content)) !== null) {
-      var href = match[1];
-      var updatedHref = urlToPrepend + href;
-
-      // Replace the href inside the matched string
-      var updatedTag = replaceAll(match[0], href, updatedHref);
-
-      // Append content before the match, then the updated tag
-      result += content.substring(lastIndex, match.index) + updatedTag;
-
-      // Update lastIndex to continue from end of current match
-      lastIndex = match.index + match[0].length;
+    if ((match = regex.exec(content)) !== null) {
+      warn(
+        "SVG contains linked images that require external image files. Use svg_embed_images setting to embed images in the SVG."
+      );
     }
-
-    // Append any remaining content after the last match
-    result += content.substring(lastIndex);
-
-    return result;
   }
 
   // Note: stopped wrapping CSS in CDATA tags (caused problems with NYT cms)
@@ -4045,6 +4063,7 @@ export function main(settingsArg) {
         "aiPointText p { white-space: nowrap; }\r";
 
       css += blockStart + "{\r";
+      css += "width: 100%;\r";
       css += "container-type: inline-size;\r";
 
       forEachUsableArtboard(function (ab, abIndex) {
