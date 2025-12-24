@@ -23,7 +23,7 @@
 
   button {
     cursor: pointer;
-    padding: 1rem;
+    padding: var(--space-l);
     color: var(--color-text);
     background-color: var(--color-primary);
     border: unset;
@@ -31,7 +31,7 @@
     font-weight: 500;
     text-transform: uppercase;
     letter-spacing: 0.2rem;
-    margin-bottom: 1rem;
+    margin-bottom: var(--space-s);
     @include animation-default;
   }
 

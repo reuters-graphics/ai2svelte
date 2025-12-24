@@ -81,9 +81,9 @@
   .option-container {
     display: flex;
     flex-direction: column;
-    padding: 0.75rem;
-    gap: 0.25rem;
-    border-radius: 8px;
+    padding: var(--space-s);
+    gap: var(--space-2xs);
+    border-radius: var(--space-s);
     flex-grow: 1;
     transition: 0.2s ease;
     background-color: var(--color-primary);

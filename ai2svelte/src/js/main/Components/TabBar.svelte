@@ -133,7 +133,7 @@
 
   .tabs {
     position: relative;
-    margin-bottom: 1.5rem;
+    margin-bottom: var(--space-l);
   }
 
   .tab {
@@ -157,9 +157,9 @@
 
   .tab-line {
     // position: absolute;
-    margin-top: 0.5rem;
+    margin-top: var(--space-xs);
     width: 100%;
-    height: 2px;
+    height: var(--space-3xs);
     // top: 100%;
     background-color: var(--color-secondary);
   }
@@ -187,7 +187,7 @@
     font-size: var(--font-size-base);
     text-transform: uppercase;
     opacity: 0.3;
-    padding: 0.5rem;
+    padding: var(--space-2xs);
     margin: 0;
   }
 
@@ -206,7 +206,7 @@
   .theme-configs {
     display: flex;
     flex-direction: row;
-    gap: 8px;
+    gap: var(--space-xs);
     align-items: center;
   }
 </style>

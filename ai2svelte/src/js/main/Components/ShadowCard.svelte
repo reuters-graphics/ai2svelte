@@ -89,8 +89,8 @@
 
   .card {
     border: unset;
-    border-radius: 8px;
-    padding: 0.75rem;
+    border-radius: var(--space-s);
+    padding: var(--space-s);
     position: relative;
     width: 100%;
     cursor: pointer;

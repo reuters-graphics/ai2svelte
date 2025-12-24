@@ -25,7 +25,7 @@
     font-size: var(--font-size-sm);
     font-weight: 500;
     text-transform: uppercase;
-    padding: 0.75rem 1.5rem;
+    padding: var(--space-s) var(--space-l);
     @include animation-default;
   }
 </style>
