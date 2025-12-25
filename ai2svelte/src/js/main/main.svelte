@@ -1,6 +1,6 @@
 <script lang="ts">
   // SVELTE IMPORTS
-  import { onDestroy, onMount, untrack } from "svelte";
+  import { onMount, untrack } from "svelte";
   import {
     settingsObject,
     styles,
@@ -13,7 +13,6 @@
     userSpecimens,
     userShadowsBaked,
   } from "./stores";
-  import { fly } from "svelte/transition";
 
   // BOLT IMPORTS
   import { csi, evalTS } from "../lib/utils/bolt";
@@ -34,7 +33,9 @@
   import { parseCSS } from "./utils/cssUtils";
   import { bakeShadows } from "./utils/bakeShadows";
   import postcss from "postcss";
+  // @ts-ignore
   import safeParser from "postcss-safe-parser";
+  // @ts-ignore
   import { precheck } from "./precheck/precheck.js";
 
   // TABS
@@ -43,6 +44,7 @@
   import Styles from "./Tabs/Styles.svelte";
   import Home from "./Tabs/Home.svelte";
   import Inspect from "./Tabs/Inspect.svelte";
+  import Alert from "./Components/Alert.svelte";
 
   let splashScreen: boolean = $state(false);
   let activeTab: string = $state("HOME");
@@ -51,24 +53,8 @@
     flag: true,
     message: "",
   });
-  let inspectMode: boolean = $state(false);
 
-  // if plugin is running in Illustrator,
-  // listen to document change event
-  $effect(() => {
-    if (csi && window.cep) {
-      untrack(() => {
-        // fetch current ai file's settings when document changed
-        csi.addEventListener("documentAfterActivate", () => {
-          // don't fetch settings if ai2svelte is in progress
-          // the window might focus off and on while ai2svelte is running
-          if ($ai2svelteInProgress) return;
-          fetchSettings();
-          fetchStyleJSONs();
-        });
-      });
-    }
-  });
+  let inspectMode: boolean = $state(false);
 
   /**
    * Fetches plugin settings from Illustrator document,
@@ -82,20 +68,20 @@
     // and update the store
     const userSettings = readFile("user-settings.json");
     if (userSettings && Object.keys(userSettings).length != 0) {
+      console.log("found user settings");
       userData.theme = userSettings.theme;
       userData.accentColor = userSettings.accentColor;
       userData.fontsConfig = userSettings.fontsConfig || {};
-      console.log("found user settings");
     } else {
       console.log("no user settings found, creating settings file");
       writeFile("user-settings.json", userData);
     }
 
-    const fetchedSettings = await evalTS("getVariable", "ai-settings");
     console.log("fetching settings...");
+    const fetchedSettings = await evalTS("getVariable", "ai-settings");
 
     if (Object.keys(fetchedSettings).length == 0) {
-      // no settings found, probably first time use
+      // no settings found, first time use
       // use user's default settings
       let usersProfiles = await readFile("user-profiles.json");
 
@@ -119,13 +105,6 @@
       $styles = await postcss().process(stylesAST.root.clone(), {
         from: undefined,
       });
-    }
-
-    updateInProgress.set(false);
-
-    // data is loaded
-    if (splashScreen) {
-      splashScreen = true;
     }
   }
 
@@ -174,6 +153,7 @@
     }
   }
 
+  //   Trigger Inspect Tab with Ctrl+Shift+I
   function keyboardListener(e: KeyboardEvent) {
     const isCtrl = e.ctrlKey;
     const isShift = e.shiftKey;
@@ -184,14 +164,62 @@
       inspectMode = !inspectMode;
 
       if (!inspectMode && activeTab === "INSPECT") {
-        document.querySelector("#label-Home")?.click();
+        const labelHome = document.querySelector<HTMLElement>("#label-Home");
+        labelHome?.click();
       } else if (inspectMode && activeTab !== "INSPECT") {
         setTimeout(() => {
-          document.querySelector("#label-Inspect")?.click();
+          const labelInspect =
+            document.querySelector<HTMLElement>("#label-Inspect");
+          labelInspect?.click();
         }, 100);
       }
     }
   }
+
+  function performPrecheck() {
+    // do initial checks
+    precheck();
+
+    fetchSettings();
+    $updateInProgress = false;
+
+    fetchStyleJSONs();
+  }
+
+  onMount(() => {
+    // load user settings and styles on mount
+    if (window.cep) {
+      $updateInProgress = true;
+
+      performPrecheck();
+
+      previousSettings = { ...$settingsObject };
+      splashScreen = true;
+    } else {
+      fetchStyleJSONs();
+      // handle splash for testing
+      setTimeout(() => {
+        splashScreen = true;
+      }, 300);
+    }
+
+    window.addEventListener("keydown", keyboardListener);
+
+    return () => {
+      window.removeEventListener("keydown", keyboardListener);
+
+      // save XMPMetadata when settings object changes
+      // avoid saving XMPMetadata on style changes to prevent too many calls
+      if (window.cep) {
+        // save settings objects if settings are modified
+        if (
+          JSON.stringify(previousSettings) !== JSON.stringify($settingsObject)
+        ) {
+          saveSettings($settingsObject, $styles, version);
+        }
+      }
+    };
+  });
 
   // if settings/styles changes,
   // show alert saying there are unsaved changes
@@ -214,48 +242,27 @@
     }
   });
 
-  onMount(() => {
-    // load user settings and styles on mount
-    if (window.cep) {
-      $updateInProgress = true;
-
-      // do initial checks
-      precheck();
-
-      fetchSettings();
-      fetchStyleJSONs();
-      previousSettings = { ...$settingsObject };
-      splashScreen = true;
-    } else {
-      fetchStyleJSONs();
-      // handle splash for testing
-      setTimeout(() => {
-        splashScreen = true;
-      }, 300);
-    }
-
-    window.addEventListener("keydown", keyboardListener);
-  });
-
-  onDestroy(() => {
-    // save XMPMetadata when settings object changes
-    // avoid saving XMPMetadata on style changes to prevent too many calls
-    if (window.cep) {
-      // save settings objects if settings are modified
-      if (
-        JSON.stringify(previousSettings) !== JSON.stringify($settingsObject)
-      ) {
-        saveSettings($settingsObject, $styles, version);
-      }
+  // if plugin is running in Illustrator,
+  // listen to document change event
+  $effect(() => {
+    if (csi && window.cep) {
+      untrack(() => {
+        // fetch current ai file's settings when document changed
+        csi.addEventListener("documentAfterActivate", () => {
+          // don't fetch settings if ai2svelte is in progress
+          // the window might focus off and on while ai2svelte is running
+          if ($ai2svelteInProgress) return;
+          fetchSettings();
+          fetchStyleJSONs();
+        });
+      });
     }
   });
 </script>
 
 {#if splashScreen}
   {#if showAlert.flag}
-    <div class="alert" transition:fly={{ y: 20 }}>
-      {showAlert.message}
-    </div>
+    <Alert message={showAlert.message} />
   {/if}
   <TabBar bind:activeLabel={activeTab} {inspectMode} />
 
@@ -273,13 +280,4 @@
 {/if}
 
 <style lang="scss">
-  .alert {
-    width: 100%;
-    text-align: center;
-    background-color: hsl(349 70% 45% / 0.2);
-    color: hsl(349 70% 45% / 1);
-    padding: 0.25rem 0.25rem 0.35rem 0.25rem;
-    border-radius: 0.25rem;
-    margin-bottom: 1rem;
-  }
 </style>

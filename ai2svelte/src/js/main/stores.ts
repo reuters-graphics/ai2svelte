@@ -2,7 +2,7 @@ import type { Writable } from "svelte/store";
 import { derived, writable } from "svelte/store";
 import type { Style, ShadowItem, AnimationItem } from "./Tabs/types";
 import { generateAllMixins, styleObjectToString } from "./utils/cssUtils";
-import type { Processor, Result, Root } from "postcss";
+import type { Result, Root } from "postcss";
 
 export const settingsObject = writable<Record<string, any>>({});
 
