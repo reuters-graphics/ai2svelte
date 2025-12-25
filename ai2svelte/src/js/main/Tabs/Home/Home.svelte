@@ -100,15 +100,6 @@
     animation: flicker 4s linear infinite;
   }
 
-  @keyframes flicker {
-    0% {
-      background-position: 0% 0%;
-    }
-    100% {
-      background-position: 100% 100%;
-    }
-  }
-
   #about-line {
     text-align: center;
     color: var(--color-tertiary);
