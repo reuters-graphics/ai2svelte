@@ -1,6 +1,7 @@
 <script lang="ts">
   // SVELTE IMPORTS
   import { onMount } from "svelte";
+  import { fly } from "svelte/transition";
 
   // OTHER IMPORTS
   import ColorPicker from "svelte-awesome-color-picker";
@@ -10,6 +11,8 @@
 
   // COMPONENT
   import ThemeSwitcher from "./ThemeSwitcher.svelte";
+  import Button from "./Button.svelte";
+  import RunButton from "../Tabs/Home/RunButton.svelte";
 
   interface Props {
     activeLabel: string;
@@ -89,34 +92,43 @@
         {@render tab("Inspect", false)}
       {/if}
     </div>
-    <div class="theme-configs">
-      <ThemeSwitcher bind:theme />
-      <div
-        id="picker-accent"
-        style="--picker-color: {accentColor};"
-        use:tooltip={{
-          ...tooltipSettings,
-          content: "Change theme",
-        }}
-      >
-        <ColorPicker
-          position="responsive"
-          label=""
-          isAlpha={false}
-          bind:hex={accentColor}
-          sliderDirection="horizontal"
-          --picker-width="160px"
-          --picker-height="120px"
-          --slider-width="20px"
-          --picker-indicator-size="40px"
-          --picker-z-index="10"
-          --input-size="24px"
-          --cp-border-color="#ffffff22"
-          --cp-bg-color="#292929"
-          --cp-text-color="#ffffff"
-          --cp-input-color="#292929"
-        />
-      </div>
+
+    <div class="extra-configs">
+      {#if activeLabel === "HOME"}
+        <div class="theme-configs" in:fly={{ x: 20, duration: 600 }}>
+          <ThemeSwitcher bind:theme />
+          <div
+            id="picker-accent"
+            style="--picker-color: {accentColor};"
+            use:tooltip={{
+              ...tooltipSettings,
+              content: "Change theme",
+            }}
+          >
+            <ColorPicker
+              position="responsive"
+              label=""
+              isAlpha={false}
+              bind:hex={accentColor}
+              sliderDirection="horizontal"
+              --picker-width="160px"
+              --picker-height="120px"
+              --slider-width="20px"
+              --picker-indicator-size="40px"
+              --picker-z-index="10"
+              --input-size="24px"
+              --cp-border-color="#ffffff22"
+              --cp-bg-color="#292929"
+              --cp-text-color="#ffffff"
+              --cp-input-color="#292929"
+            />
+          </div>
+        </div>
+      {:else}
+        <div in:fly={{ x: 20, duration: 600 }}>
+          <RunButton minimal />
+        </div>
+      {/if}
     </div>
   </div>
 
@@ -201,6 +213,13 @@
   .tab-content {
     // display: none;
     // padding: 1rem;
+  }
+
+  .extra-configs {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: var(--space-sm);
   }
 
   .theme-configs {
