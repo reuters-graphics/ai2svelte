@@ -1,27 +1,26 @@
 <script lang="ts">
-  import { userData } from "../state.svelte";
-  import { settingsObject } from "../stores";
-  import AiSettings from "./Settings/AiSettings.svelte";
-  import FontSettings from "./Settings/FontSettings.svelte";
-  import Input from "../Components/Input.svelte";
-  import { readFile, writeFile, tooltipSettings } from "../utils/utils";
-  import { onMount, untrack, mount } from "svelte";
-  import defaultProfile from "./data/default-profile.json";
-  import Toast from "../Components/Toast.svelte";
+  import { userData } from "../../state.svelte";
+  import { settingsObject } from "../../stores";
+  import AiSettings from "./AiSettings.svelte";
+  import FontSettings from "./FontSettings.svelte";
+  import Input from "../../Components/Input.svelte";
+  import { readFile, writeFile, tooltipSettings } from "../../utils/utils";
+  import { mount } from "svelte";
+  import defaultProfile from "../data/default-profile.json";
+  import Toast from "../../Components/Toast.svelte";
   import { tooltip } from "svooltip";
-  import { selectFolder } from "../../lib/utils/bolt";
-  import { fs } from "../../lib/cep/node";
-  import type { UserProfiles } from "./types";
+  import { selectFolder } from "../../../lib/utils/bolt";
+  import { fs } from "../../../lib/cep/node";
+  import type { UserProfiles } from "../types";
 
-  let profileNameDialog: HTMLElement;
-  let profileListDialog: HTMLElement;
+  let profileNameDialog: HTMLDialogElement;
+  let profileListDialog: HTMLDialogElement;
   let activeProfile: string = $state("");
-  let tempActiveProfile: string = $state("");
+  let tempActiveProfile: string = $state("default");
   let newProfileName: string = $state("");
-  let isProfileNameModalOpen: boolean = $state(false);
-  let isProfileListModalOpen: boolean = $state(false);
   let fileLoader: HTMLInputElement;
   let refreshKey: number = $state(1);
+  let activeFormat: string = $state("UI");
   let existingProfiles: UserProfiles = $derived.by(() => {
     if (window.cep) {
       let usersProfiles = readFile("user-profiles.json") || {};
@@ -58,14 +57,6 @@
     });
   }
 
-  function saveProfile(): void {
-    isProfileNameModalOpen = true;
-  }
-
-  function loadProfile(): void {
-    isProfileListModalOpen = true;
-  }
-
   function deleteProfile(profile: string): void {
     if (window.cep && profile !== "default") {
       delete existingProfiles[profile];
@@ -74,7 +65,6 @@
         target: document.body,
         props: { message: `Profile deleted successfully` },
       });
-      isProfileListModalOpen = false;
       refreshProfile();
     }
   }
@@ -93,7 +83,6 @@
         },
       });
     }
-    isProfileNameModalOpen = false;
   }
 
   function profileLoaded(profile: string | null): void {
@@ -106,8 +95,6 @@
         props: { message: `**${profile}** profile loaded successfully` },
       });
     }
-
-    isProfileListModalOpen = false;
   }
 
   function refreshProfile(): void {
@@ -154,8 +141,6 @@
         });
       }
     });
-
-    isProfileListModalOpen = false;
   }
 
   function exportProfilesToFile(): void {
@@ -182,78 +167,64 @@
         });
       }
     });
-
-    isProfileNameModalOpen = false;
   }
-
-  onMount(() => {
-    if (window.cep) {
-      tempActiveProfile = "default";
-    }
-  });
-
-  let activeFormat: string = $state("UI");
 </script>
 
-<div
-  class="dialog-backdrop"
-  style="display: {isProfileNameModalOpen ? 'block' : 'none'};"
->
-  <dialog
-    class="profile-dialog {isProfileNameModalOpen ? 'modal-open' : ''}"
-    bind:this={profileNameDialog}
-  >
-    <p>Save profile settings</p>
-    <form method="dialog">
-      <Input label="Profile Name" type="text" bind:value={newProfileName} />
-      <button
-        onclick={() => (newProfileName !== "" ? handleNewProfile() : null)}
-        >OK</button
-      >
-      <button onclick={() => (isProfileNameModalOpen = false)}>Cancel</button>
-    </form>
-    <button onclick={() => exportProfilesToFile()}>Export my profiles</button>
-  </dialog>
-</div>
+<dialog class="profile-dialog" bind:this={profileNameDialog}>
+  <p>Save profile settings</p>
+  <form method="dialog">
+    <Input label="Profile Name" type="text" bind:value={newProfileName} />
+    <button onclick={() => (newProfileName !== "" ? handleNewProfile() : null)}
+      >OK</button
+    >
+    <button onclick={() => profileNameDialog?.close()}>Cancel</button>
+  </form>
+  <button onclick={() => exportProfilesToFile()}>Export my profiles</button>
+</dialog>
 
-<div
-  class="dialog-backdrop"
-  style="display: {isProfileListModalOpen ? 'block' : 'none'};"
+<dialog
+  class="profile-dialog"
+  bind:this={profileListDialog}
+  closedby="closerequest"
 >
-  <dialog
-    class="profile-dialog {isProfileListModalOpen ? 'modal-open' : ''}"
-    bind:this={profileListDialog}
+  <p>Load profile settings</p>
+  <form
+    onsubmit={(e) => {
+      e.preventDefault();
+    }}
   >
-    <p>Load profile settings</p>
-    <form method="dialog">
-      <Input
-        label="Load Profile"
-        type="select"
-        options={Object.keys(existingProfiles)}
-        bind:value={tempActiveProfile}
-      />
-      <input
-        bind:this={fileLoader}
-        type="file"
-        id="avatar"
-        name="avatar"
-        accept="application/json"
-        style="display: none;"
-        onchange={function () {
-          saveProfilesFromFile(this);
-        }}
-      />
-      <button onclick={() => fileLoader?.click()}>Import from file</button>
-      <button onclick={() => profileLoaded(tempActiveProfile)}>OK</button>
-      <button onclick={() => profileLoaded(null)}>Cancel</button>
-      {#if tempActiveProfile !== "default"}
-        <button onclick={() => deleteProfile(tempActiveProfile)}
-          >Delete {tempActiveProfile} Profile</button
-        >
-      {/if}
-    </form>
-  </dialog>
-</div>
+    <Input
+      label="Load Profile"
+      type="select"
+      options={Object.keys(existingProfiles)}
+      bind:value={tempActiveProfile}
+    />
+    <input
+      bind:this={fileLoader}
+      type="file"
+      id="avatar"
+      name="avatar"
+      accept="application/json"
+      style="display: none;"
+      onchange={function () {
+        saveProfilesFromFile(this);
+      }}
+    />
+    <button onclick={() => fileLoader?.click()}>Import from file</button>
+    <button
+      onclick={() => {
+        profileLoaded(tempActiveProfile);
+        profileListDialog?.close();
+      }}>OK</button
+    >
+    <button onclick={() => profileListDialog?.close()}>Cancel</button>
+    {#if tempActiveProfile !== "default"}
+      <button onclick={() => deleteProfile(tempActiveProfile)}
+        >Delete {tempActiveProfile} Profile</button
+      >
+    {/if}
+  </form>
+</dialog>
 
 <div class="tab-content">
   <div id="settings-content">
@@ -273,18 +244,20 @@
 
   <div id="reset-settings">
     <button
-      onclick={loadProfile}
-      use:tooltip={{
-        ...tooltipSettings,
-        content: "Load user profile",
-      }}>Load Profile</button
-    >
-    <button
-      onclick={saveProfile}
+      onclick={() => {
+        profileNameDialog?.showModal();
+      }}
       use:tooltip={{
         ...tooltipSettings,
         content: "Save user profile",
       }}>Save Profile</button
+    >
+    <button
+      onclick={() => profileListDialog?.showModal()}
+      use:tooltip={{
+        ...tooltipSettings,
+        content: "Load user profile",
+      }}>Load Profile</button
     >
     <button
       class="negative"
@@ -306,26 +279,33 @@
 </div>
 
 <style lang="scss">
-  @use "../styles/variables.scss" as *;
+  @use "../../styles/variables.scss" as *;
 
   .profile-dialog {
-    all: unset;
+    // all: unset;
+
     min-width: 50vw;
     max-width: 100vw;
+
     position: absolute;
-    z-index: 10;
+
+    // z-index: 10;
+
     top: 50%;
     left: 50%;
     transform-origin: center;
     transform: translate(-50%, -50%) scale(0.9);
+
+    display: flex;
     background-color: var(--color-secondary);
+    outline: unset;
+    border: unset;
     padding: 1rem;
     border-radius: 8px;
-    display: flex;
     flex-direction: column;
     gap: 1rem;
-    opacity: 0;
-    pointer-events: none;
+    opacity: 1;
+    color: var(--color-text);
     transition: 0.2s cubic-bezier(0.45, 0, 0.29, 1.43);
 
     form {
@@ -349,6 +329,16 @@
     button:hover {
       background-color: var(--color-accent-primary);
     }
+  }
+
+  .profile-dialog:not([open]) {
+    display: none;
+    pointer-events: none;
+  }
+
+  .profile-dialog::backdrop {
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(8px);
   }
 
   .modal-open {

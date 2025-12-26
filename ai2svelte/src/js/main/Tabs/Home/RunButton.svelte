@@ -18,23 +18,19 @@
   function delay(ms: number) {
     return new Promise((resolve) => setTimeout(resolve, ms));
   }
-</script>
 
-<button
-  class="cta-button"
-  class:minimal
-  onclick={async (e) => {
-    const ele = e.currentTarget;
-    ele.textContent = "Running...";
-    ele.setAttribute("disabled", "true");
-    // set show_completion_dialog_box
-    // unless set by user
+  async function runAi2Svelte() {
+    // let disabled state kick in
+    await delay(500);
+
     if (window.cep) {
       let missingFontFamilies = [];
-      // let disabled state kick in
       $ai2svelteInProgress = true;
-      await delay(500);
+
+      // set show_completion_dialog_box
+      // unless set by user
       try {
+        // ai2svelte throws list of missing font families, if any
         missingFontFamilies = await evalTS("runNightly", {
           settings: {
             show_completion_dialog_box: true,
@@ -46,6 +42,7 @@
         console.log("Error running ai2svelte");
         console.log(error);
       }
+
       if (missingFontFamilies.length > 0) {
         missingFontFamilies.forEach((family: string) => {
           userData.fontsConfig[family] = "";
@@ -53,6 +50,7 @@
         // update user settings file with missing font families
         writeFile("user-settings.json", userData);
       }
+
       saveSettings(
         $settingsObject,
         {
@@ -60,16 +58,26 @@
         },
         version
       );
+
+      // fetch updated settings
+      // and update the UI
       refreshSettings();
-      ele.textContent = "Run AI2SVELTE";
-      ele.removeAttribute("disabled");
+
       $ai2svelteInProgress = false;
-    } else {
-      setTimeout(() => {
-        ele.textContent = "Run AI2SVELTE";
-        ele.removeAttribute("disabled");
-      }, 2000);
     }
+  }
+</script>
+
+<button
+  class="cta-button"
+  class:minimal
+  onclick={async (e) => {
+    const ele = e.currentTarget;
+    ele.textContent = "Running...";
+    ele.setAttribute("disabled", "true");
+    await runAi2Svelte();
+    ele.textContent = "Run AI2SVELTE";
+    ele.removeAttribute("disabled");
   }}
   use:tooltip={{
     ...tooltipSettings,
@@ -128,9 +136,6 @@
   }
 
   .minimal {
-    // padding: var(--space-2xs);
-    // margin: 0;
-    // letter-spacing: 0;
     cursor: pointer;
     font-weight: 700;
     font-size: var(--font-size-base);
