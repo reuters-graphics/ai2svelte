@@ -41,7 +41,7 @@
   // TABS
   import TabBar from "./Components/TabBar.svelte";
   import Settings from "./Tabs/Settings/Settings.svelte";
-  import Styles from "./Tabs/Styles.svelte";
+  import Styles from "./Tabs/Styles/Styles.svelte";
   import Home from "./Tabs/Home/Home.svelte";
   import Inspect from "./Tabs/Inspect.svelte";
   import Alert from "./Components/Alert.svelte";
