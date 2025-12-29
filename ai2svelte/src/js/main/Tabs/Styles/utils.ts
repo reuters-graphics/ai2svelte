@@ -1,6 +1,8 @@
 import { get } from "svelte/store";
 import { styles } from "../../stores";
 import type { Rule } from "postcss";
+import postcss from "postcss";
+import { stylesState } from "./stylesState.svelte";
 
 /**
  * Toggles a shadow mixin string in the styles object for a given CSS selector.
@@ -23,7 +25,8 @@ export function toggleShadowCard(
 
   let rule =
     rawStyles.root?.nodes.find(
-      (node) => node.type === "rule" && node.selector === cssSelector
+      (node) =>
+        node.type === "rule" && node.selector === stylesState.cssSelector
     ) || null;
 
   // true to add
@@ -38,7 +41,7 @@ export function toggleShadowCard(
     // if rule doesn't exist already,
     //  create it
     if (!rule) {
-      rule = postcss.rule({ selector: cssSelector });
+      rule = postcss.rule({ selector: stylesState.cssSelector });
       rawStyles.root.append(rule);
     }
 

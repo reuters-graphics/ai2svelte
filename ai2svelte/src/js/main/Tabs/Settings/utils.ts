@@ -1,5 +1,5 @@
 // converts string in textarea to js object
-export function convertStringToObject(s: string): { [key: string]: string } {
+export function convertStringToObject(s: string): { [key: string]: unknown } {
   const obj: { [key: string]: unknown } = {};
   s.trim()
     .split("\n")
