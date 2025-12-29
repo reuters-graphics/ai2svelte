@@ -1,5 +1,8 @@
 {
   "1.0.2": {
     "fixedToDynamicResponsiveness": false
+  },
+  "1.0.3": {
+    "fixedPecorino2ID": false
   }
 }

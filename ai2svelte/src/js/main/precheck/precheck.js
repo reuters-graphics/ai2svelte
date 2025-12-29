@@ -2,6 +2,7 @@ import { evalTS } from "../../lib/utils/bolt";
 import { version as pluginVersion } from "../../../shared/shared";
 import { readFile, writeFile } from "../utils/utils";
 import pluginFlags from "./flags.json?json";
+import defaultShadows from "../Tabs/data/shadows.json?raw";
 
 let userFlags = {};
 
@@ -49,38 +50,57 @@ async function checkVersion() {
 
   let comparison = compareVersions(pluginVersion, fileVersion);
 
-  let usersProfile = readFile("user-profiles.json");
-  let usersDefaultProfile =
-    usersProfile && Object.keys(usersProfile).length
-      ? usersProfile.default
-      : null;
+  if (Object.keys(userFlags).some((key) => userFlags[key] == false)) {
+    let usersProfile = readFile("user-profiles.json");
+    let usersDefaultProfile =
+      usersProfile && Object.keys(usersProfile).length
+        ? usersProfile.default
+        : null;
 
-  if (
-    pluginVersion === "1.0.2" &&
-    usersDefaultProfile &&
-    usersDefaultProfile.responsiveness &&
-    usersDefaultProfile.responsiveness === "fixed" &&
-    userFlags &&
-    userFlags["1.0.2"]?.fixedToDynamicResponsiveness == false
-  ) {
-    const response = confirm(
-      "To align with internal standards, we suggest updating your default profile’s responsiveness setting from fixed to dynamic. Do you want to proceed with this change?"
-    );
+    // fixes fixed to dynamic responsiveness issue
+    if (
+      pluginVersion === "1.0.2" &&
+      usersDefaultProfile &&
+      usersDefaultProfile.responsiveness &&
+      usersDefaultProfile.responsiveness === "fixed" &&
+      userFlags &&
+      userFlags["1.0.2"]?.fixedToDynamicResponsiveness == false
+    ) {
+      const response = confirm(
+        "To align with internal standards, we suggest updating your default profile’s responsiveness setting from fixed to dynamic. Do you want to proceed with this change?"
+      );
 
-    if (response) {
-      const newProfile = { ...usersDefaultProfile, responsiveness: "dynamic" };
-      const success = writeFile("user-profiles.json", { default: newProfile });
+      if (response) {
+        const newProfile = {
+          ...usersDefaultProfile,
+          responsiveness: "dynamic",
+        };
+        const success = writeFile("user-profiles.json", {
+          default: newProfile,
+        });
 
-      if (success) {
-        alert(
-          "Default profile updated successfully. Please run ai2svelte for this file with responsiveness: dynamic to apply the changes."
-        );
+        if (success) {
+          alert(
+            "Default profile updated successfully. Please run ai2svelte for this file with responsiveness: dynamic to apply the changes."
+          );
+        }
       }
+
+      console.log(userFlags["1.0.2"]?.fixedToDynamicResponsiveness);
+      userFlags["1.0.2"].fixedToDynamicResponsiveness = true;
+      writeFile(".flags.json", userFlags);
     }
 
-    console.log(userFlags["1.0.2"]?.fixedToDynamicResponsiveness);
-    userFlags["1.0.2"].fixedToDynamicResponsiveness = true;
-    writeFile(".flags.json", userFlags);
+    // fixes Pecorino II to Pecorino 2 shadow ID issue
+    if (
+      pluginVersion === "1.0.3" &&
+      userFlags &&
+      userFlags["1.0.3"]?.fixedPecorino2ID == false
+    ) {
+      let defShadows = JSON5.parse(defaultShadows);
+      writeFile("user-shadows.json", defShadows);
+      userFlags["1.0.3"].fixedPecorino2ID = true;
+    }
   }
 
   if (comparison < 0) {
