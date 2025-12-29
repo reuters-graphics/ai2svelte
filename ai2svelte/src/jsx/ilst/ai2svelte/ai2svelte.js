@@ -2997,7 +2997,7 @@ export function main(settingsArg) {
       // consider only testing if an option is set by the user.
       if (testLayerArtboardIntersection(lyr, activeArtboard)) {
         var pngHtml =
-          exportImage(imgName, fmt, activeArtboard, null, null, opts, group) +
+          exportImage(imgName, fmt, activeArtboard, null, lyr, opts, group) +
           "\r";
         layerHtml.push({
           z: lyrZ,
@@ -3141,7 +3141,14 @@ export function main(settingsArg) {
     var inlineSvg = isTrue(settings.inline_svg) || check;
     var svgInlineStyle, svgLayersArg;
     var svgOutput, html;
+    var layerBlendMode = "normal";
+    var aiLayerBlendMode = "NORMAL";
     // var divId = nameSpace + "svg-" + imgName;
+
+    if (layer) {
+      aiLayerBlendMode = layer.blendingMode;
+      layerBlendMode = getBlendModeCss(layer.blendingMode);
+    }
 
     // separate id convention for tagged png layers
     if (settings.tagPrefix == "png") {
@@ -3163,9 +3170,16 @@ export function main(settingsArg) {
 
       if (layer) {
         svgInlineStyle = getLayerOpacityCSS(layer);
+        if (layerBlendMode !== "normal") {
+          svgInlineStyle += "mix-blend-mode: " + layerBlendMode + ";";
+        }
+        layer.blendingMode = BlendModes.NORMAL; // temporarily set to normal to avoid AI bug with SVG export
         svgLayersArg = [layer];
       }
       svgOutput = exportSVG(outputPath, ab, masks, svgLayersArg, settings);
+      if (layer) {
+        layer.blendingMode = aiLayerBlendMode; // restore original blend mode
+      }
       if (!svgOutput) {
         return ""; // no image was created
       }
@@ -3219,12 +3233,34 @@ export function main(settingsArg) {
       }
     } else {
       // export raster image & generate link
-      exportRasterImage(outputPath, ab, format, settings);
+
+      var pngInlineStyle = "";
+
+      if (layer && settings.tagPrefix == "png") {
+        var lyrOpacity = layer.opacity;
+
+        // export layer at opacity 100%
+        layer.opacity = 100;
+        exportRasterImage(outputPath, ab, format, settings);
+
+        // add style for opacity
+        pngInlineStyle += "opacity:" + roundTo(lyrOpacity / 100, 2) + ";";
+
+        // restore original opacity
+        layer.opacity = lyrOpacity;
+
+        if (layerBlendMode !== "normal") {
+          pngInlineStyle += "mix-blend-mode: " + layerBlendMode + ";";
+        }
+      } else {
+        exportRasterImage(outputPath, ab, format, settings);
+      }
+
       html = generateImageHtml(
         imgFile,
         imgId,
         imgClass,
-        null,
+        pngInlineStyle,
         ab,
         settings,
         group
@@ -3389,7 +3425,7 @@ export function main(settingsArg) {
     if (
       settings.tagPrefix == "png" ||
       settings.tagPrefix == "png24" ||
-      settings.tagPrefix == "jpg"
+      settings.tagPrefix == "svg"
     ) {
       // get project name
       var pageName = settings.project_name || group.groupName;
@@ -3659,14 +3695,26 @@ export function main(settingsArg) {
     // (This trick does not work for many other effects, like drop shadows and
     //  styles added via the Appearance panel).
     function handleEffects(item) {
+      if (item.typename === "GroupItem") {
+        var subItems = item.pageItems;
+
+        if (subItems.length) {
+          forEach(subItems, function (subItem) {
+            handleEffects(subItem);
+          });
+        }
+      }
+
       var name = "";
       if (item.opacity && item.opacity < 100) {
         name += "-opacity" + item.opacity;
         item.opacity = 100;
       }
-      if (item.blendingMode == BlendModes.MULTIPLY) {
+      if (item.blendingMode !== BlendModes.NORMAL) {
+        name +=
+          "-" +
+          item.blendingMode.toString().replace("BlendModes.", "").toLowerCase();
         item.blendingMode = BlendModes.NORMAL;
-        name += "-multiply";
       }
       if (name) {
         if (item.name) {
@@ -3702,8 +3750,6 @@ export function main(settingsArg) {
 
   // Returns true if a file was created or else false (because svg document was empty);
   function exportSVG(ofile, ab, masks, items, settings) {
-    var width = 0;
-    var height = 0;
     var left = 0;
     var top = 0;
     //   Illustrator's SVG output contains all objects in a document (it doesn't
@@ -3770,13 +3816,13 @@ export function main(settingsArg) {
     return response;
   }
 
-  function rewriteSampleSVG(path) {
-    var svg = readFile(path);
-    if (!svg) return;
+  //   function rewriteSampleSVG(path) {
+  //     var svg = readFile(path);
+  //     if (!svg) return;
 
-    var newSVG = cropSVG(svg);
-    saveTextFile(path, newSVG);
-  }
+  //     var newSVG = cropSVG(svg);
+  //     saveTextFile(path, newSVG);
+  //   }
 
   function rewriteSVGFile(path, id, settings) {
     var svg = readFile(path);
@@ -3812,14 +3858,36 @@ export function main(settingsArg) {
   function reapplyEffectsInSVG(svg) {
     var rxp = /id="Z-(-[^"]+)"/g;
     var opacityRxp = /-opacity([0-9]+)/;
-    var multiplyRxp = /-multiply/;
+    // var blendRxp = /-multiply/;
+    var blendRxp =
+      /-(multiply|screen|color|overlay|darken|lighten|colordodge|colorburn|hardlight|softlight|difference|exclusion|hue|saturation|luminosity)\b/g;
+
     function replace(a, b) {
       var style = "",
         retn;
-      if (multiplyRxp.test(b)) {
-        style += "mix-blend-mode:multiply;";
-        b = b.replace(multiplyRxp, "");
+
+      var match;
+      var tries = 0;
+      var safeLimit = 1000; // prevent infinite loop
+      while ((match = blendRxp.exec(b)) !== null && tries < safeLimit) {
+        var mode = match[1].toLowerCase();
+        if (mode == "softlight") {
+          mode = "soft-light";
+        } else if (mode == "hardlight") {
+          mode = "hard-light";
+        } else if (mode == "colordodge") {
+          mode = "color-dodge";
+        } else if (mode == "colorburn") {
+          mode = "color-burn";
+        } else {
+          mode = mode;
+        }
+
+        style += "mix-blend-mode:" + mode + ";";
+        b = b.replace(match[0], ""); // remove from string to avoid matching again
+        tries++;
       }
+
       if (opacityRxp.test(b)) {
         style += "opacity:" + parseOpacity(b) + ";";
         b = b.replace(opacityRxp, "");
