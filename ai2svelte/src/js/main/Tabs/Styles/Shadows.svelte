@@ -6,9 +6,7 @@
 
   // OTHER LIB IMPORTS
   import postcss from "postcss";
-  import { Rule, type Result, type Root } from "postcss";
-  import * as prettier from "prettier/standalone";
-  import parserPostCSS from "prettier/plugins/postcss";
+  import { Rule } from "postcss";
 
   // UTILS
   import type { ShadowCardItem } from "../types";
@@ -30,11 +28,11 @@
   function toggleShadowCard(shadowName: string, operation: boolean) {
     const shadowParam = `shadow-${shadowName}(${stylesState.shadowColor})`;
 
-    let rule =
-      $styles.root?.nodes.find(
+    let rule: Rule | null =
+      ($styles.root?.nodes.find(
         (node) =>
           node.type === "rule" && node.selector === stylesState.cssSelector
-      ) || null;
+      ) as Rule) || null;
 
     // true to add
     // false to remove
@@ -53,19 +51,15 @@
       }
 
       // Add or update a declaration
-      (rule as Rule).append(shadowInclude);
+      rule.append(shadowInclude);
     } else {
-      if (rule && "walkDecls" in rule && typeof rule.walkDecls === "function") {
-        rule.walkAtRules("include", (atRule) => {
-          if (atRule.params === shadowParam) {
-            atRule.remove();
-          }
-        });
-
-        if (rule.type == "rule") {
-          removeIfEmpty(rule);
+      rule.walkAtRules("include", (atRule) => {
+        if (atRule.params === shadowParam) {
+          atRule.remove();
         }
-      }
+      });
+
+      removeIfEmpty(rule);
     }
     $styles = $styles;
   }
@@ -92,24 +86,18 @@
 
       x.active = false;
 
-      let rule =
-        $styles?.root?.nodes.find(
+      let rule: Rule | null =
+        ($styles?.root?.nodes.find(
           (node) =>
             node.type === "rule" && node.selector === stylesState.cssSelector
-        ) || null;
+        ) as Rule) || null;
 
       if (rule) {
-        if (
-          rule &&
-          "walkDecls" in rule &&
-          typeof rule.walkDecls === "function"
-        ) {
-          rule.walkAtRules("include", (atRule) => {
-            if (atRule.params === shadowParam) {
-              x.active = true;
-            }
-          });
-        }
+        rule.walkAtRules("include", (atRule) => {
+          if (atRule.params === shadowParam) {
+            x.active = true;
+          }
+        });
       }
     });
   }

@@ -10,7 +10,7 @@
 
   // OTHER LIB IMPORTS
   import postcss from "postcss";
-  import { Rule, type Result, type Root } from "postcss";
+  import { type Result, type Root } from "postcss";
   import * as prettier from "prettier/standalone";
   import parserPostCSS from "prettier/plugins/postcss";
   // @ts-ignore

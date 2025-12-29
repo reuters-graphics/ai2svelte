@@ -7,9 +7,7 @@
 
   // OTHER LIB IMPORTS
   import postcss from "postcss";
-  import { Rule, type Result, type Root } from "postcss";
-  import * as prettier from "prettier/standalone";
-  import parserPostCSS from "prettier/plugins/postcss";
+  import { Rule } from "postcss";
 
   // UTILS
   import type { AnimationItem } from "../types";
@@ -40,29 +38,19 @@
     const mixinCheck = animationUsage?.match(animationMixinRegex);
     const animationIdentifier = mixinCheck ? mixinCheck[1] : undefined;
 
-    let rule =
-      $styles.root?.nodes.find(
+    let rule: Rule | null =
+      ($styles.root?.nodes.find(
         (node) =>
           node.type === "rule" && node.selector === stylesState.cssSelector
-      ) || null;
+      ) as Rule) || null;
 
     const animationParam = `animation-${animationName}()`;
 
     if (operation) {
-      if (!rule) {
-        rule = postcss.rule({ selector: stylesState.cssSelector });
-        $styles.root.append(rule);
-      }
-
       // Create a comment node
       const comment = postcss.comment({
         text: `${animationIdentifier} ${animationDefinition}`,
       });
-
-      // add animation definition as comment
-      if ("type" in rule && rule.type === "rule") {
-        (rule as Rule).append(comment);
-      }
 
       // Create an @include AtRule
       const animationInclude = postcss.atRule({
@@ -70,63 +58,63 @@
         params: animationParam,
       });
 
-      // Add or update a declaration
-      if ("type" in rule && rule.type === "rule") {
-        (rule as Rule).append(animationInclude);
+      // If rule doesn't exist, create it
+      if (!rule) {
+        rule = postcss.rule({ selector: stylesState.cssSelector });
+        $styles.root.append(rule);
       }
+
+      // add animation definition as comment
+      rule.append(comment);
+
+      // Add or update a declaration
+      rule.append(animationInclude);
 
       let animationDeclExists = false;
       let existingValue = "";
-      if ("walkDecls" in rule && typeof rule.walkDecls === "function") {
-        rule.walkDecls((decl) => {
-          if (decl.prop === "animation") {
-            animationDeclExists = true;
-            existingValue = decl.value;
-            decl.value = existingValue + ", " + animationRule;
-          }
-        });
-      }
+
+      rule.walkDecls((decl) => {
+        if (decl.prop === "animation") {
+          animationDeclExists = true;
+          existingValue = decl.value;
+          decl.value = existingValue + ", " + animationRule;
+        }
+      });
 
       if (!animationDeclExists) {
         // Add animation declaration
-        if ("type" in rule && rule.type === "rule") {
-          (rule as Rule).append({ prop: "animation", value: animationRule });
-        }
+        rule.append({ prop: "animation", value: animationRule });
       }
     } else {
-      if (rule && "walkDecls" in rule && typeof rule.walkDecls === "function") {
-        rule.walkDecls((decl) => {
-          if (decl.prop === "animation") {
-            const animRegex = new RegExp(`\\s*${animationName}([^,)]*)`);
-            let newAnimString = decl.value
-              .replace(animRegex, "")
-              .split(",")
-              .filter((x) => x !== "")
-              .join(",");
-            if (newAnimString == "") {
-              decl.remove();
-            } else {
-              decl.value = newAnimString;
-            }
+      rule.walkDecls((decl) => {
+        if (decl.prop === "animation") {
+          const animRegex = new RegExp(`\\s*${animationName}([^,)]*)`);
+          let newAnimString = decl.value
+            .replace(animRegex, "")
+            .split(",")
+            .filter((x) => x !== "")
+            .join(",");
+          if (newAnimString == "") {
+            decl.remove();
+          } else {
+            decl.value = newAnimString;
           }
-        });
-
-        rule.walkAtRules("include", (atRule) => {
-          if (atRule.params === animationParam) {
-            atRule.remove();
-          }
-        });
-
-        rule.walkComments((comment) => {
-          if (comment.text == `${animationIdentifier} ${animationDefinition}`) {
-            comment.remove();
-          }
-        });
-
-        if (rule.type == "rule") {
-          removeIfEmpty(rule);
         }
-      }
+      });
+
+      rule.walkAtRules("include", (atRule) => {
+        if (atRule.params === animationParam) {
+          atRule.remove();
+        }
+      });
+
+      rule.walkComments((comment) => {
+        if (comment.text == `${animationIdentifier} ${animationDefinition}`) {
+          comment.remove();
+        }
+      });
+
+      removeIfEmpty(rule);
     }
 
     $styles = $styles;
@@ -134,31 +122,22 @@
 
   function clearAnimationSelection() {
     allAnimations.forEach((x) => {
-      const animationMixinRegex = new RegExp(/.*@include (.*)\(\)/);
-      const mixinCheck = x.usage?.match(animationMixinRegex);
-
       x.active = false;
 
-      let rule =
-        $styles.root?.nodes.find(
+      let rule: Rule | null =
+        ($styles.root?.nodes.find(
           (node) =>
             node.type === "rule" && node.selector === stylesState.cssSelector
-        ) || null;
+        ) as Rule) || null;
 
       let animationParam = `animation-${x.name}()`;
 
       if (rule) {
-        if (
-          rule &&
-          "walkDecls" in rule &&
-          typeof rule.walkDecls === "function"
-        ) {
-          rule.walkAtRules("include", (atRule) => {
-            if (atRule.params === animationParam) {
-              x.active = true;
-            }
-          });
-        }
+        rule.walkAtRules("include", (atRule) => {
+          if (atRule.params === animationParam) {
+            x.active = true;
+          }
+        });
       }
     });
   }
