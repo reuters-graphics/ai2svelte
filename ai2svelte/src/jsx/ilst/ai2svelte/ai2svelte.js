@@ -129,6 +129,10 @@ export function main(settingsArg) {
   let fontsConfig;
   let missingFontFamilies = [];
   let priorityFetches = [];
+  let taggedTextLayers = {
+    ptext: {},
+    htext: {},
+  };
 
   initJSON();
 
@@ -345,6 +349,14 @@ export function main(settingsArg) {
       } else {
         progressBar.setTitle(docArtboardName + ": Generating text...");
         textFrames = getTextFramesByArtboard(activeArtboard, masks, settings);
+
+        // convert point text to area text
+        // for tagged text layers only
+        convertPointToArea(textFrames);
+
+        // refetch textframes after converting point text to area text
+        textFrames = getTextFramesByArtboard(activeArtboard, masks, settings);
+
         textData = convertTextFrames(textFrames, activeArtboard, settings);
       }
 
@@ -1742,6 +1754,143 @@ export function main(settingsArg) {
     return html;
   }
 
+  function generateTaggedTextFrameHtml(
+    paragraphs,
+    text,
+    baseStyle,
+    pStyles,
+    tagType,
+    propName
+  ) {
+    var html = "",
+      diff;
+    html += "\r\t\t\t";
+
+    if (text.length === 0) {
+      // empty pg
+      // TODO: Calculate the height of empty paragraphs and generate
+      // CSS to preserve this height (not supported by Illustrator API)
+      return "<p>&nbsp;</p>";
+    }
+
+    if (paragraphs[0].cssStyle) {
+      diff = objectDiff(paragraphs[0].cssStyle, baseStyle);
+    }
+    // Give the pg a class, if it has a different style than the base pg class
+    if (diff) {
+      html =
+        '<p class="' +
+        getTextStyleClass(diff, pStyles, "pstyle") +
+        " " +
+        nameSpace +
+        "taggedText " +
+        nameSpace +
+        tagType +
+        '"' +
+        'data-tagged-type="' +
+        tagType.toUpperCase() +
+        '" data-tagged-prop="' +
+        propName +
+        '">';
+    } else {
+      html =
+        '<p class="' +
+        nameSpace +
+        "taggedText " +
+        nameSpace +
+        tagType +
+        '"' +
+        'data-tagged-type="' +
+        tagType.toUpperCase() +
+        '" data-tagged-prop="' +
+        propName +
+        '">';
+    }
+
+    html += cleanHtmlText(cleanHtmlTags(text));
+
+    html += "</p>";
+
+    return html;
+  }
+
+  function checkTextframeForTags(textframe) {
+    let isTagged = false;
+    let objName = null;
+    let propName = null;
+    let isPText = false;
+    let isHText = false;
+
+    let ptextRegex = /(.*):ptext/;
+    let htextRegex = /(.*):htext/;
+    if (
+      ptextRegex.test(textframe.layer.name) ||
+      htextRegex.test(textframe.layer.name)
+    ) {
+      isTagged = true;
+      isPText = ptextRegex.test(textframe.layer.name);
+      isHText = htextRegex.test(textframe.layer.name);
+      let regex = isPText ? ptextRegex : htextRegex;
+
+      var layerName = textframe.layer.name.match(regex)[1];
+
+      if (!(layerName in taggedTextLayers[isPText ? "ptext" : "htext"])) {
+        taggedTextLayers[isPText ? "ptext" : "htext"][layerName] = {};
+      }
+
+      taggedTextLayers[isPText ? "ptext" : "htext"][layerName][textframe.name] =
+        "";
+
+      if (isPText) {
+        objName =
+          "{" +
+          "taggedText?.ptext?." +
+          layerName +
+          "?." +
+          textframe.name +
+          " || ''}";
+      } else if (isHText) {
+        objName =
+          "{@html " +
+          "taggedText?.htext?." +
+          layerName +
+          "?." +
+          textframe.name +
+          " || ''}";
+      }
+
+      propName = layerName + "." + textframe.name;
+    }
+
+    return {
+      isTagged: isTagged,
+      objName: objName,
+      propName: propName,
+      tagType: isPText ? "ptext" : "htext",
+    };
+  }
+
+  // convert all POINTTEXT textframes to AREATEXT textframes
+  // helps in managing text for tagged text layers
+  function convertPointToArea(textframes) {
+    forEach(textframes, function (tf) {
+      if (tf.kind == TextType.POINTTEXT) {
+        var tfWidth = tf.width;
+        var group = tf.parent.groupItems.add();
+        group.move(tf, ElementPlacement.PLACEBEFORE);
+        tf.move(group, ElementPlacement.PLACEATEND);
+        tf.convertAreaObjectToPointObject();
+        tf = group.pageItems[0];
+        tf.convertPointObjectToAreaObject();
+        tf = group.pageItems[0];
+        tf.move(group, ElementPlacement.PLACEBEFORE);
+        tf.contents = tf.contents.replace("\r", " ").replace(/\s+/g, " ");
+        tf.width = tfWidth;
+        group.remove();
+      }
+    });
+  }
+
   // Convert a collection of TextFrames to HTML and CSS
   function convertTextFrames(textFrames, ab, settings) {
     var frameData = map(textFrames, function (frame) {
@@ -1758,13 +1907,53 @@ export function main(settingsArg) {
       var frame = textFrames[i];
       var divId = frame.name ? makeKeyword(frame.name) : idPrefix + (i + 1);
       var positionCss = getTextFrameCss(frame, abBox, obj.paragraphs, settings);
+
+      var { isTagged, objName, tagType, propName } =
+        checkTextframeForTags(frame);
+      //   var isTagged = false;
+
+      var html = "";
+
+      if (isTagged && objName) {
+        html += "\r\t\t\t";
+        html += "\r";
+        html += "{#if overrideText == true}";
+        html += "\r";
+        html += generateTaggedTextFrameHtml(
+          obj.paragraphs,
+          objName,
+          baseStyle,
+          pgStyles,
+          tagType,
+          propName
+        );
+        html += "\r";
+        html += "{:else}";
+        html += "\r";
+        html += generateTextFrameHtml(
+          obj.paragraphs,
+          baseStyle,
+          pgStyles,
+          charStyles
+        );
+        html += "\r";
+        html += "{/if}";
+      } else {
+        html = generateTextFrameHtml(
+          obj.paragraphs,
+          baseStyle,
+          pgStyles,
+          charStyles
+        );
+      }
+
       return (
         '\t\t<div id="' +
         divId +
         '" ' +
         positionCss +
         ">" +
-        generateTextFrameHtml(obj.paragraphs, baseStyle, pgStyles, charStyles) +
+        html +
         "\r\t\t</div>\r"
       );
     });
@@ -4206,6 +4395,18 @@ export function main(settingsArg) {
     return effectCode;
   }
 
+  // ES3 way to get Object.keys().length
+  function getObjectKeyCount(obj) {
+    var count = 0;
+
+    for (var key in obj) {
+      if (obj.hasOwnProperty(key)) {
+        count++;
+      }
+    }
+    return count;
+  }
+
   // generates <script> code
   function generateSvelteScript(group, settings) {
     var script = "<script>\r\t";
@@ -4215,6 +4416,15 @@ export function main(settingsArg) {
 
     if (docSettings.snippetProps) {
       script += ", " + docSettings.snippetProps.join(", ");
+    }
+
+    if (
+      getObjectKeyCount(taggedTextLayers.ptext) > 0 ||
+      getObjectKeyCount(taggedTextLayers.htext) > 0
+    ) {
+      script += "overrideText = false";
+      script += ", taggedText = {ptext: {}, htext: {}}";
+      script += ", debugTaggedText = false";
     }
 
     script += " } = $props();\r";
@@ -4245,6 +4455,51 @@ export function main(settingsArg) {
     return script;
   }
 
+  // CSS for tagged text debugging
+  function setTaggedTextCSS() {
+    let css = "";
+
+    css = [
+      "." + nameSpace + "taggedText:empty::before {",
+      "content: attr(data-tagged-type);",
+      "padding: 0px 4px;",
+      "font-size: 0.6rem;",
+      "color: #fff;",
+      "background-color: black;",
+      "display: block;",
+      "font-weight: 800;",
+      "visibility: var(--debug-tagged-text, hidden);",
+      "}\n",
+      "." + nameSpace + "taggedText:empty::after {",
+      "content: attr(data-tagged-prop);",
+      "padding: 0px 4px;",
+      "font-size: 0.8rem;",
+      "color: #fff;",
+      "font-weight: 500;",
+      "visibility: var(--debug-tagged-text, hidden);",
+      "}\n",
+      "." + nameSpace + "taggedText:empty {",
+      "background-color: #00000088;",
+      "outline: 2px solid black;",
+      "visibility: var(--debug-tagged-text, hidden);",
+      "}\n",
+    ].join("\n");
+
+    return css;
+  }
+
+  function setTaggedTextComments() {
+    let comment = "\r<!--\r\r";
+    comment += "TAGGED TEXT PROPS\r\r";
+
+    comment += "taggedText={{\r";
+    comment += JSON.stringify(taggedTextLayers, null, 2) + "\r";
+    comment += "}}\r\r";
+    comment += "-->\r";
+
+    return comment;
+  }
+
   // Wrap content HTML in a <div>, add styles and resizer script, write to a file
   function generateOutputHtml(content, group, settings) {
     var pageName = settings.project_name || group.groupName;
@@ -4255,6 +4510,9 @@ export function main(settingsArg) {
     var textForFile, html, js, css, commentBlock;
     var htmlFileDestinationFolder, htmlFileDestination;
     var containerClasses = "ai2svelte";
+    var debugTaggedTextVariable;
+    var taggedTextCSS;
+    var comments = "";
 
     // accessibility features
     var ariaAttrs = "";
@@ -4288,6 +4546,22 @@ export function main(settingsArg) {
       html += "</svelte:head>\r";
     }
 
+    if (
+      getObjectKeyCount(taggedTextLayers.ptext) > 0 ||
+      getObjectKeyCount(taggedTextLayers.htext) > 0
+    ) {
+      debugTaggedTextVariable =
+        "style:--debug-tagged-text={debugTaggedText ? 'visible' : 'hidden'}";
+
+      taggedTextCSS = setTaggedTextCSS();
+
+      comments += setTaggedTextComments();
+
+      message(
+        "Your document contains tagged text layers. Check comments in the file to grab a quick prop."
+      );
+    }
+
     // HTML
     html +=
       '<div id="' +
@@ -4299,6 +4573,7 @@ export function main(settingsArg) {
       (settings.include_resizer_css
         ? "bind:this={aiBox} bind:clientWidth={aiBoxWidth}"
         : "bind:clientWidth={width}") +
+      (debugTaggedTextVariable ? " " + debugTaggedTextVariable : "") +
       ">\r";
 
     if (settings.alt_text) {
@@ -4335,6 +4610,7 @@ export function main(settingsArg) {
     css +=
       generatePageCss(containerId, group, settings) +
       content.css +
+      taggedTextCSS +
       "\r</style>\r";
 
     // JS
@@ -4348,6 +4624,8 @@ export function main(settingsArg) {
       html +
       "\r" +
       js +
+      "\r" +
+      comments +
       "<!-- End ai2svelte" +
       " - " +
       getDateTimeStamp() +
