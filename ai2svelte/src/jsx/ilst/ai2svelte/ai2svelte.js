@@ -326,6 +326,8 @@ export function main(settingsArg) {
     }
   }
 
+  // ----------------------------------------------------------------------
+
   // render a group of artboards and save to a file
   function renderArtboardGroup(group, masks, settings, textBlockContent) {
     var output = { html: "", js: "", css: "" };
@@ -334,7 +336,7 @@ export function main(settingsArg) {
       var abIndex = findArtboardIndex(activeArtboard);
       var abSettings = getArtboardSettings(activeArtboard);
       var docArtboardName = getDocumentArtboardName(activeArtboard);
-      var textFrames, textData, imageData;
+      var textFrames, textData, imageData, htmlData;
 
       doc.artboards.setActiveArtboardIndex(abIndex);
 
@@ -378,8 +380,10 @@ export function main(settingsArg) {
           group
         );
       } else {
-        imageData = { html: "" };
+        imageData = [{ z: -1, html: "" }];
       }
+
+      htmlData = organiseTextAndImageHTML(imageData, textData.html);
 
       progressBar.step();
 
@@ -392,8 +396,7 @@ export function main(settingsArg) {
         getArtboardName(activeArtboard) +
         " -->\r" +
         generateArtboardDiv(activeArtboard, group, settings) +
-        imageData.html +
-        textData.html +
+        htmlData +
         "\t</div>\r";
 
       if (!settings.include_resizer_css) {
@@ -1947,15 +1950,17 @@ export function main(settingsArg) {
         );
       }
 
-      return (
-        '\t\t<div id="' +
-        divId +
-        '" ' +
-        positionCss +
-        ">" +
-        html +
-        "\r\t\t</div>\r"
-      );
+      return {
+        html:
+          '\t\t<div id="' +
+          divId +
+          '" ' +
+          positionCss +
+          ">" +
+          html +
+          "\r\t\t</div>\r",
+        z: frame.layer.zOrderPosition,
+      };
     });
 
     var allStyles = pgStyles.concat(charStyles);
@@ -1968,7 +1973,7 @@ export function main(settingsArg) {
 
     return {
       styles: cssBlocks,
-      html: divs.join(""),
+      html: divs,
     };
   }
 
@@ -3082,6 +3087,22 @@ export function main(settingsArg) {
     return contains(doc.placedItems, test) || contains(doc.rasterItems, test);
   }
 
+  // return image and text html based on
+  // layer stacking order in the original AI file
+  function organiseTextAndImageHTML(imageData, textData) {
+    var layerHtml = imageData.concat(textData);
+
+    var sortedLayerHtml = layerHtml.sort(function (a, b) {
+      return a.z - b.z;
+    });
+
+    var accumulatedHTML = map(sortedLayerHtml, function (layer) {
+      return layer.html;
+    });
+
+    return accumulatedHTML.join("");
+  }
+
   // Generate images and return HTML embed code
   function convertArtItems(activeArtboard, textFrames, masks, settings, group) {
     var imgName = getArtboardImageName(activeArtboard, settings);
@@ -3219,18 +3240,31 @@ export function main(settingsArg) {
       hiddenLayers.push(lyr);
     });
 
-    var sortedLayerHtml = layerHtml.sort(function (a, b) {
-      return a.z - b.z;
-    });
+    // var sortedLayerHtml = layerHtml.sort(function (a, b) {
+    //   return a.z - b.z;
+    // });
 
-    var accumulatedHTML = map(sortedLayerHtml, function (layer) {
-      return layer.html;
+    // var accumulatedHTML = map(sortedLayerHtml, function (layer) {
+    //   return layer.html;
+    // });
+
+    // base artboard image at z = -1
+    layerHtml.push({
+      z: -1,
+      html: captureArtboardImage(
+        imgName,
+        activeArtboard,
+        masks,
+        settings,
+        group
+      ),
     });
 
     // placing ab image before other elements
-    html =
-      captureArtboardImage(imgName, activeArtboard, masks, settings, group) +
-      accumulatedHTML.join("");
+    // html =
+    //   captureArtboardImage(imgName, activeArtboard, masks, settings, group) +
+    //   accumulatedHTML.join("");
+
     // unhide hidden layers (if any)
     forEach(hiddenLayers, function (lyr) {
       lyr.visible = true;
@@ -3248,7 +3282,7 @@ export function main(settingsArg) {
       item.hidden = false;
     });
 
-    return { html: html };
+    return layerHtml;
   }
 
   // collects all the :tag layers
