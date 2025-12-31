@@ -399,7 +399,7 @@ export function main(settingsArg) {
         htmlData +
         "\t</div>\r";
 
-      if (!settings.include_resizer_css) {
+      if (isFalse(settings.include_resizer_css)) {
         output.html += "{/if}";
       }
 
@@ -4198,16 +4198,16 @@ export function main(settingsArg) {
 
     inlineStyle += "aspect-ratio: " + abBox.width / abBox.height + ";";
 
-    if (!settings.include_resizer_css) {
+    if (isFalse(settings.include_resizer_css)) {
       if (visibleRange[1] < Infinity) {
         html +=
-          "{#if width && ( width >= " +
+          "{#if aiBoxWidth && ( aiBoxWidth >= " +
           visibleRange[0] +
-          " && width <" +
+          " && aiBoxWidth <" +
           (Number(visibleRange[1]) + 1) +
           ")}";
       } else {
-        html += "{#if width && (width >= " + visibleRange[0] + ")}";
+        html += "{#if aiBoxWidth && (aiBoxWidth >= " + visibleRange[0] + ")}";
       }
 
       html += "\n\r";
@@ -4233,38 +4233,26 @@ export function main(settingsArg) {
   }
 
   function generateArtboardCss(ab, group, cssRules, settings) {
-    var abId = "#" + nameSpace + getArtboardUniqueName(ab, settings),
-      css = formatCssRule(abId, {
+    var abId = "#" + nameSpace + getArtboardUniqueName(ab, settings);
+    var css = "";
+
+    if (isTrue(settings.include_resizer_css)) {
+      css += formatCssRule(abId, {
         position: "relative",
         overflow: "hidden",
         display: "none",
       });
+    } else if (isFalse(settings.include_resizer_css)) {
+      css += formatCssRule(abId, {
+        position: "relative",
+        overflow: "hidden",
+      });
+    }
 
     // classes for paragraph and character styles
     forEach(cssRules, function (cssBlock) {
       css += abId + " " + cssBlock;
     });
-    return css;
-  }
-
-  // css for snippets to occupy only the space inside the box
-  // adds object-fit cover for html image and video snippets
-  function snippetCss() {
-    var css = "";
-    css += ".g-aiSnippet {\r";
-    css += ":global {";
-    css += "* { \r";
-    css += "width: 100%; \r";
-    css += "height: 100%; \r";
-    css += "padding: 0; \r";
-    css += "margin: 0; \r";
-    css += "}\r";
-    css += "img, video {\r";
-    css += "object-fit: cover;\r";
-    css += "}\r";
-    css += "}\r";
-    css += "}\r";
-
     return css;
   }
 
@@ -4340,10 +4328,6 @@ export function main(settingsArg) {
     css += formatCssRule(blockStart + " ." + nameSpace + "aiPointText p", {
       "white-space": "nowrap",
     });
-
-    // if (docSettings.snippetProps) {
-    //   css += snippetCss();
-    // }
 
     if (isTrue(settings.include_resizer_css)) {
       // add container queries for each artboard
@@ -4463,7 +4447,7 @@ export function main(settingsArg) {
 
     script += " } = $props();\r";
 
-    if (!settingsArg.settings.include_resizer_css) {
+    if (isFalse(settingsArg.settings.include_resizer_css)) {
       for (let i = 0; i < previewImageImports.length; i++) {
         script += previewImageImports[i] + "\n\r";
       }
@@ -4604,9 +4588,7 @@ export function main(settingsArg) {
       containerClasses +
       '"' +
       ariaAttrs +
-      (settings.include_resizer_css
-        ? "bind:this={aiBox} bind:clientWidth={aiBoxWidth}"
-        : "bind:clientWidth={width}") +
+      "bind:this={aiBox} bind:clientWidth={aiBoxWidth}" +
       (debugTaggedTextVariable ? " " + debugTaggedTextVariable : "") +
       ">\r";
 
