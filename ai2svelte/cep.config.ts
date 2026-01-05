@@ -18,7 +18,13 @@ const config: CEP_Config = {
   iconNormal: "./src/assets/dark-icon.png",
   iconDarkNormalRollOver: "./src/assets/light-icon.png",
   iconNormalRollOver: "./src/assets/dark-icon.png",
-  parameters: ["--v=0", "--enable-nodejs", "--mixed-context"],
+  parameters: [
+    "--v=0",
+    "--enable-nodejs",
+    "--mixed-context",
+    "--allow-file-access",
+    "--allow-file-access-from-files",
+  ],
   width: 300,
   height: 550,
 
@@ -53,8 +59,23 @@ const config: CEP_Config = {
     sourceMap: false,
     jsxBin: "off",
   },
-  installModules: [],
-  copyAssets: ["public", "js/assets/images/backdrops"],
+  installModules: [
+    "svelte",
+    "rollup",
+    "rollup-plugin-svelte",
+    "@rollup",
+    "@rollup/rollup-darwin-arm64",
+    "@rollup/plugin-commonjs",
+    "@rollup/plugin-node-resolve",
+    "autoprefixer",
+    "svelte-preprocess",
+  ],
+  copyAssets: [
+    "public",
+    "js/assets/images/backdrops",
+    "writable",
+    "server.cjs",
+  ],
   copyZipAssets: [],
 };
 export default config;
