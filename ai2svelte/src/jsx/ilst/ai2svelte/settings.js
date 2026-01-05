@@ -30,6 +30,7 @@ export let defaultSettings = {
   clickable_link: "", // Add a URL to make the entire graphic a clickable link
   isPreview: false, // internal flag for preview
   priority_fetch: false, // for prioritized fetching of images above the fold
+  respect_height: false, // whether to respect the height of the artboard in responsive mode
 };
 
 export let placeholderSettings = {

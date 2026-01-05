@@ -95,6 +95,18 @@ export function getSelectedItems() {
         } else if (objectName) {
           identifier = `#${namespace}svg-${imageName} #${objectName}`;
         }
+      } else if (
+        (tag == "ptext" || tag == "htext") &&
+        (objectName || objectLayerName)
+      ) {
+        // g-svg-layerName
+        let layerName =
+          (/(.*):[ptext|htext]/.exec(objectLayerName) || [])[1] || "";
+        if (allItemsSelected(objectLayer)) {
+          identifier = `.${namespace}${layerName}`;
+        } else if (objectName) {
+          identifier = `.${namespace}${layerName}#${namespace}${objectName}`;
+        }
       } else {
         // if layer is not tagged
         // fetch identifier only for the TextFrame type items
@@ -103,7 +115,7 @@ export function getSelectedItems() {
         if (allItemsSelected(objectLayer)) {
           identifier = `.${namespace}${objectLayerName}`;
         } else if (objectName && object.typename == "TextFrame") {
-          identifier = `#${objectName}`;
+          identifier = `#${namespace}${objectName}`;
         }
       }
     }

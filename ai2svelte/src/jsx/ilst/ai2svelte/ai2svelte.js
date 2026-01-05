@@ -263,7 +263,7 @@ export function main(settingsArg) {
     // saved flag (the document goes to unsaved state during the script,
     // because of unlocking / relocking of objects
     doc.saved = true;
-  } else if (errors.length === 0 && !docSettings.isPreview) {
+  } else if (errors.length === 0 && isFalse(docSettings.isPreview)) {
     var saveOptions = new IllustratorSaveOptions();
     saveOptions.pdfCompatible = false;
     doc.saveAs(new File(docPath + doc.name), saveOptions);
@@ -1908,7 +1908,9 @@ export function main(settingsArg) {
     var abBox = convertAiBounds(ab.artboardRect);
     var divs = map(frameData, function (obj, i) {
       var frame = textFrames[i];
-      var divId = frame.name ? makeKeyword(frame.name) : idPrefix + (i + 1);
+      var divId = frame.name
+        ? nameSpace + makeKeyword(frame.name)
+        : idPrefix + (i + 1);
       var positionCss = getTextFrameCss(frame, abBox, obj.paragraphs, settings);
 
       var { isTagged, objName, tagType, propName } =
@@ -3306,7 +3308,7 @@ export function main(settingsArg) {
 
   function getImageFolder(settings) {
     // return pathJoin(docPath, settings.html_output_path, settings.image_output_path);
-    if (settings.isPreview) {
+    if (isTrue(settings.isPreview)) {
       return settings.image_output_path;
     } else {
       return pathJoin(docPath, settings.image_output_path);
@@ -3659,13 +3661,17 @@ export function main(settingsArg) {
       html,
       src;
 
-    if (settings.isPreview) {
+    if (isTrue(settings.isPreview)) {
       // preview-xs.jpg -> {previewXS}
       var grps = imgFile.match(/(.*)-(.*)\..*/);
       var importName = `${grps[1]}${grps[2].toString().toUpperCase()}`;
       src = `{${importName}}`;
 
-      previewImageImports.push(`import ${importName} from './${imgFile}';`);
+      previewImageImports.push(
+        `const ${importName} = '${pathToFileURL(settings.image_output_path + imgFile)}';\r`
+      );
+
+      //   previewImageImports.push(`import ${importName} from './${imgFile}';`);
     } else {
       src = pathJoin(imgDir, imgFile);
     }
@@ -3683,7 +3689,11 @@ export function main(settingsArg) {
       html += imgStyle + ";";
     }
 
-    html += "background-image: url(" + src + ');"';
+    if (isTrue(settings.isPreview)) {
+      html += "background-image: url('" + src + "'" + ');"';
+    } else {
+      html += "background-image: url(" + src + ');"';
+    }
 
     if (isTrue(settings.use_lazy_loader)) {
       // native lazy loading seems to work well -- images aren't loaded when
@@ -4281,6 +4291,20 @@ export function main(settingsArg) {
       );
     }
 
+    if (isTrue(settings.respect_height)) {
+      var cssObj = {
+        margin: "0 auto",
+        "min-height": "100%",
+        "min-width": "unset !important",
+        "max-width": "unset !important",
+        top: "50%",
+        left: "50%",
+        transform: "translate(-50%, -50%)",
+      };
+
+      css += formatCssRule(blockStart + " ." + nameSpace + "artboard", cssObj);
+    }
+
     if (settings.alt_text) {
       css += formatCssRule(blockStart + " ." + nameSpace + "aiAltText", {
         position: "absolute",
@@ -4328,6 +4352,14 @@ export function main(settingsArg) {
     css += formatCssRule(blockStart + " ." + nameSpace + "aiPointText p", {
       "white-space": "nowrap",
     });
+
+    if (isTrue(settings.respect_height)) {
+      css += blockStart + "{\r";
+      css += "height: 100%;\r";
+      css += "width: 100%;\r";
+      css += "overflow: hidden;\r";
+      css += "}\r";
+    }
 
     if (isTrue(settings.include_resizer_css)) {
       // add container queries for each artboard
@@ -4396,14 +4428,22 @@ export function main(settingsArg) {
   }
 
   function addArtboardChangeEffect() {
-    let effectCode =
-      "$effect(() => {\n" +
-      "if (aiBoxWidth) {\n" +
+    let resizerArtboards =
       "const currentArtboard = allArtboards.filter((artboard) => {\n" +
       "const minWidth = parseFloat(artboard.dataset.minWidth);\n" +
       "const maxWidth = parseFloat(artboard.dataset.maxWidth) || Infinity;\n" +
       "return minWidth <= aiBoxWidth && maxWidth >= aiBoxWidth;\n" +
-      "})[0];\n" +
+      "})[0];\n";
+
+    let nonResizerArtboards =
+      "const currentArtboard = aiBox.querySelectorAll('.g-artboard')[0];\n";
+
+    let effectCode =
+      "$effect(() => {\n" +
+      "if (aiBoxWidth) {\n" +
+      (isTrue(settingsArg.settings.include_resizer_css)
+        ? resizerArtboards
+        : nonResizerArtboards) +
       "if (currentArtboard?.id !== activeArtboard?.id) {\n" +
       "activeArtboard = untrack(() => currentArtboard);\n" +
       "onArtboardChange(activeArtboard);\n" +
@@ -4425,6 +4465,15 @@ export function main(settingsArg) {
     return count;
   }
 
+  function pathToFileURL(osPath) {
+    // Normalize slashes for Windows and macOS
+    let normalized = osPath.replace(/\\/g, "/");
+    // Encode spaces and non-ASCII safely
+    normalized = encodeURI(normalized);
+    // Add file URL scheme; Windows needs triple slash
+    return "file:///" + normalized.replace(/^\/+/, "");
+  }
+
   // generates <script> code
   function generateSvelteScript(group, settings) {
     var script = "<script>\r\t";
@@ -4440,14 +4489,18 @@ export function main(settingsArg) {
       getObjectKeyCount(taggedTextLayers.ptext) > 0 ||
       getObjectKeyCount(taggedTextLayers.htext) > 0
     ) {
-      script += "overrideText = false";
+      script += ", overrideText = false";
       script += ", taggedText = {ptext: {}, htext: {}}";
       script += ", debugTaggedText = false";
     }
 
     script += " } = $props();\r";
 
-    if (isFalse(settingsArg.settings.include_resizer_css)) {
+    if (isTrue(settings.isPreview)) {
+      script += `const ASSET_BASE = '${settings.extension_path}/writable/';\r`;
+    }
+
+    if (isFalse(settings.include_resizer_css)) {
       for (let i = 0; i < previewImageImports.length; i++) {
         script += previewImageImports[i] + "\n\r";
       }
@@ -4457,17 +4510,23 @@ export function main(settingsArg) {
     script += "import { onMount, untrack } from 'svelte';\n";
     script += "let aiBox;\n";
     script += "let aiBoxWidth = $state(undefined);\n";
-    script += "let allArtboards = $state([]);\n";
+    script += isTrue(settings.include_resizer_css)
+      ? "let allArtboards = $state([]);\n"
+      : "";
     script += "let activeArtboard = $state(undefined);\n";
-    script +=
-      "onMount(() => {\rallArtboards = Array.from(aiBox.querySelectorAll('" +
-      "." +
-      nameSpace +
-      "artboard" +
-      "'));\ronAiMounted();\r});\r";
-
+    script += "onMount(() => {\r";
+    if (isTrue(settings.include_resizer_css)) {
+      script +=
+        "allArtboards = Array.from(aiBox.querySelectorAll('" +
+        "." +
+        nameSpace +
+        "artboard" +
+        "'));\r";
+    } else {
+      script += "onAiMounted();";
+    }
+    script += "\r});\r";
     script += addArtboardChangeEffect();
-
     script += "\r</script>\r";
 
     return script;
@@ -4529,7 +4588,7 @@ export function main(settingsArg) {
     var htmlFileDestinationFolder, htmlFileDestination;
     var containerClasses = "ai2svelte";
     var debugTaggedTextVariable;
-    var taggedTextCSS;
+    var taggedTextCSS = "";
     var comments = "";
 
     // accessibility features
@@ -4618,11 +4677,6 @@ export function main(settingsArg) {
     // CSS
     css = '<style lang="scss">\r';
 
-    if (settings.isPreview) {
-      css += '@use "../public/shadows.scss" as *;\n';
-      css += '@use "../public/animations.scss" as *;\n\n';
-    }
-
     css +=
       generatePageCss(containerId, group, settings) +
       content.css +
@@ -4649,7 +4703,7 @@ export function main(settingsArg) {
 
     textForFile = applyTemplate(textForFile, settings);
 
-    if (settings.isPreview == true) {
+    if (isTrue(settings.isPreview)) {
       // previews should be stored in extension directory
       htmlFileDestinationFolder = settings.html_output_path;
     } else {

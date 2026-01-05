@@ -56,18 +56,41 @@ export const runPreview = (settings, path) => {
   if (app) {
     createFolder(path);
 
-    settings.settings.isPreview = true;
+    settings.settings.isPreview = "true";
     settings.settings.html_output_path = path;
     settings.settings.html_output_extension = ".svelte";
     settings.settings.image_output_path = path;
     settings.settings.image_source_path = "";
+    // container queries are not supported in Chrmoe 74, so disable for preview
     settings.settings.include_resizer_css = false;
-    settings.settings.project_name = "preview";
+    settings.settings.project_name = "Preview";
     settings.settings.show_completion_dialog_box = false;
 
     main(settings);
+    return 1;
+  } else {
+    return 0;
   }
 };
+
+// export const runPreview = (settings, htmlPath, imagePath) => {
+//   if (app) {
+//     createFolder(htmlPath);
+//     createFolder(imagePath);
+
+//     settings.settings.isPreview = "true";
+//     settings.settings.html_output_path = htmlPath;
+//     settings.settings.html_output_extension = ".svelte";
+//     settings.settings.image_output_path = imagePath;
+//     settings.settings.image_source_path = "";
+//     // container queries are not supported in Chrmoe 74, so disable for preview
+//     settings.settings.include_resizer_css = false;
+//     settings.settings.project_name = "Preview";
+//     settings.settings.show_completion_dialog_box = false;
+
+//     main(settings);
+//   }
+// };
 
 export const getFilePath = () => {
   if (app) {
