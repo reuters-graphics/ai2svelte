@@ -12,6 +12,7 @@
     userShadows,
     userSpecimens,
     userShadowsBaked,
+    unsavedChanges,
   } from "./stores";
 
   // BOLT IMPORTS
@@ -29,6 +30,8 @@
   import JSON5 from "json5";
   import { userData } from "./state.svelte";
   import { readFile, saveSettings, writeFile } from "./utils/utils";
+  // @ts-ignore
+  //   import { startViteServer, stopViteServer } from "./utils/startServer";
   import defaultProfile from "./Tabs/data/default-profile.json";
   import { parseCSS } from "./utils/cssUtils";
   import { bakeShadows } from "./utils/bakeShadows";
@@ -45,14 +48,11 @@
   import Home from "./Tabs/Home/Home.svelte";
   import Inspect from "./Tabs/Inspect.svelte";
   import Alert from "./Components/Alert.svelte";
+  import Preview from "./Tabs/Preview/Preview.svelte";
 
   let splashScreen: boolean = $state(false);
   let activeTab: string = $state("HOME");
   let previousSettings: Record<string, any> | undefined = $state();
-  let showAlert: { flag: boolean; message: string } = $state({
-    flag: true,
-    message: "",
-  });
 
   let inspectMode: boolean = $state(false);
 
@@ -232,9 +232,9 @@
       const stylesMatch = savedCSS == currentCSS;
 
       if (stylesMatch && settingsMatch) {
-        showAlert = { flag: false, message: "" };
+        $unsavedChanges = { flag: false, message: "" };
       } else {
-        showAlert = {
+        $unsavedChanges = {
           flag: true,
           message: "There are unsaved changes. Run ai2svelte to save changes.",
         };
@@ -261,8 +261,8 @@
 </script>
 
 {#if splashScreen}
-  {#if showAlert.flag}
-    <Alert message={showAlert.message} />
+  {#if $unsavedChanges.flag}
+    <Alert message={$unsavedChanges.message} />
   {/if}
   <TabBar bind:activeLabel={activeTab} {inspectMode} />
 
@@ -270,8 +270,8 @@
     <Home refreshSettings={fetchSettings} />
   {:else if activeTab === "STYLES"}
     <Styles />
-    <!-- {:else if activeTab === "PREVIEW"} -->
-    <!-- <Preview /> -->
+  {:else if activeTab === "PREVIEW"}
+    <Preview />
   {:else if activeTab === "SETTINGS"}
     <Settings />
   {:else if activeTab === "INSPECT"}
