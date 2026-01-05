@@ -2,7 +2,16 @@ import { get } from "svelte/store";
 import { styles } from "../../stores";
 import type { Rule } from "postcss";
 import postcss from "postcss";
+import type { Plugin } from "postcss";
 import { stylesState } from "./stylesState.svelte";
+import * as prettier from "prettier/standalone";
+import parserPostCSS from "prettier/plugins/postcss";
+// @ts-ignore
+// import safeParser from "postcss-safe-parser";
+import scss from "postcss-scss";
+import discardEmpty from "postcss-discard-empty";
+// @ts-ignore
+import mixedDecls from "./mixedDecls";
 
 /**
  * Toggles a shadow mixin string in the styles object for a given CSS selector.
@@ -14,7 +23,7 @@ import { stylesState } from "./stylesState.svelte";
  * If the array becomes empty after removal, the selector is deleted from the styles object.
  * The styles store is updated at the end to trigger reactivity.
  */
-export function toggleShadowCard(
+function toggleShadowCard(
   shadowName: string,
   operation: boolean,
   shadowColor: string
@@ -68,4 +77,29 @@ export function removeIfEmpty(rule: Rule) {
   if (!rule.nodes || rule.nodes.length === 0) {
     rule.remove(); // Clean up empty rules
   }
+}
+
+export async function stringToStyles(string: string) {
+  let object = {};
+  let formatted = string;
+  try {
+    try {
+      formatted = await prettier.format(string, {
+        parser: "scss",
+        plugins: [parserPostCSS],
+      });
+    } catch (error) {
+      // console.log("Prettier formatting error:");
+      // console.log(error);
+    }
+
+    object = await postcss([discardEmpty()]).process(formatted, {
+      parser: scss,
+      from: undefined,
+    });
+  } catch (error) {
+    // ignore errors cause user might still be typing the style
+  }
+
+  return object;
 }

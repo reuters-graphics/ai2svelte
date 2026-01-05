@@ -11,12 +11,10 @@
   // OTHER LIB IMPORTS
   import postcss from "postcss";
   import { type Result, type Root } from "postcss";
-  import * as prettier from "prettier/standalone";
-  import parserPostCSS from "prettier/plugins/postcss";
-  // @ts-ignore
   import {
     AIEvent,
     AIEventAdapter,
+    // @ts-ignore
   } from "../../../../public/BoltHostAdapter.js";
 
   // COMPONENT IMPORTS
@@ -34,11 +32,10 @@
   import { stylesState } from "./stylesState.svelte";
   import Shadows from "./Shadows.svelte";
   import Animations from "./Animations.svelte";
+  import { stringToStyles } from "./utils";
 
   let activeTab: string = $state("shadows");
   let activeFormat: string = $state("UI");
-
-  //   let cssSelector: string = $state(`p[class^="g-pstyle"]`);
 
   let initialLoad: boolean = $state(false);
 
@@ -47,6 +44,8 @@
   let previousSelector: string = "";
 
   let codeEditor: EditorView | undefined = $state();
+
+  //   let editableCssString: string = $state("");
 
   // holds styles object as string
   let cssString: string = $derived.by(() => {
@@ -153,26 +152,7 @@
    * Ignores errors to allow for incomplete or in-progress user input.
    */
   async function updateStyle(string: string): Promise<void> {
-    try {
-      let object;
-      let formatted = string;
-
-      try {
-        formatted = await prettier.format(string, {
-          parser: "scss",
-          plugins: [parserPostCSS],
-        });
-      } catch (error) {
-        // console.log("Prettier formatting error:");
-        // console.log(error);
-      }
-
-      object = await postcss().process(formatted, { parser: safeParser });
-
-      $styles = object;
-    } catch (error) {
-      // ignore errors cause user might still be typing the style
-    }
+    $styles = (await stringToStyles(string)) as Result<Root>;
   }
 
   function fetchSelectorFromEditor(): void {

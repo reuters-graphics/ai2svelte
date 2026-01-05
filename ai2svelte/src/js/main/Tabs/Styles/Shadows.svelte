@@ -7,11 +7,12 @@
   // OTHER LIB IMPORTS
   import postcss from "postcss";
   import { Rule } from "postcss";
+  import type { Result, Root } from "postcss";
 
   // UTILS
   import type { ShadowCardItem } from "../types";
   import { onMount } from "svelte";
-  import { removeIfEmpty } from "./utils";
+  import { removeIfEmpty, stringToStyles } from "./utils";
 
   let allShadows: ShadowCardItem[] = $state([]);
 
@@ -25,7 +26,10 @@
    * If the array becomes empty after removal, the selector is deleted from the styles object.
    * The styles store is updated at the end to trigger reactivity.
    */
-  function toggleShadowCard(shadowName: string, operation: boolean) {
+  async function toggleShadowCard(
+    shadowName: string,
+    operation: boolean
+  ): Promise<void> {
     const shadowParam = `shadow-${shadowName}(${stylesState.shadowColor})`;
 
     let rule: Rule | null =
@@ -61,7 +65,10 @@
 
       removeIfEmpty(rule);
     }
-    $styles = $styles;
+
+    $styles = (await stringToStyles(
+      $styles?.root?.toString() || ""
+    )) as Result<Root>;
   }
 
   function fetchShadows() {

@@ -8,10 +8,11 @@
   // OTHER LIB IMPORTS
   import postcss from "postcss";
   import { Rule } from "postcss";
+  import type { Result, Root } from "postcss";
 
   // UTILS
   import type { AnimationItem } from "../types";
-  import { removeIfEmpty } from "./utils";
+  import { removeIfEmpty, stringToStyles } from "./utils";
   import { onMount } from "svelte";
 
   let allAnimations: AnimationItem[] = $state([]);
@@ -27,13 +28,13 @@
    * then either adds or removes the animation from the styles object for the current CSS selector.
    * If the styles array for the selector becomes empty after removal, the selector is deleted from the styles object.
    */
-  function toggleAnimationCard(
+  async function toggleAnimationCard(
     animationUsage: string,
     animationName: string,
     animationDefinition: string,
     animationRule: string,
     operation: boolean
-  ): void {
+  ): Promise<void> {
     const animationMixinRegex = new RegExp(/.*@include (.*)\(\)/);
     const mixinCheck = animationUsage?.match(animationMixinRegex);
     const animationIdentifier = mixinCheck ? mixinCheck[1] : undefined;
@@ -117,7 +118,9 @@
       removeIfEmpty(rule);
     }
 
-    $styles = $styles;
+    $styles = (await stringToStyles(
+      $styles?.root?.toString() || ""
+    )) as Result<Root>;
   }
 
   function clearAnimationSelection() {
