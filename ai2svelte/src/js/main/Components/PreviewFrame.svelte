@@ -113,6 +113,11 @@
 <style lang="scss">
   @use "../styles/variables.scss" as *;
 
+  .preview-frame {
+    width: 100%;
+    height: 100%;
+  }
+
   .preview-container {
     position: relative;
     max-width: 100%;
