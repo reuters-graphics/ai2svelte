@@ -88,6 +88,7 @@
       {@render tab("Home", true)}
       {@render tab("Settings", false)}
       {@render tab("Styles", false)}
+      {@render tab("Preview", false)}
       {#if inspectMode}
         {@render tab("Inspect", false)}
       {/if}
