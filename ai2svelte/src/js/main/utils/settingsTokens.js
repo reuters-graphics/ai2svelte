@@ -232,4 +232,12 @@ export let aiSettingsTokens = [
     inputType: "select",
     options: ["true", "false"],
   },
+  {
+    label: "respect_height",
+    type: "boolean",
+    info: "Whether to prioritize parent height over parent width. \n ⚠️ Parent element must have a defined height. \n Options: true, false",
+    default: "false",
+    inputType: "select",
+    options: ["true", "false"],
+  },
 ];
