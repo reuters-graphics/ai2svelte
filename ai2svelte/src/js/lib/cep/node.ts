@@ -46,6 +46,9 @@ export const os = (
 export const path = (
   typeof window.cep !== "undefined" ? require("path") : {}
 ) as typeof import("path");
+export const process = (
+  typeof window.cep !== "undefined" ? require("process") : {}
+) as typeof import("process");
 export const punycode = (
   typeof window.cep !== "undefined" ? require("punycode") : {}
 ) as typeof import("punycode");
