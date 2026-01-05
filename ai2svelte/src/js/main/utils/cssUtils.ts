@@ -91,14 +91,19 @@ export function createAnimationMixinFromCSS(animation: AnimationItem) {
   const name = "animation-" + animation.name;
   let str = `@mixin ${name}${animation.arguments}{\n`;
 
-  Object.keys(animation.cssVariables || {}).forEach((variableKey) => {
-    str += `${variableKey}: ${animation?.cssVariables?.[variableKey] || ""};\n`;
-  });
-
-  //   animation.cssVariables?.forEach(variable => {
-  // 	str += `  --${variable.name}: ${animation.cssVariables[variable]};\n`;
-  //   });
+  // emit keyframes at root level to avoid SASS mixed-decls
+  str += "@at-root {\n";
   str += animation.definition + "\n\r";
+  str += "}\n";
+
+  if (Object.keys(animation.cssVariables || {}).length > 0) {
+    str += "&{\n";
+    Object.keys(animation.cssVariables || {}).forEach((variableKey) => {
+      str += `${variableKey}: ${animation?.cssVariables?.[variableKey] || ""};\n`;
+    });
+    str += "}\n\n";
+  }
+
   str += "\n}";
 
   return str;
