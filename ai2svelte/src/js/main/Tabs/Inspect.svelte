@@ -1,5 +1,4 @@
 <script lang="ts">
-  import { onMount, untrack } from "svelte";
   import {
     savedSettings,
     settingsObject,

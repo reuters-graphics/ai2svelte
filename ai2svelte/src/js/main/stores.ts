@@ -1,7 +1,7 @@
 import type { Writable } from "svelte/store";
 import { derived, writable } from "svelte/store";
 import type { Style, ShadowItem, AnimationItem } from "./Tabs/types";
-import { generateAllMixins, styleObjectToString } from "./utils/cssUtils";
+import { generateAllMixins } from "./utils/cssUtils";
 import type { Result, Root } from "postcss";
 
 export const settingsObject = writable<Record<string, any>>({});
@@ -38,3 +38,6 @@ export const userAnimations: Writable<AnimationItem[]> = writable([]);
 export const userShadows: Writable<ShadowItem[]> = writable([]);
 export const userSpecimens: Writable<string[]> = writable([]);
 export const userShadowsBaked: Writable<ShadowItem[]> = writable([]);
+
+export const unsavedChanges: Writable<{ flag: boolean; message: string }> =
+  writable({ flag: true, message: "" });

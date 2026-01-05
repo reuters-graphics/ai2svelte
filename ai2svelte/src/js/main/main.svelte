@@ -30,8 +30,6 @@
   import JSON5 from "json5";
   import { userData } from "./state.svelte";
   import { readFile, saveSettings, writeFile } from "./utils/utils";
-  // @ts-ignore
-  //   import { startViteServer, stopViteServer } from "./utils/startServer";
   import defaultProfile from "./Tabs/data/default-profile.json";
   import { parseCSS } from "./utils/cssUtils";
   import { bakeShadows } from "./utils/bakeShadows";
