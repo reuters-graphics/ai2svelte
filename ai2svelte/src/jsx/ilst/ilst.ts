@@ -8,6 +8,7 @@ import {
   createFolder,
   createFile,
   getSelectedItems,
+  deleteFolderRecursive,
 } from "./ilstUtils";
 import { wrapper } from "./previewWrapper";
 
@@ -55,6 +56,11 @@ export const runNightly = (settings) => {
 
 export const runPreview = (settings, path) => {
   if (app) {
+    // rename existing preview folder to preview_old and delete it
+    // rename to avoid clashes with the creation of new preview folder
+    deleteFolderRecursive(path);
+
+    // create new preview folder
     createFolder(path);
     makeFile(path + "previewWrapper.js", wrapper);
 

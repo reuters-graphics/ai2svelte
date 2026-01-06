@@ -3675,7 +3675,7 @@ export function main(settingsArg) {
           : "";
 
       previewImageImports.push(
-        `const ${importName} = '${pathToFileURL(settings.image_output_path + taggedFolder + imgFile)}';\r`
+        `const ${importName} = '${pathToFileURL(settings.image_output_path + taggedFolder + imgFile)}?t=${Date.now()}';\r`
       );
 
       //   previewImageImports.push(`import ${importName} from './${imgFile}';`);

@@ -72,12 +72,7 @@ const config: CEP_Config = {
     "postcss",
     "sass",
   ],
-  copyAssets: [
-    "public",
-    "js/assets/images/backdrops",
-    "writable",
-    "server.cjs",
-  ],
+  copyAssets: ["public", "js/assets/images/backdrops", "server.cjs"],
   copyZipAssets: [],
 };
 export default config;

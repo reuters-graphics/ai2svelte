@@ -11,10 +11,24 @@ export function getDocPath() {
 export function createFolder(folderPath) {
   var folder = new Folder(folderPath);
   if (!folder.exists) {
-    folder.remove();
     folder.create();
   }
   return folder;
+}
+
+// Recursively deletes a folder and all its contents
+export function deleteFolderRecursive(folderPath) {
+  var folder = new Folder(folderPath);
+  folder.rename(folder.name + "_old");
+  const items = folder.getFiles();
+  for (let i = 0; i < items.length; i++) {
+    if (items[i] instanceof Folder) {
+      deleteFolderRecursive(items[i]);
+    } else {
+      items[i].remove();
+    }
+  }
+  folder.remove();
 }
 
 export function createFile(filePath, fileContent) {
