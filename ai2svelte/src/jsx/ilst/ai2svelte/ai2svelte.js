@@ -3193,21 +3193,25 @@ export function main(settingsArg) {
 
     // Embed images tagged :png as separate images
     // Inside this function, layers are hidden and unhidden as needed
-    forEachImageLayer("png", function (lyr) {
+    forEachImageLayer(["png", "png24"], function (lyr) {
+      var tagName = /.*:(png24|png)/.exec(lyr.name)[1] || "png";
+
       var opts = extend({}, settings, {
         png_transparent: true,
-        tagPrefix: "png",
+        tagPrefix: tagName,
       });
-      // var name = getLayerImageName(lyr, activeArtboard, settings);
-      var name = /(.*):png/.exec(lyr.name)[1];
+
+      var name = /(.*):(.*)/.exec(lyr.name)[1];
       var imgName = "layer-" + name;
-      var fmt = contains(settings.image_format || [], "png24")
-        ? "png24"
-        : "png";
+
+      var fmt = tagName;
       var lyrZ = lyr.zOrderPosition;
       // This test prevents empty images, but is expensive when a layer contains many art objects...
       // consider only testing if an option is set by the user.
       if (testLayerArtboardIntersection(lyr, activeArtboard)) {
+        // var grps = `${imgName}-${activeArtboard.name}`.match(/(.*)-(.*)-(.*)/);
+        // var importName = `${grps[1]}${grps[2].charAt(0).toUpperCase() + grps[2].slice(1)}${grps[3].toString().toUpperCase()}`;
+
         var pngHtml =
           exportImage(imgName, fmt, activeArtboard, null, lyr, opts, group) +
           "\r";
@@ -3329,7 +3333,7 @@ export function main(settingsArg) {
   //
   function exportImage(imgName, format, ab, masks, layer, settings, group) {
     var imgFile = getImageFileName(imgName, format);
-    if (settings.tagPrefix == "png") {
+    if (settings.tagPrefix == "png" || settings.tagPrefix == "png24") {
       imgFile = getImageFileName(imgName + "-" + getArtboardName(ab), format);
     }
 
@@ -3376,7 +3380,7 @@ export function main(settingsArg) {
     }
 
     // separate id convention for tagged png layers
-    if (settings.tagPrefix == "png") {
+    if (settings.tagPrefix == "png" || settings.tagPrefix == "png24") {
       imgId = nameSpace + "png-" + imgName + "-" + getArtboardName(ab);
       imgClass = nameSpace + "png-" + imgName;
     }
@@ -3461,7 +3465,10 @@ export function main(settingsArg) {
 
       var pngInlineStyle = "";
 
-      if (layer && settings.tagPrefix == "png") {
+      if (
+        layer &&
+        (settings.tagPrefix == "png" || settings.tagPrefix == "png24")
+      ) {
         var lyrOpacity = layer.opacity;
 
         // export layer at opacity 100%
@@ -3557,8 +3564,12 @@ export function main(settingsArg) {
   //   and passes each tagged layer to a callback, after hiding all other content
   // Side effect: Tagged layers remain hidden after the function completes
   //   (they have to be unhidden later)
-  function forEachImageLayer(imageType, callback) {
-    var targetLayers = findTaggedLayers(imageType); // only finds visible layers with a tag
+  function forEachImageLayer(imageTypes, callback) {
+    var targetLayers = [];
+    forEach(imageTypes, function (type) {
+      var taggedLayers = findTaggedLayers(type);
+      targetLayers = toArray(targetLayers).concat(toArray(taggedLayers));
+    });
     var hiddenLayers = [];
     if (targetLayers.length === 0) return;
 
@@ -3663,12 +3674,25 @@ export function main(settingsArg) {
 
     if (isTrue(settings.isPreview)) {
       // preview-xs.jpg -> {previewXS}
-      var grps = imgFile.match(/(.*)-(.*)\..*/);
-      var importName = `${grps[1]}${grps[2].toString().toUpperCase()}`;
+      //   layer-image-xs.png -> {layerImageXS}
+      var grps = imgFile.match(/(.*)\..*/);
+      var splits = grps[1].split("-");
+      var importName = map(splits, function (part, index) {
+        return index === 0
+          ? part
+          : part.charAt(0).toUpperCase() + part.slice(1);
+      }).join("");
+      //   var importName = `${grps[1]}${grps[2].toString().toUpperCase()}`;
       src = `{${importName}}`;
 
+      // png images are exported to 'tagged' folder inside image output path
+      const taggedFolder =
+        settings.tagPrefix == "png" || settings.tagPrefix == "png24"
+          ? "tagged/" + (settings.project_name || group.groupName) + "/"
+          : "";
+
       previewImageImports.push(
-        `const ${importName} = '${pathToFileURL(settings.image_output_path + imgFile)}';\r`
+        `const ${importName} = '${pathToFileURL(settings.image_output_path + taggedFolder + imgFile)}';\r`
       );
 
       //   previewImageImports.push(`import ${importName} from './${imgFile}';`);
@@ -4481,7 +4505,7 @@ export function main(settingsArg) {
     script +=
       "let { assetsPath = '/', onAiMounted = () => {}, onArtboardChange = () => {}";
 
-    if (docSettings.snippetProps) {
+    if (getObjectKeyCount(docSettings.snippetProps) > 0) {
       script += ", " + docSettings.snippetProps.join(", ");
     }
 
@@ -4496,9 +4520,9 @@ export function main(settingsArg) {
 
     script += " } = $props();\r";
 
-    if (isTrue(settings.isPreview)) {
-      script += `const ASSET_BASE = '${settings.extension_path}/writable/';\r`;
-    }
+    // if (isTrue(settings.isPreview)) {
+    //   script += `const ASSET_BASE = '${settings.html_output_path}/writable/';\r`;
+    // }
 
     if (isFalse(settings.include_resizer_css)) {
       for (let i = 0; i < previewImageImports.length; i++) {

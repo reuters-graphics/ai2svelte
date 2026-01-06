@@ -20,7 +20,7 @@
 
   // OTHER IMPORTS
   // @ts-ignore
-  import BirdStats from "../../example/ai2svelte/bird-stats.svelte";
+  import PreviewDev from "../../example/ai2svelte/preview-dev.svelte";
   import { saveSettings } from "../../utils/utils";
   import config from "../../../../../cep.config";
   import { version } from "../../../../shared/shared";
@@ -97,8 +97,8 @@
       await loadPreview();
       await create();
     } else {
-      component = BirdStats(frameContent, {
-        assetsPath: "../../../assets",
+      component = PreviewDev(frameContent, {
+        assetsPath: "./example/ai2svelte/",
         onAiMounted: onAiMounted,
         onArtboardChange: onArtboardChange,
       });

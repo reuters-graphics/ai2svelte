@@ -1,4 +1,4 @@
-import { child_process, path, process } from "../../../lib/cep/node";
+import { child_process, fs, path, process } from "../../../lib/cep/node";
 import { csi } from "../../../lib/utils/bolt";
 import config from "../../../../../cep.config";
 

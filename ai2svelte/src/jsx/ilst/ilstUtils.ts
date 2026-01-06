@@ -11,6 +11,7 @@ export function getDocPath() {
 export function createFolder(folderPath) {
   var folder = new Folder(folderPath);
   if (!folder.exists) {
+    folder.remove();
     folder.create();
   }
   return folder;

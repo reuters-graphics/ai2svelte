@@ -9,6 +9,7 @@ import {
   createFile,
   getSelectedItems,
 } from "./ilstUtils";
+import { wrapper } from "./previewWrapper";
 
 export const updateAiSettings = (settingsObj: string, str: string) => {
   if (app) {
@@ -55,6 +56,7 @@ export const runNightly = (settings) => {
 export const runPreview = (settings, path) => {
   if (app) {
     createFolder(path);
+    makeFile(path + "previewWrapper.js", wrapper);
 
     settings.settings.isPreview = "true";
     settings.settings.html_output_path = path;

@@ -69,6 +69,8 @@ const config: CEP_Config = {
     "@rollup/plugin-node-resolve",
     "autoprefixer",
     "svelte-preprocess",
+    "postcss",
+    "sass",
   ],
   copyAssets: [
     "public",
