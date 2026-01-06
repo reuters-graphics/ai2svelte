@@ -4360,11 +4360,18 @@ export function main(settingsArg) {
       "white-space": "nowrap",
     });
 
-    if (isTrue(settings.respect_height)) {
+    if (isTrue(settings.respect_height) && isFalse(settings.allow_overflow)) {
       css += blockStart + "{\r";
       css += "height: 100%;\r";
       css += "width: 100%;\r";
       css += "overflow: hidden;\r";
+      css += "}\r";
+    } else if (
+      isTrue(settings.respect_height) &&
+      isTrue(settings.allow_overflow)
+    ) {
+      css += blockStart + "{\r";
+      css += "height: 100%;\r";
       css += "}\r";
     }
 
@@ -4646,6 +4653,15 @@ export function main(settingsArg) {
       );
     }
 
+    var rootBindings = "";
+
+    if (isTrue(settings.allow_overflow)) {
+      html += "<svelte:window bind:innerWidth={aiBoxWidth} />\r\r";
+      rootBindings = "bind:this={aiBox}";
+    } else {
+      rootBindings = "bind:this={aiBox} bind:clientWidth={aiBoxWidth}";
+    }
+
     // HTML
     html +=
       '<div id="' +
@@ -4654,7 +4670,8 @@ export function main(settingsArg) {
       containerClasses +
       '"' +
       ariaAttrs +
-      "bind:this={aiBox} bind:clientWidth={aiBoxWidth}" +
+      " " +
+      rootBindings +
       (debugTaggedTextVariable ? " " + debugTaggedTextVariable : "") +
       ">\r";
 

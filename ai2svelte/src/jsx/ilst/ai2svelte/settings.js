@@ -32,6 +32,7 @@ export let defaultSettings = {
   priority_fetch: false, // for prioritized fetching of images above the fold
   respect_height: false, // whether to respect the height of the artboard in responsive mode
   override_text: false, // whether to override text by default
+  allow_overflow: false, // whether to allow root div overflow
 };
 
 // settings used when no user settings are found

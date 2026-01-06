@@ -248,4 +248,12 @@ export let aiSettingsTokens = [
     inputType: "select",
     options: ["true", "false"],
   },
+  {
+    label: "allow_overflow",
+    type: "boolean",
+    info: "If set to true, the root div allows overflow. \n Options: true, false",
+    default: "false",
+    inputType: "select",
+    options: ["true", "false"],
+  },
 ];
