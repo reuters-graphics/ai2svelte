@@ -4529,9 +4529,8 @@ export function main(settingsArg) {
         nameSpace +
         "artboard" +
         "'));\r";
-    } else {
-      script += "onAiMounted();";
     }
+    script += "onAiMounted();";
     script += "\r});\r";
     script += addArtboardChangeEffect();
     script += "\r</script>\r";
