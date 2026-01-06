@@ -240,4 +240,12 @@ export let aiSettingsTokens = [
     inputType: "select",
     options: ["true", "false"],
   },
+  {
+    label: "override_text",
+    type: "boolean",
+    info: "Whether to replace tagged text with user-fed text. \n Options: true, false",
+    default: "false",
+    inputType: "select",
+    options: ["true", "false"],
+  },
 ];

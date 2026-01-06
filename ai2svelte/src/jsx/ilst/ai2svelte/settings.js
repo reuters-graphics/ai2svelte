@@ -8,7 +8,7 @@ export let defaultSettings = {
   output: "one-file", // Options: one-file, multiple-files
   project_name: "", // Defaults to the name of the AI file
   html_output_path: "ai2html-output/",
-  html_output_extension: ".html",
+  html_output_extension: ".svelte",
   image_output_path: "ai2html-output/",
   image_source_path: "",
   image_alt_text: "", // Generally, use alt_text instead
@@ -31,8 +31,10 @@ export let defaultSettings = {
   isPreview: false, // internal flag for preview
   priority_fetch: false, // for prioritized fetching of images above the fold
   respect_height: false, // whether to respect the height of the artboard in responsive mode
+  override_text: false, // whether to override text by default
 };
 
+// settings used when no user settings are found
 export let placeholderSettings = {
   image_format: ["jpg"],
   responsiveness: "dynamic",
@@ -47,4 +49,6 @@ export let placeholderSettings = {
   inline_svg: "true",
   max_width: null,
   isPreview: false,
+  respect_height: false,
+  override_text: false,
 };

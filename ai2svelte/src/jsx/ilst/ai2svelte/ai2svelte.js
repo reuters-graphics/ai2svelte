@@ -130,7 +130,7 @@ export function main(settingsArg) {
   let missingFontFamilies = [];
   let priorityFetches = [];
   let taggedTextLayers = {
-    ptext: {},
+    text: {},
     htext: {},
   };
 
@@ -1821,33 +1821,33 @@ export function main(settingsArg) {
     let isTagged = false;
     let objName = null;
     let propName = null;
-    let isPText = false;
+    let isText = false;
     let isHText = false;
 
-    let ptextRegex = /(.*):ptext/;
+    let textRegex = /(.*):text/;
     let htextRegex = /(.*):htext/;
     if (
-      ptextRegex.test(textframe.layer.name) ||
+      textRegex.test(textframe.layer.name) ||
       htextRegex.test(textframe.layer.name)
     ) {
       isTagged = true;
-      isPText = ptextRegex.test(textframe.layer.name);
+      isText = textRegex.test(textframe.layer.name);
       isHText = htextRegex.test(textframe.layer.name);
-      let regex = isPText ? ptextRegex : htextRegex;
+      let regex = isText ? textRegex : htextRegex;
 
       var layerName = textframe.layer.name.match(regex)[1];
 
-      if (!(layerName in taggedTextLayers[isPText ? "ptext" : "htext"])) {
-        taggedTextLayers[isPText ? "ptext" : "htext"][layerName] = {};
+      if (!(layerName in taggedTextLayers[isText ? "text" : "htext"])) {
+        taggedTextLayers[isText ? "text" : "htext"][layerName] = {};
       }
 
-      taggedTextLayers[isPText ? "ptext" : "htext"][layerName][textframe.name] =
+      taggedTextLayers[isText ? "text" : "htext"][layerName][textframe.name] =
         "";
 
-      if (isPText) {
+      if (isText) {
         objName =
           "{" +
-          "taggedText?.ptext?." +
+          "taggedText?.text?." +
           layerName +
           "?." +
           textframe.name +
@@ -1869,7 +1869,7 @@ export function main(settingsArg) {
       isTagged: isTagged,
       objName: objName,
       propName: propName,
-      tagType: isPText ? "ptext" : "htext",
+      tagType: isText ? "text" : "htext",
     };
   }
 
@@ -1922,27 +1922,24 @@ export function main(settingsArg) {
       if (isTagged && objName) {
         html += "\r\t\t\t";
         html += "\r";
-        html += "{#if overrideText == true}";
+        if (isTrue(settings.override_text)) {
+          html += generateTaggedTextFrameHtml(
+            obj.paragraphs,
+            objName,
+            baseStyle,
+            pgStyles,
+            tagType,
+            propName
+          );
+        } else {
+          html += generateTextFrameHtml(
+            obj.paragraphs,
+            baseStyle,
+            pgStyles,
+            charStyles
+          );
+        }
         html += "\r";
-        html += generateTaggedTextFrameHtml(
-          obj.paragraphs,
-          objName,
-          baseStyle,
-          pgStyles,
-          tagType,
-          propName
-        );
-        html += "\r";
-        html += "{:else}";
-        html += "\r";
-        html += generateTextFrameHtml(
-          obj.paragraphs,
-          baseStyle,
-          pgStyles,
-          charStyles
-        );
-        html += "\r";
-        html += "{/if}";
       } else {
         html = generateTextFrameHtml(
           obj.paragraphs,
@@ -3727,7 +3724,7 @@ export function main(settingsArg) {
 
     html += "></div>";
 
-    if (settings.priority_fetch == "true") {
+    if (isTrue(settings.priority_fetch)) {
       var visibleRange = getArtboardVisibilityRange(ab, group, settings);
       var media = "";
 
@@ -4510,11 +4507,11 @@ export function main(settingsArg) {
     }
 
     if (
-      getObjectKeyCount(taggedTextLayers.ptext) > 0 ||
-      getObjectKeyCount(taggedTextLayers.htext) > 0
+      (getObjectKeyCount(taggedTextLayers.text) > 0 ||
+        getObjectKeyCount(taggedTextLayers.htext) > 0) &&
+      isTrue(settings.override_text)
     ) {
-      script += ", overrideText = false";
-      script += ", taggedText = {ptext: {}, htext: {}}";
+      script += ", taggedText = {text: {}, htext: {}}";
       script += ", debugTaggedText = false";
     }
 
@@ -4639,7 +4636,7 @@ export function main(settingsArg) {
     // SCRIPT
     html = generateSvelteScript(group, settings);
 
-    if (settings.priority_fetch == "true") {
+    if (isTrue(settings.priority_fetch)) {
       html += "<svelte:head>\r";
       for (let i = 0; i < priorityFetches.length; i++) {
         html += priorityFetches[i] + "\r";
@@ -4648,8 +4645,9 @@ export function main(settingsArg) {
     }
 
     if (
-      getObjectKeyCount(taggedTextLayers.ptext) > 0 ||
-      getObjectKeyCount(taggedTextLayers.htext) > 0
+      (getObjectKeyCount(taggedTextLayers.text) > 0 ||
+        getObjectKeyCount(taggedTextLayers.htext) > 0) &&
+      isTrue(settings.override_text)
     ) {
       debugTaggedTextVariable =
         "style:--debug-tagged-text={debugTaggedText ? 'visible' : 'hidden'}";
