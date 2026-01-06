@@ -102,7 +102,7 @@ export function main(settingsArg) {
   // - Update the version number in package.json
   // - Add an entry to CHANGELOG.md
   // - Run 'npm publish' to create a new GitHub release
-  const scriptVersion = "0.123.1";
+  const scriptVersion = "1.0.3";
 
   // ================================
   // Global variable declarations
@@ -639,7 +639,7 @@ export function main(settingsArg) {
 
   function isTestedIllustratorVersion(version) {
     var majorNum = parseInt(version);
-    return majorNum >= 18 && majorNum <= 29; // Illustrator CC 2014 through 2025
+    return majorNum >= 18 && majorNum <= 30; // Illustrator CC 2014 through 2025
   }
 
   function groupArtboardsForOutput(settings) {
@@ -3239,17 +3239,8 @@ export function main(settingsArg) {
         html: obj.html + "\r",
       });
 
-      lyr.visible = false;
-      hiddenLayers.push(lyr);
+      hiddenItems = hiddenItems.concat(obj.items);
     });
-
-    // var sortedLayerHtml = layerHtml.sort(function (a, b) {
-    //   return a.z - b.z;
-    // });
-
-    // var accumulatedHTML = map(sortedLayerHtml, function (layer) {
-    //   return layer.html;
-    // });
 
     // base artboard image at z = -1
     layerHtml.push({
@@ -3262,11 +3253,6 @@ export function main(settingsArg) {
         group
       ),
     });
-
-    // placing ab image before other elements
-    // html =
-    //   captureArtboardImage(imgName, activeArtboard, masks, settings, group) +
-    //   accumulatedHTML.join("");
 
     // unhide hidden layers (if any)
     forEach(hiddenLayers, function (lyr) {
