@@ -1,0 +1,54 @@
+/* Dark mode colors. */
+:root {
+  --sl-color-accent-low: #131e4f;
+  --sl-color-accent: #3447ff;
+  --sl-color-accent-high: #dc4300;
+  --sl-color-white: #ffffff;
+  --sl-color-gray-1: #eceef2;
+  --sl-color-gray-2: #c0c2c7;
+  --sl-color-gray-3: #888b96;
+  --sl-color-gray-4: #545861;
+  --sl-color-gray-5: #353841;
+  --sl-color-gray-6: hsl(0, 0%, 10%);
+  --sl-color-black: hsl(0, 0%, 6%);
+  --__sl-font: "Inter", monospace;
+  --sl-sidebar-item-padding-inline: 0.7rem;
+}
+
+.sl-heading-wrapper.level-h2 {
+  h2 {
+    --sl-text-h2: var(--sl-text-3xl) !important;
+  }
+}
+
+h1 {
+  font-family: "Geist Mono", monospace;
+  font-weight: 500;
+  text-transform: uppercase;
+  font-size: var(--sl-text-4xl);
+}
+
+h1:where(.astro-rtrln6rx) {
+  /* margin-top: 5rem; */
+}
+
+.astro-ufypnftn[aria-current="page"] {
+  color: white !important;
+  border-radius: 0 !important;
+}
+
+/* Light mode colors. */
+:root[data-theme="light"] {
+  --sl-color-accent-low: #c7d6ff;
+  --sl-color-accent: #dc4300;
+  --sl-color-accent-high: #dc4300;
+  --sl-color-white: #17181c;
+  --sl-color-gray-1: #24272f;
+  --sl-color-gray-2: #353841;
+  --sl-color-gray-3: #545861;
+  --sl-color-gray-4: #888b96;
+  --sl-color-gray-5: #c0c2c7;
+  --sl-color-gray-6: #eceef2;
+  --sl-color-gray-7: #f5f6f8;
+  --sl-color-black: #ffffff;
+}
