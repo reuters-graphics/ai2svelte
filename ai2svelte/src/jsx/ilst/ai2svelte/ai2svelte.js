@@ -172,22 +172,22 @@ export function main(settingsArg) {
     if (!String(app.activeDocument.fullName)) {
       error(
         "ai2svelte is unable to run because Illustrator is confused by this document's file path." +
-          " Does the path contain any forward slashes or other unusual characters?"
+          " Does the path contain any forward slashes or other unusual characters?",
       );
     }
     if (!String(app.activeDocument.path)) {
       error(
-        "You need to save your Illustrator file before running this script"
+        "You need to save your Illustrator file before running this script",
       );
     }
     if (app.activeDocument.documentColorSpace != DocumentColorSpace.RGB) {
       error(
-        'You should change the document color mode to "RGB" before running ai2svelte (File>Document Color Mode>RGB Color).'
+        'You should change the document color mode to "RGB" before running ai2svelte (File>Document Color Mode>RGB Color).',
       );
     }
     if (app.activeDocument.activeLayer.name == "Isolation Mode") {
       error(
-        "ai2svelte is unable to run because the document is in Isolation Mode."
+        "ai2svelte is unable to run because the document is in Isolation Mode.",
       );
     }
     if (
@@ -196,7 +196,7 @@ export function main(settingsArg) {
     ) {
       // TODO: find a better way to detect this condition (mask can be renamed)
       error(
-        "ai2svelte is unable to run because you are editing an Opacity Mask."
+        "ai2svelte is unable to run because you are editing an Opacity Mask.",
       );
     }
 
@@ -280,7 +280,7 @@ export function main(settingsArg) {
     message(
       "Script ran in",
       ((+new Date() - startTime) / 1000).toFixed(1),
-      "seconds"
+      "seconds",
     );
     showCompletionAlert();
   }
@@ -377,7 +377,7 @@ export function main(settingsArg) {
           textFrames,
           masks,
           settings,
-          group
+          group,
         );
       } else {
         imageData = [{ z: -1, html: "" }];
@@ -409,7 +409,7 @@ export function main(settingsArg) {
         activeArtboard,
         group,
         abStyles,
-        settings
+        settings,
       );
     }); // end artboard loop
 
@@ -459,11 +459,11 @@ export function main(settingsArg) {
         message(
           "The " +
             nickname +
-            " folder did not exist, so the folder was created."
+            " folder did not exist, so the folder was created.",
         );
       } else {
         warn(
-          "The " + nickname + " folder did not exist and could not be created."
+          "The " + nickname + " folder did not exist and could not be created.",
         );
       }
     }
@@ -682,7 +682,7 @@ export function main(settingsArg) {
         settings.grouped_artboards = true;
         if (settings.output == "one-file") {
           warnOnce(
-            'Artboards should have unique names. "' + name + '" is duplicated.'
+            'Artboards should have unique names. "' + name + '" is duplicated.',
           );
         } else {
           warnOnce('Found a group of artboards named "' + name + '".');
@@ -707,7 +707,7 @@ export function main(settingsArg) {
     // convert image_format arg to array
     if (settingsObj.settings["image_format"]) {
       settingsObj.settings["image_format"] = parseAsArray(
-        settingsObj.settings["image_format"]
+        settingsObj.settings["image_format"],
       );
       return settingsObj;
     }
@@ -742,7 +742,7 @@ export function main(settingsArg) {
     ) {
       warn(
         'Unsupported "responsiveness" setting: ' +
-          (settings.responsiveness || "[]")
+          (settings.responsiveness || "[]"),
       );
     }
   }
@@ -965,7 +965,7 @@ export function main(settingsArg) {
               text
                 .replace(rx_two, "@")
                 .replace(rx_three, "]")
-                .replace(rx_four, "")
+                .replace(rx_four, ""),
             )
           ) {
             j = eval("(" + text + ")");
@@ -1045,7 +1045,7 @@ export function main(settingsArg) {
     var win = new Window(
       "palette",
       opts.name || "Progress",
-      [150, 150, 600, 260]
+      [150, 150, 600, 260],
     );
     win.pnl = win.add("panel", [10, 10, 440, 100], "Progress");
     win.pnl.progBar = win.pnl.add("progressbar", [20, 35, 410, 60], 0, 100);
@@ -1708,7 +1708,7 @@ export function main(settingsArg) {
       warnOnce(
         "Found a <" +
           tagName +
-          "> tag. Try using Illustrator formatting instead."
+          "> tag. Try using Illustrator formatting instead.",
       );
     }
     return tagName ? straightenCurlyQuotesInsideAngleBrackets(str) : str;
@@ -1763,7 +1763,7 @@ export function main(settingsArg) {
     baseStyle,
     pStyles,
     tagType,
-    propName
+    propName,
   ) {
     var html = "",
       diff;
@@ -1876,8 +1876,13 @@ export function main(settingsArg) {
   // convert all POINTTEXT textframes to AREATEXT textframes
   // helps in managing text for tagged text layers
   function convertPointToArea(textframes) {
+    let textRegex = /(.*):text/;
+    let htextRegex = /(.*):htext/;
     forEach(textframes, function (tf) {
-      if (tf.kind == TextType.POINTTEXT) {
+      if (
+        tf.kind == TextType.POINTTEXT &&
+        (textRegex.test(tf.layer.name) || htextRegex.test(tf.layer.name))
+      ) {
         var tfWidth = tf.width;
         var group = tf.parent.groupItems.add();
         group.move(tf, ElementPlacement.PLACEBEFORE);
@@ -1929,14 +1934,14 @@ export function main(settingsArg) {
             baseStyle,
             pgStyles,
             tagType,
-            propName
+            propName,
           );
         } else {
           html += generateTextFrameHtml(
             obj.paragraphs,
             baseStyle,
             pgStyles,
-            charStyles
+            charStyles,
           );
         }
         html += "\r";
@@ -1945,7 +1950,7 @@ export function main(settingsArg) {
           obj.paragraphs,
           baseStyle,
           pgStyles,
-          charStyles
+          charStyles,
         );
       }
 
@@ -2028,7 +2033,7 @@ export function main(settingsArg) {
         warnOnce(
           "Missing a rule for converting " +
             pdata.aiStyle.blendMode +
-            " to CSS."
+            " to CSS.",
         );
       }
     }
@@ -2037,7 +2042,7 @@ export function main(settingsArg) {
       range.cssStyle = analyzeTextStyle(
         range.aiStyle,
         range.text,
-        currCharStyles
+        currCharStyles,
       );
       if (range.warning) {
         warn(range.warning.replace("%s", truncateString(range.text, 35)));
@@ -2051,7 +2056,7 @@ export function main(settingsArg) {
             range.aiStyle.aifont +
             ". \nSample text: " +
             truncateString(range.text, 35),
-          range.aiStyle.aifont
+          range.aiStyle.aifont,
         );
       }
     }
@@ -2119,7 +2124,7 @@ export function main(settingsArg) {
 
     var findWeight = function () {
       var weight = aifont.match(
-        /(semi-?bold|bold|black|extra-?light|light|regular|medium|ultra-?light)/gi
+        /(semi-?bold|bold|black|extra-?light|light|regular|medium|ultra-?light)/gi,
       );
       if (weight && weights[weight[0].toLowerCase()]) {
         return weights[weight[0].toLowerCase()];
@@ -2132,7 +2137,7 @@ export function main(settingsArg) {
       // Source has semibold/bold/black"It" name for italics
       // so source semibold italic shows up as Source-SemiBoldIt. weird.
       var style = aifont.match(
-        /(italic|(?:semi-?bold|bold|black|extra-?light|light|regular)it)/gi
+        /(italic|(?:semi-?bold|bold|black|extra-?light|light|regular)it)/gi,
       );
       if (style) {
         return "italic";
@@ -2381,7 +2386,7 @@ export function main(settingsArg) {
   function getTextFramesByArtboard(ab, masks, settings) {
     var candidateFrames = findTextFramesToRender(
       doc.textFrames,
-      ab.artboardRect
+      ab.artboardRect,
     );
     var excludedFrames = getClippedTextFramesByArtboard(ab, masks);
     candidateFrames = arraySubtract(candidateFrames, excludedFrames);
@@ -2405,7 +2410,7 @@ export function main(settingsArg) {
         return v2.top - v1.top;
       }).thenBy(function (v1, v2) {
         return v1.left - v2.left;
-      })
+      }),
     );
     return selected;
   }
@@ -2430,7 +2435,7 @@ export function main(settingsArg) {
   function getUntransformedTextBounds(textFrame) {
     var copy = textFrame.duplicate(
       textFrame.parent,
-      ElementPlacement.PLACEATEND
+      ElementPlacement.PLACEATEND,
     );
     var matrix = clearMatrixShift(textFrame.matrix);
     copy.transform(app.invertMatrix(matrix));
@@ -2482,7 +2487,7 @@ export function main(settingsArg) {
     if (scaleX != 100 || scaleY != 100) {
       warn(
         "Vertical or horizontal text scaling will be lost. Affected text: " +
-          truncateString(textFrame.contents, 35)
+          truncateString(textFrame.contents, 35),
       );
     }
 
@@ -2518,7 +2523,7 @@ export function main(settingsArg) {
       ? getUntransformedTextBounds(thisFrame)
       : thisFrame.geometricBounds;
     var htmlBox = convertAiBounds(
-      shiftBounds(aiBounds, -abBox.left, abBox.top)
+      shiftBounds(aiBounds, -abBox.left, abBox.top),
     );
     var thisFrameAttributes = parseDataAttributes(thisFrame.note);
     // estimated space between top of HTML container and character glyphs
@@ -2702,7 +2707,7 @@ export function main(settingsArg) {
         border = "border";
       }
       styles.push(
-        border + ": " + style.strokeWidth + "px solid " + style.stroke
+        border + ": " + style.strokeWidth + "px solid " + style.stroke,
       );
     }
     if (style.fill) {
@@ -3165,7 +3170,7 @@ export function main(settingsArg) {
       var opts = extend({}, settings, { tagPrefix: "svg" });
       var uniqName = uniqAssetName(
         getLayerImageName(lyr, activeArtboard, settings),
-        uniqNames
+        uniqNames,
       );
       var svgHtml = exportImage(
         uniqName,
@@ -3174,7 +3179,7 @@ export function main(settingsArg) {
         masks,
         lyr,
         opts,
-        group
+        group,
       );
       var lyrZ = lyr.zOrderPosition;
       if (svgHtml) {
@@ -3250,7 +3255,7 @@ export function main(settingsArg) {
         activeArtboard,
         masks,
         settings,
-        group
+        group,
       ),
     });
 
@@ -3421,11 +3426,11 @@ export function main(settingsArg) {
           outputPath,
           imgClass,
           svgInlineStyle,
-          settings
+          settings,
         );
         if (layer) {
           message(
-            "Generated inline SVG for layer [" + getLayerName(layer) + "]"
+            "Generated inline SVG for layer [" + getLayerName(layer) + "]",
           );
         }
       } else {
@@ -3437,7 +3442,7 @@ export function main(settingsArg) {
           svgInlineStyle,
           ab,
           settings,
-          group
+          group,
         );
         if (layer) {
           message("Exported an SVG layer as " + outputPath.replace(/.*\//, ""));
@@ -3478,7 +3483,7 @@ export function main(settingsArg) {
         pngInlineStyle,
         ab,
         settings,
-        group
+        group,
       );
     }
 
@@ -3512,7 +3517,10 @@ export function main(settingsArg) {
     if (dupes.length > 0) {
       msg = truncateString(dupes.sort().join(", "), 65, true);
       warnOnce(
-        "Found duplicate SVG " + (dupes.length == 1 ? "id" : "ids") + ": " + msg
+        "Found duplicate SVG " +
+          (dupes.length == 1 ? "id" : "ids") +
+          ": " +
+          msg,
       );
     }
     return svg;
@@ -3595,7 +3603,7 @@ export function main(settingsArg) {
 
     if (!formats.length) {
       warnOnce(
-        "No images were created because no image formats were specified."
+        "No images were created because no image formats were specified.",
       );
       return "";
     }
@@ -3608,7 +3616,7 @@ export function main(settingsArg) {
       warnOnce(
         "An artboard contains a raster image -- consider exporting to jpg instead of " +
           formats[0] +
-          "."
+          ".",
       );
     }
 
@@ -3632,7 +3640,7 @@ export function main(settingsArg) {
     imgStyle,
     ab,
     settings,
-    group
+    group,
   ) {
     var imgDir;
 
@@ -3675,7 +3683,7 @@ export function main(settingsArg) {
           : "";
 
       previewImageImports.push(
-        `const ${importName} = '${pathToFileURL(settings.image_output_path + taggedFolder + imgFile)}?t=${Date.now()}';\r`
+        `const ${importName} = '${pathToFileURL(settings.image_output_path + taggedFolder + imgFile)}?t=${Date.now()}';\r`,
       );
 
       //   previewImageImports.push(`import ${importName} from './${imgFile}';`);
@@ -3748,7 +3756,7 @@ export function main(settingsArg) {
       warn(
         "An output image contains ~" +
           Math.round(pixels / 1e6) +
-          " million pixels -- this may cause problems on mobile devices"
+          " million pixels -- this may cause problems on mobile devices",
       );
     }
     return k;
@@ -3775,7 +3783,7 @@ export function main(settingsArg) {
           abPos.width,
           abPos.height,
           format,
-          settings.use_2x_images_if_possible
+          settings.use_2x_images_if_possible,
         );
     }
 
@@ -3794,7 +3802,7 @@ export function main(settingsArg) {
         warn(
           imgPath.split("/").pop() +
             " was output at a smaller size than desired because of a limit on jpg exports in Illustrator." +
-            " If the file needs to be larger, change the image format to png which does not appear to have limits."
+            " If the file needs to be larger, change the image format to png which does not appear to have limits.",
         );
       }
       fileType = ExportType.JPEG;
@@ -3820,7 +3828,7 @@ export function main(settingsArg) {
       DocumentColorSpace.RGB,
       doc.width,
       doc.height,
-      1
+      1,
     );
     doc2.pageOrigin = doc.pageOrigin; // not sure if needed
     doc2.rulerOrigin = doc.rulerOrigin;
@@ -4078,11 +4086,11 @@ export function main(settingsArg) {
       "rect,circle,path,line,polyline,polygon".split(","),
       function (name) {
         return "#" + id + " " + name;
-      }
+      },
     ).join(", ");
     svg = injectCSSinSVG(
       svg,
-      selector + " { vector-effect: non-scaling-stroke; }"
+      selector + " { vector-effect: non-scaling-stroke; }",
     );
     // remove images from filesystem and SVG file
     // removeImagesInSVG seems to be doing nothing
@@ -4156,11 +4164,11 @@ export function main(settingsArg) {
         count++;
         deleteFile(pathJoin(dir, href));
         return "";
-      }
+      },
     );
     if (count > 0) {
       warnOnce(
-        "This document contains images or effects that can't be exported to SVG."
+        "This document contains images or effects that can't be exported to SVG.",
       );
     }
     return content;
@@ -4175,7 +4183,7 @@ export function main(settingsArg) {
 
     if ((match = regex.exec(content)) !== null) {
       warn(
-        "SVG contains linked images that require external image files. Use svg_embed_images setting to embed images in the SVG."
+        "SVG contains linked images that require external image files. Use svg_embed_images setting to embed images in the SVG.",
       );
     }
 
@@ -4188,7 +4196,7 @@ export function main(settingsArg) {
               "tagged/" +
               pageName +
               "/" +
-              href
+              href,
           );
           return `xlink:href="${path}"`;
         });
@@ -4318,7 +4326,7 @@ export function main(settingsArg) {
     if (isTrue(settings.center_html_output)) {
       css += formatCssRule(
         blockStart + ",\r" + blockStart + " ." + nameSpace + "artboard",
-        { margin: "0 auto" }
+        { margin: "0 auto" },
       );
     }
 
@@ -4704,7 +4712,7 @@ export function main(settingsArg) {
       comments += setTaggedTextComments();
 
       message(
-        "Your document contains tagged text layers. Check comments in the file to grab a quick prop."
+        "Your document contains tagged text layers. Check comments in the file to grab a quick prop.",
       );
     }
 
