@@ -82,7 +82,7 @@ export function getSelectedItems() {
         // g-snippet-snippetName
         let snippetName = (/(.*):snippet/.exec(objectLayerName) || [])[1] || "";
         identifier = `#${namespace}snippet-${snippetName}`;
-      } else if (tag == "png") {
+      } else if (tag == "png" || tag == "png24") {
         // g-snippet-snippetName
         let imageName = (/(.*):png/.exec(objectLayerName) || [])[1] || "";
         identifier = `.${namespace}png-layer-${imageName}`;
