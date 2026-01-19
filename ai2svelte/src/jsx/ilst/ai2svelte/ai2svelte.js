@@ -3395,7 +3395,7 @@ export function main(settingsArg) {
       if (!svgOutput) {
         return ""; // no image was created
       }
-      rewriteSVGFile(outputPath, imgId, settings);
+      rewriteSVGFile(outputPath, imgId, settings, pageName);
 
       if (inlineSvg) {
         if (settings.tagPrefix == "svg") {
@@ -4064,7 +4064,7 @@ export function main(settingsArg) {
   //     saveTextFile(path, newSVG);
   //   }
 
-  function rewriteSVGFile(path, id, settings) {
+  function rewriteSVGFile(path, id, settings, pageName) {
     var svg = readFile(path);
     var selector;
     if (!svg) return;
@@ -4090,7 +4090,7 @@ export function main(settingsArg) {
     // fixes url path for images in SVG
     // uses settings.image_source_path to prepend to image hrefs
     if (!isTrue(settings.svg_embed_images)) {
-      checkForImagesInSVG(svg);
+      svg = checkForImagesInSVG(svg, pageName);
     }
     saveTextFile(path, svg);
   }
@@ -4166,14 +4166,38 @@ export function main(settingsArg) {
     return content;
   }
 
-  function checkForImagesInSVG(content) {
+  function checkForImagesInSVG(content, pageName) {
     var regex = /<image\b[^>]*\bxlink:href="([^"]+)"/g;
     var match;
+    imgDir =
+      "{ assetsPath.replace(new RegExp('/([^/.]+)$'), '/$1/') || '/' }" +
+      settingsArg.settings.image_source_path;
 
     if ((match = regex.exec(content)) !== null) {
       warn(
         "SVG contains linked images that require external image files. Use svg_embed_images setting to embed images in the SVG."
       );
+    }
+
+    if (match[1]) {
+      var ct = content;
+      if (isTrue(settingsArg.settings.isPreview)) {
+        ct = ct.replace(/\bxlink:href="([^"]+)"/g, function (_, href) {
+          const path = pathToFileURL(
+            settingsArg.settings.image_output_path +
+              "tagged/" +
+              pageName +
+              "/" +
+              href
+          );
+          return `xlink:href="${path}"`;
+        });
+      } else {
+        ct = ct.replace(/\bxlink:href="([^"]+)"/g, function (_, href) {
+          return `xlink:href="${imgDir}tagged/${pageName}/${href}"`;
+        });
+      }
+      return ct;
     }
   }
 
@@ -4508,6 +4532,10 @@ export function main(settingsArg) {
       script += ", debugTaggedText = false";
     }
 
+    if (isTrue(settings.allow_overflow)) {
+      script += ", artboardWidth = $bindable(undefined)";
+    }
+
     script += " } = $props();\r";
 
     // if (isTrue(settings.isPreview)) {
@@ -4523,7 +4551,14 @@ export function main(settingsArg) {
     // add prop for onmount function that defaults to noop
     script += "import { onMount, untrack } from 'svelte';\n";
     script += "let aiBox;\n";
-    script += "let aiBoxWidth = $state(undefined);\n";
+
+    if (isTrue(settings.allow_overflow)) {
+      script += "let screenWidth = $state(0);\n";
+      script += "let aiBoxWidth = $derived(artboardWidth ?? screenWidth);\n";
+    } else {
+      script += "let aiBoxWidth = $state(undefined);\n";
+    }
+
     script += isTrue(settings.include_resizer_css)
       ? "let allArtboards = $state([]);\n"
       : "";
@@ -4554,8 +4589,9 @@ export function main(settingsArg) {
       "content: attr(data-tagged-type);",
       "padding: 0px 4px;",
       "font-size: 0.6rem;",
+      "font-style: normal;",
       "color: #fff;",
-      "background-color: black;",
+      "background-color: #ee0000;",
       "display: block;",
       "font-weight: 800;",
       "visibility: var(--debug-tagged-text, hidden);",
@@ -4564,14 +4600,32 @@ export function main(settingsArg) {
       "content: attr(data-tagged-prop);",
       "padding: 0px 4px;",
       "font-size: 0.8rem;",
+      "font-style: normal;",
       "color: #fff;",
       "font-weight: 500;",
       "visibility: var(--debug-tagged-text, hidden);",
       "}\n",
       "." + nameSpace + "taggedText:empty {",
-      "background-color: #00000088;",
-      "outline: 2px solid black;",
+      "background-color: #440000;",
+      "outline: 2px solid #ee0000;",
       "visibility: var(--debug-tagged-text, hidden);",
+      "}\n",
+      "." + nameSpace + "taggedText:not(:empty)::before {",
+      "content: attr(data-tagged-type);",
+      "position: absolute;",
+      "width: calc(100% + 4px);",
+      "transform: translateY(-100%) translateX(-2px);",
+      "padding: 0px 4px;",
+      "font-size: 0.6rem;",
+      "font-style: normal;",
+      "color: #fff;",
+      "background-color: black;",
+      "display: block;",
+      "font-weight: 800;",
+      "visibility: var(--debug-tagged-text, hidden);",
+      "}\n",
+      "." + nameSpace + "taggedText {",
+      "outline: var(--debug-stroke, 0px) solid black;",
       "}\n",
     ].join("\n");
 
@@ -4582,9 +4636,9 @@ export function main(settingsArg) {
     let comment = "\r<!--\r\r";
     comment += "TAGGED TEXT PROPS\r\r";
 
-    comment += "taggedText={{\r";
+    comment += "taggedText={\r";
     comment += JSON.stringify(taggedTextLayers, null, 2) + "\r";
-    comment += "}}\r\r";
+    comment += "}\r\r";
     comment += "-->\r";
 
     return comment;
@@ -4642,7 +4696,8 @@ export function main(settingsArg) {
       isTrue(settings.override_text)
     ) {
       debugTaggedTextVariable =
-        "style:--debug-tagged-text={debugTaggedText ? 'visible' : 'hidden'}";
+        "style:--debug-tagged-text={debugTaggedText ? 'visible' : 'hidden'}\n" +
+        "style:--debug-stroke={debugTaggedText ? '2px' : '0px'}";
 
       taggedTextCSS = setTaggedTextCSS();
 
@@ -4656,7 +4711,7 @@ export function main(settingsArg) {
     var rootBindings = "";
 
     if (isTrue(settings.allow_overflow)) {
-      html += "<svelte:window bind:innerWidth={aiBoxWidth} />\r\r";
+      html += "<svelte:window bind:innerWidth={screenWidth} />\r\r";
       rootBindings = "bind:this={aiBox}";
     } else {
       rootBindings = "bind:this={aiBox} bind:clientWidth={aiBoxWidth}";
