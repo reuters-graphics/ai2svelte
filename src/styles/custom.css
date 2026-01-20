@@ -66,3 +66,7 @@ h1 {
 html {
   scroll-behavior: smooth;
 }
+
+.sl-link-button:where(.astro-uvehmazd).primary {
+  color: var(--sl-color-white);
+}
