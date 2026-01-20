@@ -31,6 +31,9 @@ importers:
       sharp:
         specifier: ^0.34.3
         version: 0.34.3
+      starlight-heading-badges:
+        specifier: ^0.6.1
+        version: 0.6.1(@astrojs/starlight@0.34.4(astro@5.10.1(@types/node@24.0.4)(rollup@4.44.1)(sass@1.91.0)(typescript@5.8.3)))
       svelte:
         specifier: ^5.38.6
         version: 5.38.6
@@ -2211,6 +2214,12 @@ packages:
   split-on-first@1.1.0:
     resolution: {integrity: sha512-43ZssAJaMusuKWL8sKUBQXHWOpq8d6CfN/u1p4gUzfJkM05C8rxTmYrkIPTXapZpORA6LkkzcUulJ8FqA7Uudw==}
     engines: {node: '>=6'}
+
+  starlight-heading-badges@0.6.1:
+    resolution: {integrity: sha512-k89LlfxWSI136QOaedf70cZ29oDfv5xb6C2TIipt0RTk6TltVvUwFKk2H7gd+bVAjpH18CmzlGhCa5moEtyeZA==}
+    engines: {node: '>=18'}
+    peerDependencies:
+      '@astrojs/starlight': '>=0.32.0'
 
   storybook-addon-rtl@1.1.0:
     resolution: {integrity: sha512-L8JljF1M+30rcSuM4JjeIi4ZRmg9WZi/1u4T/5/EQvpDKCMOAq7uHeOKj4YS1InC4Zksnz3DrggXmO3mISXKcQ==}
@@ -5370,6 +5379,16 @@ snapshots:
   spark-md5@3.0.2: {}
 
   split-on-first@1.1.0: {}
+
+  starlight-heading-badges@0.6.1(@astrojs/starlight@0.34.4(astro@5.10.1(@types/node@24.0.4)(rollup@4.44.1)(sass@1.91.0)(typescript@5.8.3))):
+    dependencies:
+      '@astrojs/markdown-remark': 6.3.2
+      '@astrojs/starlight': 0.34.4(astro@5.10.1(@types/node@24.0.4)(rollup@4.44.1)(sass@1.91.0)(typescript@5.8.3))
+      github-slugger: 2.0.0
+      mdast-util-directive: 3.1.0
+      unist-util-visit: 5.0.0
+    transitivePeerDependencies:
+      - supports-color
 
   storybook-addon-rtl@1.1.0: {}
 

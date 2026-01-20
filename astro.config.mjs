@@ -3,6 +3,7 @@ import { defineConfig } from "astro/config";
 import starlight from "@astrojs/starlight";
 import svelte from "@astrojs/svelte";
 import preprocess from "svelte-preprocess";
+import starlightHeadingBadges from "starlight-heading-badges";
 
 // https://astro.build/config
 export default defineConfig({
@@ -54,6 +55,7 @@ export default defineConfig({
           autogenerate: { directory: "contributors" },
         },
       ],
+      plugins: [starlightHeadingBadges()],
     }),
   ],
   vite: {

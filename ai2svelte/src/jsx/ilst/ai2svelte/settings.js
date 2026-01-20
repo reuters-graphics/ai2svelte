@@ -2,7 +2,7 @@ export let defaultSettings = {
   namespace: "g-",
   image_format: ["auto"], // Options: auto, png, png24, jpg, svg
   write_image_files: true,
-  responsiveness: "fixed", // Options: fixed, dynamic
+  responsiveness: "dynamic", // Options: fixed, dynamic
   text_responsiveness: "dynamic", // Options: fixed, dynamic
   max_width: "",
   output: "one-file", // Options: one-file, multiple-files

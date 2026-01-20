@@ -12,6 +12,8 @@ ai2svelte allows users to create tagged layers in their Illustrator documents. T
 
 To create a tagged layer, add a specific tag to the end of the layer name in Illustrator. For example, to designate a layer for SVG export, name it `layer_name:svg`.
 
+---
+
 ### :div
 
 Layers with the `:div` suffix will render rectangles and circles as scaling `<div>` elements in the final output. This enables responsive layouts, allowing these shapes to scale with the viewport size.
@@ -30,6 +32,26 @@ Layers with the `:svg` suffix will have their contents exported as SVG images an
 
 <Aside type="note">
 By default, SVG content is rendered using an `<img>` tag. To embed the SVG code directly in your HTML, enable the `inline_svg` option in your ai2svelte configuration.
+</Aside>
+
+### :text
+
+`:text` tagged layers allow users to input the text content programmatically by using the `taggedText` prop. The `taggedText` prop is an object with keys `text` and `htext` with each containing keys as the layer names (without the `:text` suffix) and housing key value pairs for each text object in the layer.
+
+### :htext
+
+`:htext` tagged layers function similarly to `:text` layers but render the text as HTML content wrapped inside the svelte's `@html` directive. This allows for more complex formatting and styling options.
+
+<Aside type="note">
+  Set `override_text: true` in ai2svelte settings to ensure that text content
+  from `:text` and `:htext` layers is always sourced from the `taggedText` prop,
+  regardless of the existing text in the Illustrator document.
+</Aside>
+
+<Aside type="tip">
+  A rough definition of the `taggedText` prop customised to your layers can be
+  found as a comment at the bottom of the generated Svelte file for easy
+  reference.
 </Aside>
 
 ### Artboard tags
