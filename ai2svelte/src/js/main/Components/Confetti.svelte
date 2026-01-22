@@ -3,8 +3,6 @@
   import { triggerConfetti } from "../stores";
   import { userData } from "../state.svelte";
 
-  let screenHeight: number = $state(0);
-
   const colors = $derived([
     userData.theme === "dark" ? "#888" : "#888",
     userData.accentColor || "#dc4300",
@@ -12,7 +10,6 @@
 
   function throwConfetti() {
     const end = Date.now() + 0.5 * 1000;
-    const height = window.innerHeight;
 
     (function frame() {
       confetti({
@@ -23,7 +20,7 @@
         colors: colors,
         scalar: 1,
         shapes: ["circle", "square"],
-        startVelocity: 30,
+        startVelocity: 40,
         gravity: 3,
       });
 
@@ -35,7 +32,7 @@
         colors: colors,
         scalar: 1,
         shapes: ["circle", "square"],
-        startVelocity: 30,
+        startVelocity: 40,
         gravity: 3,
       });
 
@@ -52,8 +49,6 @@
     }
   });
 </script>
-
-<svelte:window bind:innerHeight={screenHeight} />
 
 <div class="background-ele"></div>
 
