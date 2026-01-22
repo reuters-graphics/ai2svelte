@@ -47,3 +47,5 @@ export const forcePreview: Writable<boolean> = writable(false);
 export const triggerConfetti: Writable<boolean> = writable(false);
 
 export const lastSaved: Writable<{ time: Date } | "Never"> = writable("Never");
+
+export const lastPreviewObject: Writable<Record<string, any>> = writable({});

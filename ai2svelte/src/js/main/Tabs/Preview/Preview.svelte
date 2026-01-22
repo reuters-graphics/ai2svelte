@@ -11,6 +11,7 @@
     styles,
     unsavedChanges,
     forcePreview,
+    lastPreviewObject,
   } from "../../stores";
   import { userData } from "../../state.svelte";
 
@@ -93,14 +94,17 @@
     $forcePreview = false;
   }
 
+  const stableStringify = (obj: Record<string, any>) =>
+    JSON.stringify(obj, Object.keys(obj).sort());
+
+  const deepEqual = (a: Record<string, any>, b: Record<string, any>) =>
+    stableStringify(structuredClone(a)) === stableStringify(structuredClone(b));
+
   onMount(async () => {
     previewWidth.target = window.innerWidth;
     previewHeight.target = 0.8 * window.innerHeight;
 
     if (window.cep) {
-      saveSettings($settingsObject, $styles, version);
-
-      console.log("✅ Generated preview.js successfully.");
       await loadPreview();
       await create();
     } else {
@@ -135,7 +139,12 @@
 
     // run ai2svelte script with preview settings
     // run only if there are unsaved changes
-    if ($unsavedChanges.flag || forceRender) {
+    const previewObject = {
+      settings: $settingsObject,
+      stylesString: $stylesString,
+    };
+
+    if (!deepEqual(previewObject, $lastPreviewObject) || forceRender) {
       await fs.unlink(inputPath, (err) => {
         if (err) throw err;
         console.log("Preview.svelte was deleted");
@@ -156,6 +165,11 @@
         },
         writablePath,
       );
+
+      $lastPreviewObject = {
+        settings: $settingsObject,
+        stylesString: $stylesString,
+      };
 
       compileComponent();
 
