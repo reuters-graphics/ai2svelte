@@ -187,6 +187,7 @@
     position: absolute;
     width: 100%;
     background-color: var(--color-tertiary);
+    opacity: 0.5;
     border-radius: var(--space-2xs);
     top: 0px;
     z-index: 3;

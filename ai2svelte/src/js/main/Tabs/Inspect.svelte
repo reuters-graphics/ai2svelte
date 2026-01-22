@@ -8,7 +8,6 @@
   } from "../stores";
 
   // COMPONENT
-  import CmTextArea from "../Components/CMTextArea.svelte";
   import SectionTitle from "../Components/SectionTitle.svelte";
   import Button from "../Components/Button.svelte";
 
@@ -16,8 +15,11 @@
   import { version } from "../../../shared/shared";
   import { evalTS } from "../../lib/utils/bolt";
 
-  // holds key-value pairs for live settings as string
-  let yamlSettingsString: string = $derived.by(() => {
+  // LIB IMPORTS
+  import { diffLines } from "diff";
+
+  // holds key-value pairs for current settings as string
+  let currentYamlSettingsString: string = $derived.by(() => {
     if ($settingsObject && !$updateInProgress) {
       return Object.keys($settingsObject)
         .filter((key) => $settingsObject[key] !== null)
@@ -30,7 +32,7 @@
   });
 
   // holds key-value pairs for saved settings as string
-  let yamlSavedSettingsString: string = $derived.by(() => {
+  let SavedYamlSettingsString: string = $derived.by(() => {
     if ($savedSettings && !$updateInProgress) {
       return Object.keys($savedSettings)
         .filter((key) => $savedSettings[key] !== null)
@@ -43,7 +45,7 @@
   });
 
   // holds styles object as string
-  let liveCssString: string = $derived.by(() => {
+  let currentCssString: string = $derived.by(() => {
     if ($styles?.root && !$updateInProgress) {
       let string = $styles?.root?.toString() || "";
       return string;
@@ -55,7 +57,6 @@
   let savedCssString: string = $derived.by(() => {
     if ($savedStyles?.root && !$updateInProgress) {
       let string = $savedStyles?.root?.toString() || "";
-      //   string = JSON.stringify($savedStyles);
       return string;
     } else {
       return "";
@@ -70,6 +71,13 @@
     evalTS("setVariable", "version", { version: version });
     alert("File data has been reset. Rerun ai2svelte to save changes.");
   }
+
+  let settingsDiff = $derived(
+    diffLines(SavedYamlSettingsString, currentYamlSettingsString),
+  );
+  let stylesDiff = $derived(diffLines(savedCssString, currentCssString));
+
+  $inspect(settingsDiff);
 </script>
 
 <div class="tab-content">
@@ -81,23 +89,21 @@
     tooltipDescription={["Show settings", "Show styles"]}
   />
   {#if activeTab == "Settings"}
-    <p>Saved settings</p>
-    <CmTextArea
-      bind:textValue={yamlSavedSettingsString}
-      readonly={true}
-      type="yaml"
-    />
-    <p>Live settings</p>
-    <CmTextArea
-      bind:textValue={yamlSettingsString}
-      readonly={true}
-      type="yaml"
-    />
+    <div class="diff-checker">
+      {#each settingsDiff as row}
+        <p class="status-{row.added ? 'added' : row.removed ? 'removed' : ''}">
+          {@html row.value.replaceAll("\n", "<br>")}
+        </p>
+      {/each}
+    </div>
   {:else if activeTab == "Styles"}
-    <p>Saved Styles</p>
-    <CmTextArea bind:textValue={savedCssString} type="css" readonly={true} />
-    <p>Live Styles</p>
-    <CmTextArea bind:textValue={liveCssString} type="css" readonly={true} />
+    <div class="diff-checker">
+      {#each stylesDiff as row}
+        <p class="status-{row.added ? 'added' : row.removed ? 'removed' : ''}">
+          {@html row.value.replaceAll("\n", "<br>")}
+        </p>
+      {/each}
+    </div>
   {/if}
 </div>
 
@@ -106,5 +112,27 @@
     display: flex;
     flex-direction: column;
     gap: 16px;
+  }
+
+  .diff-checker {
+    padding: var(--space-l);
+    color: var(--color-text);
+    background-color: var(--color-primary);
+    border-radius: var(--space-s);
+
+    p {
+      padding: 2px 4px;
+      margin: 0;
+    }
+
+    .status-removed {
+      color: #d82028;
+      background-color: #ca003522;
+    }
+
+    .status-added {
+      color: #038c33;
+      background-color: #038c3322;
+    }
   }
 </style>

@@ -53,7 +53,7 @@ p {
 p::selection,
 input::selection {
   background-color: var(--color-accent-primary);
-  color: var(--color-text);
+  color: var(--color-white);
 }
 
 ::-webkit-scrollbar {
