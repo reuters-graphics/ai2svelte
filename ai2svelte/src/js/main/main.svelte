@@ -13,6 +13,7 @@
     userSpecimens,
     userShadowsBaked,
     unsavedChanges,
+    forcePreview,
   } from "./stores";
 
   // BOLT IMPORTS
@@ -47,6 +48,7 @@
   import Inspect from "./Tabs/Inspect.svelte";
   import Alert from "./Components/Alert.svelte";
   import Preview from "./Tabs/Preview/Preview.svelte";
+  import Confetti from "./Components/Confetti.svelte";
 
   let splashScreen: boolean = $state(false);
   let activeTab: string = $state("HOME");
@@ -259,6 +261,8 @@
 </script>
 
 {#if splashScreen}
+  <Confetti />
+
   {#if $unsavedChanges.flag}
     <Alert message={$unsavedChanges.message} />
   {/if}
@@ -269,7 +273,9 @@
   {:else if activeTab === "STYLES"}
     <Styles />
   {:else if activeTab === "PREVIEW"}
-    <Preview />
+    {#key $forcePreview}
+      <Preview forceRender={$forcePreview} />
+    {/key}
   {:else if activeTab === "SETTINGS"}
     <Settings />
   {:else if activeTab === "INSPECT"}

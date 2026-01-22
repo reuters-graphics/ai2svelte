@@ -4,6 +4,7 @@
     stylesString,
     styles,
     ai2svelteInProgress,
+    triggerConfetti,
   } from "../../stores";
   import { evalTS } from "../../../lib/utils/bolt";
 
@@ -56,14 +57,17 @@
         {
           styleText: $styles?.root?.toString(),
         },
-        version
+        version,
       );
 
       // fetch updated settings
       // and update the UI
       refreshSettings();
 
+      $triggerConfetti = true;
       $ai2svelteInProgress = false;
+    } else {
+      $triggerConfetti = true;
     }
   }
 </script>

@@ -41,3 +41,7 @@ export const userShadowsBaked: Writable<ShadowItem[]> = writable([]);
 
 export const unsavedChanges: Writable<{ flag: boolean; message: string }> =
   writable({ flag: true, message: "" });
+
+export const forcePreview: Writable<boolean> = writable(false);
+
+export const triggerConfetti: Writable<boolean> = writable(false);

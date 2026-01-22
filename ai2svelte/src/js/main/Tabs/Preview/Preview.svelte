@@ -10,6 +10,7 @@
     stylesString,
     styles,
     unsavedChanges,
+    forcePreview,
   } from "../../stores";
   import { userData } from "../../state.svelte";
 
@@ -26,6 +27,8 @@
   import { version } from "../../../../shared/shared";
   // @ts-ignore
   import { compileComponent } from "./startServer";
+
+  let { forceRender = false }: { forceRender?: boolean } = $props();
 
   let PreviewComponent: ComponentType | undefined = $state();
 
@@ -86,6 +89,10 @@
     }
   }
 
+  function resetForcePreview() {
+    $forcePreview = false;
+  }
+
   onMount(async () => {
     previewWidth.target = window.innerWidth;
     previewHeight.target = 0.8 * window.innerHeight;
@@ -103,6 +110,8 @@
         onArtboardChange: onArtboardChange,
       });
     }
+
+    resetForcePreview();
   });
 
   onDestroy(() => {
@@ -126,7 +135,7 @@
 
     // run ai2svelte script with preview settings
     // run only if there are unsaved changes
-    if ($unsavedChanges.flag) {
+    if ($unsavedChanges.flag || forceRender) {
       await fs.unlink(inputPath, (err) => {
         if (err) throw err;
         console.log("Preview.svelte was deleted");
@@ -145,7 +154,7 @@
           settings: $settingsObject,
           code: { css: $stylesString, fontsConfig: userData.fontsConfig },
         },
-        writablePath
+        writablePath,
       );
 
       compileComponent();
@@ -182,7 +191,7 @@
                     --data-name: "${snippetNode.getAttribute("data-name")}";
                 }
             `,
-        0
+        0,
       );
     });
   }

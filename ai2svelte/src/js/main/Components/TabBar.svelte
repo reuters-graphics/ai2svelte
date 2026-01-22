@@ -8,6 +8,7 @@
   import { tooltip } from "svooltip";
   import { userData } from "../state.svelte";
   import { tooltipSettings, writeFile } from "../utils/utils";
+  import { forcePreview } from "../stores";
 
   // COMPONENT
   import ThemeSwitcher from "./ThemeSwitcher.svelte";
@@ -48,7 +49,7 @@
     if (accentColor) {
       document.documentElement.style.setProperty(
         "--color-accent-primary",
-        accentColor
+        accentColor,
       );
       userData.accentColor = accentColor;
       if (window.cep) {
@@ -129,6 +130,13 @@
         <div in:fly={{ x: 20, duration: 600 }}>
           <RunButton minimal />
         </div>
+        {#if activeLabel == "PREVIEW"}
+          <button
+            onclick={() => {
+              $forcePreview = true;
+            }}>Refresh preview</button
+          >
+        {/if}
       {/if}
     </div>
   </div>

@@ -4181,13 +4181,15 @@ export function main(settingsArg) {
       "{ assetsPath.replace(new RegExp('/([^/.]+)$'), '/$1/') || '/' }" +
       settingsArg.settings.image_source_path;
 
-    if ((match = regex.exec(content)) !== null) {
+    match = regex.exec(content);
+
+    if (match !== null) {
       warn(
         "SVG contains linked images that require external image files. Use svg_embed_images setting to embed images in the SVG.",
       );
     }
 
-    if (match[1]) {
+    if (match !== null && match[1]) {
       var ct = content;
       if (isTrue(settingsArg.settings.isPreview)) {
         ct = ct.replace(/\bxlink:href="([^"]+)"/g, function (_, href) {
@@ -4206,6 +4208,8 @@ export function main(settingsArg) {
         });
       }
       return ct;
+    } else {
+      return content;
     }
   }
 
