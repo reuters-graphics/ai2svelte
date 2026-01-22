@@ -9,6 +9,7 @@
   import { userData } from "../state.svelte";
   import { tooltipSettings, writeFile } from "../utils/utils";
   import { forcePreview } from "../stores";
+  import { fetchSettings } from "../utils/utils";
 
   // COMPONENT
   import ThemeSwitcher from "./ThemeSwitcher.svelte";
@@ -128,7 +129,7 @@
         </div>
       {:else}
         <div in:fly={{ x: 20, duration: 600 }}>
-          <RunButton minimal />
+          <RunButton minimal refreshSettings={fetchSettings} />
         </div>
         {#if activeLabel == "PREVIEW"}
           <button

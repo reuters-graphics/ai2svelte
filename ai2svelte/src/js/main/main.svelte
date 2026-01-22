@@ -17,7 +17,7 @@
   } from "./stores";
 
   // BOLT IMPORTS
-  import { csi, evalTS } from "../lib/utils/bolt";
+  import { csi } from "../lib/utils/bolt";
   import { version } from "../../shared/shared";
 
   // STYLE IMPORT
@@ -29,16 +29,11 @@
 
   // OTHER IMPORTS
   import JSON5 from "json5";
-  import { userData } from "./state.svelte";
   import { readFile, saveSettings, writeFile } from "./utils/utils";
-  import defaultProfile from "./Tabs/data/default-profile.json";
-  import { parseCSS } from "./utils/cssUtils";
   import { bakeShadows } from "./utils/bakeShadows";
-  import postcss from "postcss";
-  // @ts-ignore
-  import safeParser from "postcss-safe-parser";
   // @ts-ignore
   import { precheck } from "./precheck/precheck.js";
+  import { fetchSettings } from "./utils/utils";
 
   // TABS
   import TabBar from "./Components/TabBar.svelte";
@@ -55,58 +50,6 @@
   let previousSettings: Record<string, any> | undefined = $state();
 
   let inspectMode: boolean = $state(false);
-
-  /**
-   * Fetches plugin settings from Illustrator document,
-   * updates the corresponding Svelte stores, and manages the splash screen state.
-   *
-   * @async
-   * @returns {Promise<void>} Resolves when settings and styles have been fetched and updated.
-   */
-  async function fetchSettings(): Promise<void> {
-    // fetch user settings
-    // and update the store
-    const userSettings = readFile("user-settings.json");
-    if (userSettings && Object.keys(userSettings).length != 0) {
-      console.log("found user settings");
-      userData.theme = userSettings.theme;
-      userData.accentColor = userSettings.accentColor;
-      userData.fontsConfig = userSettings.fontsConfig || {};
-    } else {
-      console.log("no user settings found, creating settings file");
-      writeFile("user-settings.json", userData);
-    }
-
-    console.log("fetching settings...");
-    const fetchedSettings = await evalTS("getVariable", "ai-settings");
-
-    if (Object.keys(fetchedSettings).length == 0) {
-      // no settings found, first time use
-      // use user's default settings
-      let usersProfiles = await readFile("user-profiles.json");
-
-      if (usersProfiles && Object.keys(usersProfiles).includes("default")) {
-        settingsObject.set(usersProfiles.default);
-      } else {
-        settingsObject.set(defaultProfile.default);
-      }
-      savedSettings.set({});
-      $styles = await postcss().process("", { parser: safeParser });
-      $savedStyles = await postcss().process("", { parser: safeParser });
-    } else {
-      // settings found, use them
-      savedSettings.set({ ...fetchedSettings });
-      settingsObject.set({ ...fetchedSettings });
-      const fetchedStyles = await evalTS("getVariable", "css-settings");
-      const stylesAST = await parseCSS(fetchedStyles.styleText);
-      $savedStyles = await postcss().process(stylesAST.root.clone(), {
-        from: undefined,
-      });
-      $styles = await postcss().process(stylesAST.root.clone(), {
-        from: undefined,
-      });
-    }
-  }
 
   /**
    * Fetches users style JSONs from user data
@@ -176,8 +119,8 @@
     }
   }
 
+  // do initial checks and fetch settings
   function performPrecheck() {
-    // do initial checks
     precheck();
 
     fetchSettings();

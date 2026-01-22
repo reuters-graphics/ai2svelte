@@ -32,7 +32,7 @@
       // unless set by user
       try {
         // ai2svelte throws list of missing font families, if any
-        missingFontFamilies = await evalTS("runNightly", {
+        missingFontFamilies = await evalTS("runAi2Svelte", {
           settings: {
             show_completion_dialog_box: true,
             ...$settingsObject,

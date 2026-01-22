@@ -4,9 +4,11 @@
   import { saveSettings, tooltipSettings } from "../../utils/utils";
   import { company, displayName, version } from "../../../../shared/shared";
   import { tooltip } from "svooltip";
+  import { lastSaved } from "../../stores";
 
   import Logo from "../../Components/Logo.svelte";
   import RunButton from "./RunButton.svelte";
+  import { fly } from "svelte/transition";
 
   let { refreshSettings = () => {} } = $props();
 </script>
@@ -28,6 +30,17 @@
         content: "Export as a reusable template",
       }}>Export as template</button
     >
+
+    <div class="file-info">
+      <strong><p>Last saved</p></strong>
+      {#key $lastSaved}
+        <p in:fly={{ y: 20, duration: 200 }}>
+          {$lastSaved !== "Never" && $lastSaved.time
+            ? new Date($lastSaved.time).toString()
+            : "Never"}
+        </p>
+      {/key}
+    </div>
   </div>
 
   <div id="credits">
@@ -104,5 +117,11 @@
     text-align: center;
     color: var(--color-tertiary);
     letter-spacing: -0.05rem;
+  }
+
+  .file-info {
+    p {
+      text-align: center;
+    }
   }
 </style>

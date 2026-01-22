@@ -29,7 +29,7 @@ export const evalES = (script: string, isGlobal = false): Promise<string> => {
       "try{" + fullString + "}catch(e){alert(e);}",
       (res: string) => {
         resolve(res);
-      }
+      },
     );
   });
 };
@@ -70,7 +70,7 @@ type ReturnType<F extends Function> = F extends (...args: infer A) => infer B
 
 export const evalTS = <
   Key extends string & keyof Scripts,
-  Func extends Function & Scripts[Key]
+  Func extends Function & Scripts[Key],
 >(
   functionName: Key,
   ...args: ArgTypes<Func>
@@ -108,7 +108,7 @@ export const evalTS = <
         } catch (error) {
           reject(res);
         }
-      }
+      },
     );
   });
 };
@@ -120,7 +120,7 @@ export const evalFile = (file: string) => {
       '") : fl.runScript(FLfile.platformPathToURI("' +
       file +
       '"));',
-    true
+    true,
   );
 };
 
@@ -159,7 +159,7 @@ export const evalFile = (file: string) => {
 export const listenTS = <Key extends string & keyof EventTS>(
   event: Key,
   callback: (data: EventTS[Key]) => void,
-  isLocal = true
+  isLocal = true,
 ) => {
   const fullEvent = isLocal ? `${ns}.${event}` : event;
   const csi = new CSInterface();
@@ -190,7 +190,7 @@ export const dispatchTS = <Key extends string & keyof EventTS>(
   scope = "APPLICATION",
   appId = csi.getApplicationID() as string,
   id = csi.getExtensionID() as string,
-  isLocal = true
+  isLocal = true,
 ) => {
   const fullEvent = isLocal ? `${ns}.${event}` : event;
   // console.log(`dispatching ${fullEvent}`);
@@ -229,7 +229,7 @@ export const openLinkInBrowser = (url: string) => {
 
 export const getAppBackgroundColor = () => {
   const { green, blue, red } = JSON.parse(
-    window.__adobe_cep__.getHostEnvironment() as string
+    window.__adobe_cep__.getHostEnvironment() as string,
   ).appSkinInfo.panelBackgroundColor.color;
   return {
     rgb: {
@@ -254,7 +254,7 @@ export const subscribeBackgroundColor = (callback: (color: string) => void) => {
   csi.addEventListener(
     "com.adobe.csxs.events.ThemeColorChanged",
     () => callback(getColor()),
-    {}
+    {},
   );
 };
 
@@ -282,7 +282,7 @@ export const vulcanListen = (id: string, callback: Function) => {
       const msgObj = JSON.parse(msgStr);
       callback(msgObj);
     },
-    null
+    null,
   );
 };
 
@@ -302,7 +302,7 @@ interface IOpenDialogResult {
 export const selectFolder = (
   dir: string,
   msg: string,
-  callback: (res: string) => void
+  callback: (res: string) => void,
 ) => {
   const result = (
     window.cep.fs.showOpenDialogEx || window.cep.fs.showOpenDialog
@@ -316,7 +316,7 @@ export const selectFolder = (
 export const selectFile = (
   dir: string,
   msg: string,
-  callback: (res: string) => void
+  callback: (res: string) => void,
 ) => {
   const result = (
     window.cep.fs.showOpenDialogEx || window.cep.fs.showOpenDialog

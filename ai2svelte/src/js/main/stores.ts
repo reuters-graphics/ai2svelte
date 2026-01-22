@@ -45,3 +45,5 @@ export const unsavedChanges: Writable<{ flag: boolean; message: string }> =
 export const forcePreview: Writable<boolean> = writable(false);
 
 export const triggerConfetti: Writable<boolean> = writable(false);
+
+export const lastSaved: Writable<{ time: Date } | "Never"> = writable("Never");

@@ -48,7 +48,7 @@ export const getVariable = (key) => {
   }
 };
 
-export const runNightly = (settings) => {
+export const runAi2Svelte = (settings) => {
   if (app) {
     return main(settings);
   }
