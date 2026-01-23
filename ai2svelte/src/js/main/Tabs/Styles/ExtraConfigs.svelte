@@ -4,16 +4,22 @@
 
   // UTILS
   import { fetchNewImageURL, tooltipSettings } from "../../utils/utils";
+  // @ts-ignore
+  import { captureRegion } from "./screenSnip";
 
   // MEDIA
   import replaceImageIcon from "../../../assets/replace_image.svg";
   import typeSpecimenIcon from "../../../assets/type_specimen.svg";
+  import captureRegionIcon from "../../../assets/capture_region.svg";
 
   // DATA IMPORTS
   import { currentBackdrop, userSpecimens } from "../../stores";
   import { onMount } from "svelte";
   import { stylesState } from "./stylesState.svelte";
   import type { SpecimenWeight } from "./stylesState.svelte";
+
+  // NODE IMPORTS
+  import { os, path } from "../../../lib/cep/node";
 
   let { activeTab = "shadows", activeFormat = "UI" } = $props();
 
@@ -62,6 +68,10 @@
     stylesState.specimenWeight = weight as SpecimenWeight;
   }
 
+  async function captureBackdrop(): Promise<void> {
+    await captureRegion();
+  }
+
   onMount(async () => {
     allSpecimens = [...$userSpecimens];
 
@@ -76,6 +86,24 @@
     ? "showConfigs"
     : "hideConfigs"}
 >
+  {#if window.cep && os.platform() === "darwin"}
+    <button
+      id="capture-region"
+      onclick={captureBackdrop}
+      aria-label="Capture backdrop"
+      use:tooltip={{
+        ...tooltipSettings,
+        content: "Capture backdrop",
+      }}
+    >
+      <img
+        style="width: 100%;"
+        src={captureRegionIcon}
+        alt="Capture backdrop"
+      />
+    </button>
+  {/if}
+
   <button
     id="replace-image"
     onclick={changeBackdrop}
@@ -184,7 +212,8 @@
     }
 
     #replace-image,
-    #replace-specimen {
+    #replace-specimen,
+    #capture-region {
       padding: 0;
       margin: 0;
       border: unset;
@@ -193,7 +222,8 @@
     }
 
     #replace-image:hover,
-    #replace-specimen:hover {
+    #replace-specimen:hover,
+    #capture-region:hover {
       filter: brightness(1.5);
     }
   }

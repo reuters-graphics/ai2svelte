@@ -130,14 +130,16 @@
       {:else}
         <div in:fly={{ x: 20, duration: 600 }}>
           <RunButton minimal refreshSettings={fetchSettings} />
+          {#if activeLabel == "PREVIEW"}
+            <Button
+              minimal
+              text="Refresh Preview"
+              onClick={() => {
+                $forcePreview = true;
+              }}
+            />
+          {/if}
         </div>
-        {#if activeLabel == "PREVIEW"}
-          <button
-            onclick={() => {
-              $forcePreview = true;
-            }}>Refresh preview</button
-          >
-        {/if}
       {/if}
     </div>
   </div>
@@ -229,7 +231,7 @@
     display: flex;
     flex-direction: row;
     align-items: center;
-    gap: var(--space-sm);
+    gap: var(--space-xs);
   }
 
   .theme-configs {

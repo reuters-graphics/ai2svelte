@@ -3,9 +3,17 @@
     text: string;
     onClick?: () => void;
     disabled?: boolean;
+    args?: any;
+    minimal?: boolean;
   }
 
-  let { text, onClick, disabled = false }: Props = $props();
+  let {
+    text,
+    onClick,
+    disabled = false,
+    minimal = false,
+    args,
+  }: Props = $props();
 </script>
 
 <button
@@ -13,7 +21,9 @@
   onclick={() => {
     if (onClick) onClick();
   }}
+  class:minimal
   {disabled}
+  {...args}
 >
   {text}
 </button>
@@ -38,5 +48,15 @@
   button:hover {
     background-color: var(--color-accent-primary);
     color: var(--color-white);
+  }
+
+  .minimal {
+    cursor: pointer;
+    font-weight: 700;
+    font-size: var(--font-size-base);
+    text-transform: uppercase;
+    padding: var(--space-2xs);
+    margin: 0;
+    letter-spacing: 0;
   }
 </style>
