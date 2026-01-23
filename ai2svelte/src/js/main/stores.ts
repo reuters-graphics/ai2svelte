@@ -26,7 +26,7 @@ export const ai2svelteInProgress: Writable<boolean> = writable(false);
 
 export const userTheme: Writable<string> = writable("dark");
 
-export const currentBackdrop: Writable<number> = writable(0);
+export const currentBackdrop: Writable<number> = writable(2);
 
 export const alertObject: Writable<{ flag: boolean; message: string }> =
   writable({
