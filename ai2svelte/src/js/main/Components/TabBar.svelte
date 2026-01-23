@@ -128,7 +128,7 @@
           </div>
         </div>
       {:else}
-        <div in:fly={{ x: 20, duration: 600 }}>
+        <div class="button-container" in:fly={{ x: 20, duration: 600 }}>
           <RunButton minimal refreshSettings={fetchSettings} />
           {#if activeLabel == "PREVIEW"}
             <Button
@@ -177,6 +177,13 @@
     flex-direction: row;
     align-items: center;
     justify-content: space-between;
+  }
+
+  .button-container {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    gap: var(--space-xs);
   }
 
   .tab-line {
