@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { tick } from "svelte";
   import { fly, slide } from "svelte/transition";
 
   export interface DropdownProps {
@@ -30,10 +31,20 @@
     }
   });
 
+  function closeMenu() {
+    menuOpen = false;
+    window.removeEventListener("click", closeMenu);
+  }
+
   $effect(() => {
     if (parentContainer && menuOpen && chaserElement instanceof HTMLElement) {
       chaserElement.style.top = "0px";
       chaserElement.style.height = "unset";
+
+      // add closing event listener on next frame to avoid immediate close
+      requestAnimationFrame(() => {
+        window.addEventListener("click", closeMenu);
+      });
     }
   });
 </script>

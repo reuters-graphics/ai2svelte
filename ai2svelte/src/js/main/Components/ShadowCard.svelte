@@ -1,6 +1,6 @@
 <script lang="ts">
   import { onMount } from "svelte";
-  import { fly } from "svelte/transition";
+  import { slide } from "svelte/transition";
 
   interface Props {
     name: string;
@@ -35,13 +35,13 @@
       .toLowerCase()
       .split(" ")
       .map((x: string, i: number) =>
-        i == 0 ? x : x[0].toUpperCase() + x.substring(1)
+        i == 0 ? x : x[0].toUpperCase() + x.substring(1),
       )
-      .join("")
+      .join(""),
   );
 
   let shadowModified: string = $derived(
-    shadow.replaceAll("#000000", shadowColor)
+    shadow.replaceAll("#000000", shadowColor),
   );
 
   let mounted = $state(false);
@@ -66,7 +66,7 @@
       active = !active;
       onChange();
     }}
-    in:fly={{ y: 20, duration: 150, delay: delay }}
+    in:slide={{ axis: "y", duration: 150, delay: delay }}
   >
     <p class="card-title" style="pointer-events:none;">{name}</p>
     <div style="position: relative; contain: unset; pointer-events:none;">

@@ -2,7 +2,7 @@
   import Dropdown from "./Dropdown.svelte";
   import InputText from "./InputText.svelte";
   import InputRange from "./InputRange.svelte";
-  import { fly } from "svelte/transition";
+  import { fly, slide } from "svelte/transition";
   import { onMount } from "svelte";
 
   interface Props {

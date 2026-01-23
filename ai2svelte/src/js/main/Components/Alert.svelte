@@ -1,9 +1,9 @@
 <script lang="ts">
-  import { fly } from "svelte/transition";
+  import { slide } from "svelte/transition";
   let { message } = $props();
 </script>
 
-<div class="alert" transition:fly={{ y: 20 }}>
+<div class="alert" transition:slide={{ axis: "y", duration: 200 }}>
   {message}
 </div>
 
