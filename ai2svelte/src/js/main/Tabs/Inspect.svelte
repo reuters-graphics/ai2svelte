@@ -81,37 +81,50 @@
 </script>
 
 <div class="tab-content">
-  <Button text="reset file data" onClick={resetFileData} />
-  <SectionTitle
-    title="Debug objects"
-    labels={["Settings", "Styles"]}
-    bind:activeValue={activeTab}
-    tooltipDescription={["Show settings", "Show styles"]}
-  />
-  {#if activeTab == "Settings"}
-    <div class="diff-checker">
-      {#each settingsDiff as row}
-        <p class="status-{row.added ? 'added' : row.removed ? 'removed' : ''}">
-          {@html row.value.replaceAll("\n", "<br>")}
-        </p>
-      {/each}
-    </div>
-  {:else if activeTab == "Styles"}
-    <div class="diff-checker">
-      {#each stylesDiff as row}
-        <p class="status-{row.added ? 'added' : row.removed ? 'removed' : ''}">
-          {@html row.value.replaceAll("\n", "<br>")}
-        </p>
-      {/each}
-    </div>
-  {/if}
+  <div class="inspect-tools">
+    <SectionTitle
+      title="Debug objects"
+      labels={["Settings", "Styles"]}
+      bind:activeValue={activeTab}
+      tooltipDescription={["Show settings", "Show styles"]}
+    />
+    {#if activeTab == "Settings"}
+      <div class="diff-checker">
+        {#each settingsDiff as row}
+          <p
+            class="status-{row.added ? 'added' : row.removed ? 'removed' : ''}"
+          >
+            {@html row.value.replaceAll("\n", "<br>")}
+          </p>
+        {/each}
+      </div>
+    {:else if activeTab == "Styles"}
+      <div class="diff-checker">
+        {#each stylesDiff as row}
+          <p
+            class="status-{row.added ? 'added' : row.removed ? 'removed' : ''}"
+          >
+            {@html row.value.replaceAll("\n", "<br>")}
+          </p>
+        {/each}
+      </div>
+    {/if}
+  </div>
+  <Button text="reset file metadata" onClick={resetFileData} />
 </div>
 
 <style lang="scss">
   .tab-content {
     display: flex;
     flex-direction: column;
-    gap: 16px;
+    justify-content: space-between;
+    height: 100%;
+  }
+
+  .inspect-tools {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-m);
   }
 
   .diff-checker {
