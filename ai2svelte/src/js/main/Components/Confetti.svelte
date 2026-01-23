@@ -49,16 +49,3 @@
     }
   });
 </script>
-
-<div class="background-ele"></div>
-
-<style lang="scss">
-  .background-ele {
-    position: absolute;
-    width: 100vw;
-    height: 100lvh;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-  }
-</style>
