@@ -33,12 +33,14 @@ export async function captureRegion() {
       console.error(`stderr: ${stderr}`);
       return;
     }
+    if (stdout) {
+      console.log(`stdout: ${stdout}`);
+    }
 
     await fs.readFile(outputPath, { encoding: "base64" }, (err, data) => {
       // Then push it to our array with the correct metadata prefix
       if (!err) {
         const imgData = `data:image/jpeg;charset=utf-8;base64,${data}`;
-        console.log("imgData", imgData);
         stylesState.backdrop = imgData;
       }
     });
