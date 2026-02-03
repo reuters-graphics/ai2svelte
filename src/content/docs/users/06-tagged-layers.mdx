@@ -26,6 +26,12 @@ Layers with the `:symbol` suffix will render rectangles and circles as non-scali
 
 Layers with the `:png` suffix will have their contents exported as PNG images, which are then included as separate `<img>` tags in the output. Use this tag for rasterized portions of your artwork that require special handling.
 
+You can also use the `:png24` suffix to export higher-quality PNG images with better color depth.
+
+:::note
+It is advised to get the best result for blending modes off `:png`/`:png24` layers, apply blending mode directly to the parent layer since `:png`/`:png24` tagged layers are rasterised together with the child elements.
+:::
+
 ### :svg
 
 Layers with the `:svg` suffix will have their contents exported as SVG images and embedded as SVG in the final output. This is ideal for vector graphics that need to remain crisp at any size.
@@ -33,6 +39,12 @@ Layers with the `:svg` suffix will have their contents exported as SVG images an
 <Aside type="note">
 By default, SVG content is rendered using an `<img>` tag. To embed the SVG code directly in your HTML, enable the `inline_svg` option in your ai2svelte configuration.
 </Aside>
+
+:::note
+Stacking multiple blend modes between parent and child in `:svg` tagged layers are inconsistent in how Adobe Illustrator and Web implements it.
+
+For safe result, let the parent layer be blended as NORMAL and apply blending modes to child elements.
+:::
 
 ### :text
 

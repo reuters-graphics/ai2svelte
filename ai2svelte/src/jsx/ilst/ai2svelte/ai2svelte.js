@@ -4477,7 +4477,7 @@ export function main(settingsArg) {
     }
   }
 
-  function addArtboardChangeEffect() {
+  function addArtboardChangeEffect(settings) {
     let resizerArtboards =
       "const currentArtboard = allArtboards.filter((artboard) => {\n" +
       "const minWidth = parseFloat(artboard.dataset.minWidth);\n" +
@@ -4488,12 +4488,18 @@ export function main(settingsArg) {
     let nonResizerArtboards =
       "const currentArtboard = aiBox.querySelectorAll('.g-artboard')[0];\n";
 
+    let resizerBlock = "";
+
+    if (isTrue(settings.include_resizer_css)) {
+      resizerBlock = resizerArtboards;
+    } else {
+      resizerBlock = nonResizerArtboards;
+    }
+
     let effectCode =
       "$effect(() => {\n" +
       "if (aiBoxWidth) {\n" +
-      (isTrue(settingsArg.settings.include_resizer_css)
-        ? resizerArtboards
-        : nonResizerArtboards) +
+      resizerBlock +
       "if (currentArtboard?.id !== activeArtboard?.id) {\n" +
       "activeArtboard = untrack(() => currentArtboard);\n" +
       "onArtboardChange(activeArtboard);\n" +
@@ -4586,7 +4592,7 @@ export function main(settingsArg) {
     }
     script += "onAiMounted();";
     script += "\r});\r";
-    script += addArtboardChangeEffect();
+    script += addArtboardChangeEffect(settings);
     script += "\r</script>\r";
 
     return script;

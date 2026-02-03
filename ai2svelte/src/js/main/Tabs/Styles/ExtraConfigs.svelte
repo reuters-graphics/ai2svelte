@@ -19,7 +19,7 @@
   import type { SpecimenWeight } from "./stylesState.svelte";
 
   // NODE IMPORTS
-  import { os, path } from "../../../lib/cep/node";
+  import { os } from "../../../lib/cep/node";
 
   let { activeTab = "shadows", activeFormat = "UI" } = $props();
 

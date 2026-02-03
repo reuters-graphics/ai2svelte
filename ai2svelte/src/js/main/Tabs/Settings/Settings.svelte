@@ -363,6 +363,7 @@
     height: 100%;
     display: flex;
     flex-direction: column;
+    flex-grow: 1;
     justify-content: space-between;
     gap: 4rem;
   }

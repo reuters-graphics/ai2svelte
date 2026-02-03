@@ -10,6 +10,7 @@ import { Aside } from "@astrojs/starlight/components";
 import { Image } from "astro:assets";
 import { Steps } from "@astrojs/starlight/components";
 import Image_Shadows_UI from "../../../../public/images/shadows_ui.png";
+import Image_Shadows_Extra from "../../../../public/images/shadows_extra.png";
 import Image_Animations_UI from "../../../../public/images/animations_ui.png";
 import Image_Shadows_Code from "../../../../public/images/shadows_code.png";
 import Image_Animations_Code from "../../../../public/images/animations_code.png";
@@ -27,11 +28,18 @@ The ai2svelte plugin includes a variety of pre-defined shadow styles (sourced fr
 To apply a shadow, enter an appropriate CSS selector in the identifier textbox or [setup AiHostAdapter](../auto-detect/) to auto detect selector and select any of the shadow styles from the cards provided below. The CSS code associated with the selected shadow will be automatically added to the generated output file.
 
 <Image
+  class="plugin-image"
   src={Image_Shadows_UI}
   alt="Screenshot showing UI for shadow selection"
 />
 
 The floating toolbar at the bottom provides few tools like changing the backdrop in the cards to check how the shadows look against different backdrops, changing the type specimen along with its weight, text fill color and changing the shadow color.
+
+<Image
+  class="plugin-image"
+  src={Image_Shadows_Extra}
+  alt="Screenshot showing extra shadow options"
+/>
 
 The plugin also provides an option to capture screen and set it as a backdrop to test the shadows. Click on the 'Capture backdrop' button and click-drag across the screen to capture the desired area.
 
@@ -48,6 +56,7 @@ The backdrop, text and text fill color do not affect the generated CSS and are o
 The ai2svelte plugin also supports a variety of animations that can be applied to your components.
 
 <Image
+  class="plugin-image"
   src={Image_Animations_UI}
   alt="Screenshot showing UI for animation selection"
 />
@@ -63,6 +72,7 @@ The ai2svelte plugin also supports a variety of animations that can be applied t
 Changing the view format to `Code` allows users to directly write SCSS code for more advanced styling options.
 
 <Image
+  class="plugin-image"
   src={Image_Shadows_Code}
   alt="Screenshot showing code editor for advanced styling"
 />
@@ -70,6 +80,7 @@ Changing the view format to `Code` allows users to directly write SCSS code for 
 Shadow mixins are defined with a color as an argument. Similarly, animation mixins are also defined with associated arguments and can be customized further.
 
 <Image
+  class="plugin-image"
   src={Image_Animations_Code}
   alt="Screenshot showing code editor for advanced styling"
 />
