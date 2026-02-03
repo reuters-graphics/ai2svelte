@@ -115,6 +115,9 @@ export const myTheme = EditorView.theme(
       backgroundColor: "transparent !important",
       boxShadow: "0 -0.5px 0 0 #80808055, 0 0.5px 0 0 #80808055",
     },
+    ".cm-tooltip": {
+      color: "var(--color-text) !important",
+    },
   },
   { dark: true },
 );

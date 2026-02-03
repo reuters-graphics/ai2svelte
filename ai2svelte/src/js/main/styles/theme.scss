@@ -8,9 +8,9 @@ $accent-secondary: #241e1c;
 $dark-theme: (
   background: hsl(0, 0%, 8%),
   primary: hsl(0, 0%, 14%),
-  secondary: #353535,
-  tertiary: #626262,
-
+  secondary: hsl(0, 0%, 21%),
+  tertiary: hsl(0, 0%, 38%),
+  ruler: hsl(0, 0%, 16%),
   invert: #000000,
 
   accent-primary: #dc4300,
@@ -26,6 +26,7 @@ $light-theme: (
   primary: #efefef,
   secondary: #eeeeee,
   tertiary: #aaa,
+  ruler: #e1e1e1,
 
   invert: #ffffff,
 

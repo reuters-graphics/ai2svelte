@@ -144,7 +144,7 @@
     </div>
   </div>
 
-  <div class="tab-line"></div>
+  <hr class="tab-line" />
 </div>
 
 <style lang="scss">
@@ -187,12 +187,9 @@
   }
 
   .tab-line {
-    // position: absolute;
     margin-top: var(--space-xs);
     width: 100%;
     height: var(--space-3xs);
-    // top: 100%;
-    background-color: var(--color-secondary);
   }
 
   .tab-items {

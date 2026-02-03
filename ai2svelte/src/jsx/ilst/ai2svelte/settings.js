@@ -17,7 +17,7 @@ export let defaultSettings = {
   jpg_quality: 90,
   center_html_output: true,
   use_2x_images_if_possible: true,
-  use_lazy_loader: true,
+  use_lazy_loader: false,
   include_resizer_widths: true,
   include_resizer_css: true, // container-query resizing
   inline_svg: false, // Embed background image SVG in HTML instead of loading a file
@@ -49,7 +49,4 @@ export let placeholderSettings = {
   jpg_quality: 90,
   inline_svg: "true",
   max_width: null,
-  isPreview: false,
-  respect_height: false,
-  override_text: false,
 };
