@@ -8,7 +8,9 @@ import {
   createFolder,
   createFile,
   getSelectedItems,
+  deleteFolderRecursive,
 } from "./ilstUtils";
+import { wrapper } from "./previewWrapper";
 
 export const updateAiSettings = (settingsObj: string, str: string) => {
   if (app) {
@@ -46,7 +48,7 @@ export const getVariable = (key) => {
   }
 };
 
-export const runNightly = (settings) => {
+export const runAi2Svelte = (settings) => {
   if (app) {
     return main(settings);
   }
@@ -54,18 +56,28 @@ export const runNightly = (settings) => {
 
 export const runPreview = (settings, path) => {
   if (app) {
-    createFolder(path);
+    // rename existing preview folder to preview_old and delete it
+    // rename to avoid clashes with the creation of new preview folder
+    deleteFolderRecursive(path);
 
-    settings.settings.isPreview = true;
+    // create new preview folder
+    createFolder(path);
+    makeFile(path + "previewWrapper.js", wrapper);
+
+    settings.settings.isPreview = "true";
     settings.settings.html_output_path = path;
     settings.settings.html_output_extension = ".svelte";
     settings.settings.image_output_path = path;
     settings.settings.image_source_path = "";
+    // container queries are not supported in Chrmoe 74, so disable for preview
     settings.settings.include_resizer_css = false;
-    settings.settings.project_name = "preview";
+    settings.settings.project_name = "Preview";
     settings.settings.show_completion_dialog_box = false;
 
     main(settings);
+    return 1;
+  } else {
+    return 0;
   }
 };
 
@@ -97,5 +109,13 @@ export const fetchSelectedItems = () => {
 export const exportAsTemplate = () => {
   if (app) {
     return app.executeMenuCommand("saveastemplate");
+  }
+};
+
+export const getDocumentName = () => {
+  if (app) {
+    return app.activeDocument.name;
+  } else {
+    return "";
   }
 };

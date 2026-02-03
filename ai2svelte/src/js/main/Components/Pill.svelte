@@ -44,12 +44,13 @@
   .pill {
     all: unset;
     display: flex;
+    position: relative;
     flex-direction: row;
     align-items: center;
     background-color: var(--color-secondary);
-    border-radius: 24px;
-    gap: 8px;
-    padding: 0.5rem 0.75rem;
+    border-radius: var(--space-3xl);
+    gap: var(--space-2xs);
+    padding: var(--space-2xs) var(--space-s);
     cursor: pointer;
     @include animation-default;
 
@@ -62,8 +63,8 @@
     }
 
     svg {
-      width: 12px;
-      aspect-ratio: 1;
+      width: var(--space-m);
+      height: var(--space-m);
       fill: var(--color-tertiary);
       @include animation-default;
     }

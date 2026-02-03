@@ -100,7 +100,7 @@
     width: 100%;
     min-width: 120px;
     background-color: transparent;
-    border-radius: 8px;
+    border-radius: var(--space-s);
     position: relative;
     cursor: pointer;
   }
@@ -119,7 +119,7 @@
     width: 100%;
     height: 100%; // padding from parent
     background-color: var(--color-accent-primary);
-    border-radius: 4px;
+    border-radius: var(--space-2xs);
     pointer-events: none;
   }
 

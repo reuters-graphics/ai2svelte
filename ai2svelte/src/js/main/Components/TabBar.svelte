@@ -1,15 +1,20 @@
 <script lang="ts">
   // SVELTE IMPORTS
   import { onMount } from "svelte";
+  import { fly } from "svelte/transition";
 
   // OTHER IMPORTS
   import ColorPicker from "svelte-awesome-color-picker";
   import { tooltip } from "svooltip";
   import { userData } from "../state.svelte";
   import { tooltipSettings, writeFile } from "../utils/utils";
+  import { forcePreview } from "../stores";
+  import { fetchSettings } from "../utils/utils";
 
   // COMPONENT
   import ThemeSwitcher from "./ThemeSwitcher.svelte";
+  import Button from "./Button.svelte";
+  import RunButton from "../Tabs/Home/RunButton.svelte";
 
   interface Props {
     activeLabel: string;
@@ -45,7 +50,7 @@
     if (accentColor) {
       document.documentElement.style.setProperty(
         "--color-accent-primary",
-        accentColor
+        accentColor,
       );
       userData.accentColor = accentColor;
       if (window.cep) {
@@ -88,39 +93,58 @@
       {#if inspectMode}
         {@render tab("Inspect", false)}
       {/if}
+      {@render tab("Preview", false)}
     </div>
-    <div class="theme-configs">
-      <ThemeSwitcher bind:theme />
-      <div
-        id="picker-accent"
-        style="--picker-color: {accentColor};"
-        use:tooltip={{
-          ...tooltipSettings,
-          content: "Change theme",
-        }}
-      >
-        <ColorPicker
-          position="responsive"
-          label=""
-          isAlpha={false}
-          bind:hex={accentColor}
-          sliderDirection="horizontal"
-          --picker-width="160px"
-          --picker-height="120px"
-          --slider-width="20px"
-          --picker-indicator-size="40px"
-          --picker-z-index="10"
-          --input-size="24px"
-          --cp-border-color="#ffffff22"
-          --cp-bg-color="#292929"
-          --cp-text-color="#ffffff"
-          --cp-input-color="#292929"
-        />
-      </div>
+
+    <div class="extra-configs">
+      {#if activeLabel === "HOME"}
+        <div class="theme-configs" in:fly={{ x: 20, duration: 600 }}>
+          <ThemeSwitcher bind:theme />
+          <div
+            id="picker-accent"
+            style="--picker-color: {accentColor};"
+            use:tooltip={{
+              ...tooltipSettings,
+              content: "Change theme",
+            }}
+          >
+            <ColorPicker
+              position="responsive"
+              label=""
+              isAlpha={false}
+              bind:hex={accentColor}
+              sliderDirection="horizontal"
+              --picker-width="160px"
+              --picker-height="120px"
+              --slider-width="20px"
+              --picker-indicator-size="40px"
+              --picker-z-index="10"
+              --input-size="24px"
+              --cp-border-color="#ffffff22"
+              --cp-bg-color="#292929"
+              --cp-text-color="#ffffff"
+              --cp-input-color="#292929"
+            />
+          </div>
+        </div>
+      {:else}
+        <div class="button-container" in:fly={{ x: 20, duration: 600 }}>
+          <RunButton minimal refreshSettings={fetchSettings} />
+          {#if activeLabel == "PREVIEW"}
+            <Button
+              minimal
+              text="Refresh Preview"
+              onClick={() => {
+                $forcePreview = true;
+              }}
+            />
+          {/if}
+        </div>
+      {/if}
     </div>
   </div>
 
-  <div class="tab-line"></div>
+  <hr class="tab-line" />
 </div>
 
 <style lang="scss">
@@ -133,7 +157,7 @@
 
   .tabs {
     position: relative;
-    margin-bottom: 1.5rem;
+    margin-bottom: var(--space-l);
   }
 
   .tab {
@@ -155,13 +179,17 @@
     justify-content: space-between;
   }
 
+  .button-container {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    gap: var(--space-xs);
+  }
+
   .tab-line {
-    // position: absolute;
-    margin-top: 0.5rem;
+    margin-top: var(--space-xs);
     width: 100%;
-    height: 2px;
-    // top: 100%;
-    background-color: var(--color-secondary);
+    height: var(--space-3xs);
   }
 
   .tab-items {
@@ -187,7 +215,7 @@
     font-size: var(--font-size-base);
     text-transform: uppercase;
     opacity: 0.3;
-    padding: 0.5rem;
+    padding: var(--space-2xs);
     margin: 0;
   }
 
@@ -203,10 +231,17 @@
     // padding: 1rem;
   }
 
+  .extra-configs {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: var(--space-xs);
+  }
+
   .theme-configs {
     display: flex;
     flex-direction: row;
-    gap: 8px;
+    gap: var(--space-xs);
     align-items: center;
   }
 </style>

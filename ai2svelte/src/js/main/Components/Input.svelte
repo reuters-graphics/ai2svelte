@@ -2,7 +2,7 @@
   import Dropdown from "./Dropdown.svelte";
   import InputText from "./InputText.svelte";
   import InputRange from "./InputRange.svelte";
-  import { fly } from "svelte/transition";
+  import { fly, slide } from "svelte/transition";
   import { onMount } from "svelte";
 
   interface Props {
@@ -81,9 +81,9 @@
   .option-container {
     display: flex;
     flex-direction: column;
-    padding: 0.75rem;
-    gap: 0.25rem;
-    border-radius: 8px;
+    padding: var(--space-s);
+    gap: var(--space-2xs);
+    border-radius: var(--space-s);
     flex-grow: 1;
     transition: 0.2s ease;
     background-color: var(--color-primary);

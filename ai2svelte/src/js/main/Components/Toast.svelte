@@ -40,8 +40,8 @@
     left: 50%;
     transform: translate(-50%, -50%);
     z-index: 11;
-    padding: 1rem;
-    border-radius: 8px;
+    padding: var(--space-s);
+    border-radius: var(--space-2xs);
     background-color: var(--color-primary);
   }
 </style>

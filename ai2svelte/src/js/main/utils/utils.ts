@@ -7,6 +7,19 @@ import { csi, evalTS } from "../../lib/utils/bolt";
 import { currentBackdrop } from "../stores";
 import config from "../../../../cep.config";
 import JSON5 from "json5";
+import { userData } from "../state.svelte";
+import {
+  settingsObject,
+  savedSettings,
+  styles,
+  savedStyles,
+  lastSaved,
+} from "../stores";
+import defaultProfile from "../Tabs/data/default-profile.json";
+import postcss from "postcss";
+// @ts-ignore
+import safeParser from "postcss-safe-parser";
+import { parseCSS } from "./cssUtils";
 
 let userDataPath = window.cep ? csi.getSystemPath("userData") : "";
 
@@ -50,6 +63,7 @@ export function saveSettings(aiSettings, styleSettings, version) {
     evalTS("setVariable", "ai-settings", aiSettings);
     evalTS("setVariable", "css-settings", styleSettings);
     evalTS("setVariable", "version", { version: version });
+    evalTS("setVariable", "lastSaved", { time: Date.now() });
   }
 }
 
@@ -101,8 +115,11 @@ export const myTheme = EditorView.theme(
       backgroundColor: "transparent !important",
       boxShadow: "0 -0.5px 0 0 #80808055, 0 0.5px 0 0 #80808055",
     },
+    ".cm-tooltip": {
+      color: "var(--color-text) !important",
+    },
   },
-  { dark: true }
+  { dark: true },
 );
 
 export function readFile(fileName) {
@@ -131,5 +148,100 @@ export function writeFile(fileName, data) {
   } catch (error) {
     console.error("Error writing file:", error);
     return false;
+  }
+}
+
+/**
+ * Fetches plugin settings from Illustrator document,
+ * updates the corresponding Svelte stores, and manages the splash screen state.
+ *
+ * @async
+ * @returns {Promise<void>} Resolves when settings and styles have been fetched and updated.
+ */
+export async function fetchSettings(): Promise<void> {
+  // fetch user settings
+  // and update the store
+  const userSettings = readFile("user-settings.json");
+  if (userSettings && Object.keys(userSettings).length != 0) {
+    console.log("found user settings");
+    userData.theme = userSettings.theme;
+    userData.accentColor = userSettings.accentColor;
+    userData.fontsConfig = userSettings.fontsConfig || {};
+  } else {
+    console.log("no user settings found, creating settings file");
+    writeFile("user-settings.json", userData);
+  }
+
+  console.log("fetching settings...");
+  const fetchedSettings = await evalTS("getVariable", "ai-settings");
+
+  if (Object.keys(fetchedSettings).length == 0) {
+    // no settings found, first time use
+    // use user's default settings
+    let usersProfiles = await readFile("user-profiles.json");
+
+    if (usersProfiles && Object.keys(usersProfiles).includes("default")) {
+      settingsObject.set(usersProfiles.default);
+    } else {
+      settingsObject.set(defaultProfile.default);
+    }
+    savedSettings.set({});
+    styles.set(await postcss().process("", { parser: safeParser }));
+    savedStyles.set(await postcss().process("", { parser: safeParser }));
+    lastSaved.set("Never");
+  } else {
+    // settings found, use them
+    savedSettings.set({ ...fetchedSettings });
+    settingsObject.set({ ...fetchedSettings });
+    const fetchedStyles = await evalTS("getVariable", "css-settings");
+    const stylesAST = await parseCSS(fetchedStyles.styleText);
+    savedStyles.set(
+      await postcss().process(stylesAST.root.clone(), {
+        from: undefined,
+      }),
+    );
+    styles.set(
+      await postcss().process(stylesAST.root.clone(), {
+        from: undefined,
+      }),
+    );
+
+    lastSaved.set(await evalTS("getVariable", "lastSaved"));
+  }
+}
+
+export async function fetchSavedSettings(): Promise<void> {
+  // fetch user settings
+  // and update the store
+  const userSettings = readFile("user-settings.json");
+  if (userSettings && Object.keys(userSettings).length != 0) {
+    console.log("found user settings");
+    userData.theme = userSettings.theme;
+    userData.accentColor = userSettings.accentColor;
+    userData.fontsConfig = userSettings.fontsConfig || {};
+  } else {
+    console.log("no user settings found, creating settings file");
+    writeFile("user-settings.json", userData);
+  }
+
+  console.log("fetching settings...");
+  const fetchedSettings = await evalTS("getVariable", "ai-settings");
+
+  if (Object.keys(fetchedSettings).length == 0) {
+    savedSettings.set({});
+    savedStyles.set(await postcss().process("", { parser: safeParser }));
+    lastSaved.set("Never");
+  } else {
+    // settings found, use them
+    savedSettings.set({ ...fetchedSettings });
+    const fetchedStyles = await evalTS("getVariable", "css-settings");
+    const stylesAST = await parseCSS(fetchedStyles.styleText);
+    savedStyles.set(
+      await postcss().process(stylesAST.root.clone(), {
+        from: undefined,
+      }),
+    );
+
+    lastSaved.set(await evalTS("getVariable", "lastSaved"));
   }
 }

@@ -16,6 +16,21 @@ export function createFolder(folderPath) {
   return folder;
 }
 
+// Recursively deletes a folder and all its contents
+export function deleteFolderRecursive(folderPath) {
+  var folder = new Folder(folderPath);
+  folder.rename(folder.name + "_old");
+  const items = folder.getFiles();
+  for (let i = 0; i < items.length; i++) {
+    if (items[i] instanceof Folder) {
+      deleteFolderRecursive(items[i]);
+    } else {
+      items[i].remove();
+    }
+  }
+  folder.remove();
+}
+
 export function createFile(filePath, fileContent) {
   var file = new File(filePath);
   file.open("w");
@@ -67,7 +82,7 @@ export function getSelectedItems() {
         // g-snippet-snippetName
         let snippetName = (/(.*):snippet/.exec(objectLayerName) || [])[1] || "";
         identifier = `#${namespace}snippet-${snippetName}`;
-      } else if (tag == "png") {
+      } else if (tag == "png" || tag == "png24") {
         // g-snippet-snippetName
         let imageName = (/(.*):png/.exec(objectLayerName) || [])[1] || "";
         identifier = `.${namespace}png-layer-${imageName}`;
@@ -95,6 +110,18 @@ export function getSelectedItems() {
         } else if (objectName) {
           identifier = `#${namespace}svg-${imageName} #${objectName}`;
         }
+      } else if (
+        (tag == "ptext" || tag == "htext") &&
+        (objectName || objectLayerName)
+      ) {
+        // g-svg-layerName
+        let layerName =
+          (/(.*):[ptext|htext]/.exec(objectLayerName) || [])[1] || "";
+        if (allItemsSelected(objectLayer)) {
+          identifier = `.${namespace}${layerName}`;
+        } else if (objectName) {
+          identifier = `.${namespace}${layerName}#${namespace}${objectName}`;
+        }
       } else {
         // if layer is not tagged
         // fetch identifier only for the TextFrame type items
@@ -103,7 +130,7 @@ export function getSelectedItems() {
         if (allItemsSelected(objectLayer)) {
           identifier = `.${namespace}${objectLayerName}`;
         } else if (objectName && object.typename == "TextFrame") {
-          identifier = `#${objectName}`;
+          identifier = `#${namespace}${objectName}`;
         }
       }
     }

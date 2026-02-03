@@ -7,10 +7,15 @@ sidebar:
 ---
 
 import { Steps } from "@astrojs/starlight/components";
+import { Image } from "astro:assets";
+import Missing_Font_Message from "../../../../public/images/missing_font_message.png";
+import Custom_Fonts from "../../../../public/images/custom_fonts.png";
 
 Due to differences in how Adobe Illustrator handles fonts versus how CSS expects them, ai2svelte includes a font configuration system to ensure proper font rendering in your exported Svelte components. You'll need to map Adobe typeface names to CSS font stacks for any custom fonts used in your designs.
 
-## Getting Started
+---
+
+### Getting started
 
 When you first run ai2svelte on a document with custom fonts, the extension will:
 
@@ -18,13 +23,20 @@ When you first run ai2svelte on a document with custom fonts, the extension will
 - Display a list of all fonts detected in your document
 - Prompt you to configure the necessary mappings
 
-## Adding Font Mappings
+<Image
+  src={Missing_Font_Message}
+  alt="Screenshot showing success message post ai2svelte export"
+/>
+
+### Adding font mappings
 
 To configure your fonts:
 
+{/* prettier-ignore */}
 <Steps>
-  1. Navigate to the `Settings` tab in the ai2svelte panel. 2. Locate the `Font
-  Configuration` section. 3. Add your custom font mappings using the format
+  1. Navigate to the `Settings` tab in the ai2svelte panel. 
+  2. Locate the `Font Configuration` section. 
+  3. Add your custom font mappings using the format
   shown below:
 </Steps>
 
@@ -33,13 +45,19 @@ Knowledge2017: 'Knowledge', Arial, sans-serif
 AdobeFontName: 'CSS Font Name', fallback1, fallback2
 ```
 
-## Key Features
+<Image
+  class="plugin-image"
+  src={Custom_Fonts}
+  alt="Screenshot showing custom font configuration panel"
+/>
+
+### Key features
 
 - **Persistent Configuration**: Font mappings are saved and automatically applied to future sessions
 - **Flexible Fallbacks**: Define multiple fallback fonts for better cross-platform compatibility
 - **Easy Updates**: Modify font configurations at any time as your design requirements change
 
-## Best Practices
+### Best practices
 
 - Always include web-safe fallback fonts (Arial, Helvetica, sans-serif, etc.)
 - Use quotes around font names that contain spaces

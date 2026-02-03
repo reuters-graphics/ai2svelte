@@ -27,7 +27,48 @@ To correctly identify child elements, ensure you have more than one element with
 
 </details>
 
-## Layer Organization
+<details>
+<summary>How to export artboard wider than breakpoint?</summary>
+
+With the conventional approach, ai2svelte exports artboards based on their defined dimensions in Illustrator.
+
+**Solution:**
+To export artboards wider than the breakpoint, you can use [artboard tags](../tagged-layers/#artboard-tags) to specify custom breakpoint width. For example, you can have your artboard with a width of 2000px but tag it with `:1200` to set it's visibility breakpoint at 1200px. Make sure to use `allow_overflow: true` and `include_resizer_css: false` in your ai2svelte settings to prevent clipping and to rely on svelte screen bindings (instead of container queries).
+
+</details>
+
+<details>
+<summary>Why does the backdrop capture feature not work on my system?</summary>
+
+The backdrop capture feature is currently only supported on macOS due to the specific APIs it utilizes for screen capturing.
+
+**Solution:**
+However, you'll need to grant the necessary permissions for the plugin to access screen recording features. On macOS, this typically involves going to **System Preferences > Privacy & Security > Screen & System Audio Recording**, and ensuring that Adobe Illustrator is toggled on.
+
+</details>
+
+<details>
+<summary>Which platforms are supported?</summary>
+
+Although ai2svelte is supported on both Windows and macOS, it is not tested yet on Windows. We welcome contributions from the community to help test and improve Windows compatibility.
+
+</details>
+
+## Layer organization
+
+<details>
+<summary>Why can't I style elements in non-tagged layers?</summary>
+
+ai2svelte only exports and makes available elements that are within tagged layers. Elements in non-tagged layers are treated as background content and aren't individually accessible for styling.
+
+**Solution:** Move any elements you want to style into a properly tagged layer:
+
+- **`:svg`** for vector graphics that need to scale and be styled with CSS
+- **`:png`** or **`:png24`** for raster images and complex graphics that should remain as images
+
+This tagging system ensures optimal performance and gives you precise control over which elements can be customized.
+
+</details>
 
 <details>
 <summary>Do I need separate tagged layers for each artboard?</summary>
@@ -42,21 +83,7 @@ To correctly identify child elements, ensure you have more than one element with
 
 </details>
 
-<details>
-<summary>Why can't I style elements in non-tagged layers?</summary>
-
-ai2svelte only exports and makes available elements that are within tagged layers. Elements in non-tagged layers are treated as background content and aren't individually accessible for styling.
-
-**Solution:** Move any elements you want to style into a properly tagged layer:
-
-- **`:svg`** for vector graphics that need to scale and be styled with CSS
-- **`:png`** for raster images and complex graphics that should remain as images
-
-This tagging system ensures optimal performance and gives you precise control over which elements can be customized.
-
-</details>
-
-## Performance Optimization
+## Performance optimization
 
 <details>
 <summary>How can I optimize loading speed for above-the-fold hero graphics?</summary>

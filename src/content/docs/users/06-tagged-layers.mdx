@@ -12,6 +12,8 @@ ai2svelte allows users to create tagged layers in their Illustrator documents. T
 
 To create a tagged layer, add a specific tag to the end of the layer name in Illustrator. For example, to designate a layer for SVG export, name it `layer_name:svg`.
 
+---
+
 ### :div
 
 Layers with the `:div` suffix will render rectangles and circles as scaling `<div>` elements in the final output. This enables responsive layouts, allowing these shapes to scale with the viewport size.
@@ -24,12 +26,44 @@ Layers with the `:symbol` suffix will render rectangles and circles as non-scali
 
 Layers with the `:png` suffix will have their contents exported as PNG images, which are then included as separate `<img>` tags in the output. Use this tag for rasterized portions of your artwork that require special handling.
 
+You can also use the `:png24` suffix to export higher-quality PNG images with better color depth.
+
+:::note
+It is advised to get the best result for blending modes off `:png`/`:png24` layers, apply blending mode directly to the parent layer since `:png`/`:png24` tagged layers are rasterised together with the child elements.
+:::
+
 ### :svg
 
 Layers with the `:svg` suffix will have their contents exported as SVG images and embedded as SVG in the final output. This is ideal for vector graphics that need to remain crisp at any size.
 
 <Aside type="note">
 By default, SVG content is rendered using an `<img>` tag. To embed the SVG code directly in your HTML, enable the `inline_svg` option in your ai2svelte configuration.
+</Aside>
+
+:::note
+Stacking multiple blend modes between parent and child in `:svg` tagged layers are inconsistent in how Adobe Illustrator and Web implements it.
+
+For safe result, let the parent layer be blended as NORMAL and apply blending modes to child elements.
+:::
+
+### :text
+
+`:text` tagged layers allow users to input the text content programmatically by using the `taggedText` prop. The `taggedText` prop is an object with keys `text` and `htext` with each containing keys as the layer names (without the `:text` suffix) and housing key value pairs for each text object in the layer.
+
+### :htext
+
+`:htext` tagged layers function similarly to `:text` layers but render the text as HTML content wrapped inside the svelte's `@html` directive. This allows for more complex formatting and styling options.
+
+<Aside type="note">
+  Set `override_text: true` in ai2svelte settings to ensure that text content
+  from `:text` and `:htext` layers is always sourced from the `taggedText` prop,
+  regardless of the existing text in the Illustrator document.
+</Aside>
+
+<Aside type="tip">
+  A rough definition of the `taggedText` prop customised to your layers can be
+  found as a comment at the bottom of the generated Svelte file for easy
+  reference.
 </Aside>
 
 ### Artboard tags

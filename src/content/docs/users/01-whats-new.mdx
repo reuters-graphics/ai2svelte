@@ -6,27 +6,59 @@ sidebar:
   order: 101
 ---
 
-## v1.0.0 - Complete Redesign
+### v1.0.3
+
+- fixes a bug that caused issues while using alpha channel for shadow color
+- plugin now remembers your unsaved settings when you change active document
+- refactors codebase to improve maintainability and scalability
+- fixes serialisation issue with PecorinoII shadow by renaming it to Pecorino2
+- text objects now follow stacking order as in Illustrator
+- improves the way animations are defined in the exported svelte component
+- adds support for `*:text` and `*:htext` tagged text layers
+- fixes a bug related to tagged `*:png24` layers not being exported correctly
+- fixes a bug related to tagged `*:svg` layers not being exported correctly
+- adds support for blending modes in `*:svg`, `*:png` and `*:png24` tagged layers
+- adds `respect_height`, `override_text`, `allow_overflow` ai2svelte settings
+- adds Preview tab in the ai2svelte panel to preview the exported svelte component without leaving Illustrator
+
+### v1.0.2
+
+- fixes a bug related to default settings for the first time users
+- base div now sets width: 100% for graphic to scale up properly when parent's a flex/grid div
+- tagged layers are now exported to dedicated tagged folder to avoid clashing of files with same name
+- alerts when user's plugin version is older than the version the file was generated with
+- images can now be embedded inside :svg
+- adds `priority_fetch` ai2svelte setting to mark critical above-the-fold images for priority loading
+
+---
+
+### v1.0.1
+
+- fixes minor first-time user onboarding issues
+
+---
+
+### v1.0.0
 
 This major release represents a comprehensive redesign of ai2svelte, delivering significant improvements to both functionality and user experience. Key enhancements include:
 
-### Interface & Workflow
+#### Interface & Workflow
 
-- **Visual UI Interface**: Upgraded from an executable script to an intuitive, visual panel-based interface
-- **Enhanced User Experience**: Streamlined workflow with improved accessibility and ease of use
+- **Visual UI interface**: Upgraded from an executable script to an intuitive, visual panel-based interface
+- **Enhanced user experience**: Streamlined workflow with improved accessibility and ease of use
 
-### Design & Styling
+#### Design & Styling
 
-- **Expanded Visual Effects**: Access to a comprehensive library of pre-defined shadows and animations
-- **Improved Layer Management**: Layer ordering now accurately reflects the stacking context from Adobe Illustrator
-- **Optimized SVG Output**: SVG layers are precisely cropped to their content boundaries instead of the full artboard dimensions
+- **Expanded visual effects**: Access to a comprehensive library of pre-defined shadows and animations
+- **Improved layer management**: Layer ordering now accurately reflects the stacking context from Adobe Illustrator
+- **Optimized SVG output**: SVG layers are precisely cropped to their content boundaries instead of the full artboard dimensions
 
-### New Features
+#### New Features
 
-- **Snippets System**: Introducing Snippets for greater control over embedding interactive elements within your Adobe Illustrator content
-- **Batched Exports**: Export multiple svelte files from a single Illustrator document
-- **Style Code Editor**: Write and customize SCSS styles directly within the ai2svelte panel
-- **Priority Image Fetching**: Set `priority_fetch:true` for critical above-the-fold images to enhance loading performance
+- **Snippets system**: Introducing Snippets for greater control over embedding interactive elements within your Adobe Illustrator content
+- **Batched exports**: Export multiple svelte files from a single Illustrator document
+- **Style code editor**: Write and customize SCSS styles directly within the ai2svelte panel
+- **Priority image fetching**: Set `priority_fetch:true` for critical above-the-fold images to enhance loading performance
 - **Profiles**: Save and load different export settings for various projects or workflows
 - **Templates**: Create and use custom templates for consistent project structure and styling
-- **Font Management**: Easy mapping of fonts between Adobe Illustrator and CSS
+- **Font management**: Easy mapping of fonts between Adobe Illustrator and CSS

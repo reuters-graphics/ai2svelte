@@ -1,0 +1,405 @@
+<script lang="ts">
+  import { userData } from "../../state.svelte";
+  import { settingsObject } from "../../stores";
+  import AiSettings from "./AiSettings.svelte";
+  import FontSettings from "./FontSettings.svelte";
+  import Input from "../../Components/Input.svelte";
+  import { readFile, writeFile, tooltipSettings } from "../../utils/utils";
+  import { mount } from "svelte";
+  import defaultProfile from "../data/default-profile.json";
+  import Toast from "../../Components/Toast.svelte";
+  import { tooltip } from "svooltip";
+  import { selectFolder } from "../../../lib/utils/bolt";
+  import { fs } from "../../../lib/cep/node";
+  import type { UserProfiles } from "../types";
+
+  let profileNameDialog: HTMLDialogElement;
+  let profileListDialog: HTMLDialogElement;
+  let activeProfile: string = $state("");
+  let tempActiveProfile: string = $state("default");
+  let newProfileName: string = $state("");
+  let fileLoader: HTMLInputElement;
+  let refreshKey: number = $state(1);
+  let activeFormat: string = $state("UI");
+  let existingProfiles: UserProfiles = $derived.by(() => {
+    if (window.cep) {
+      let usersProfiles = readFile("user-profiles.json") || {};
+      if (usersProfiles && !Object.keys(usersProfiles).includes("default")) {
+        writeFile("user-profiles.json", {
+          ...usersProfiles,
+          ...defaultProfile,
+        });
+        usersProfiles = readFile("user-profiles.json");
+      }
+      return { ...usersProfiles };
+    } else {
+      return defaultProfile;
+    }
+  });
+
+  function resetUI(): void {
+    userData.accentColor = "#dc4300";
+    userData.theme = "dark";
+
+    mount(Toast, {
+      target: document.body,
+      props: { message: "Theme reset!" },
+    });
+  }
+
+  function resetConfig(): void {
+    $settingsObject = { ...existingProfiles.default };
+    refreshKey++;
+
+    mount(Toast, {
+      target: document.body,
+      props: { message: "Settings reset to **default**" },
+    });
+  }
+
+  function deleteProfile(profile: string): void {
+    if (window.cep && profile !== "default") {
+      delete existingProfiles[profile];
+      writeFile("user-profiles.json", existingProfiles);
+      mount(Toast, {
+        target: document.body,
+        props: { message: `Profile deleted successfully` },
+      });
+      refreshProfile();
+    }
+  }
+
+  function handleNewProfile(): void {
+    if (window.cep) {
+      writeFile("user-profiles.json", {
+        ...existingProfiles,
+        [newProfileName]: $settingsObject,
+      });
+      existingProfiles = readFile("user-profiles.json") || {};
+      mount(Toast, {
+        target: document.body,
+        props: {
+          message: `**${newProfileName}** profile created successfully`,
+        },
+      });
+    }
+  }
+
+  function profileLoaded(profile: string | null): void {
+    if (profile && existingProfiles[profile]) {
+      activeProfile = profile;
+      refreshKey++;
+      $settingsObject = { ...existingProfiles[profile] };
+      mount(Toast, {
+        target: document.body,
+        props: { message: `**${profile}** profile loaded successfully` },
+      });
+    }
+  }
+
+  function refreshProfile(): void {
+    if (window.cep) {
+      existingProfiles = readFile("user-profiles.json") || {};
+    }
+  }
+
+  function saveProfilesFromFile(e: unknown): void {
+    const file = (e as any).files[0];
+
+    console.log(file);
+
+    let jsonData;
+
+    file?.text().then((text: string) => {
+      try {
+        jsonData = JSON.parse(text);
+
+        if (window.cep) {
+          writeFile("user-profiles.json", {
+            ...existingProfiles,
+            ...jsonData,
+          });
+
+          existingProfiles = readFile("user-profiles.json") || {};
+        }
+
+        mount(Toast, {
+          target: document.body,
+          props: {
+            message: `${Object.keys(jsonData).length} profiles loaded from ${file.name}`,
+            duration: 2000,
+          },
+        });
+      } catch (err: Error | unknown) {
+        console.error("Invalid JSON format:", err);
+        mount(Toast, {
+          target: document.body,
+          props: {
+            message: `Error occured while loading ${file.name}. Try again.`,
+            duration: 2000,
+          },
+        });
+      }
+    });
+  }
+
+  function exportProfilesToFile(): void {
+    selectFolder("", "Save profiles at", (filePath: string) => {
+      const file = filePath + "/profiles.json";
+      try {
+        fs.writeFileSync(file, JSON.stringify(existingProfiles, null, 2));
+
+        mount(Toast, {
+          target: document.body,
+          props: {
+            message: `File saved successfully at ${file}.`,
+            duration: 4000,
+          },
+        });
+      } catch (err: Error | unknown) {
+        console.error("Error writing file:", err);
+        mount(Toast, {
+          target: document.body,
+          props: {
+            message: `Error writing file: ${err}.`,
+            duration: 4000,
+          },
+        });
+      }
+    });
+  }
+</script>
+
+<dialog class="profile-dialog" bind:this={profileNameDialog}>
+  <p>Save profile settings</p>
+  <form method="dialog">
+    <Input label="Profile Name" type="text" bind:value={newProfileName} />
+    <button onclick={() => (newProfileName !== "" ? handleNewProfile() : null)}
+      >OK</button
+    >
+    <button onclick={() => profileNameDialog?.close()}>Cancel</button>
+  </form>
+  <button onclick={() => exportProfilesToFile()}>Export my profiles</button>
+</dialog>
+
+<dialog
+  class="profile-dialog"
+  bind:this={profileListDialog}
+  closedby="closerequest"
+>
+  <p>Load profile settings</p>
+  <form
+    onsubmit={(e) => {
+      e.preventDefault();
+    }}
+  >
+    <Input
+      label="Load Profile"
+      type="select"
+      options={Object.keys(existingProfiles)}
+      bind:value={tempActiveProfile}
+    />
+    <input
+      bind:this={fileLoader}
+      type="file"
+      id="avatar"
+      name="avatar"
+      accept="application/json"
+      style="display: none;"
+      onchange={function () {
+        saveProfilesFromFile(this);
+      }}
+    />
+    <button onclick={() => fileLoader?.click()}>Import from file</button>
+    <button
+      onclick={() => {
+        profileLoaded(tempActiveProfile);
+        profileListDialog?.close();
+      }}>OK</button
+    >
+    <button onclick={() => profileListDialog?.close()}>Cancel</button>
+    {#if tempActiveProfile !== "default"}
+      <button onclick={() => deleteProfile(tempActiveProfile)}
+        >Delete {tempActiveProfile} Profile</button
+      >
+    {/if}
+  </form>
+</dialog>
+
+<div class="tab-content">
+  <div id="settings-content">
+    {#if Object.keys(existingProfiles).length > 0}
+      {#key refreshKey}
+        <AiSettings
+          bind:activeFormat
+          defaultProfile={existingProfiles.default}
+        />
+      {/key}
+    {/if}
+
+    <hr />
+
+    <FontSettings {activeFormat} />
+  </div>
+
+  <div id="reset-settings">
+    <button
+      onclick={() => {
+        profileNameDialog?.showModal();
+      }}
+      use:tooltip={{
+        ...tooltipSettings,
+        content: "Save user profile",
+      }}>Save Profile</button
+    >
+    <button
+      onclick={() => profileListDialog?.showModal()}
+      use:tooltip={{
+        ...tooltipSettings,
+        content: "Load user profile",
+      }}>Load Profile</button
+    >
+    <button
+      class="negative"
+      onclick={resetConfig}
+      use:tooltip={{
+        ...tooltipSettings,
+        content: "Reset configuration",
+      }}>Reset Config</button
+    >
+    <button
+      class="negative"
+      onclick={resetUI}
+      use:tooltip={{
+        ...tooltipSettings,
+        content: "Reset UI Theme",
+      }}>Reset Theme</button
+    >
+  </div>
+</div>
+
+<style lang="scss">
+  @use "../../styles/variables.scss" as *;
+
+  .profile-dialog {
+    // all: unset;
+
+    min-width: 50vw;
+    max-width: 100vw;
+
+    position: absolute;
+
+    // z-index: 10;
+
+    top: 50%;
+    left: 50%;
+    transform-origin: center;
+    transform: translate(-50%, -50%) scale(0.9);
+
+    display: flex;
+    background-color: var(--color-secondary);
+    outline: unset;
+    border: unset;
+    padding: 1rem;
+    border-radius: 8px;
+    flex-direction: column;
+    gap: 1rem;
+    opacity: 1;
+    color: var(--color-text);
+    transition: 0.2s cubic-bezier(0.45, 0, 0.29, 1.43);
+
+    form {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    button {
+      all: unset;
+      cursor: pointer;
+      flex: 1;
+      padding: 1rem;
+      background-color: var(--color-primary);
+      text-align: center;
+      text-transform: uppercase;
+      letter-spacing: 0.1rem;
+      @include animation-default;
+    }
+
+    button:hover {
+      background-color: var(--color-accent-primary);
+    }
+  }
+
+  .profile-dialog:not([open]) {
+    display: none;
+    pointer-events: none;
+  }
+
+  .profile-dialog::backdrop {
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(8px);
+  }
+
+  .modal-open {
+    pointer-events: unset;
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+
+  .dialog-backdrop {
+    position: absolute;
+    z-index: 3;
+    width: 100vw;
+    height: 100vh;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(4px);
+  }
+
+  .tab-content {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+    justify-content: space-between;
+    gap: 4rem;
+  }
+
+  #settings-content {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+  }
+
+  #reset-settings {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 8px;
+    width: 100%;
+
+    button {
+      all: unset;
+      cursor: pointer;
+      flex: 1;
+      padding: 1rem;
+      background-color: var(--color-primary);
+      text-align: center;
+      text-transform: uppercase;
+      letter-spacing: 0.1rem;
+      font-size: var(--font-size-sm);
+      @include animation-default;
+    }
+
+    .negative:hover {
+      background-color: #ff2400;
+    }
+
+    button:hover {
+      background-color: var(--color-secondary);
+    }
+  }
+</style>

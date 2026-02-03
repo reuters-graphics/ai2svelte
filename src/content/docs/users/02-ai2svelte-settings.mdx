@@ -12,6 +12,41 @@ import Image_Autocomplete from "../../../../public/images/autocomplete.png";
 
 The ai2svelte plugin comes with sensible default settings optimized for most workflows. However, you can easily customize these settings through the plugin's **Home** tab to better suit your specific needs and project requirements.
 
+Check out the [ai2svelte settings reference](../ai2svelte-settings-reference/) for detailed explanations of each available setting.
+
+```yaml
+namespace: g-
+image_format: jpg
+write_image_files: true
+responsiveness: dynamic
+text_responsiveness: dynamic
+output: one-file
+html_output_path: ../src/lib/ai2svelte/
+html_output_extension: .svelte
+image_output_path: ../src/statics/images/graphics/
+image_source_path: images/graphics/
+png_transparent: true
+png_number_of_colors: 256
+jpg_quality: 90
+center_html_output: true
+use_2x_images_if_possible: true
+use_lazy_loader: false
+include_resizer_widths: true
+include_resizer_css: true
+inline_svg: true
+svg_embed_images: false
+render_text_as: html
+render_rotated_skewed_text_as: html
+testing_mode: false
+show_completion_dialog_box: true
+priority_fetch: false
+respect_height: false
+override_text: false
+allow_overflow: false
+```
+
+---
+
 ### Adding/Removing properties
 
 <Steps>
@@ -24,10 +59,15 @@ The ai2svelte plugin comes with sensible default settings optimized for most wor
 The code editor provides helpful features to streamline property management, including syntax highlighting and intelligent value suggestions to ensure proper configuration.
 
 <Image
+  class="plugin-image"
   src={Image_Autocomplete}
   alt="Screenshot showing auto-complete suggestions for ai2svelte settings"
 />
 
-### Restoring Default Settings
+### Saving custom defaults
 
-To restore all ai2svelte settings to their factory defaults, navigate to the bottom of the `Settings` tab and click the `Reset Config` button. This will revert all custom configurations back to the original optimized values.
+To save your current settings as the new default configuration, navigate to the bottom of the `Settings` tab and click the `Save Profile` button. Input `default` when prompted for the profile name and click `OK`. This action will store your current settings in the `default` profile, which will be used as the baseline for all future projects unless changed again.
+
+### Restoring default settings
+
+To restore all ai2svelte settings to their factory defaults, navigate to the bottom of the `Settings` tab and click the `Reset Config` button. This will revert all custom configurations back to the settings stored in the `default` profile. If the `default` profile has been modified, the settings will revert to these custom values instead of the original factory defaults.

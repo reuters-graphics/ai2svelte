@@ -141,6 +141,8 @@ const extraCharacterReplacements = [
   ["\u2663", "&clubs;"],
   ["\u2665", "&hearts;"],
   ["\u2666", "&diams;"],
+  ["\u003C", "&lt;"],
+  ["\u003E", "&gt;"],
 ];
 
 // =================================
@@ -316,7 +318,7 @@ function makeKeyword(text) {
 function encodeHtmlEntities(text) {
   return replaceChars(
     text,
-    basicCharacterReplacements.concat(extraCharacterReplacements)
+    basicCharacterReplacements.concat(extraCharacterReplacements),
   );
 }
 
@@ -432,7 +434,7 @@ function applyTemplate(template, replacements) {
   var keyExp = "([_a-zA-Z][\\w-]*)";
   var mustachePattern = new RegExp(
     "\\{\\{\\{? *" + keyExp + " *\\}\\}\\}?",
-    "g"
+    "g",
   );
   var ejsPattern = new RegExp("<%=? *" + keyExp + " *%>", "g");
   var replace = function (match, name) {

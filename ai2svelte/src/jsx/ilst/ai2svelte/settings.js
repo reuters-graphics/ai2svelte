@@ -2,13 +2,13 @@ export let defaultSettings = {
   namespace: "g-",
   image_format: ["auto"], // Options: auto, png, png24, jpg, svg
   write_image_files: true,
-  responsiveness: "fixed", // Options: fixed, dynamic
+  responsiveness: "dynamic", // Options: fixed, dynamic
   text_responsiveness: "dynamic", // Options: fixed, dynamic
   max_width: "",
   output: "one-file", // Options: one-file, multiple-files
   project_name: "", // Defaults to the name of the AI file
   html_output_path: "ai2html-output/",
-  html_output_extension: ".html",
+  html_output_extension: ".svelte",
   image_output_path: "ai2html-output/",
   image_source_path: "",
   image_alt_text: "", // Generally, use alt_text instead
@@ -17,7 +17,7 @@ export let defaultSettings = {
   jpg_quality: 90,
   center_html_output: true,
   use_2x_images_if_possible: true,
-  use_lazy_loader: true,
+  use_lazy_loader: false,
   include_resizer_widths: true,
   include_resizer_css: true, // container-query resizing
   inline_svg: false, // Embed background image SVG in HTML instead of loading a file
@@ -30,8 +30,12 @@ export let defaultSettings = {
   clickable_link: "", // Add a URL to make the entire graphic a clickable link
   isPreview: false, // internal flag for preview
   priority_fetch: false, // for prioritized fetching of images above the fold
+  respect_height: false, // whether to respect the height of the artboard in responsive mode
+  override_text: false, // whether to override text by default
+  allow_overflow: false, // whether to allow root div overflow
 };
 
+// settings used when no user settings are found
 export let placeholderSettings = {
   image_format: ["jpg"],
   responsiveness: "dynamic",
@@ -45,5 +49,4 @@ export let placeholderSettings = {
   jpg_quality: 90,
   inline_svg: "true",
   max_width: null,
-  isPreview: false,
 };

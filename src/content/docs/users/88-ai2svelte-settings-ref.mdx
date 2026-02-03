@@ -1,0 +1,238 @@
+---
+title: ai2svelte settings reference
+description: Detailed reference for all ai2svelte export settings
+slug: users/ai2svelte-settings-reference
+sidebar:
+  order: 880
+---
+
+ai2svelte offers a comprehensive set of export settings that allow you to customize the output of your Svelte components. This reference guide provides detailed explanations for each setting available in ai2svelte, helping you understand their purpose and how to use them effectively.
+
+---
+
+### allow_overflow :badge[New]
+
+If `true`, allows content to overflow the ai2svelte container instead of being clipped.
+
+Options: `false`, `true`
+
+### alt_text
+
+Sets the aria-describedby attribute for the ai2svelte container, providing descriptive text for screen readers.
+
+Default: _(blank)_
+
+### aria_role
+
+Sets the ARIA role attribute for the ai2svelte container, enhancing accessibility by defining its purpose to assistive technologies.
+
+Default: _(blank)_
+
+### center_html_output
+
+If `true`, centers the ai2svelte div within its container.
+
+Options: `true`, `false`
+
+### clickable_link
+
+Wraps the entire graphic in an `<a>` tag pointing to the given URL. Add a URL to make the entire graphic a clickable link.
+
+Default: _(blank)_
+
+### html_output_extension
+
+Specifies the extension for the output file. `.html` is no longer supported.
+
+Default: `.svelte`
+
+### html_output_path
+
+Specifies the output folder for the generated svelte component/s.The path should be written relative to the location of the Adobe Illustrator file.
+
+Default: `../src/lib/ai2svelte/`
+
+### image_alt_text
+
+Sets the alt text specifically for the images in the exported Svelte component. Use `alt_text` setting to set alt text for the entire ai2svelte container.
+
+Default: _(blank)_
+
+### image_format
+
+Specifies the format for images exported from Illustrator. Choose the format that best suits your project's needs in terms of quality and file size.
+
+Options: `auto`, `png`, `png24`, `jpg`, `svg`
+
+### image_output_path
+
+Specifies where image files are saved. The path should be written relative to the location of the Adobe Illustrator file.
+
+Default: `../src/statics/images/graphics/`
+
+### image_source_path
+
+Specifies the path from which images are loaded in `<img>` tags. If not set, `image_output_path` is used. This does not change where image files are stored.
+
+Default: `images/graphics/`
+
+### include_resizer_css
+
+Whether container queries should be used for the selection of rendered artboards. Setting this to `false` will use Svelte screen bindings to determine the current screen size and associated artboard container.
+
+Options: `true`, `false`
+
+### include_resizer_widths
+
+Adds data-min/max-width to the artboard containers.
+
+Options: `true`, `false`
+
+### inline_svg
+
+Whether SVG content should be inlined within the svelte component instead of being referenced as an external file.
+
+Options: `true`, `false`
+
+:::caution
+inline_svg: true does not carry blend modes. Use only for simple graphics.
+:::
+
+### jpg_quality
+
+Specifies the quality of JPG images.
+
+Options: Any integer from 0 to 100
+
+### max_width
+
+Inserts a `max-width` CSS instruction to clamp the final output width by. Specify in pixels.
+
+Options: Any positive integer
+
+### namespace
+
+Specifies prefix for HTML elements.
+
+Options: Any string  
+Default: `g-`
+
+### output
+
+Defines the output structure for the exported Svelte components. You can choose to export a single file or multiple files based on your project requirements.
+
+Options: `one-file`, `multiple-files`
+
+### override_text :badge[New]
+
+Whether to replace tagged texts with user-inputted text. Used in conjunction with the `*:text` & `*:htext` layers.
+
+Options: `false`, `true`
+
+### png_number_of_colors
+
+Specifies the quality of PNG or PNG24 images.
+
+Options: Any integer from 2 to 256
+
+### png_transparent
+
+Enables transparency for PNG images. Note: may degrade image quality. Use `image_format: png24` for better results.
+
+Options: `yes`, `no`
+
+### priority_fetch :badge[New]
+
+For critical graphics that users see immediately (like hero images), you can prioritize their loading to improve perceived performance.
+
+Options: `false`, `true`
+
+:::caution
+Should be only used for above-the-fold hero graphics as it can block other resource loading.
+:::
+
+### project_name
+
+Overrides the default project name (which is the Illustrator file name). Used to name exported HTML and image files.
+
+Options: Any string  
+Default: `[ai file name]`
+
+### render_rotated_skewed_text_as
+
+Controls how rotated/sheared text is rendered.
+
+Options: `html`, `image`
+
+### render_text_as
+
+Controls how text elements from Illustrator are rendered in the exported svelte component.
+
+Options: `html`, `image`
+
+### respect_height :badge[New]
+
+Whether to prioritize parent height over parent width. This makes the ai2svelte container adapt to the height of its parent element instead of the width.
+
+Options: `false`, `true`
+
+:::caution
+Might lead to unexpected results if the parent element has no defined height.
+:::
+
+### responsiveness
+
+Whether the ai2svelte container should adapt to the size of its parent element or maintain a fixed size based on the Illustrator artboard dimensions.
+
+Options: `dynamic`, `fixed`
+
+### show_completion_dialog_box
+
+If `true`, shows a dialog box upon export completion with summary information.
+
+Options: `true`, `false`
+
+### svg_embed_images
+
+Embed images inside SVG as base64.  
+Options: `false`, `true`
+
+:::caution
+Results into longer export durations. Use only if the images are super small.
+:::
+
+### svg_id_prefix
+
+Prefix SVG ids with a string to disambiguate from other ids on the page.
+
+Default: _(blank)_
+
+### testing_mode
+
+If `yes`, renders text both on the image and in the svelte component for testing placement accuracy.
+
+Options: `no`, `yes`
+
+### text_responsiveness
+
+Controls whether HTML text blocks from Illustrator "area text" objects have a fixed width or expand/contract with the graphic.
+
+Options: `dynamic`, `fixed`
+
+### use_2x_images_if_possible
+
+If `yes`, outputs images at double resolution if possible (subject to size limits).
+
+Options: `yes`, `no`
+
+### use_lazy_loader
+
+Enables lazy loading for images to improve initial load times, especially for pages with many or large images.
+
+Options: `true`, `false`
+
+### write_image_files
+
+Determines whether the artboards should be exported as image files.
+
+Options: `yes`, `no`

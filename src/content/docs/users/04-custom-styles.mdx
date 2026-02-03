@@ -8,7 +8,7 @@ sidebar:
 
 import { Aside } from "@astrojs/starlight/components";
 
-You can further customize styling data by adding user-defined shadows and animations. This lets you extend the plugin's preset styles and give your components a more personalized appearance.
+You can further customize styling data by adding user-defined shadows and animations directly to the plugin database. This lets you extend the plugin's preset styles and give your components a more personalized appearance.
 
 <Aside type="note">
   Follow the structure used by the preset styles when adding custom styles.
@@ -19,3 +19,11 @@ Style data is created the first time you run the plugin and is stored in `JSON5`
 ```plaintext
 /Library/Application Support/com.reuters-graphics.ai2svelte/
 ```
+
+<Aside type="caution">
+  If working in teams, ensure that all members use the same custom styles by
+  sharing the modified JSON5 files. The style definitions are not embedded in
+  the Adobe Illustrator document. Only the names of the applied styles are saved
+  in the document. The style definitions are sourced from the local plugin data
+  files.
+</Aside>

@@ -1,8 +1,8 @@
 import type { Writable } from "svelte/store";
-import { derived, writable } from "svelte/store";
+import { derived, get, writable } from "svelte/store";
 import type { Style, ShadowItem, AnimationItem } from "./Tabs/types";
-import { generateAllMixins, styleObjectToString } from "./utils/cssUtils";
-import type { Processor, Result, Root } from "postcss";
+import { generateAllMixins } from "./utils/cssUtils";
+import type { Result, Root } from "postcss";
 
 export const settingsObject = writable<Record<string, any>>({});
 
@@ -26,7 +26,7 @@ export const ai2svelteInProgress: Writable<boolean> = writable(false);
 
 export const userTheme: Writable<string> = writable("dark");
 
-export const currentBackdrop: Writable<number> = writable(0);
+export const currentBackdrop: Writable<number> = writable(2);
 
 export const alertObject: Writable<{ flag: boolean; message: string }> =
   writable({
@@ -38,3 +38,31 @@ export const userAnimations: Writable<AnimationItem[]> = writable([]);
 export const userShadows: Writable<ShadowItem[]> = writable([]);
 export const userSpecimens: Writable<string[]> = writable([]);
 export const userShadowsBaked: Writable<ShadowItem[]> = writable([]);
+
+export const unsavedChanges: Writable<{ flag: boolean; message: string }> =
+  writable({ flag: true, message: "" });
+
+export const forcePreview: Writable<boolean> = writable(false);
+
+export const triggerConfetti: Writable<boolean> = writable(false);
+
+export const lastSaved: Writable<{ time: Date } | "Never"> = writable("Never");
+
+export const lastPreviewObject: Writable<Record<string, any>> = writable({});
+
+export const docName: Writable<string> = writable("");
+
+export const cacheObj: Record<
+  string,
+  { settingsObject: unknown; styles: unknown }
+> = {};
+
+export const cache = derived([settingsObject, styles], () => {
+  const docStore = get(docName);
+  if (docStore === "") return {};
+  cacheObj[docStore] = {
+    settingsObject: get(settingsObject),
+    styles: get(styles),
+  };
+  return cacheObj;
+});

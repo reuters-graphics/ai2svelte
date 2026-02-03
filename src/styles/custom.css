@@ -1,0 +1,78 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,500&display=swap");
+
+:root {
+  --sl-sidebar-item-padding-inline: 0.7rem;
+}
+
+.sl-heading-wrapper.level-h2 {
+  h2 {
+    --sl-text-h2: var(--sl-text-3xl) !important;
+  }
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: "Geist Mono", monospace;
+  font-weight: 500;
+  letter-spacing: -0.05rem;
+  /* text-transform: uppercase; */
+}
+
+h1 {
+  font-size: var(--sl-text-4xl);
+  letter-spacing: -0.125rem;
+}
+
+.astro-ufypnftn[aria-current="page"] {
+  color: white !important;
+  border-radius: 0 !important;
+}
+
+/* Dark mode colors. */
+:root {
+  --sl-color-accent-low: hsl(18, 100%, 10%);
+  --sl-color-accent: #dc4300;
+  --sl-color-accent-high: #dc4300;
+  --sl-color-white: #ffffff;
+  --sl-color-gray-1: #eceef2;
+  --sl-color-gray-2: #c0c2c7;
+  --sl-color-gray-3: #888b96;
+  --sl-color-gray-4: #545861;
+  --sl-color-gray-5: #353841;
+  --sl-color-gray-6: hsl(0, 0%, 10%);
+  --sl-color-black: hsl(0, 0%, 6%);
+}
+
+/* Light mode colors. */
+:root[data-theme="light"] {
+  --sl-color-accent-low: hsl(18, 100%, 90%);
+  --sl-color-accent: #dc4300;
+  --sl-color-accent-high: #dc4300;
+  --sl-color-white: #17181c;
+  --sl-color-gray-1: #24272f;
+  --sl-color-gray-2: #353841;
+  --sl-color-gray-3: #545861;
+  --sl-color-gray-4: #888b96;
+  --sl-color-gray-5: #c0c2c7;
+  --sl-color-gray-6: #eceef2;
+  --sl-color-gray-7: #f5f6f8;
+  --sl-color-black: #ffffff;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+.sl-link-button:where(.astro-uvehmazd).primary {
+  color: var(--sl-color-white);
+}
+
+.plugin-image {
+  padding: 0rem 1rem 0 1rem;
+  border-radius: 8px;
+  background-color: var(--sl-color-gray-5);
+}

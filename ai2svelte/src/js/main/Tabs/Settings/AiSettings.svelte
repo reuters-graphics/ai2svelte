@@ -1,21 +1,14 @@
 <script lang="ts">
-  import { onDestroy, onMount, untrack } from "svelte";
-  import { fly } from "svelte/transition";
-  import {
-    settingsObject,
-    stylesString,
-    styles,
-    updateInProgress,
-  } from "../../stores";
+  import { onMount } from "svelte";
+  import { settingsObject } from "../../stores";
   import SectionTitle from "../../Components/SectionTitle.svelte";
   import Input from "../../Components/Input.svelte";
   import CmTextArea from "../../Components/CMTextArea.svelte";
+  // @ts-ignore
   import { aiSettingsTokens } from "../../utils/settingsTokens";
+  import { convertStringToObject } from "./utils";
 
-  // BOLT IMPORTS
-  import { evalTS } from "../../../lib/utils/bolt";
-
-  let { activeFormat = $bindable(), defaultProfile } = $props();
+  let { activeFormat = $bindable("UI"), defaultProfile } = $props();
 
   let codeContent: HTMLElement | undefined = $state();
 
@@ -23,9 +16,6 @@
 
   // holds key-value pairs as string
   let yamlString: string = $derived.by(() => {
-    // if (window.cep && !updateInProgress) {
-    //   evalTS("updateAiSettings", "ai-settings", $settingsObject);
-    // }
     return Object.keys($settingsObject)
       .filter((key) => $settingsObject[key] !== null)
       .map((key) => `${key}: ${$settingsObject[key]}`)
@@ -39,39 +29,12 @@
   let editableYamlString: string = $derived(yamlString);
 
   onMount(() => {
-    // start with UI tab as active
-    activeFormat = "UI";
-
     if (Object.keys($settingsObject).length > 0) {
       previousSettings = { ...$settingsObject };
     } else {
       $settingsObject = { ...defaultProfile };
     }
   });
-
-  // converts string in textarea to js object
-  function convertStringToObject(s: string) {
-    const obj: { [key: string]: unknown } = {};
-    s.trim()
-      .split("\n")
-      .forEach((line) => {
-        const [key, ...rest] = line.split(":");
-        if (key && rest.length) {
-          let value: unknown = rest.join(":").trim();
-          // Try to convert to number if possible
-          // if (parseInt(value as string)) {
-          //     value = Number(value);
-          // }
-          obj[key.trim()] = value;
-        }
-      });
-
-    settingsObject.set(obj);
-  }
-
-  function delay(ms) {
-    return new Promise((resolve) => setTimeout(resolve, ms));
-  }
 </script>
 
 <div class="ai-settings">
@@ -140,7 +103,7 @@
             type="yaml"
             bind:textValue={editableYamlString}
             onUpdate={(e: string) => {
-              convertStringToObject(e);
+              $settingsObject = convertStringToObject(e);
             }}
             autoCompletionTokens={aiSettingsTokens}
           />

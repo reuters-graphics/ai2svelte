@@ -30,11 +30,23 @@ if (window.cep) {
   shadows = JSON5.parse(shadowsRaw);
 }
 
+function getShadowAlpha(sh: ShadowCardItem) {
+  const shadowAlphaTest = sh.shadow.match(/rgba\(0,\s*0,\s*0,\s*([\d.]+)\)/);
+  let alphaValue = 1;
+
+  if (shadowAlphaTest) {
+    alphaValue = parseFloat(shadowAlphaTest[1]);
+  }
+
+  return alphaValue;
+}
+
 export function createMixinsFile(shadows: ShadowCardItem[]) {
   const mixins: string[] = [];
 
   shadows.forEach((shadow) => {
     const sh = shadow.shadow;
+
     const name = "shadow-" + shadow.id.toLowerCase().replace(" ", "");
     let str = `@mixin ${name}($clr){\n`;
     str += sh.replaceAll("rgba(0,0,0", "rgba($clr");
@@ -75,7 +87,12 @@ export function createShadowMixinFromCSS(shadow: ShadowCardItem) {
   if (shadow.id === undefined) return "";
   const name = "shadow-" + toCamelCase(shadow.id);
   let str = `@mixin ${name}($clr){\n`;
-  str += shadow.shadow.replaceAll("rgba(0, 0, 0", "rgba($clr");
+  str += `$alpha: if(alpha($clr) != 1, alpha($clr), ${getShadowAlpha(shadow)});\n`;
+  str += shadow.shadow.replaceAll(
+    /rgba\(0,\s*0,\s*0,\s*[\d.]+\)/g,
+    "rgba($clr, $alpha)",
+  );
+  str += "\n";
   str += "\n}";
 
   return str;
@@ -91,14 +108,19 @@ export function createAnimationMixinFromCSS(animation: AnimationItem) {
   const name = "animation-" + animation.name;
   let str = `@mixin ${name}${animation.arguments}{\n`;
 
-  Object.keys(animation.cssVariables || {}).forEach((variableKey) => {
-    str += `${variableKey}: ${animation?.cssVariables?.[variableKey] || ""};\n`;
-  });
-
-  //   animation.cssVariables?.forEach(variable => {
-  // 	str += `  --${variable.name}: ${animation.cssVariables[variable]};\n`;
-  //   });
+  // emit keyframes at root level to avoid SASS mixed-decls
+  str += "@at-root {\n";
   str += animation.definition + "\n\r";
+  str += "}\n";
+
+  if (Object.keys(animation.cssVariables || {}).length > 0) {
+    str += "&{\n";
+    Object.keys(animation.cssVariables || {}).forEach((variableKey) => {
+      str += `${variableKey}: ${animation?.cssVariables?.[variableKey] || ""};\n`;
+    });
+    str += "}\n\n";
+  }
+
   str += "\n}";
 
   return str;
@@ -190,23 +212,23 @@ export function generateAllMixins(stylesObject) {
     // get all shadows CSS
     const allShadowStylesCSS = Array.from(allShadowStyles).map((x) =>
       shadows.find(
-        (s) => s.id.toLowerCase().replace(" ", "") == x.toLowerCase()
-      )
+        (s) => s.id.toLowerCase().replace(" ", "") == x.toLowerCase(),
+      ),
     );
 
     // get all animations CSS
     const allAnimationStylesCSS = Array.from(allAnimationStyles).map((x) =>
-      animations.find((s) => s.name.toLowerCase() == x.toLowerCase())
+      animations.find((s) => s.name.toLowerCase() == x.toLowerCase()),
     );
 
     // generate all shadow mixins
     const allShadowMixins = allShadowStylesCSS.map((shadow) =>
-      createShadowMixinFromCSS({ ...shadow, active: false } as ShadowCardItem)
+      createShadowMixinFromCSS({ ...shadow, active: false } as ShadowCardItem),
     );
 
     // generate all animation mixins
     const allAnimationMixins = allAnimationStylesCSS.map((animation) =>
-      createAnimationMixinFromCSS(animation as AnimationItem)
+      createAnimationMixinFromCSS(animation as AnimationItem),
     );
 
     let allMixins = [...allShadowMixins, ...allAnimationMixins].join("\n\n");
@@ -221,7 +243,7 @@ export function generateAllMixins(stylesObject) {
 
 export function _generateAllMixins(stylesObject) {
   const mixinShadowRegex = new RegExp(
-    /@include\sshadow-(.*)\((#[0-9a-fA-F]+)\)/
+    /@include\sshadow-(.*)\((#[0-9a-fA-F]+)\)/,
   );
   const mixinAnimationRegex = new RegExp(/@include\sanimation-(.*)\((.*)\)/);
 
@@ -234,7 +256,7 @@ export function _generateAllMixins(stylesObject) {
       .map((x) => {
         const match = x.match(mixinShadowRegex);
         return match ? match[1] : undefined;
-      })
+      }),
   );
 
   // get all unique animation styles
@@ -246,27 +268,27 @@ export function _generateAllMixins(stylesObject) {
       .flatMap((x) => {
         const match = x.match(mixinAnimationRegex);
         return match ? match[1] : undefined;
-      })
+      }),
   );
 
   // get all shadows CSS
   const allShadowStylesCSS = Array.from(allShadowStyles).map((x) =>
-    shadows.find((s) => s.id.toLowerCase().replace(" ", "") == x.toLowerCase())
+    shadows.find((s) => s.id.toLowerCase().replace(" ", "") == x.toLowerCase()),
   );
 
   // get all animations CSS
   const allAnimationStylesCSS = Array.from(allAnimationStyles).map((x) =>
-    animations.find((s) => s.name.toLowerCase() == x.toLowerCase())
+    animations.find((s) => s.name.toLowerCase() == x.toLowerCase()),
   );
 
   // generate all shadow mixins
   const allShadowMixins = allShadowStylesCSS.map((shadow) =>
-    createShadowMixinFromCSS({ ...shadow, active: false } as ShadowCardItem)
+    createShadowMixinFromCSS({ ...shadow, active: false } as ShadowCardItem),
   );
 
   // generate all animation mixins
   const allAnimationMixins = allAnimationStylesCSS.map((animation) =>
-    createAnimationMixinFromCSS(animation as AnimationItem)
+    createAnimationMixinFromCSS(animation as AnimationItem),
   );
 
   let allMixins = [...allShadowMixins, ...allAnimationMixins].join("\n\n");
