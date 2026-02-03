@@ -143,7 +143,8 @@
   async function performPrecheck() {
     precheck();
 
-    handleCache();
+    // handleCache();
+    fetchSettings();
 
     $updateInProgress = false;
 
