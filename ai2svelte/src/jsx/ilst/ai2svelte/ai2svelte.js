@@ -4641,6 +4641,7 @@ export function main(settingsArg) {
       "display: block;",
       "font-weight: 800;",
       "visibility: var(--debug-tagged-text, hidden);",
+      "box-sizing: border-box;",
       "}\n",
       "." + nameSpace + "taggedText {",
       "outline: var(--debug-stroke, 0px) solid black;",

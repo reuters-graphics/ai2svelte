@@ -16,7 +16,7 @@
     swirImage = activeArtboard?.querySelector(`.g-png-layer-swir`);
     swirImage?.style.setProperty(
       "mask-image",
-      `linear-gradient(to bottom, black 0%, transparent 0%, transparent 100%)`
+      `linear-gradient(to bottom, black 0%, transparent 0%, transparent 100%)`,
     );
   }
 
@@ -39,20 +39,14 @@
     window.addEventListener("scroll", handleScroll);
   });
 
-  $effect(() => {
-    if (activeArtboard) {
-      getSWIRImage();
-    }
-  });
+  function onArtboardChange(artboard) {
+    activeArtboard = artboard;
+    getSWIRImage();
+  }
 </script>
 
 <svelte:window bind:innerWidth={screenWidth} bind:innerHeight={screenHeight} />
 
 <div bind:this={graphicEle} bind:clientHeight={graphicHeight}>
-  <Fire assetsPath="/ai2svelte/" bind:activeArtboard />
+  <Fire assetsPath="/ai2svelte/" {onArtboardChange} />
 </div>
-
-<style lang="scss">
-  :global {
-  }
-</style>
