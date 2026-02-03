@@ -14,10 +14,12 @@
     userShadowsBaked,
     unsavedChanges,
     forcePreview,
+    docName,
+    cache,
   } from "./stores";
 
   // BOLT IMPORTS
-  import { csi } from "../lib/utils/bolt";
+  import { csi, evalTS } from "../lib/utils/bolt";
   import { version } from "../../shared/shared";
 
   // STYLE IMPORT
@@ -29,7 +31,12 @@
 
   // OTHER IMPORTS
   import JSON5 from "json5";
-  import { readFile, saveSettings, writeFile } from "./utils/utils";
+  import {
+    fetchSavedSettings,
+    readFile,
+    saveSettings,
+    writeFile,
+  } from "./utils/utils";
   import { bakeShadows } from "./utils/bakeShadows";
   // @ts-ignore
   import { precheck } from "./precheck/precheck.js";
@@ -119,15 +126,31 @@
     }
   }
 
+  async function handleCache() {
+    $docName = ((await evalTS("getDocumentName")) as unknown as string) || "";
+    if ($cache[$docName]?.settingsObject) {
+      //   await fetchSettings();
+      fetchSavedSettings();
+      $settingsObject = $cache[$docName].settingsObject;
+      $styles = $cache[$docName].styles;
+      console.log("Restored settingsObject from cache");
+    } else {
+      fetchSettings();
+    }
+  }
+
   // do initial checks and fetch settings
-  function performPrecheck() {
+  async function performPrecheck() {
     precheck();
 
-    fetchSettings();
+    handleCache();
+
     $updateInProgress = false;
 
     fetchStyleJSONs();
   }
+
+  $inspect($cache);
 
   onMount(() => {
     // load user settings and styles on mount
@@ -148,6 +171,8 @@
 
     window.addEventListener("keydown", keyboardListener);
 
+    // save settings on unmount
+    // DOUBTFUL in the context of CEP runtime
     return () => {
       window.removeEventListener("keydown", keyboardListener);
 
@@ -191,12 +216,12 @@
     if (csi && window.cep) {
       untrack(() => {
         // fetch current ai file's settings when document changed
-        csi.addEventListener("documentAfterActivate", () => {
+        csi.addEventListener("documentAfterActivate", async () => {
           // don't fetch settings if ai2svelte is in progress
           // the window might focus off and on while ai2svelte is running
           if ($ai2svelteInProgress) return;
-          fetchSettings();
-          fetchStyleJSONs();
+
+          handleCache();
         });
       });
     }

@@ -1,5 +1,5 @@
 import type { Writable } from "svelte/store";
-import { derived, writable } from "svelte/store";
+import { derived, get, writable } from "svelte/store";
 import type { Style, ShadowItem, AnimationItem } from "./Tabs/types";
 import { generateAllMixins } from "./utils/cssUtils";
 import type { Result, Root } from "postcss";
@@ -49,3 +49,20 @@ export const triggerConfetti: Writable<boolean> = writable(false);
 export const lastSaved: Writable<{ time: Date } | "Never"> = writable("Never");
 
 export const lastPreviewObject: Writable<Record<string, any>> = writable({});
+
+export const docName: Writable<string> = writable("");
+
+export const cacheObj: Record<
+  string,
+  { settingsObject: unknown; styles: unknown }
+> = {};
+
+export const cache = derived([settingsObject, styles], () => {
+  const docStore = get(docName);
+  if (docStore === "") return {};
+  cacheObj[docStore] = {
+    settingsObject: get(settingsObject),
+    styles: get(styles),
+  };
+  return cacheObj;
+});

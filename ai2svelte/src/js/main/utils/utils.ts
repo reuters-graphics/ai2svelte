@@ -206,3 +206,39 @@ export async function fetchSettings(): Promise<void> {
     lastSaved.set(await evalTS("getVariable", "lastSaved"));
   }
 }
+
+export async function fetchSavedSettings(): Promise<void> {
+  // fetch user settings
+  // and update the store
+  const userSettings = readFile("user-settings.json");
+  if (userSettings && Object.keys(userSettings).length != 0) {
+    console.log("found user settings");
+    userData.theme = userSettings.theme;
+    userData.accentColor = userSettings.accentColor;
+    userData.fontsConfig = userSettings.fontsConfig || {};
+  } else {
+    console.log("no user settings found, creating settings file");
+    writeFile("user-settings.json", userData);
+  }
+
+  console.log("fetching settings...");
+  const fetchedSettings = await evalTS("getVariable", "ai-settings");
+
+  if (Object.keys(fetchedSettings).length == 0) {
+    savedSettings.set({});
+    savedStyles.set(await postcss().process("", { parser: safeParser }));
+    lastSaved.set("Never");
+  } else {
+    // settings found, use them
+    savedSettings.set({ ...fetchedSettings });
+    const fetchedStyles = await evalTS("getVariable", "css-settings");
+    const stylesAST = await parseCSS(fetchedStyles.styleText);
+    savedStyles.set(
+      await postcss().process(stylesAST.root.clone(), {
+        from: undefined,
+      }),
+    );
+
+    lastSaved.set(await evalTS("getVariable", "lastSaved"));
+  }
+}
