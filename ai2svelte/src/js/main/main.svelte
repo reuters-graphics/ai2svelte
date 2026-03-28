@@ -128,11 +128,19 @@
 
   async function handleCache() {
     $docName = ((await evalTS("getDocumentName")) as unknown as string) || "";
+    console.log("changed doc to ", $docName);
+
+    console.log("Cache content ", $docName, JSON.stringify($cache));
+
     if ($cache[$docName]?.settingsObject) {
       //   await fetchSettings();
-      fetchSavedSettings();
-      $settingsObject = $cache[$docName].settingsObject;
-      $styles = $cache[$docName].styles;
+
+      await fetchSavedSettings();
+      const cachedSettings = $cache[$docName].settingsObject;
+      const cachedStyles = $cache[$docName].styles;
+      $settingsObject = cachedSettings;
+      $styles = cachedStyles;
+      console.log("Cache content ", $docName, JSON.stringify($cache));
       console.log("Restored settingsObject from cache");
     } else {
       fetchSettings();
@@ -144,6 +152,7 @@
     precheck();
 
     // handleCache();
+    $docName = ((await evalTS("getDocumentName")) as unknown as string) || "";
     fetchSettings();
 
     $updateInProgress = false;
