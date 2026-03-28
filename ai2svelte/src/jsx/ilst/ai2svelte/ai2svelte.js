@@ -3117,6 +3117,8 @@ export function main(settingsArg) {
     var uniqNames = [];
     var hiddenItems = [];
     var hiddenLayers = [];
+    var hiddenTextframes = [];
+    var hiddenGroups = [];
     var i;
 
     // holds layer's HTML code in a separate array
@@ -3131,6 +3133,17 @@ export function main(settingsArg) {
     if (hideTextFrames) {
       for (i = 0; i < textFrameCount; i++) {
         textFrames[i].hidden = true;
+
+        hiddenTextframes.push(textFrames[i]);
+
+        if (
+          textFrames[i].parent.typename === "GroupItem" &&
+          textFrames[i].parent.pageItems.length == 1 &&
+          textFrames[i].parent.hidden == false
+        ) {
+          textFrames[i].parent.hidden = true;
+          hiddenGroups.push(textFrames[i].parent);
+        }
       }
     }
 
@@ -3266,9 +3279,13 @@ export function main(settingsArg) {
 
     // unhide text frames
     if (hideTextFrames) {
-      for (i = 0; i < textFrameCount; i++) {
-        textFrames[i].hidden = false;
-      }
+      forEach(hiddenTextframes, function (tf) {
+        tf.hidden = false;
+      });
+
+      forEach(hiddenGroups, function (grp) {
+        grp.hidden = false;
+      });
     }
 
     // unhide items exported as symbols
