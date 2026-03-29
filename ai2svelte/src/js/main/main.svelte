@@ -49,7 +49,7 @@
   import Home from "./Tabs/Home/Home.svelte";
   import Inspect from "./Tabs/Inspect.svelte";
   import Alert from "./Components/Alert.svelte";
-  import Preview from "./Tabs/Preview/Preview.svelte";
+  //   import Preview from "./Tabs/Preview/Preview.svelte";
   import Confetti from "./Components/Confetti.svelte";
 
   let splashScreen: boolean = $state(false);
@@ -159,8 +159,6 @@
 
     fetchStyleJSONs();
   }
-
-  $inspect($cache);
 
   onMount(() => {
     // load user settings and styles on mount

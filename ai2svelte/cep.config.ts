@@ -59,20 +59,8 @@ const config: CEP_Config = {
     sourceMap: false,
     jsxBin: "off",
   },
-  installModules: [
-    "svelte",
-    "rollup",
-    "rollup-plugin-svelte",
-    "@rollup",
-    "@rollup/rollup-darwin-arm64",
-    "@rollup/plugin-commonjs",
-    "@rollup/plugin-node-resolve",
-    "autoprefixer",
-    "svelte-preprocess",
-    "postcss",
-    "sass",
-  ],
-  copyAssets: ["public", "js/assets/images/backdrops", "server.cjs"],
+  installModules: [],
+  copyAssets: ["public", "js/assets/images/backdrops"],
   copyZipAssets: [],
 };
 export default config;
