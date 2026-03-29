@@ -250,10 +250,10 @@
     <Home refreshSettings={fetchSettings} />
   {:else if activeTab === "STYLES"}
     <Styles />
-  {:else if activeTab === "PREVIEW"}
+    <!-- {:else if activeTab === "PREVIEW"}
     {#key $forcePreview}
       <Preview forceRender={$forcePreview} />
-    {/key}
+    {/key} -->
   {:else if activeTab === "SETTINGS"}
     <Settings />
   {:else if activeTab === "INSPECT"}
