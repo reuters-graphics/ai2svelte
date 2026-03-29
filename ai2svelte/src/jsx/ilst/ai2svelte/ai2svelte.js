@@ -1733,17 +1733,22 @@ export function main(settingsArg) {
       range = pData.ranges[j];
       rangeHtml = cleanHtmlText(cleanHtmlTags(range.text));
       diff = objectDiff(range.cssStyle, pData.cssStyle);
+      alert("|" + range.text + "|");
       if (diff) {
+        const spaceEncodedHtml = rangeHtml
+          .replace(/^ +/, (m) => "&nbsp;")
+          .replace(/ +$/, (m) => "&nbsp;");
         rangeHtml =
           '<span class="' +
           getTextStyleClass(diff, cStyles, "cstyle") +
           '">' +
-          rangeHtml +
+          spaceEncodedHtml +
           "</span>";
       }
       html += rangeHtml;
     }
     html += "</p>";
+    alert("|" + html + "|");
     return html;
   }
 
