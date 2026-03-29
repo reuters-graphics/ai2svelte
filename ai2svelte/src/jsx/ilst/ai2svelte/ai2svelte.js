@@ -4515,7 +4515,7 @@ export function main(settingsArg) {
 
     let effectCode =
       "$effect(() => {\n" +
-      "if (aiBoxWidth) {\n" +
+      "if (aiBoxWidth && onArtboardChange) {\n" +
       resizerBlock +
       "if (currentArtboard?.id !== activeArtboard?.id) {\n" +
       "activeArtboard = untrack(() => currentArtboard);\n" +
@@ -4551,8 +4551,7 @@ export function main(settingsArg) {
   function generateSvelteScript(group, settings) {
     var script = "<script>\r\t";
 
-    script +=
-      "let { assetsPath = '/', onAiMounted = () => {}, onArtboardChange = () => {}";
+    script += "let { assetsPath = '/', onAiMounted, onArtboardChange";
 
     if (getObjectKeyCount(docSettings.snippetProps) > 0) {
       script += ", " + docSettings.snippetProps.join(", ");
@@ -4607,7 +4606,7 @@ export function main(settingsArg) {
         "artboard" +
         "'));\r";
     }
-    script += "onAiMounted();";
+    script += "onAiMounted?.();";
     script += "\r});\r";
     script += addArtboardChangeEffect(settings);
     script += "\r</script>\r";
