@@ -132,6 +132,15 @@
 
     console.log("Cache content ", $docName, JSON.stringify($cache));
 
+    const activeDocs = (await evalTS("getActiveDocumentsNames")) || [];
+
+    Object.keys($cache).forEach((key) => {
+      if (!activeDocs.includes(key)) {
+        delete $cache[key];
+        console.log("Deleted cache for document:", key);
+      }
+    });
+
     if ($cache[$docName]?.settingsObject) {
       //   await fetchSettings();
 
@@ -147,11 +156,17 @@
     }
   }
 
+  $effect(() => {
+    if ($cache) {
+      console.log($cache);
+    }
+  });
+
   // do initial checks and fetch settings
   async function performPrecheck() {
     precheck();
 
-    // handleCache();
+    handleCache();
     $docName = ((await evalTS("getDocumentName")) as unknown as string) || "";
     fetchSettings();
 
