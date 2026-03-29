@@ -1733,7 +1733,6 @@ export function main(settingsArg) {
       range = pData.ranges[j];
       rangeHtml = cleanHtmlText(cleanHtmlTags(range.text));
       diff = objectDiff(range.cssStyle, pData.cssStyle);
-      alert("|" + range.text + "|");
       if (diff) {
         const spaceEncodedHtml = rangeHtml
           .replace(/^ +/, (m) => "&nbsp;")
@@ -1748,7 +1747,6 @@ export function main(settingsArg) {
       html += rangeHtml;
     }
     html += "</p>";
-    alert("|" + html + "|");
     return html;
   }
 
