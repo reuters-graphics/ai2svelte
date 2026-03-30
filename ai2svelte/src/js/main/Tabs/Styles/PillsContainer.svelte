@@ -1,8 +1,12 @@
 <script lang="ts">
   import { slide } from "svelte/transition";
   import Pill from "../../Components/Pill.svelte";
+  import postcss from "postcss";
+  // @ts-ignore
+  import safeParser from "postcss-safe-parser";
 
   import { stylesState } from "./stylesState.svelte";
+  import { removeSelectorFromResult } from "./utils";
 
   let { styles = $bindable() } = $props();
 </script>
@@ -16,15 +20,12 @@
         onClick={() => {
           stylesState.cssSelector = selector;
         }}
-        onRemove={() => {
+        onRemove={async () => {
           // delete styles[selector];
-          styles.root.nodes.splice(
-            styles.root.nodes.findIndex(
-              (x) => x.type === "rule" && x.selector == selector
-            ),
-            1
-          );
-          styles = styles;
+          removeSelectorFromResult(styles, selector);
+
+          styles = styles; // trigger reactivity
+
           // replace identifier with default style
           const node = styles?.root?.nodes?.[0] || null;
           if (node && node.type === "rule") {

@@ -218,9 +218,9 @@
     if ($settingsObject || $styles) {
       const settingsMatch =
         JSON.stringify($savedSettings) == JSON.stringify($settingsObject);
-      const savedCSS = $savedStyles?.css || "";
-      const currentCSS = $styles?.css || "";
-      const stylesMatch = savedCSS == currentCSS;
+      const savedCSS = $savedStyles?.root?.toString() || "";
+      const currentCSS = $styles?.root?.toString() || "";
+      const stylesMatch = savedCSS?.trim() == currentCSS?.trim();
 
       if (stylesMatch && settingsMatch) {
         $unsavedChanges = { flag: false, message: "" };
