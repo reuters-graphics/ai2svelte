@@ -1734,11 +1734,14 @@ export function main(settingsArg) {
       rangeHtml = cleanHtmlText(cleanHtmlTags(range.text));
       diff = objectDiff(range.cssStyle, pData.cssStyle);
       if (diff) {
+        const spaceEncodedHtml = rangeHtml
+          .replace(/^ +/, (m) => "&nbsp;")
+          .replace(/ +$/, (m) => "&nbsp;");
         rangeHtml =
           '<span class="' +
           getTextStyleClass(diff, cStyles, "cstyle") +
           '">' +
-          rangeHtml +
+          spaceEncodedHtml +
           "</span>";
       }
       html += rangeHtml;
@@ -3117,6 +3120,8 @@ export function main(settingsArg) {
     var uniqNames = [];
     var hiddenItems = [];
     var hiddenLayers = [];
+    var hiddenTextframes = [];
+    var hiddenGroups = [];
     var i;
 
     // holds layer's HTML code in a separate array
@@ -3131,6 +3136,17 @@ export function main(settingsArg) {
     if (hideTextFrames) {
       for (i = 0; i < textFrameCount; i++) {
         textFrames[i].hidden = true;
+
+        hiddenTextframes.push(textFrames[i]);
+
+        if (
+          textFrames[i].parent.typename === "GroupItem" &&
+          textFrames[i].parent.pageItems.length == 1 &&
+          textFrames[i].parent.hidden == false
+        ) {
+          textFrames[i].parent.hidden = true;
+          hiddenGroups.push(textFrames[i].parent);
+        }
       }
     }
 
@@ -3266,9 +3282,13 @@ export function main(settingsArg) {
 
     // unhide text frames
     if (hideTextFrames) {
-      for (i = 0; i < textFrameCount; i++) {
-        textFrames[i].hidden = false;
-      }
+      forEach(hiddenTextframes, function (tf) {
+        tf.hidden = false;
+      });
+
+      forEach(hiddenGroups, function (grp) {
+        grp.hidden = false;
+      });
     }
 
     // unhide items exported as symbols
@@ -4498,7 +4518,7 @@ export function main(settingsArg) {
 
     let effectCode =
       "$effect(() => {\n" +
-      "if (aiBoxWidth) {\n" +
+      "if (aiBoxWidth && onArtboardChange) {\n" +
       resizerBlock +
       "if (currentArtboard?.id !== activeArtboard?.id) {\n" +
       "activeArtboard = untrack(() => currentArtboard);\n" +
@@ -4534,8 +4554,7 @@ export function main(settingsArg) {
   function generateSvelteScript(group, settings) {
     var script = "<script>\r\t";
 
-    script +=
-      "let { assetsPath = '/', onAiMounted = () => {}, onArtboardChange = () => {}";
+    script += "let { assetsPath = '/', onAiMounted, onArtboardChange";
 
     if (getObjectKeyCount(docSettings.snippetProps) > 0) {
       script += ", " + docSettings.snippetProps.join(", ");
@@ -4590,7 +4609,7 @@ export function main(settingsArg) {
         "artboard" +
         "'));\r";
     }
-    script += "onAiMounted();";
+    script += "onAiMounted?.();";
     script += "\r});\r";
     script += addArtboardChangeEffect(settings);
     script += "\r</script>\r";

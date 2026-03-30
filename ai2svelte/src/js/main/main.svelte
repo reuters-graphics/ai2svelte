@@ -49,7 +49,7 @@
   import Home from "./Tabs/Home/Home.svelte";
   import Inspect from "./Tabs/Inspect.svelte";
   import Alert from "./Components/Alert.svelte";
-  import Preview from "./Tabs/Preview/Preview.svelte";
+  //   import Preview from "./Tabs/Preview/Preview.svelte";
   import Confetti from "./Components/Confetti.svelte";
 
   let splashScreen: boolean = $state(false);
@@ -128,30 +128,52 @@
 
   async function handleCache() {
     $docName = ((await evalTS("getDocumentName")) as unknown as string) || "";
+    console.log("changed doc to ", $docName);
+
+    console.log("Cache content ", $docName, JSON.stringify($cache));
+
+    const activeDocs = (await evalTS("getActiveDocumentsNames")) || [];
+
+    Object.keys($cache).forEach((key) => {
+      if (!activeDocs.includes(key)) {
+        delete $cache[key];
+        console.log("Deleted cache for document:", key);
+      }
+    });
+
     if ($cache[$docName]?.settingsObject) {
       //   await fetchSettings();
-      fetchSavedSettings();
-      $settingsObject = $cache[$docName].settingsObject;
-      $styles = $cache[$docName].styles;
+
+      await fetchSavedSettings();
+      const cachedSettings = $cache[$docName].settingsObject;
+      const cachedStyles = $cache[$docName].styles;
+      $settingsObject = cachedSettings;
+      $styles = cachedStyles;
+      console.log("Cache content ", $docName, JSON.stringify($cache));
       console.log("Restored settingsObject from cache");
     } else {
       fetchSettings();
     }
   }
 
+  $effect(() => {
+    if ($cache) {
+      console.log($cache);
+    }
+  });
+
   // do initial checks and fetch settings
   async function performPrecheck() {
     precheck();
 
-    // handleCache();
+    handleCache();
+    $docName = ((await evalTS("getDocumentName")) as unknown as string) || "";
     fetchSettings();
 
     $updateInProgress = false;
 
     fetchStyleJSONs();
   }
-
-  $inspect($cache);
 
   onMount(() => {
     // load user settings and styles on mount
@@ -196,9 +218,9 @@
     if ($settingsObject || $styles) {
       const settingsMatch =
         JSON.stringify($savedSettings) == JSON.stringify($settingsObject);
-      const savedCSS = $savedStyles?.css || "";
-      const currentCSS = $styles?.css || "";
-      const stylesMatch = savedCSS == currentCSS;
+      const savedCSS = $savedStyles?.root?.toString() || "";
+      const currentCSS = $styles?.root?.toString() || "";
+      const stylesMatch = savedCSS?.trim() == currentCSS?.trim();
 
       if (stylesMatch && settingsMatch) {
         $unsavedChanges = { flag: false, message: "" };
@@ -241,10 +263,10 @@
     <Home refreshSettings={fetchSettings} />
   {:else if activeTab === "STYLES"}
     <Styles />
-  {:else if activeTab === "PREVIEW"}
+    <!-- {:else if activeTab === "PREVIEW"}
     {#key $forcePreview}
       <Preview forceRender={$forcePreview} />
-    {/key}
+    {/key} -->
   {:else if activeTab === "SETTINGS"}
     <Settings />
   {:else if activeTab === "INSPECT"}

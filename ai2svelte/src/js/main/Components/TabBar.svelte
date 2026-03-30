@@ -93,7 +93,7 @@
       {#if inspectMode}
         {@render tab("Inspect", false)}
       {/if}
-      {@render tab("Preview", false)}
+      <!-- {@render tab("Preview", false)} -->
     </div>
 
     <div class="extra-configs">

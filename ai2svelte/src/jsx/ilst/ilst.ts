@@ -119,3 +119,16 @@ export const getDocumentName = () => {
     return "";
   }
 };
+
+export const getActiveDocumentsNames = () => {
+  if (app) {
+    const appDocs = app.documents;
+    const docNames = [];
+    for (let i = 0; i < appDocs.length; i++) {
+      docNames.push(appDocs[i].name);
+    }
+    return docNames;
+  } else {
+    return "";
+  }
+};

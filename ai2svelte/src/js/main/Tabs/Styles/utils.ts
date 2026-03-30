@@ -26,7 +26,7 @@ import mixedDecls from "./mixedDecls";
 function toggleShadowCard(
   shadowName: string,
   operation: boolean,
-  shadowColor: string
+  shadowColor: string,
 ) {
   const rawStyles = { ...get(styles) };
 
@@ -35,7 +35,7 @@ function toggleShadowCard(
   let rule =
     rawStyles.root?.nodes.find(
       (node) =>
-        node.type === "rule" && node.selector === stylesState.cssSelector
+        node.type === "rule" && node.selector === stylesState.cssSelector,
     ) || null;
 
   // true to add
@@ -102,4 +102,14 @@ export async function stringToStyles(string: string) {
   }
 
   return object;
+}
+
+export function removeSelectorFromResult(result, selector) {
+  result.root.walkRules((rule) => {
+    if (rule.selector === selector) {
+      rule.remove();
+    }
+  });
+
+  return result.root.toString();
 }
