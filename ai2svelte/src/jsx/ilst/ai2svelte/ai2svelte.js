@@ -3693,13 +3693,16 @@ export function main(settingsArg) {
       html += imgStyle + ";";
     }
 
-    html += '"';
-
-    var artboardId = nameSpace + getArtboardUniqueName(ab, settings);
-    imgVars[imgId] = {
-      artboardId: artboardId,
-      src: src,
-    };
+    if (isFalse(settings.include_resizer_css)) {
+      html += "background-image: url(" + src + ');"';
+    } else {
+      html += '"';
+      var artboardId = nameSpace + getArtboardUniqueName(ab, settings);
+      imgVars[imgId] = {
+        artboardId: artboardId,
+        src: src,
+      };
+    }
 
     if (isTrue(settings.use_lazy_loader)) {
       // native lazy loading seems to work well -- images aren't loaded when
@@ -4312,19 +4315,61 @@ export function main(settingsArg) {
       );
     }
 
-    if (isTrue(settings.respect_height)) {
-      var cssObj = {
-        margin: "0 auto",
-        "min-height": "100%",
-        "min-width": "unset !important",
-        "max-width": "unset !important",
-        top: "50%",
-        left: "50%",
-        transform: "translate(-50%, -50%)",
-      };
+    var cssObj;
 
-      css += formatCssRule(blockStart + " ." + nameSpace + "artboard", cssObj);
+    switch (settings.fit_mode) {
+      case "cover":
+        cssObj = {
+          margin: "0 auto",
+          "min-height": "100%",
+          "min-width": "unset !important",
+          "max-width": "unset !important",
+          top: "50%",
+          left: "50%",
+          transform: "translate(-50%, -50%)",
+        };
+        css += formatCssRule(
+          blockStart + " ." + nameSpace + "artboard",
+          cssObj,
+        );
+        break;
+      case "height":
+        cssObj = {
+          margin: "0 auto",
+          height: "100%",
+          "min-width": "unset !important",
+          "max-width": "unset !important",
+        };
+
+        if (!isTrue(settings.allow_overflow)) {
+          cssObj["top"] = "50%";
+          cssObj["left"] = "50%";
+          cssObj["transform"] = "translate(-50%, -50%)";
+          cssObj["position"] = "absolute";
+        }
+
+        css += formatCssRule(
+          blockStart + " ." + nameSpace + "artboard",
+          cssObj,
+        );
+        break;
+      default:
+        break;
     }
+
+    // if (isTrue(settings.fit_mode == "cover")) {
+    //   var cssObj = {
+    //     margin: "0 auto",
+    //     "min-height": "100%",
+    //     "min-width": "unset !important",
+    //     "max-width": "unset !important",
+    //     top: "50%",
+    //     left: "50%",
+    //     transform: "translate(-50%, -50%)",
+    //   };
+
+    //   css += formatCssRule(blockStart + " ." + nameSpace + "artboard", cssObj);
+    // }
 
     if (settings.alt_text) {
       css += formatCssRule(blockStart + " ." + nameSpace + "aiAltText", {
@@ -4374,18 +4419,25 @@ export function main(settingsArg) {
       "white-space": "nowrap",
     });
 
-    if (isTrue(settings.respect_height) && isFalse(settings.allow_overflow)) {
+    if (
+      (isTrue(settings.fit_mode == "height") ||
+        isTrue(settings.fit_mode == "cover")) &&
+      isFalse(settings.allow_overflow)
+    ) {
       css += blockStart + "{\r";
       css += "height: 100%;\r";
       css += "width: 100%;\r";
       css += "overflow: hidden;\r";
+      css += "position: relative;\r";
       css += "}\r";
     } else if (
-      isTrue(settings.respect_height) &&
+      (isTrue(settings.fit_mode == "height") ||
+        isTrue(settings.fit_mode == "cover")) &&
       isTrue(settings.allow_overflow)
     ) {
       css += blockStart + "{\r";
       css += "height: 100%;\r";
+      css += "position: relative;\r";
       css += "}\r";
     }
 
