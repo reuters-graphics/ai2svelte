@@ -119,7 +119,6 @@ export function main(settingsArg) {
 
   let textFramesToUnhide = [];
   let objectsToRelock = [];
-  let previewImageImports = [];
 
   let docSettings;
   let textBlockData;
@@ -133,6 +132,7 @@ export function main(settingsArg) {
     text: {},
     htext: {},
   };
+  let imgVars = {};
 
   initJSON();
 
@@ -263,7 +263,7 @@ export function main(settingsArg) {
     // saved flag (the document goes to unsaved state during the script,
     // because of unlocking / relocking of objects
     doc.saved = true;
-  } else if (errors.length === 0 && isFalse(docSettings.isPreview)) {
+  } else if (errors.length === 0) {
     var saveOptions = new IllustratorSaveOptions();
     saveOptions.pdfCompatible = false;
     doc.saveAs(new File(docPath + doc.name), saveOptions);
@@ -3320,11 +3320,7 @@ export function main(settingsArg) {
 
   function getImageFolder(settings) {
     // return pathJoin(docPath, settings.html_output_path, settings.image_output_path);
-    if (isTrue(settings.isPreview)) {
-      return settings.image_output_path;
-    } else {
-      return pathJoin(docPath, settings.image_output_path);
-    }
+    return pathJoin(docPath, settings.image_output_path);
   }
 
   function getImageFileName(name, fmt) {
@@ -3399,7 +3395,7 @@ export function main(settingsArg) {
     // after assigning the original class derived from original id
     if (settings.tagPrefix == "svg") {
       var svgName = /(.*):svg/.exec(layer.name)[1];
-      imgId = nameSpace + "svg-" + svgName;
+      imgId = nameSpace + "svg-" + svgName + "-" + getArtboardName(ab);
     }
 
     if (format == "svg") {
@@ -3664,9 +3660,7 @@ export function main(settingsArg) {
   ) {
     var imgDir;
 
-    imgDir =
-      "{ assetsPath.replace(new RegExp('/([^/.]+)$'), '/$1/') || '/' }" +
-      settings.image_source_path;
+    imgDir = "{processedPath}" + settings.image_source_path;
 
     // if tagged layer image, adjust path to include 'tagged' folder and project name
     if (
@@ -3683,33 +3677,7 @@ export function main(settingsArg) {
       html,
       src;
 
-    if (isTrue(settings.isPreview)) {
-      // preview-xs.jpg -> {previewXS}
-      //   layer-image-xs.png -> {layerImageXS}
-      var grps = imgFile.match(/(.*)\..*/);
-      var splits = grps[1].split("-");
-      var importName = map(splits, function (part, index) {
-        return index === 0
-          ? part
-          : part.charAt(0).toUpperCase() + part.slice(1);
-      }).join("");
-      //   var importName = `${grps[1]}${grps[2].toString().toUpperCase()}`;
-      src = `{${importName}}`;
-
-      // png images are exported to 'tagged' folder inside image output path
-      const taggedFolder =
-        settings.tagPrefix == "png" || settings.tagPrefix == "png24"
-          ? "tagged/" + (settings.project_name || group.groupName) + "/"
-          : "";
-
-      previewImageImports.push(
-        `const ${importName} = '${pathToFileURL(settings.image_output_path + taggedFolder + imgFile)}?t=${Date.now()}';\r`,
-      );
-
-      //   previewImageImports.push(`import ${importName} from './${imgFile}';`);
-    } else {
-      src = pathJoin(imgDir, imgFile);
-    }
+    src = pathJoin(imgDir, imgFile);
 
     html =
       '\t\t<div id="' +
@@ -3720,15 +3688,18 @@ export function main(settingsArg) {
       imgAlt +
       '"';
     html += ' style="';
+
     if (imgStyle) {
       html += imgStyle + ";";
     }
 
-    if (isTrue(settings.isPreview)) {
-      html += "background-image: url('" + src + "'" + ');"';
-    } else {
-      html += "background-image: url(" + src + ');"';
-    }
+    html += '"';
+
+    var artboardId = nameSpace + getArtboardUniqueName(ab, settings);
+    imgVars[imgId] = {
+      artboardId: artboardId,
+      src: src,
+    };
 
     if (isTrue(settings.use_lazy_loader)) {
       // native lazy loading seems to work well -- images aren't loaded when
@@ -4211,22 +4182,9 @@ export function main(settingsArg) {
 
     if (match !== null && match[1]) {
       var ct = content;
-      if (isTrue(settingsArg.settings.isPreview)) {
-        ct = ct.replace(/\bxlink:href="([^"]+)"/g, function (_, href) {
-          const path = pathToFileURL(
-            settingsArg.settings.image_output_path +
-              "tagged/" +
-              pageName +
-              "/" +
-              href,
-          );
-          return `xlink:href="${path}"`;
-        });
-      } else {
-        ct = ct.replace(/\bxlink:href="([^"]+)"/g, function (_, href) {
-          return `xlink:href="${imgDir}tagged/${pageName}/${href}"`;
-        });
-      }
+      ct = ct.replace(/\bxlink:href="([^"]+)"/g, function (_, href) {
+        return `xlink:href="${imgDir}tagged/${pageName}/${href}"`;
+      });
       return ct;
     } else {
       return content;
@@ -4459,7 +4417,18 @@ export function main(settingsArg) {
         }
 
         css += "#" + id + " {\r";
-        css += "display: block !important;\r";
+        css += "display: block !important;\r\r";
+
+        for (var key in imgVars) {
+          if (imgVars.hasOwnProperty(key)) {
+            if (imgVars[key].artboardId === id) {
+              css += "#" + key + " {\n\r";
+              css += "background-image: var(--" + key + "-img);\n\r";
+              css += "}\n\r";
+            }
+          }
+        }
+
         css += "}\r";
         css += "}\r";
       });
@@ -4554,7 +4523,8 @@ export function main(settingsArg) {
   function generateSvelteScript(group, settings) {
     var script = "<script>\r\t";
 
-    script += "let { assetsPath = '/', onAiMounted, onArtboardChange";
+    script +=
+      "let { assetsPath = '/', onAiMounted = null, onArtboardChange = null";
 
     if (getObjectKeyCount(docSettings.snippetProps) > 0) {
       script += ", " + docSettings.snippetProps.join(", ");
@@ -4575,18 +4545,11 @@ export function main(settingsArg) {
 
     script += " } = $props();\r";
 
-    // if (isTrue(settings.isPreview)) {
-    //   script += `const ASSET_BASE = '${settings.html_output_path}/writable/';\r`;
-    // }
-
-    if (isFalse(settings.include_resizer_css)) {
-      for (let i = 0; i < previewImageImports.length; i++) {
-        script += previewImageImports[i] + "\n\r";
-      }
-    }
-
     // add prop for onmount function that defaults to noop
-    script += "import { onMount, untrack } from 'svelte';\n";
+    script += "import { onMount, untrack } from 'svelte';\n\r";
+    script += "let processedPath = $derived(\n\r";
+    script += "assetsPath.replace(new RegExp('/([^/.]+)$'), '/$1/') || '/'\n\r";
+    script += ");\n\r";
     script += "let aiBox;\n";
 
     if (isTrue(settings.allow_overflow)) {
@@ -4755,6 +4718,16 @@ export function main(settingsArg) {
       rootBindings = "bind:this={aiBox} bind:clientWidth={aiBoxWidth}";
     }
 
+    var bgVars = [];
+
+    for (var key in imgVars) {
+      if (imgVars.hasOwnProperty(key)) {
+        let varDef =
+          "style:--" + key + '-img={`url("$' + imgVars[key].src + '")`};';
+        bgVars.push(varDef);
+      }
+    }
+
     // HTML
     html +=
       '<div id="' +
@@ -4766,6 +4739,7 @@ export function main(settingsArg) {
       " " +
       rootBindings +
       (debugTaggedTextVariable ? " " + debugTaggedTextVariable : "") +
+      (bgVars.length > 0 ? " " + bgVars.join("\r") : "") +
       ">\r";
 
     if (settings.alt_text) {
@@ -4820,12 +4794,7 @@ export function main(settingsArg) {
 
     textForFile = applyTemplate(textForFile, settings);
 
-    if (isTrue(settings.isPreview)) {
-      // previews should be stored in extension directory
-      htmlFileDestinationFolder = settings.html_output_path;
-    } else {
-      htmlFileDestinationFolder = docPath + settings.html_output_path;
-    }
+    htmlFileDestinationFolder = docPath + settings.html_output_path;
 
     checkForOutputFolder(htmlFileDestinationFolder, "html_output_path");
     htmlFileDestination =
