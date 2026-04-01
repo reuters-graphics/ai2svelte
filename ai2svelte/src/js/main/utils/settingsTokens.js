@@ -247,12 +247,12 @@ export let aiSettingsTokens = [
     options: ["true", "false"],
   },
   {
-    label: "respect_height",
-    type: "boolean",
-    info: "Whether to prioritize parent height over parent width. \n ⚠️ Parent element must have a defined height. \n Options: true, false",
-    default: "false",
+    label: "fit_mode",
+    type: "variable",
+    info: "Whether to prioritize parent width, height or cover. \n ⚠️ If set to height or cover, parent element must have a defined height and width. \n Options: width, height, cover",
+    default: "width",
     inputType: "select",
-    options: ["true", "false"],
+    options: ["width", "height", "cover"],
   },
   {
     label: "override_text",
