@@ -40,6 +40,16 @@ Wraps the entire graphic in an `<a>` tag pointing to the given URL. Add a URL to
 
 Default: _(blank)_
 
+### fit_mode :badge[New]
+
+Whether to prioritize parent width, height or cover. Setting to cover will make the graphics respect it's aspect ratio and fill the entire parent element, potentially cropping parts of the graphic if the aspect ratios do not match. Setting to height will make the graphic adapt to the height of its parent element instead of the width.
+
+Options: `width`, `height`, `cover`
+
+:::caution
+If set to height or cover, parent element must have a defined height and width. Might lead to unexpected results if the parent element has no defined height.
+:::
+
 ### html_output_extension
 
 Specifies the extension for the output file. `.html` is no longer supported.
@@ -169,16 +179,6 @@ Options: `html`, `image`
 Controls how text elements from Illustrator are rendered in the exported svelte component.
 
 Options: `html`, `image`
-
-### respect_height :badge[New]
-
-Whether to prioritize parent height over parent width. This makes the ai2svelte container adapt to the height of its parent element instead of the width.
-
-Options: `false`, `true`
-
-:::caution
-Might lead to unexpected results if the parent element has no defined height.
-:::
 
 ### responsiveness
 
