@@ -102,7 +102,7 @@ export function main(settingsArg) {
   // - Update the version number in package.json
   // - Add an entry to CHANGELOG.md
   // - Run 'npm publish' to create a new GitHub release
-  const scriptVersion = "1.0.5";
+  const scriptVersion = "1.0.6";
 
   // ================================
   // Global variable declarations
@@ -3385,8 +3385,8 @@ export function main(settingsArg) {
 
     // separate id convention for tagged png layers
     if (settings.tagPrefix == "png" || settings.tagPrefix == "png24") {
-      imgId = nameSpace + "png-" + imgName + "-" + getArtboardName(ab);
-      imgClass = nameSpace + "png-" + imgName;
+      imgId = nameSpace + settings.tagPrefix + "-" + imgName;
+      imgClass = nameSpace + settings.tagPrefix;
     }
 
     imgClass += " " + nameSpace + "aiImg";
@@ -3395,11 +3395,11 @@ export function main(settingsArg) {
     // after assigning the original class derived from original id
     if (settings.tagPrefix == "svg") {
       var svgName = /(.*):svg/.exec(layer.name)[1];
-      imgId = nameSpace + "svg-" + svgName + "-" + getArtboardName(ab);
+      imgId = nameSpace + "svg-" + svgName;
     }
 
     if (format == "svg") {
-      imgClass += " " + nameSpace + "svg-layer";
+      imgClass += " " + nameSpace + "svg";
 
       if (layer) {
         svgInlineStyle = getLayerOpacityCSS(layer);
@@ -3698,10 +3698,19 @@ export function main(settingsArg) {
     } else {
       html += '"';
       var artboardId = nameSpace + getArtboardUniqueName(ab, settings);
-      imgVars[imgId] = {
-        artboardId: artboardId,
-        src: src,
-      };
+      if (settings.tagPrefix) {
+        imgVars[imgId + "-" + ab.name] = {
+          artboardId: artboardId,
+          src: src,
+          id: imgId,
+        };
+      } else {
+        imgVars[imgId] = {
+          artboardId: artboardId,
+          src: src,
+          id: imgId,
+        };
+      }
     }
 
     if (isTrue(settings.use_lazy_loader)) {
@@ -4474,8 +4483,8 @@ export function main(settingsArg) {
         for (var key in imgVars) {
           if (imgVars.hasOwnProperty(key)) {
             if (imgVars[key].artboardId === id) {
-              css += "#" + key + " {\n\r";
-              css += "background-image: var(--" + key + "-img);\n\r";
+              css += "#" + imgVars[key].id + " {\n\r";
+              css += "background-image: var(--" + key + ");\n\r";
               css += "}\n\r";
             }
           }
@@ -4774,8 +4783,9 @@ export function main(settingsArg) {
 
     for (var key in imgVars) {
       if (imgVars.hasOwnProperty(key)) {
+        alert(key);
         let varDef =
-          "style:--" + key + '-img={`url("$' + imgVars[key].src + '")`};';
+          "style:--" + key + '={`url("$' + imgVars[key].src + '")`};';
         bgVars.push(varDef);
       }
     }
