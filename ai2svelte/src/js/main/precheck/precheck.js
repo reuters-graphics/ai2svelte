@@ -3,6 +3,7 @@ import { version as pluginVersion } from "../../../shared/shared";
 import { readFile, writeFile } from "../utils/utils";
 import pluginFlags from "./flags.json?json";
 import defaultShadows from "../Tabs/data/shadows.json?raw";
+import defaultAnimations from "../Tabs/data/animations.json?raw";
 import JSON5 from "json5";
 
 let userFlags = {};
@@ -46,7 +47,7 @@ async function checkVersion() {
   }
 
   console.log(
-    `fileVersion: ${JSON.stringify(fileVersion)}, pluginVersion: ${pluginVersion}`
+    `fileVersion: ${JSON.stringify(fileVersion)}, pluginVersion: ${pluginVersion}`,
   );
 
   let comparison = compareVersions(pluginVersion, fileVersion);
@@ -68,7 +69,7 @@ async function checkVersion() {
     userFlags["1.0.2"]?.fixedToDynamicResponsiveness == false
   ) {
     const response = confirm(
-      "To align with internal standards, we suggest updating your default profile’s responsiveness setting from fixed to dynamic. Do you want to proceed with this change?"
+      "To align with internal standards, we suggest updating your default profile’s responsiveness setting from fixed to dynamic. Do you want to proceed with this change?",
     );
 
     if (response) {
@@ -82,7 +83,7 @@ async function checkVersion() {
 
       if (success) {
         alert(
-          "Default profile updated successfully. Please run ai2svelte for this file with responsiveness: dynamic to apply the changes."
+          "Default profile updated successfully. Please run ai2svelte for this file with responsiveness: dynamic to apply the changes.",
         );
       }
     }
@@ -112,9 +113,33 @@ async function checkVersion() {
     }
   }
 
+  // fixes transform animations issue
+  if (pluginVersion === "1.0.6" && userFlags) {
+    if (userFlags["1.0.6"] == undefined) {
+      userFlags["1.0.6"] = {};
+      let userAnimations = readFile("user-animations.json");
+      let systemAnimations = JSON5.parse(defaultAnimations);
+
+      if (userAnimations) {
+        userAnimations.forEach((animation) => {
+          if (animation.definition.includes("transform")) {
+            animation.definition =
+              systemAnimations.find((a) => a.name === animation.name)
+                ?.definition || animation.definition;
+          }
+        });
+
+        writeFile("user-animations.json", userAnimations);
+      }
+
+      userFlags["1.0.6"].fixedAnimations = true;
+      writeFile(".flags.json", userFlags);
+    }
+  }
+
   if (comparison < 0) {
     alert(
-      `This file was created with a newer version (v${fileVersion}) than the one you are currently using (v${pluginVersion}). Some features may not work as expected. Please update to the latest version for the best experience.`
+      `This file was created with a newer version (v${fileVersion}) than the one you are currently using (v${pluginVersion}). Some features may not work as expected. Please update to the latest version for the best experience.`,
     );
   }
 }

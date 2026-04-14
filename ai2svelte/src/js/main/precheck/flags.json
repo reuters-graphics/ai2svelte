@@ -4,5 +4,8 @@
   },
   "1.0.3": {
     "fixedPecorino2ID": false
+  },
+  "1.0.6": {
+    "fixedAnimations": false
   }
 }
