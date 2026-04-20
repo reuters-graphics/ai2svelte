@@ -4783,7 +4783,6 @@ export function main(settingsArg) {
 
     for (var key in imgVars) {
       if (imgVars.hasOwnProperty(key)) {
-        alert(key);
         let varDef =
           "style:--" + key + '={`url("$' + imgVars[key].src + '")`};';
         bgVars.push(varDef);
