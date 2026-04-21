@@ -13,7 +13,7 @@
   let activeArtboard: HTMLElement | null | undefined = $state(undefined);
 
   function getSWIRImage() {
-    swirImage = activeArtboard?.querySelector(`.g-png-layer-swir`);
+    swirImage = activeArtboard?.querySelector(`#g-png-layer-swir`);
     swirImage?.style.setProperty(
       "mask-image",
       `linear-gradient(to bottom, black 0%, transparent 0%, transparent 100%)`,

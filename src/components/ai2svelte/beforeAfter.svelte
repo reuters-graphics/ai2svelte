@@ -1,392 +1,289 @@
-<script>
-  let {
-    assetsPath = "/",
-    onAiMounted = null,
-    onArtboardChange = null,
-    slider,
-  } = $props();
-  import { onMount, untrack } from "svelte";
 
-  let processedPath = $derived(
-    assetsPath.replace(new RegExp("/([^/.]+)$"), "/$1/") || "/",
-  );
-
-  let aiBox;
-  let aiBoxWidth = $state(undefined);
-  let allArtboards = $state([]);
-  let activeArtboard = $state(undefined);
-  onMount(() => {
-    allArtboards = Array.from(aiBox.querySelectorAll(".g-artboard"));
-    onAiMounted?.();
-  });
-  $effect(() => {
-    if (aiBoxWidth && onArtboardChange) {
-      const currentArtboard = allArtboards.filter((artboard) => {
-        const minWidth = parseFloat(artboard.dataset.minWidth);
-        const maxWidth = parseFloat(artboard.dataset.maxWidth) || Infinity;
-        return minWidth <= aiBoxWidth && maxWidth >= aiBoxWidth;
-      })[0];
-      if (currentArtboard?.id !== activeArtboard?.id) {
-        activeArtboard = untrack(() => currentArtboard);
-        onArtboardChange(activeArtboard);
-      }
-    }
-  });
-</script>
-
-<div
-  id="g-beforeAfter-box"
-  class="ai2svelte"
-  bind:this={aiBox}
-  bind:clientWidth={aiBoxWidth}
-  style:--g-png-layer-before-xs-img="{`url("${processedPath}images/graphics/tagged/beforeAfter/layer-before-xs.png")`};"
-  style:--g-png-layer-after-xs-img="{`url("${processedPath}images/graphics/tagged/beforeAfter/layer-after-xs.png")`};"
-  style:--g-beforeAfter-xs-img-img="{`url("${processedPath}images/graphics/beforeAfter-xs.png")`};"
-  style:--g-png-layer-after-sm-img="{`url("${processedPath}images/graphics/tagged/beforeAfter/layer-after-sm.png")`};"
-  style:--g-beforeAfter-sm-img-img="{`url("${processedPath}images/graphics/beforeAfter-sm.png")`};"
-  style:--g-png-layer-before-md-img="{`url("${processedPath}images/graphics/tagged/beforeAfter/layer-before-md.png")`};"
-  style:--g-png-layer-after-md-img="{`url("${processedPath}images/graphics/tagged/beforeAfter/layer-after-md.png")`};"
-  style:--g-beforeAfter-md-img-img="{`url("${processedPath}images/graphics/beforeAfter-md.png")`};"
-  style:--g-png-layer-before-lg-img="{`url("${processedPath}images/graphics/tagged/beforeAfter/layer-before-lg.png")`};"
-  style:--g-png-layer-after-lg-img="{`url("${processedPath}images/graphics/tagged/beforeAfter/layer-after-lg.png")`};"
-  style:--g-beforeAfter-lg-img-img="{`url("${processedPath}images/graphics/beforeAfter-lg.png")`};"
-  style:--g-png-layer-before-xl-img="{`url("${processedPath}images/graphics/tagged/beforeAfter/layer-before-xl.png")`};"
-  style:--g-png-layer-after-xl-img="{`url("${processedPath}images/graphics/tagged/beforeAfter/layer-after-xl.png")`};"
-  style:--g-beforeAfter-xl-img-img="{`url("${processedPath}images/graphics/beforeAfter-xl.png")`};"
->
-  <!-- Artboard: xs -->
-  <div
-    id="g-beforeAfter-xs"
-    class="g-artboard"
-    style="max-width: 509px;aspect-ratio: 0.5028426924154;"
-    data-aspect-ratio="0.503"
-    data-min-width="0"
-    data-max-width="509"
-  >
-    <div
-      id="g-beforeAfter-xs-img"
-      class="g-beforeAfter-xs-img g-aiImg"
-      alt=""
-      style=""
-    ></div>
-    <div
-      id="g-png-layer-before-xs"
-      class="g-png-layer-before g-aiImg"
-      alt=""
-      style="opacity:1;;"
-    ></div>
-    <div
-      id="g-png-layer-after-xs"
-      class="g-png-layer-after g-aiImg"
-      alt=""
-      style="opacity:1;;"
-    ></div>
-    <div class="g-snippet-layer g-slider">
-      <div
-        class="g-aiSymbol g-aiSnippet"
-        id="g-snippet-slider"
-        data-name="slider"
-        style="width: 92.1212%; height: 2.4533%; margin-left: -46.0606%; margin-top: -2.4394%; left: 50%; top: 96.5552%;"
-      >
-        {@render slider?.()}
-      </div>
-    </div>
-  </div>
-  <!-- Artboard: sm -->
-  <div
-    id="g-beforeAfter-sm"
-    class="g-artboard"
-    style="min-width: 510px;max-width: 659px;aspect-ratio: 0.76891895811461;"
-    data-aspect-ratio="0.769"
-    data-min-width="510"
-    data-max-width="659"
-  >
-    <div
-      id="g-beforeAfter-sm-img"
-      class="g-beforeAfter-sm-img g-aiImg"
-      alt=""
-      style=""
-    ></div>
-    <div
-      id="g-png-layer-after-sm"
-      class="g-png-layer-after g-aiImg"
-      alt=""
-      style="opacity:1;;"
-    ></div>
-    <div class="g-snippet-layer g-slider">
-      <div
-        class="g-aiSymbol g-aiSnippet"
-        id="g-snippet-slider"
-        data-name="slider"
-        style="width: 92.3922%; height: 1.3871%; margin-left: -46.1961%; margin-top: -0.902%; left: 50%; top: 96.9219%;"
-      >
-        {@render slider?.()}
-      </div>
-    </div>
-  </div>
-  <!-- Artboard: md -->
-  <div
-    id="g-beforeAfter-md"
-    class="g-artboard"
-    style="min-width: 660px;max-width: 929px;aspect-ratio: 1.19507009903465;"
-    data-aspect-ratio="1.195"
-    data-min-width="660"
-    data-max-width="929"
-  >
-    <div
-      id="g-beforeAfter-md-img"
-      class="g-beforeAfter-md-img g-aiImg"
-      alt=""
-      style=""
-    ></div>
-    <div
-      id="g-png-layer-before-md"
-      class="g-png-layer-before g-aiImg"
-      alt=""
-      style="opacity:1;;"
-    ></div>
-    <div
-      id="g-png-layer-after-md"
-      class="g-png-layer-after g-aiImg"
-      alt=""
-      style="opacity:1;;"
-    ></div>
-    <div class="g-snippet-layer g-slider">
-      <div
-        class="g-aiSymbol g-aiSnippet"
-        id="g-snippet-slider"
-        data-name="slider"
-        style="width: 73.9545%; height: 2.4988%; margin-left: -36.9773%; margin-top: -1.0455%; left: 50%; top: 94.7093%;"
-      >
-        {@render slider?.()}
-      </div>
-    </div>
-  </div>
-  <!-- Artboard: lg -->
-  <div
-    id="g-beforeAfter-lg"
-    class="g-artboard"
-    style="min-width: 930px;max-width: 1199px;aspect-ratio: 1.41065361623927;"
-    data-aspect-ratio="1.411"
-    data-min-width="930"
-    data-max-width="1199"
-  >
-    <div
-      id="g-beforeAfter-lg-img"
-      class="g-beforeAfter-lg-img g-aiImg"
-      alt=""
-      style=""
-    ></div>
-    <div
-      id="g-png-layer-before-lg"
-      class="g-png-layer-before g-aiImg"
-      alt=""
-      style="opacity:1;;"
-    ></div>
-    <div
-      id="g-png-layer-after-lg"
-      class="g-png-layer-after g-aiImg"
-      alt=""
-      style="opacity:1;;"
-    ></div>
-    <div class="g-snippet-layer g-slider">
-      <div
-        class="g-aiSymbol g-aiSnippet"
-        id="g-snippet-slider"
-        data-name="slider"
-        style="width: 71.4516%; height: 2.8516%; margin-left: -35.7258%; margin-top: -1.0108%; left: 50.0142%; top: 94.5646%;"
-      >
-        {@render slider?.()}
-      </div>
-    </div>
-  </div>
-  <!-- Artboard: xl -->
-  <div
-    id="g-beforeAfter-xl"
-    class="g-artboard"
-    style="min-width: 1200px;aspect-ratio: 1.96399345335516;"
-    data-aspect-ratio="1.964"
-    data-min-width="1200"
-  >
-    <div
-      id="g-beforeAfter-xl-img"
-      class="g-beforeAfter-xl-img g-aiImg"
-      alt=""
-      style=""
-    ></div>
-    <div
-      id="g-png-layer-before-xl"
-      class="g-png-layer-before g-aiImg"
-      alt=""
-      style="opacity:1;;"
-    ></div>
-    <div
-      id="g-png-layer-after-xl"
-      class="g-png-layer-after g-aiImg"
-      alt=""
-      style="opacity:1;;"
-    ></div>
-    <div class="g-snippet-layer g-slider">
-      <div
-        class="g-aiSymbol g-aiSnippet"
-        id="g-snippet-slider"
-        data-name="slider"
-        style="width: 56%; height: 3.1097%; margin-left: -28%; margin-top: -0.7917%; left: 52.1667%; top: 92.4335%;"
-      >
-        {@render slider?.()}
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- End ai2svelte - 2026-04-02 00:55 -->
-
-<!-- Generated by ai2svelte v1.0.5 - 2026-04-02 00:55 -->
+<!-- Generated by ai2svelte v1.0.6 - 2026-04-21 15:58 -->
 <!-- ai file: beforeAfter.ai -->
 <style lang="scss">
-  #g-beforeAfter-box {
-    container-type: inline-size;
-    container-name: g-beforeAfter-box;
-  }
-  #g-beforeAfter-box,
-  #g-beforeAfter-box .g-artboard {
-    margin: 0 auto;
-  }
-  #g-beforeAfter-box p {
-    margin: 0;
-  }
-  #g-beforeAfter-box .g-aiAbs {
-    position: absolute;
-  }
-  #g-beforeAfter-box .g-aiImg {
-    position: absolute;
-    top: 0;
-    display: block;
-    width: 100% !important;
-    height: 100%;
-    background-size: contain;
-    background-repeat: no-repeat;
-  }
-  #g-beforeAfter-box .g-aiSymbol {
-    position: absolute;
-    box-sizing: border-box;
-  }
-  #g-beforeAfter-box .g-aiPointText p {
-    white-space: nowrap;
-  }
-  #g-beforeAfter-box.g-aiPointText p {
-    white-space: nowrap;
-  }
-  #g-beforeAfter-box {
-    width: 100%;
-    container-type: inline-size;
-    @container (min-width:0px) and (max-width: 509px) {
-      #g-beforeAfter-xs {
-        display: block !important;
+#g-beforeAfter-box {
+	container-type: inline-size;
+	container-name: g-beforeAfter-box;
+}
+#g-beforeAfter-box,
+#g-beforeAfter-box .g-artboard {
+	margin: 0 auto;
+}
+#g-beforeAfter-box p {
+	margin: 0;
+}
+#g-beforeAfter-box .g-aiAbs {
+	position: absolute;
+}
+#g-beforeAfter-box .g-aiImg {
+	position: absolute;
+	top: 0;
+	display: block;
+	width: 100% !important;
+	height: 100%;
+	background-size: contain;
+	background-repeat: no-repeat;
+}
+#g-beforeAfter-box .g-aiSymbol {
+	position: absolute;
+	box-sizing: border-box;
+}
+#g-beforeAfter-box .g-aiPointText p {
+	white-space: nowrap;
+}
+#g-beforeAfter-box.g-aiPointText p { white-space: nowrap; }
+#g-beforeAfter-box{
+width: 100%;
+container-type: inline-size;
+@container (min-width:0px) and (max-width: 509px) {
+#g-beforeAfter-xs {
+display: block !important;
 
-        #g-png-layer-before-xs {
-          background-image: var(--g-png-layer-before-xs-img);
-        }
+#g-png-layer-before {
 
-        #g-png-layer-after-xs {
-          background-image: var(--g-png-layer-after-xs-img);
-        }
+background-image: var(--g-png-layer-before-xs);
 
-        #g-beforeAfter-xs-img {
-          background-image: var(--g-beforeAfter-xs-img-img);
-        }
-      }
-    }
-    @container (min-width:510px) and (max-width: 659px) {
-      #g-beforeAfter-sm {
-        display: block !important;
+}
 
-        #g-png-layer-after-sm {
-          background-image: var(--g-png-layer-after-sm-img);
-        }
+#g-png-layer-after {
 
-        #g-beforeAfter-sm-img {
-          background-image: var(--g-beforeAfter-sm-img-img);
-        }
-      }
-    }
-    @container (min-width:660px) and (max-width: 929px) {
-      #g-beforeAfter-md {
-        display: block !important;
+background-image: var(--g-png-layer-after-xs);
 
-        #g-png-layer-before-md {
-          background-image: var(--g-png-layer-before-md-img);
-        }
+}
 
-        #g-png-layer-after-md {
-          background-image: var(--g-png-layer-after-md-img);
-        }
+#g-beforeAfter-xs-img {
 
-        #g-beforeAfter-md-img {
-          background-image: var(--g-beforeAfter-md-img-img);
-        }
-      }
-    }
-    @container (min-width:930px) and (max-width: 1199px) {
-      #g-beforeAfter-lg {
-        display: block !important;
+background-image: var(--g-beforeAfter-xs-img);
 
-        #g-png-layer-before-lg {
-          background-image: var(--g-png-layer-before-lg-img);
-        }
+}
 
-        #g-png-layer-after-lg {
-          background-image: var(--g-png-layer-after-lg-img);
-        }
+}
+}
+@container (min-width:510px) and (max-width: 659px) {
+#g-beforeAfter-sm {
+display: block !important;
 
-        #g-beforeAfter-lg-img {
-          background-image: var(--g-beforeAfter-lg-img-img);
-        }
-      }
-    }
-    @container (min-width:1200px) {
-      #g-beforeAfter-xl {
-        display: block !important;
+#g-png-layer-after {
 
-        #g-png-layer-before-xl {
-          background-image: var(--g-png-layer-before-xl-img);
-        }
+background-image: var(--g-png-layer-after-sm);
 
-        #g-png-layer-after-xl {
-          background-image: var(--g-png-layer-after-xl-img);
-        }
+}
 
-        #g-beforeAfter-xl-img {
-          background-image: var(--g-beforeAfter-xl-img-img);
-        }
-      }
-    }
-  }
-  #g-beforeAfter-xs {
-    position: relative;
-    overflow: hidden;
-    display: none;
-  }
-  #g-beforeAfter-sm {
-    position: relative;
-    overflow: hidden;
-    display: none;
-  }
-  #g-beforeAfter-md {
-    position: relative;
-    overflow: hidden;
-    display: none;
-  }
-  #g-beforeAfter-lg {
-    position: relative;
-    overflow: hidden;
-    display: none;
-  }
-  #g-beforeAfter-xl {
-    position: relative;
-    overflow: hidden;
-    display: none;
-  }
+#g-beforeAfter-sm-img {
 
-  /* Custom CSS */
+background-image: var(--g-beforeAfter-sm-img);
+
+}
+
+}
+}
+@container (min-width:660px) and (max-width: 929px) {
+#g-beforeAfter-md {
+display: block !important;
+
+#g-png-layer-before {
+
+background-image: var(--g-png-layer-before-md);
+
+}
+
+#g-png-layer-after {
+
+background-image: var(--g-png-layer-after-md);
+
+}
+
+#g-beforeAfter-md-img {
+
+background-image: var(--g-beforeAfter-md-img);
+
+}
+
+}
+}
+@container (min-width:930px) and (max-width: 1199px) {
+#g-beforeAfter-lg {
+display: block !important;
+
+#g-png-layer-before {
+
+background-image: var(--g-png-layer-before-lg);
+
+}
+
+#g-png-layer-after {
+
+background-image: var(--g-png-layer-after-lg);
+
+}
+
+#g-beforeAfter-lg-img {
+
+background-image: var(--g-beforeAfter-lg-img);
+
+}
+
+}
+}
+@container (min-width:1200px) {
+#g-beforeAfter-xl {
+display: block !important;
+
+#g-png-layer-before {
+
+background-image: var(--g-png-layer-before-xl);
+
+}
+
+#g-png-layer-after {
+
+background-image: var(--g-png-layer-after-xl);
+
+}
+
+#g-beforeAfter-xl-img {
+
+background-image: var(--g-beforeAfter-xl-img);
+
+}
+
+}
+}
+}
+#g-beforeAfter-xs {
+	position: relative;
+	overflow: hidden;
+	display: none;
+}
+#g-beforeAfter-sm {
+	position: relative;
+	overflow: hidden;
+	display: none;
+}
+#g-beforeAfter-md {
+	position: relative;
+	overflow: hidden;
+	display: none;
+}
+#g-beforeAfter-lg {
+	position: relative;
+	overflow: hidden;
+	display: none;
+}
+#g-beforeAfter-xl {
+	position: relative;
+	overflow: hidden;
+	display: none;
+}
+
+/* Custom CSS */
+
+
 </style>
+
+<script>
+	let { assetsPath = '/', onAiMounted = null, onArtboardChange = null, slider } = $props();
+import { onMount, untrack } from 'svelte';
+
+let processedPath = $derived(
+
+assetsPath.replace(new RegExp('/([^/.]+)$'), '/$1/') || '/'
+
+);
+
+let aiBox;
+let aiBoxWidth = $state(undefined);
+let allArtboards = $state([]);
+let activeArtboard = $state(undefined);
+onMount(() => {
+allArtboards = Array.from(aiBox.querySelectorAll('.g-artboard'));
+onAiMounted?.();
+});
+$effect(() => {
+if (aiBoxWidth && onArtboardChange) {
+const currentArtboard = allArtboards.filter((artboard) => {
+const minWidth = parseFloat(artboard.dataset.minWidth);
+const maxWidth = parseFloat(artboard.dataset.maxWidth) || Infinity;
+return minWidth <= aiBoxWidth && maxWidth >= aiBoxWidth;
+})[0];
+if (currentArtboard?.id !== activeArtboard?.id) {
+activeArtboard = untrack(() => currentArtboard);
+onArtboardChange(activeArtboard);
+}
+}
+});
+
+</script>
+<div id="g-beforeAfter-box" class="ai2svelte" bind:this={aiBox} bind:clientWidth={aiBoxWidth} style:--g-png-layer-before-xs={`url("${processedPath}images/graphics/tagged/beforeAfter/layer-before-xs.png")`};
+style:--g-png-layer-after-xs={`url("${processedPath}images/graphics/tagged/beforeAfter/layer-after-xs.png")`};
+style:--g-beforeAfter-xs-img={`url("${processedPath}images/graphics/beforeAfter-xs.png")`};
+style:--g-png-layer-after-sm={`url("${processedPath}images/graphics/tagged/beforeAfter/layer-after-sm.png")`};
+style:--g-beforeAfter-sm-img={`url("${processedPath}images/graphics/beforeAfter-sm.png")`};
+style:--g-png-layer-before-md={`url("${processedPath}images/graphics/tagged/beforeAfter/layer-before-md.png")`};
+style:--g-png-layer-after-md={`url("${processedPath}images/graphics/tagged/beforeAfter/layer-after-md.png")`};
+style:--g-beforeAfter-md-img={`url("${processedPath}images/graphics/beforeAfter-md.png")`};
+style:--g-png-layer-before-lg={`url("${processedPath}images/graphics/tagged/beforeAfter/layer-before-lg.png")`};
+style:--g-png-layer-after-lg={`url("${processedPath}images/graphics/tagged/beforeAfter/layer-after-lg.png")`};
+style:--g-beforeAfter-lg-img={`url("${processedPath}images/graphics/beforeAfter-lg.png")`};
+style:--g-png-layer-before-xl={`url("${processedPath}images/graphics/tagged/beforeAfter/layer-before-xl.png")`};
+style:--g-png-layer-after-xl={`url("${processedPath}images/graphics/tagged/beforeAfter/layer-after-xl.png")`};
+style:--g-beforeAfter-xl-img={`url("${processedPath}images/graphics/beforeAfter-xl.png")`};>
+	<!-- Artboard: xs -->
+	<div id="g-beforeAfter-xs" class="g-artboard" style="max-width: 509px;aspect-ratio: 0.5028426924154;" data-aspect-ratio="0.503" data-min-width="0" data-max-width="509">
+		<div id="g-beforeAfter-xs-img" class="g-beforeAfter-xs-img g-aiImg" alt="" style=""></div>		<div id="g-png-layer-before" class="g-png g-aiImg" alt="" style="opacity:1;;"></div>
+		<div id="g-png-layer-after" class="g-png g-aiImg" alt="" style="opacity:1;;"></div>
+		<div class="g-snippet-layer g-slider">
+			<div class="g-aiSymbol g-aiSnippet" id="g-snippet-slider" data-name="slider" style="width: 92.1212%; height: 2.4533%; margin-left: -46.0606%; margin-top: -2.4394%; left: 50%; top: 96.5552%;">
+{@render slider?.()}
+</div>
+		</div>
+
+	</div>
+	<!-- Artboard: sm -->
+	<div id="g-beforeAfter-sm" class="g-artboard" style="min-width: 510px;max-width: 659px;aspect-ratio: 0.76891895811461;" data-aspect-ratio="0.769" data-min-width="510" data-max-width="659">
+		<div id="g-beforeAfter-sm-img" class="g-beforeAfter-sm-img g-aiImg" alt="" style=""></div>		<div id="g-png-layer-after" class="g-png g-aiImg" alt="" style="opacity:1;;"></div>
+		<div class="g-snippet-layer g-slider">
+			<div class="g-aiSymbol g-aiSnippet" id="g-snippet-slider" data-name="slider" style="width: 92.3922%; height: 1.3871%; margin-left: -46.1961%; margin-top: -0.902%; left: 50%; top: 96.9219%;">
+{@render slider?.()}
+</div>
+		</div>
+
+	</div>
+	<!-- Artboard: md -->
+	<div id="g-beforeAfter-md" class="g-artboard" style="min-width: 660px;max-width: 929px;aspect-ratio: 1.19507009903465;" data-aspect-ratio="1.195" data-min-width="660" data-max-width="929">
+		<div id="g-beforeAfter-md-img" class="g-beforeAfter-md-img g-aiImg" alt="" style=""></div>		<div id="g-png-layer-before" class="g-png g-aiImg" alt="" style="opacity:1;;"></div>
+		<div id="g-png-layer-after" class="g-png g-aiImg" alt="" style="opacity:1;;"></div>
+		<div class="g-snippet-layer g-slider">
+			<div class="g-aiSymbol g-aiSnippet" id="g-snippet-slider" data-name="slider" style="width: 73.9545%; height: 2.4988%; margin-left: -36.9773%; margin-top: -1.0455%; left: 50%; top: 94.7093%;">
+{@render slider?.()}
+</div>
+		</div>
+
+	</div>
+	<!-- Artboard: lg -->
+	<div id="g-beforeAfter-lg" class="g-artboard" style="min-width: 930px;max-width: 1199px;aspect-ratio: 1.41065361623927;" data-aspect-ratio="1.411" data-min-width="930" data-max-width="1199">
+		<div id="g-beforeAfter-lg-img" class="g-beforeAfter-lg-img g-aiImg" alt="" style=""></div>		<div id="g-png-layer-before" class="g-png g-aiImg" alt="" style="opacity:1;;"></div>
+		<div id="g-png-layer-after" class="g-png g-aiImg" alt="" style="opacity:1;;"></div>
+		<div class="g-snippet-layer g-slider">
+			<div class="g-aiSymbol g-aiSnippet" id="g-snippet-slider" data-name="slider" style="width: 71.4516%; height: 2.8516%; margin-left: -35.7258%; margin-top: -1.0108%; left: 50.0142%; top: 94.5646%;">
+{@render slider?.()}
+</div>
+		</div>
+
+	</div>
+	<!-- Artboard: xl -->
+	<div id="g-beforeAfter-xl" class="g-artboard" style="min-width: 1200px;aspect-ratio: 1.96399345335516;" data-aspect-ratio="1.964" data-min-width="1200">
+		<div id="g-beforeAfter-xl-img" class="g-beforeAfter-xl-img g-aiImg" alt="" style=""></div>		<div id="g-png-layer-before" class="g-png g-aiImg" alt="" style="opacity:1;;"></div>
+		<div id="g-png-layer-after" class="g-png g-aiImg" alt="" style="opacity:1;;"></div>
+		<div class="g-snippet-layer g-slider">
+			<div class="g-aiSymbol g-aiSnippet" id="g-snippet-slider" data-name="slider" style="width: 56%; height: 3.1097%; margin-left: -28%; margin-top: -0.7917%; left: 52.1667%; top: 92.4335%;">
+{@render slider?.()}
+</div>
+		</div>
+
+	</div>
+</div>
+
+
+<!-- End ai2svelte - 2026-04-21 15:58 -->
