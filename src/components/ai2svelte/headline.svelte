@@ -1,293 +1,217 @@
-<script>
-  let {
-    assetsPath = "/",
-    onAiMounted = null,
-    onArtboardChange = null,
-    hed,
-  } = $props();
-  import { onMount, untrack } from "svelte";
 
-  let processedPath = $derived(
-    assetsPath.replace(new RegExp("/([^/.]+)$"), "/$1/") || "/",
-  );
-
-  let aiBox;
-  let aiBoxWidth = $state(undefined);
-  let allArtboards = $state([]);
-  let activeArtboard = $state(undefined);
-  onMount(() => {
-    allArtboards = Array.from(aiBox.querySelectorAll(".g-artboard"));
-    onAiMounted?.();
-  });
-  $effect(() => {
-    if (aiBoxWidth && onArtboardChange) {
-      const currentArtboard = allArtboards.filter((artboard) => {
-        const minWidth = parseFloat(artboard.dataset.minWidth);
-        const maxWidth = parseFloat(artboard.dataset.maxWidth) || Infinity;
-        return minWidth <= aiBoxWidth && maxWidth >= aiBoxWidth;
-      })[0];
-      if (currentArtboard?.id !== activeArtboard?.id) {
-        activeArtboard = untrack(() => currentArtboard);
-        onArtboardChange(activeArtboard);
-      }
-    }
-  });
-</script>
-
-<div
-  id="g-headline-box"
-  class="ai2svelte"
-  bind:this={aiBox}
-  bind:clientWidth={aiBoxWidth}
-  style:--g-headline-xs-img-img="{`url("${processedPath}images/graphics/headline-xs.png")`};"
-  style:--g-headline-sm-img-img="{`url("${processedPath}images/graphics/headline-sm.png")`};"
-  style:--g-headline-md-img-img="{`url("${processedPath}images/graphics/headline-md.png")`};"
-  style:--g-headline-lg-img-img="{`url("${processedPath}images/graphics/headline-lg.png")`};"
-  style:--g-headline-xl-img-img="{`url("${processedPath}images/graphics/headline-xl.png")`};"
->
-  <!-- Artboard: xs -->
-  <div
-    id="g-headline-xs"
-    class="g-artboard"
-    style="max-width: 509px;aspect-ratio: 0.44042935462097;"
-    data-aspect-ratio="0.44"
-    data-min-width="0"
-    data-max-width="509"
-  >
-    <div
-      id="g-headline-xs-img"
-      class="g-headline-xs-img g-aiImg"
-      alt=""
-      style=""
-    ></div>
-    <div class="g-snippet-layer g-hed">
-      <div
-        class="g-aiSymbol g-aiSnippet"
-        id="g-snippet-hed"
-        data-name="hed"
-        style="width: 80.9091%; height: 24.2903%; margin-left: -40.4545%; margin-top: -27.5758%; left: 50.1338%; top: 15.5176%;"
-      >
-        {@render hed?.()}
-      </div>
-    </div>
-  </div>
-  <!-- Artboard: sm -->
-  <div
-    id="g-headline-sm"
-    class="g-artboard"
-    style="min-width: 510px;max-width: 659px;aspect-ratio: 0.57805508469061;"
-    data-aspect-ratio="0.578"
-    data-min-width="510"
-    data-max-width="659"
-  >
-    <div
-      id="g-headline-sm-img"
-      class="g-headline-sm-img g-aiImg"
-      alt=""
-      style=""
-    ></div>
-    <div class="g-snippet-layer g-hed">
-      <div
-        class="g-aiSymbol g-aiSnippet"
-        id="g-snippet-hed"
-        data-name="hed"
-        style="width: 74.1569%; height: 19.2685%; margin-left: -37.0784%; margin-top: -16.6667%; left: 50%; top: 15.5586%;"
-      >
-        {@render hed?.()}
-      </div>
-    </div>
-  </div>
-  <!-- Artboard: md -->
-  <div
-    id="g-headline-md"
-    class="g-artboard"
-    style="min-width: 660px;max-width: 929px;aspect-ratio: 0.77989399349069;"
-    data-aspect-ratio="0.78"
-    data-min-width="660"
-    data-max-width="929"
-  >
-    <div
-      id="g-headline-md-img"
-      class="g-headline-md-img g-aiImg"
-      alt=""
-      style=""
-    ></div>
-    <div class="g-snippet-layer g-hed">
-      <div
-        class="g-aiSymbol g-aiSnippet"
-        id="g-snippet-hed"
-        data-name="hed"
-        style="width: 73.7576%; height: 15.3615%; margin-left: -36.8788%; margin-top: -9.8485%; left: 50.1283%; top: 13.8572%;"
-      >
-        {@render hed?.()}
-      </div>
-    </div>
-  </div>
-  <!-- Artboard: lg -->
-  <div
-    id="g-headline-lg"
-    class="g-artboard"
-    style="min-width: 930px;max-width: 1199px;aspect-ratio: 1.41065361623927;"
-    data-aspect-ratio="1.411"
-    data-min-width="930"
-    data-max-width="1199"
-  >
-    <div
-      id="g-headline-lg-img"
-      class="g-headline-lg-img g-aiImg"
-      alt=""
-      style=""
-    ></div>
-    <div class="g-snippet-layer g-hed">
-      <div
-        class="g-aiSymbol g-aiSnippet"
-        id="g-snippet-hed"
-        data-name="hed"
-        style="width: 75.6989%; height: 28.5164%; margin-left: -37.8495%; margin-top: -10.1075%; left: 51.4434%; top: 22.1865%;"
-      >
-        {@render hed?.()}
-      </div>
-    </div>
-  </div>
-  <!-- Artboard: xl -->
-  <div
-    id="g-headline-xl"
-    class="g-artboard"
-    style="min-width: 1200px;aspect-ratio: 1.46520146520147;"
-    data-aspect-ratio="1.465"
-    data-min-width="1200"
-  >
-    <div
-      id="g-headline-xl-img"
-      class="g-headline-xl-img g-aiImg"
-      alt=""
-      style=""
-    ></div>
-    <div class="g-snippet-layer g-hed">
-      <div
-        class="g-aiSymbol g-aiSnippet"
-        id="g-snippet-hed"
-        data-name="hed"
-        style="width: 85.5%; height: 22.9548%; margin-left: -42.75%; margin-top: -7.8333%; left: 50%; top: 17.8594%;"
-      >
-        {@render hed?.()}
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- End ai2svelte - 2026-04-02 00:56 -->
-
-<!-- Generated by ai2svelte v1.0.5 - 2026-04-02 00:56 -->
+<!-- Generated by ai2svelte v1.0.6 - 2026-04-21 15:59 -->
 <!-- ai file: headline.ai -->
 <style lang="scss">
-  #g-headline-box {
-    container-type: inline-size;
-    container-name: g-headline-box;
-  }
-  #g-headline-box,
-  #g-headline-box .g-artboard {
-    margin: 0 auto;
-  }
-  #g-headline-box p {
-    margin: 0;
-  }
-  #g-headline-box .g-aiAbs {
-    position: absolute;
-  }
-  #g-headline-box .g-aiImg {
-    position: absolute;
-    top: 0;
-    display: block;
-    width: 100% !important;
-    height: 100%;
-    background-size: contain;
-    background-repeat: no-repeat;
-  }
-  #g-headline-box .g-aiSymbol {
-    position: absolute;
-    box-sizing: border-box;
-  }
-  #g-headline-box .g-aiPointText p {
-    white-space: nowrap;
-  }
-  #g-headline-box.g-aiPointText p {
-    white-space: nowrap;
-  }
-  #g-headline-box {
-    width: 100%;
-    container-type: inline-size;
-    @container (min-width:0px) and (max-width: 509px) {
-      #g-headline-xs {
-        display: block !important;
+#g-headline-box {
+	container-type: inline-size;
+	container-name: g-headline-box;
+}
+#g-headline-box,
+#g-headline-box .g-artboard {
+	margin: 0 auto;
+}
+#g-headline-box p {
+	margin: 0;
+}
+#g-headline-box .g-aiAbs {
+	position: absolute;
+}
+#g-headline-box .g-aiImg {
+	position: absolute;
+	top: 0;
+	display: block;
+	width: 100% !important;
+	height: 100%;
+	background-size: contain;
+	background-repeat: no-repeat;
+}
+#g-headline-box .g-aiSymbol {
+	position: absolute;
+	box-sizing: border-box;
+}
+#g-headline-box .g-aiPointText p {
+	white-space: nowrap;
+}
+#g-headline-box.g-aiPointText p { white-space: nowrap; }
+#g-headline-box{
+width: 100%;
+container-type: inline-size;
+@container (min-width:0px) and (max-width: 509px) {
+#g-headline-xs {
+display: block !important;
 
-        #g-headline-xs-img {
-          background-image: var(--g-headline-xs-img-img);
-        }
-      }
-    }
-    @container (min-width:510px) and (max-width: 659px) {
-      #g-headline-sm {
-        display: block !important;
+#g-headline-xs-img {
 
-        #g-headline-sm-img {
-          background-image: var(--g-headline-sm-img-img);
-        }
-      }
-    }
-    @container (min-width:660px) and (max-width: 929px) {
-      #g-headline-md {
-        display: block !important;
+background-image: var(--g-headline-xs-img);
 
-        #g-headline-md-img {
-          background-image: var(--g-headline-md-img-img);
-        }
-      }
-    }
-    @container (min-width:930px) and (max-width: 1199px) {
-      #g-headline-lg {
-        display: block !important;
+}
 
-        #g-headline-lg-img {
-          background-image: var(--g-headline-lg-img-img);
-        }
-      }
-    }
-    @container (min-width:1200px) {
-      #g-headline-xl {
-        display: block !important;
+}
+}
+@container (min-width:510px) and (max-width: 659px) {
+#g-headline-sm {
+display: block !important;
 
-        #g-headline-xl-img {
-          background-image: var(--g-headline-xl-img-img);
-        }
-      }
-    }
-  }
-  #g-headline-xs {
-    position: relative;
-    overflow: hidden;
-    display: none;
-  }
-  #g-headline-sm {
-    position: relative;
-    overflow: hidden;
-    display: none;
-  }
-  #g-headline-md {
-    position: relative;
-    overflow: hidden;
-    display: none;
-  }
-  #g-headline-lg {
-    position: relative;
-    overflow: hidden;
-    display: none;
-  }
-  #g-headline-xl {
-    position: relative;
-    overflow: hidden;
-    display: none;
-  }
+#g-headline-sm-img {
 
-  /* Custom CSS */
+background-image: var(--g-headline-sm-img);
+
+}
+
+}
+}
+@container (min-width:660px) and (max-width: 929px) {
+#g-headline-md {
+display: block !important;
+
+#g-headline-md-img {
+
+background-image: var(--g-headline-md-img);
+
+}
+
+}
+}
+@container (min-width:930px) and (max-width: 1199px) {
+#g-headline-lg {
+display: block !important;
+
+#g-headline-lg-img {
+
+background-image: var(--g-headline-lg-img);
+
+}
+
+}
+}
+@container (min-width:1200px) {
+#g-headline-xl {
+display: block !important;
+
+#g-headline-xl-img {
+
+background-image: var(--g-headline-xl-img);
+
+}
+
+}
+}
+}
+#g-headline-xs {
+	position: relative;
+	overflow: hidden;
+	display: none;
+}
+#g-headline-sm {
+	position: relative;
+	overflow: hidden;
+	display: none;
+}
+#g-headline-md {
+	position: relative;
+	overflow: hidden;
+	display: none;
+}
+#g-headline-lg {
+	position: relative;
+	overflow: hidden;
+	display: none;
+}
+#g-headline-xl {
+	position: relative;
+	overflow: hidden;
+	display: none;
+}
+
+/* Custom CSS */
+
+
 </style>
+
+<script>
+	let { assetsPath = '/', onAiMounted = null, onArtboardChange = null, hed } = $props();
+import { onMount, untrack } from 'svelte';
+
+let processedPath = $derived(
+
+assetsPath.replace(new RegExp('/([^/.]+)$'), '/$1/') || '/'
+
+);
+
+let aiBox;
+let aiBoxWidth = $state(undefined);
+let allArtboards = $state([]);
+let activeArtboard = $state(undefined);
+onMount(() => {
+allArtboards = Array.from(aiBox.querySelectorAll('.g-artboard'));
+onAiMounted?.();
+});
+$effect(() => {
+if (aiBoxWidth && onArtboardChange) {
+const currentArtboard = allArtboards.filter((artboard) => {
+const minWidth = parseFloat(artboard.dataset.minWidth);
+const maxWidth = parseFloat(artboard.dataset.maxWidth) || Infinity;
+return minWidth <= aiBoxWidth && maxWidth >= aiBoxWidth;
+})[0];
+if (currentArtboard?.id !== activeArtboard?.id) {
+activeArtboard = untrack(() => currentArtboard);
+onArtboardChange(activeArtboard);
+}
+}
+});
+
+</script>
+<div id="g-headline-box" class="ai2svelte" bind:this={aiBox} bind:clientWidth={aiBoxWidth} style:--g-headline-xs-img={`url("${processedPath}images/graphics/headline-xs.png")`};
+style:--g-headline-sm-img={`url("${processedPath}images/graphics/headline-sm.png")`};
+style:--g-headline-md-img={`url("${processedPath}images/graphics/headline-md.png")`};
+style:--g-headline-lg-img={`url("${processedPath}images/graphics/headline-lg.png")`};
+style:--g-headline-xl-img={`url("${processedPath}images/graphics/headline-xl.png")`};>
+	<!-- Artboard: xs -->
+	<div id="g-headline-xs" class="g-artboard" style="max-width: 509px;aspect-ratio: 0.44042935462097;" data-aspect-ratio="0.44" data-min-width="0" data-max-width="509">
+		<div id="g-headline-xs-img" class="g-headline-xs-img g-aiImg" alt="" style=""></div>		<div class="g-snippet-layer g-hed">
+			<div class="g-aiSymbol g-aiSnippet" id="g-snippet-hed" data-name="hed" style="width: 80.9091%; height: 24.2903%; margin-left: -40.4545%; margin-top: -27.5758%; left: 50.1338%; top: 15.5176%;">
+{@render hed?.()}
+</div>
+		</div>
+
+	</div>
+	<!-- Artboard: sm -->
+	<div id="g-headline-sm" class="g-artboard" style="min-width: 510px;max-width: 659px;aspect-ratio: 0.57805508469061;" data-aspect-ratio="0.578" data-min-width="510" data-max-width="659">
+		<div id="g-headline-sm-img" class="g-headline-sm-img g-aiImg" alt="" style=""></div>		<div class="g-snippet-layer g-hed">
+			<div class="g-aiSymbol g-aiSnippet" id="g-snippet-hed" data-name="hed" style="width: 74.1569%; height: 19.2685%; margin-left: -37.0784%; margin-top: -16.6667%; left: 50%; top: 15.5586%;">
+{@render hed?.()}
+</div>
+		</div>
+
+	</div>
+	<!-- Artboard: md -->
+	<div id="g-headline-md" class="g-artboard" style="min-width: 660px;max-width: 929px;aspect-ratio: 0.77989399349069;" data-aspect-ratio="0.78" data-min-width="660" data-max-width="929">
+		<div id="g-headline-md-img" class="g-headline-md-img g-aiImg" alt="" style=""></div>		<div class="g-snippet-layer g-hed">
+			<div class="g-aiSymbol g-aiSnippet" id="g-snippet-hed" data-name="hed" style="width: 73.7576%; height: 15.3615%; margin-left: -36.8788%; margin-top: -9.8485%; left: 50.1283%; top: 13.8572%;">
+{@render hed?.()}
+</div>
+		</div>
+
+	</div>
+	<!-- Artboard: lg -->
+	<div id="g-headline-lg" class="g-artboard" style="min-width: 930px;max-width: 1199px;aspect-ratio: 1.41065361623927;" data-aspect-ratio="1.411" data-min-width="930" data-max-width="1199">
+		<div id="g-headline-lg-img" class="g-headline-lg-img g-aiImg" alt="" style=""></div>		<div class="g-snippet-layer g-hed">
+			<div class="g-aiSymbol g-aiSnippet" id="g-snippet-hed" data-name="hed" style="width: 75.6989%; height: 28.5164%; margin-left: -37.8495%; margin-top: -10.1075%; left: 51.4434%; top: 22.1865%;">
+{@render hed?.()}
+</div>
+		</div>
+
+	</div>
+	<!-- Artboard: xl -->
+	<div id="g-headline-xl" class="g-artboard" style="min-width: 1200px;aspect-ratio: 1.46520146520147;" data-aspect-ratio="1.465" data-min-width="1200">
+		<div id="g-headline-xl-img" class="g-headline-xl-img g-aiImg" alt="" style=""></div>		<div class="g-snippet-layer g-hed">
+			<div class="g-aiSymbol g-aiSnippet" id="g-snippet-hed" data-name="hed" style="width: 85.5%; height: 22.9548%; margin-left: -42.75%; margin-top: -7.8333%; left: 50%; top: 17.8594%;">
+{@render hed?.()}
+</div>
+		</div>
+
+	</div>
+</div>
+
+
+<!-- End ai2svelte - 2026-04-21 15:59 -->

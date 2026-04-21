@@ -1,891 +1,550 @@
-<script>
-  let {
-    assetsPath = "/",
-    onAiMounted = null,
-    onArtboardChange = null,
-    ripple,
-    bitcoin,
-    ethereum,
-  } = $props();
-  import { onMount, untrack } from "svelte";
 
-  let processedPath = $derived(
-    assetsPath.replace(new RegExp("/([^/.]+)$"), "/$1/") || "/",
-  );
-
-  let aiBox;
-  let aiBoxWidth = $state(undefined);
-  let allArtboards = $state([]);
-  let activeArtboard = $state(undefined);
-  onMount(() => {
-    allArtboards = Array.from(aiBox.querySelectorAll(".g-artboard"));
-    onAiMounted?.();
-  });
-  $effect(() => {
-    if (aiBoxWidth && onArtboardChange) {
-      const currentArtboard = allArtboards.filter((artboard) => {
-        const minWidth = parseFloat(artboard.dataset.minWidth);
-        const maxWidth = parseFloat(artboard.dataset.maxWidth) || Infinity;
-        return minWidth <= aiBoxWidth && maxWidth >= aiBoxWidth;
-      })[0];
-      if (currentArtboard?.id !== activeArtboard?.id) {
-        activeArtboard = untrack(() => currentArtboard);
-        onArtboardChange(activeArtboard);
-      }
-    }
-  });
-</script>
-
-<div
-  id="g-stock-box"
-  class="ai2svelte"
-  bind:this={aiBox}
-  bind:clientWidth={aiBoxWidth}
-  style:--g-stock-sm-img-img="{`url("${processedPath}images/graphics/stock-sm.png")`};"
-  style:--g-stock-md-img-img="{`url("${processedPath}images/graphics/stock-md.png")`};"
->
-  <!-- Artboard: sm -->
-  <div
-    id="g-stock-sm"
-    class="g-artboard"
-    style="max-width: 659px;aspect-ratio: 1.30345154818619;"
-    data-aspect-ratio="1.303"
-    data-min-width="0"
-    data-max-width="659"
-  >
-    <div
-      id="g-stock-sm-img"
-      class="g-stock-sm-img g-aiImg"
-      alt=""
-      style=""
-    ></div>
-    <div
-      id="g-ai0-29"
-      class="g-artwork g-aiAbs g-aiPointText"
-      style="top:83.446%;margin-top:-7.5px;left:77.5845%;margin-left:-18px;width:36px;"
-    >
-      <p class="g-pstyle4">Jul</p>
-    </div>
-    <div
-      id="g-ai0-30"
-      class="g-artwork g-aiAbs g-aiPointText"
-      style="top:83.446%;margin-top:-7.5px;left:83.7542%;margin-left:-21px;width:42px;"
-    >
-      <p class="g-pstyle4">Aug</p>
-    </div>
-    <div
-      id="g-ai0-1"
-      class="g-artwork g-aiAbs g-aiPointText"
-      style="top:5.1535%;margin-top:-10.2px;left:1.2912%;width:298px;"
-    >
-      <p class="g-pstyle0">
-        C<span class="g-cstyle0">r</span>yptocurren<span class="g-cstyle1"
-          >c</span
-        >y pric<span class="g-cstyle1">e</span>s
-        <span class="g-cstyle2">o</span><span class="g-cstyle3">v</span>er the
-        pa<span class="g-cstyle4">s</span>t <span class="g-cstyle2">y</span>ear
-      </p>
-    </div>
-    <div
-      id="g-ai0-2"
-      class="g-artwork g-aiAbs g-aiPointText"
-      style="top:11.1172%;margin-top:-7.5px;left:4.0853%;width:56px;"
-    >
-      <p class="g-pstyle1">
-        Bi<span class="g-cstyle5">t</span><span class="g-cstyle4">c</span>oin
-      </p>
-    </div>
-    <div
-      id="g-ai0-3"
-      class="g-artwork g-aiAbs g-aiPointText"
-      style="top:11.1172%;margin-top:-7.5px;left:14.9677%;width:70px;"
-    >
-      <p class="g-pstyle1">Ethe<span class="g-cstyle5">r</span>eum</p>
-    </div>
-    <div
-      id="g-ai0-4"
-      class="g-artwork g-aiAbs g-aiPointText"
-      style="top:11.1172%;margin-top:-7.5px;left:28.7039%;width:54px;"
-    >
-      <p class="g-pstyle1">Ripp<span class="g-cstyle6">l</span>e</p>
-    </div>
-    <div
-      id="g-ai0-5"
-      class="g-artwork g-aiAbs g-aiPointText"
-      style="top:18.0178%;margin-top:-7.5px;right:91.1811%;width:59px;"
-    >
-      <p class="g-pstyle2">+500%</p>
-    </div>
-    <div
-      id="g-ai0-6"
-      class="g-artwork g-aiAbs g-aiPointText"
-      style="top:23.8961%;margin-top:-7.5px;right:91.1725%;width:49px;"
-    >
-      <p class="g-pstyle2">+<span class="g-cstyle5">4</span>50</p>
-    </div>
-    <div
-      id="g-ai0-7"
-      class="g-artwork g-aiAbs g-aiPointText"
-      style="top:29.3112%;margin-top:-6.7px;left:92.4596%;width:52px;"
-    >
-      <p class="g-pstyle3">
-        40<span class="g-cstyle7">0.</span><span class="g-cstyle3">0</span>1
-      </p>
-    </div>
-    <div
-      id="g-ai0-8"
-      class="g-artwork g-aiAbs g-aiPointText"
-      style="top:29.7744%;margin-top:-7.5px;right:91.2925%;width:49px;"
-    >
-      <p class="g-pstyle2">+400</p>
-    </div>
-    <div
-      id="g-ai0-9"
-      class="g-artwork g-aiAbs g-aiPointText"
-      style="top:35.6527%;margin-top:-7.5px;right:91.2722%;width:48px;"
-    >
-      <p class="g-pstyle2">+350</p>
-    </div>
-    <div
-      id="g-ai0-10"
-      class="g-artwork g-aiAbs g-aiPointText"
-      style="top:41.531%;margin-top:-7.5px;right:91.189%;width:49px;"
-    >
-      <p class="g-pstyle2">+300</p>
-    </div>
-    <div
-      id="g-ai0-11"
-      class="g-artwork g-aiAbs g-aiPointText"
-      style="top:47.1538%;margin-top:-7.5px;right:91.1373%;width:49px;"
-    >
-      <p class="g-pstyle2">+250</p>
-    </div>
-    <div
-      id="g-ai0-12"
-      class="g-artwork g-aiAbs g-aiPointText"
-      style="top:53.0321%;margin-top:-7.5px;right:91.2479%;width:49px;"
-    >
-      <p class="g-pstyle2">+<span class="g-cstyle4">2</span>00</p>
-    </div>
-    <div
-      id="g-ai0-13"
-      class="g-artwork g-aiAbs g-aiPointText"
-      style="top:58.9104%;margin-top:-7.5px;right:91.2479%;width:46px;"
-    >
-      <p class="g-pstyle2">+150</p>
-    </div>
-    <div
-      id="g-ai0-14"
-      class="g-artwork g-aiAbs g-aiPointText"
-      style="top:64.7887%;margin-top:-7.5px;right:91.1647%;width:47px;"
-    >
-      <p class="g-pstyle2">+100</p>
-    </div>
-    <div
-      id="g-ai0-15"
-      class="g-artwork g-aiAbs g-aiPointText"
-      style="top:65.0923%;margin-top:-6.7px;left:92.4596%;width:47px;"
-    >
-      <p class="g-pstyle3">
-        8<span class="g-cstyle6">4</span><span class="g-cstyle8">.</span><span
-          class="g-cstyle9">7</span
-        >9
-      </p>
-    </div>
-    <div
-      id="g-ai0-16"
-      class="g-artwork g-aiAbs g-aiPointText"
-      style="top:68.4148%;margin-top:-6.7px;left:92.4596%;width:46px;"
-    >
-      <p class="g-pstyle3"><span class="g-cstyle10">7</span>6.93</p>
-    </div>
-    <div
-      id="g-ai0-17"
-      class="g-artwork g-aiAbs g-aiPointText"
-      style="top:70.667%;margin-top:-7.5px;right:91.2675%;width:42px;"
-    >
-      <p class="g-pstyle2">+50</p>
-    </div>
-    <div
-      id="g-ai0-18"
-      class="g-artwork g-aiAbs g-aiPointText"
-      style="top:76.2898%;margin-top:-7.5px;right:91.1616%;width:36px;"
-    >
-      <p class="g-pstyle2">&plusmn;0</p>
-    </div>
-    <div
-      id="g-ai0-19"
-      class="g-artwork g-aiAbs g-aiPointText"
-      style="top:85.2861%;margin-top:-14.7px;left:11.8997%;margin-left:-24px;width:48px;"
-    >
-      <p class="g-pstyle4">Sep</p>
-      <p class="g-pstyle4">2024</p>
-    </div>
-    <div
-      id="g-ai0-20"
-      class="g-artwork g-aiAbs g-aiPointText"
-      style="top:83.446%;margin-top:-7.5px;left:18.469%;margin-left:-19.5px;width:39px;"
-    >
-      <p class="g-pstyle4">Oct</p>
-    </div>
-    <div
-      id="g-ai0-21"
-      class="g-artwork g-aiAbs g-aiPointText"
-      style="top:83.446%;margin-top:-7.5px;left:25.0131%;margin-left:-20.5px;width:41px;"
-    >
-      <p class="g-pstyle4">Nov</p>
-    </div>
-    <div
-      id="g-ai0-22"
-      class="g-artwork g-aiAbs g-aiPointText"
-      style="top:83.446%;margin-top:-7.5px;left:31.5374%;margin-left:-20.5px;width:41px;"
-    >
-      <p class="g-pstyle4">Dec</p>
-    </div>
-    <div
-      id="g-ai0-23"
-      class="g-artwork g-aiAbs g-aiPointText"
-      style="top:85.2861%;margin-top:-14.7px;left:38.3434%;margin-left:-24px;width:48px;"
-    >
-      <p class="g-pstyle4">Jan</p>
-      <p class="g-pstyle4">2025</p>
-    </div>
-    <div
-      id="g-ai0-24"
-      class="g-artwork g-aiAbs g-aiPointText"
-      style="top:83.446%;margin-top:-7.5px;left:44.8737%;margin-left:-20px;width:40px;"
-    >
-      <p class="g-pstyle4">Feb</p>
-    </div>
-    <div
-      id="g-ai0-25"
-      class="g-artwork g-aiAbs g-aiPointText"
-      style="top:83.446%;margin-top:-7.5px;left:50.8684%;margin-left:-20.5px;width:41px;"
-    >
-      <p class="g-pstyle4">Mar</p>
-    </div>
-    <div
-      id="g-ai0-26"
-      class="g-artwork g-aiAbs g-aiPointText"
-      style="top:83.446%;margin-top:-7.5px;left:57.7049%;margin-left:-20px;width:40px;"
-    >
-      <p class="g-pstyle4">Apr</p>
-    </div>
-    <div
-      id="g-ai0-27"
-      class="g-artwork g-aiAbs g-aiPointText"
-      style="top:83.446%;margin-top:-7.5px;left:63.9089%;margin-left:-21px;width:42px;"
-    >
-      <p class="g-pstyle4">May</p>
-    </div>
-    <div
-      id="g-ai0-28"
-      class="g-artwork g-aiAbs g-aiPointText"
-      style="top:83.446%;margin-top:-7.5px;left:70.8569%;margin-left:-19.5px;width:39px;"
-    >
-      <p class="g-pstyle4">Jun</p>
-    </div>
-    <div
-      id="g-ai0-31"
-      class="g-artwork g-aiAbs g-aiPointText"
-      style="top:94.947%;margin-top:-7.5px;left:2.3725%;width:88px;"
-    >
-      <p class="g-pstyle5">
-        <span class="g-cstyle11">S</span>ou<span class="g-cstyle5">r</span><span
-          class="g-cstyle4">c</span
-        ><span class="g-cstyle12">e</span>: LS<span class="g-cstyle3">E</span>G
-      </p>
-    </div>
-    <div class="g-snippet-layer g-ripple">
-      <div
-        class="g-aiSymbol g-aiSnippet"
-        id="g-snippet-ripple"
-        data-name="ripple"
-        style="width: 4.5098%; height: 5.8783%; margin-left: -2.2549%; margin-top: -2.2549%; left: 89.9548%; top: 29.3325%;"
-      >
-        {@render ripple?.()}
-      </div>
-    </div>
-
-    <div class="g-snippet-layer g-bitcoin">
-      <div
-        class="g-aiSymbol g-aiSnippet"
-        id="g-snippet-bitcoin"
-        data-name="bitcoin"
-        style="width: 4.5098%; height: 5.3672%; margin-left: -2.2549%; margin-top: -2.0588%; left: 89.9548%; top: 63.3245%;"
-      >
-        {@render bitcoin?.()}
-      </div>
-    </div>
-
-    <div class="g-snippet-layer g-ethereum">
-      <div
-        class="g-aiSymbol g-aiSnippet"
-        id="g-snippet-ethereum"
-        data-name="ethereum"
-        style="width: 4.5098%; height: 5.3672%; margin-left: -2.2549%; margin-top: -2.0588%; left: 90.347%; top: 68.436%;"
-      >
-        {@render ethereum?.()}
-      </div>
-    </div>
-  </div>
-  <!-- Artboard: md -->
-  <div
-    id="g-stock-md"
-    class="g-artboard"
-    style="min-width: 660px;aspect-ratio: 1.73106191194952;"
-    data-aspect-ratio="1.731"
-    data-min-width="660"
-  >
-    <div
-      id="g-stock-md-img"
-      class="g-stock-md-img g-aiImg"
-      alt=""
-      style=""
-    ></div>
-    <div
-      id="g-ai1-29"
-      class="g-artwork g-aiAbs g-aiPointText"
-      style="top:84.8477%;margin-top:-7.5px;left:77.4838%;margin-left:-18px;width:36px;"
-    >
-      <p class="g-pstyle4">Jul</p>
-    </div>
-    <div
-      id="g-ai1-30"
-      class="g-artwork g-aiAbs g-aiPointText"
-      style="top:84.8477%;margin-top:-7.5px;left:83.8197%;margin-left:-21px;width:42px;"
-    >
-      <p class="g-pstyle4"><span class="g-cstyle5">A</span>ug</p>
-    </div>
-    <div
-      id="g-ai1-1"
-      class="g-artwork g-aiAbs g-aiPointText"
-      style="top:4.5018%;margin-top:-10.2px;left:1.3882%;width:298px;"
-    >
-      <p class="g-pstyle0">
-        C<span class="g-cstyle0">r</span>yptocurren<span class="g-cstyle1"
-          >c</span
-        >y pric<span class="g-cstyle1">e</span>s
-        <span class="g-cstyle2">o</span><span class="g-cstyle3">v</span>er the
-        pa<span class="g-cstyle4">s</span>t <span class="g-cstyle2">y</span>ear
-      </p>
-    </div>
-    <div
-      id="g-ai1-2"
-      class="g-artwork g-aiAbs g-aiPointText"
-      style="top:10.6219%;margin-top:-7.5px;left:3.5473%;width:56px;"
-    >
-      <p class="g-pstyle1">
-        Bi<span class="g-cstyle5">t</span><span class="g-cstyle4">c</span>oin
-      </p>
-    </div>
-    <div
-      id="g-ai1-3"
-      class="g-artwork g-aiAbs g-aiPointText"
-      style="top:10.6219%;margin-top:-7.5px;left:11.9563%;width:70px;"
-    >
-      <p class="g-pstyle1">Ethe<span class="g-cstyle5">r</span>eum</p>
-    </div>
-    <div
-      id="g-ai1-4"
-      class="g-artwork g-aiAbs g-aiPointText"
-      style="top:10.6219%;margin-top:-7.5px;left:22.5707%;width:54px;"
-    >
-      <p class="g-pstyle1">Ripp<span class="g-cstyle6">l</span>e</p>
-    </div>
-    <div
-      id="g-ai1-5"
-      class="g-artwork g-aiAbs g-aiPointText"
-      style="top:17.7035%;margin-top:-7.5px;right:92.795%;width:59px;"
-    >
-      <p class="g-pstyle2">+500%</p>
-    </div>
-    <div
-      id="g-ai1-6"
-      class="g-artwork g-aiAbs g-aiPointText"
-      style="top:23.736%;margin-top:-7.5px;right:92.7883%;width:49px;"
-    >
-      <p class="g-pstyle2">+<span class="g-cstyle5">4</span>50</p>
-    </div>
-    <div
-      id="g-ai1-7"
-      class="g-artwork g-aiAbs g-aiPointText"
-      style="top:29.2932%;margin-top:-6.7px;left:92.7417%;width:52px;"
-    >
-      <p class="g-pstyle3">
-        40<span class="g-cstyle7">0.</span><span class="g-cstyle3">0</span>1
-      </p>
-    </div>
-    <div
-      id="g-ai1-8"
-      class="g-artwork g-aiAbs g-aiPointText"
-      style="top:29.7685%;margin-top:-7.5px;right:92.881%;width:49px;"
-    >
-      <p class="g-pstyle2">+400</p>
-    </div>
-    <div
-      id="g-ai1-9"
-      class="g-artwork g-aiAbs g-aiPointText"
-      style="top:35.801%;margin-top:-7.5px;right:92.8654%;width:48px;"
-    >
-      <p class="g-pstyle2">+350</p>
-    </div>
-    <div
-      id="g-ai1-10"
-      class="g-artwork g-aiAbs g-aiPointText"
-      style="top:41.8335%;margin-top:-7.5px;right:92.8011%;width:49px;"
-    >
-      <p class="g-pstyle2">+300</p>
-    </div>
-    <div
-      id="g-ai1-11"
-      class="g-artwork g-aiAbs g-aiPointText"
-      style="top:47.6037%;margin-top:-7.5px;right:92.7611%;width:49px;"
-    >
-      <p class="g-pstyle2">+250</p>
-    </div>
-    <div
-      id="g-ai1-12"
-      class="g-artwork g-aiAbs g-aiPointText"
-      style="top:53.6362%;margin-top:-7.5px;right:92.8466%;width:49px;"
-    >
-      <p class="g-pstyle2">+<span class="g-cstyle4">2</span>00</p>
-    </div>
-    <div
-      id="g-ai1-13"
-      class="g-artwork g-aiAbs g-aiPointText"
-      style="top:59.6687%;margin-top:-7.5px;right:92.8466%;width:46px;"
-    >
-      <p class="g-pstyle2">+150</p>
-    </div>
-    <div
-      id="g-ai1-14"
-      class="g-artwork g-aiAbs g-aiPointText"
-      style="top:65.7012%;margin-top:-7.5px;right:92.7823%;width:47px;"
-    >
-      <p class="g-pstyle2">+100</p>
-    </div>
-    <div
-      id="g-ai1-15"
-      class="g-artwork g-aiAbs g-aiPointText"
-      style="top:66.0127%;margin-top:-6.7px;left:92.7417%;width:47px;"
-    >
-      <p class="g-pstyle3">
-        8<span class="g-cstyle6">4</span><span class="g-cstyle8">.</span><span
-          class="g-cstyle9">7</span
-        >9
-      </p>
-    </div>
-    <div
-      id="g-ai1-16"
-      class="g-artwork g-aiAbs g-aiPointText"
-      style="top:69.4223%;margin-top:-6.7px;left:92.7417%;width:46px;"
-    >
-      <p class="g-pstyle3"><span class="g-cstyle10">7</span>6.93</p>
-    </div>
-    <div
-      id="g-ai1-17"
-      class="g-artwork g-aiAbs g-aiPointText"
-      style="top:71.7336%;margin-top:-7.5px;right:92.8617%;width:42px;"
-    >
-      <p class="g-pstyle2">+50</p>
-    </div>
-    <div
-      id="g-ai1-18"
-      class="g-artwork g-aiAbs g-aiPointText"
-      style="top:77.5039%;margin-top:-7.5px;right:92.7799%;width:36px;"
-    >
-      <p class="g-pstyle2">&plusmn;0</p>
-    </div>
-    <div
-      id="g-ai1-19"
-      class="g-artwork g-aiAbs g-aiPointText"
-      style="top:86.7362%;margin-top:-14.7px;left:10.1476%;margin-left:-24px;width:48px;"
-    >
-      <p class="g-pstyle4"><span class="g-cstyle11">S</span>ep</p>
-      <p class="g-pstyle4">2024</p>
-    </div>
-    <div
-      id="g-ai1-20"
-      class="g-artwork g-aiAbs g-aiPointText"
-      style="top:84.8477%;margin-top:-7.5px;left:16.8816%;margin-left:-19.5px;width:39px;"
-    >
-      <p class="g-pstyle5">Oc<span class="g-cstyle12">t</span></p>
-    </div>
-    <div
-      id="g-ai1-21"
-      class="g-artwork g-aiAbs g-aiPointText"
-      style="top:84.8477%;margin-top:-7.5px;left:23.595%;margin-left:-20.5px;width:41px;"
-    >
-      <p class="g-pstyle4">N<span class="g-cstyle5">o</span>v</p>
-    </div>
-    <div
-      id="g-ai1-22"
-      class="g-artwork g-aiAbs g-aiPointText"
-      style="top:84.8477%;margin-top:-7.5px;left:30.2704%;margin-left:-20.5px;width:41px;"
-    >
-      <p class="g-pstyle5">De<span class="g-cstyle12">c</span></p>
-    </div>
-    <div
-      id="g-ai1-23"
-      class="g-artwork g-aiAbs g-aiPointText"
-      style="top:86.7362%;margin-top:-14.7px;left:37.2614%;margin-left:-24px;width:48px;"
-    >
-      <p class="g-pstyle4">Jan</p>
-      <p class="g-pstyle4">2025</p>
-    </div>
-    <div
-      id="g-ai1-24"
-      class="g-artwork g-aiAbs g-aiPointText"
-      style="top:84.8477%;margin-top:-7.5px;left:43.9641%;margin-left:-20px;width:40px;"
-    >
-      <p class="g-pstyle4"><span class="g-cstyle3">F</span>eb</p>
-    </div>
-    <div
-      id="g-ai1-25"
-      class="g-artwork g-aiAbs g-aiPointText"
-      style="top:84.8477%;margin-top:-7.5px;left:50.1006%;margin-left:-20.5px;width:41px;"
-    >
-      <p class="g-pstyle4">Mar</p>
-    </div>
-    <div
-      id="g-ai1-26"
-      class="g-artwork g-aiAbs g-aiPointText"
-      style="top:84.8477%;margin-top:-7.5px;left:57.0971%;margin-left:-20px;width:40px;"
-    >
-      <p class="g-pstyle4">Apr</p>
-    </div>
-    <div
-      id="g-ai1-27"
-      class="g-artwork g-aiAbs g-aiPointText"
-      style="top:84.8477%;margin-top:-7.5px;left:63.473%;margin-left:-21px;width:42px;"
-    >
-      <p class="g-pstyle4">May</p>
-    </div>
-    <div
-      id="g-ai1-28"
-      class="g-artwork g-aiAbs g-aiPointText"
-      style="top:84.8477%;margin-top:-7.5px;left:70.5911%;margin-left:-19.5px;width:39px;"
-    >
-      <p class="g-pstyle4">Jun</p>
-    </div>
-    <div
-      id="g-ai1-31"
-      class="g-artwork g-aiAbs g-aiPointText"
-      style="top:96.6504%;margin-top:-7.5px;left:2.2237%;width:88px;"
-    >
-      <p class="g-pstyle6">
-        <span class="g-cstyle11">S</span>ou<span class="g-cstyle5">r</span><span
-          class="g-cstyle4">c</span
-        ><span class="g-cstyle13">e</span>: LS<span class="g-cstyle3">E</span>G
-      </p>
-    </div>
-    <div class="g-snippet-layer g-ripple">
-      <div
-        class="g-aiSymbol g-aiSnippet"
-        id="g-snippet-ripple"
-        data-name="ripple"
-        style="width: 3.4848%; height: 6.0325%; margin-left: -1.7424%; margin-top: -1.7424%; left: 90.6586%; top: 29.315%;"
-      >
-        {@render ripple?.()}
-      </div>
-    </div>
-
-    <div class="g-snippet-layer g-bitcoin">
-      <div
-        class="g-aiSymbol g-aiSnippet"
-        id="g-snippet-bitcoin"
-        data-name="bitcoin"
-        style="width: 3.4848%; height: 5.5079%; margin-left: -1.7424%; margin-top: -1.5909%; left: 90.204%; top: 63.9362%;"
-      >
-        {@render bitcoin?.()}
-      </div>
-    </div>
-
-    <div class="g-snippet-layer g-ethereum">
-      <div
-        class="g-aiSymbol g-aiSnippet"
-        id="g-snippet-ethereum"
-        data-name="ethereum"
-        style="width: 3.4848%; height: 5.5079%; margin-left: -1.7424%; margin-top: -1.5909%; left: 90.6586%; top: 69.4441%;"
-      >
-        {@render ethereum?.()}
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- End ai2svelte - 2026-04-02 00:56 -->
-
-<!-- Generated by ai2svelte v1.0.5 - 2026-04-02 00:56 -->
+<!-- Generated by ai2svelte v1.0.6 - 2026-04-21 15:58 -->
 <!-- ai file: stock.ai -->
 <style lang="scss">
-  #g-stock-box {
-    container-type: inline-size;
-    container-name: g-stock-box;
-  }
-  #g-stock-box,
-  #g-stock-box .g-artboard {
-    margin: 0 auto;
-  }
-  #g-stock-box p {
-    margin: 0;
-  }
-  #g-stock-box .g-aiAbs {
-    position: absolute;
-  }
-  #g-stock-box .g-aiImg {
-    position: absolute;
-    top: 0;
-    display: block;
-    width: 100% !important;
-    height: 100%;
-    background-size: contain;
-    background-repeat: no-repeat;
-  }
-  #g-stock-box .g-aiSymbol {
-    position: absolute;
-    box-sizing: border-box;
-  }
-  #g-stock-box .g-aiPointText p {
-    white-space: nowrap;
-  }
-  #g-stock-box.g-aiPointText p {
-    white-space: nowrap;
-  }
-  #g-stock-box {
-    width: 100%;
-    container-type: inline-size;
-    @container (min-width:0px) and (max-width: 659px) {
-      #g-stock-sm {
-        display: block !important;
+#g-stock-box {
+	container-type: inline-size;
+	container-name: g-stock-box;
+}
+#g-stock-box,
+#g-stock-box .g-artboard {
+	margin: 0 auto;
+}
+#g-stock-box p {
+	margin: 0;
+}
+#g-stock-box .g-aiAbs {
+	position: absolute;
+}
+#g-stock-box .g-aiImg {
+	position: absolute;
+	top: 0;
+	display: block;
+	width: 100% !important;
+	height: 100%;
+	background-size: contain;
+	background-repeat: no-repeat;
+}
+#g-stock-box .g-aiSymbol {
+	position: absolute;
+	box-sizing: border-box;
+}
+#g-stock-box .g-aiPointText p {
+	white-space: nowrap;
+}
+#g-stock-box.g-aiPointText p { white-space: nowrap; }
+#g-stock-box{
+width: 100%;
+container-type: inline-size;
+@container (min-width:0px) and (max-width: 659px) {
+#g-stock-sm {
+display: block !important;
 
-        #g-stock-sm-img {
-          background-image: var(--g-stock-sm-img-img);
-        }
-      }
-    }
-    @container (min-width:660px) {
-      #g-stock-md {
-        display: block !important;
+#g-stock-sm-img {
 
-        #g-stock-md-img {
-          background-image: var(--g-stock-md-img-img);
-        }
-      }
-    }
-  }
-  #g-stock-sm {
-    position: relative;
-    overflow: hidden;
-    display: none;
-  }
-  #g-stock-sm p {
-    font-family: var(--theme-font-family-sans-serif), Knowledge, sans-serif;
-    font-weight: regular;
-    line-height: 14px;
-    height: auto;
-    opacity: 1;
-    letter-spacing: 0em;
-    font-size: 12px;
-    text-align: left;
-    color: rgb(123, 123, 123);
-    text-transform: none;
-    padding-bottom: 0;
-    padding-top: 0;
-    mix-blend-mode: normal;
-    font-style: normal;
-    position: static;
-  }
-  #g-stock-sm .g-pstyle0 {
-    font-weight: 700;
-    line-height: 19px;
-    height: 19px;
-    font-size: 16px;
-    color: rgb(64, 64, 64);
-  }
-  #g-stock-sm .g-pstyle1 {
-    font-weight: 300;
-    height: 14px;
-    color: rgb(64, 64, 64);
-  }
-  #g-stock-sm .g-pstyle2 {
-    font-weight: 300;
-    height: 14px;
-    text-align: right;
-    color: rgb(166, 166, 166);
-  }
-  #g-stock-sm .g-pstyle3 {
-    font-weight: 300;
-    line-height: 13px;
-    height: 13px;
-    font-size: 11px;
-    color: rgb(102, 102, 102);
-  }
-  #g-stock-sm .g-pstyle4 {
-    font-weight: 300;
-    height: 14px;
-    text-align: center;
-  }
-  #g-stock-sm .g-pstyle5 {
-    font-weight: 300;
-    height: 14px;
-    color: rgb(102, 102, 102);
-  }
-  #g-stock-sm .g-cstyle0 {
-    letter-spacing: 0.02em;
-  }
-  #g-stock-sm .g-cstyle1 {
-    letter-spacing: 0.005em;
-  }
-  #g-stock-sm .g-cstyle2 {
-    letter-spacing: -0.005em;
-  }
-  #g-stock-sm .g-cstyle3 {
-    letter-spacing: -0.004em;
-  }
-  #g-stock-sm .g-cstyle4 {
-    letter-spacing: -0.001em;
-  }
-  #g-stock-sm .g-cstyle5 {
-    letter-spacing: -0.003em;
-  }
-  #g-stock-sm .g-cstyle6 {
-    letter-spacing: -0.007em;
-  }
-  #g-stock-sm .g-cstyle7 {
-    letter-spacing: -0.008em;
-  }
-  #g-stock-sm .g-cstyle8 {
-    letter-spacing: -0.01em;
-  }
-  #g-stock-sm .g-cstyle9 {
-    letter-spacing: -0.002em;
-  }
-  #g-stock-sm .g-cstyle10 {
-    letter-spacing: -0.009em;
-  }
-  #g-stock-sm .g-cstyle11 {
-    letter-spacing: 0.001em;
-  }
-  #g-stock-sm .g-cstyle12 {
-    letter-spacing: 0.008em;
-  }
-  #g-stock-md {
-    position: relative;
-    overflow: hidden;
-    display: none;
-  }
-  #g-stock-md p {
-    font-family: var(--theme-font-family-sans-serif), Knowledge, sans-serif;
-    font-weight: regular;
-    line-height: 14px;
-    height: auto;
-    opacity: 1;
-    letter-spacing: 0em;
-    font-size: 12px;
-    text-align: left;
-    color: rgb(166, 166, 166);
-    text-transform: none;
-    padding-bottom: 0;
-    padding-top: 0;
-    mix-blend-mode: normal;
-    font-style: normal;
-    position: static;
-  }
-  #g-stock-md .g-pstyle0 {
-    font-weight: 700;
-    line-height: 19px;
-    height: 19px;
-    font-size: 16px;
-    color: rgb(64, 64, 64);
-  }
-  #g-stock-md .g-pstyle1 {
-    font-weight: 300;
-    height: 14px;
-    color: rgb(64, 64, 64);
-  }
-  #g-stock-md .g-pstyle2 {
-    font-weight: 300;
-    height: 14px;
-    text-align: right;
-  }
-  #g-stock-md .g-pstyle3 {
-    font-weight: 300;
-    line-height: 13px;
-    height: 13px;
-    font-size: 11px;
-    color: rgb(102, 102, 102);
-  }
-  #g-stock-md .g-pstyle4 {
-    font-weight: 300;
-    height: 14px;
-    text-align: center;
-    color: rgb(123, 123, 123);
-  }
-  #g-stock-md .g-pstyle5 {
-    font-weight: 300;
-    height: 14px;
-    letter-spacing: 0.001em;
-    text-align: center;
-    color: rgb(123, 123, 123);
-  }
-  #g-stock-md .g-pstyle6 {
-    font-weight: 300;
-    height: 14px;
-    color: rgb(102, 102, 102);
-  }
-  #g-stock-md .g-cstyle0 {
-    letter-spacing: 0.02em;
-  }
-  #g-stock-md .g-cstyle1 {
-    letter-spacing: 0.005em;
-  }
-  #g-stock-md .g-cstyle2 {
-    letter-spacing: -0.005em;
-  }
-  #g-stock-md .g-cstyle3 {
-    letter-spacing: -0.004em;
-  }
-  #g-stock-md .g-cstyle4 {
-    letter-spacing: -0.001em;
-  }
-  #g-stock-md .g-cstyle5 {
-    letter-spacing: -0.003em;
-  }
-  #g-stock-md .g-cstyle6 {
-    letter-spacing: -0.007em;
-  }
-  #g-stock-md .g-cstyle7 {
-    letter-spacing: -0.008em;
-  }
-  #g-stock-md .g-cstyle8 {
-    letter-spacing: -0.01em;
-  }
-  #g-stock-md .g-cstyle9 {
-    letter-spacing: -0.002em;
-  }
-  #g-stock-md .g-cstyle10 {
-    letter-spacing: -0.009em;
-  }
-  #g-stock-md .g-cstyle11 {
-    letter-spacing: 0.001em;
-  }
-  #g-stock-md .g-cstyle12 {
-    letter-spacing: 0em;
-  }
-  #g-stock-md .g-cstyle13 {
-    letter-spacing: 0.008em;
-  }
+background-image: var(--g-stock-sm-img);
 
-  /* Custom CSS */
-  @mixin shadow-feta($clr) {
-    $alpha: if(alpha($clr) != 1, alpha($clr), 0.5);
-    text-shadow:
-      0 0 10px rgba($clr, $alpha),
-      0 0 3px rgba($clr, $alpha);
-  }
-  .g-text {
-    @include shadow-feta(#000000);
-  }
+}
+
+}
+}
+@container (min-width:660px) {
+#g-stock-md {
+display: block !important;
+
+#g-stock-md-img {
+
+background-image: var(--g-stock-md-img);
+
+}
+
+}
+}
+}
+#g-stock-sm {
+	position: relative;
+	overflow: hidden;
+	display: none;
+}
+#g-stock-sm p {
+	font-family: var(--theme-font-family-sans-serif), Knowledge, sans-serif;
+	font-weight: regular;
+	line-height: 14px;
+	height: auto;
+	opacity: 1;
+	letter-spacing: 0em;
+	font-size: 12px;
+	text-align: left;
+	color: rgb(123,123,123);
+	text-transform: none;
+	padding-bottom: 0;
+	padding-top: 0;
+	mix-blend-mode: normal;
+	font-style: normal;
+	position: static;
+}
+#g-stock-sm .g-pstyle0 {
+	font-weight: 700;
+	line-height: 19px;
+	height: 19px;
+	font-size: 16px;
+	color: rgb(64,64,64);
+}
+#g-stock-sm .g-pstyle1 {
+	font-weight: 300;
+	height: 14px;
+	color: rgb(64,64,64);
+}
+#g-stock-sm .g-pstyle2 {
+	font-weight: 300;
+	height: 14px;
+	text-align: right;
+	color: rgb(166,166,166);
+}
+#g-stock-sm .g-pstyle3 {
+	font-weight: 300;
+	line-height: 13px;
+	height: 13px;
+	font-size: 11px;
+	color: rgb(102,102,102);
+}
+#g-stock-sm .g-pstyle4 {
+	font-weight: 300;
+	height: 14px;
+	text-align: center;
+}
+#g-stock-sm .g-pstyle5 {
+	font-weight: 300;
+	height: 14px;
+	color: rgb(102,102,102);
+}
+#g-stock-sm .g-cstyle0 {
+	letter-spacing: 0.02em;
+}
+#g-stock-sm .g-cstyle1 {
+	letter-spacing: 0.005em;
+}
+#g-stock-sm .g-cstyle2 {
+	letter-spacing: -0.005em;
+}
+#g-stock-sm .g-cstyle3 {
+	letter-spacing: -0.004em;
+}
+#g-stock-sm .g-cstyle4 {
+	letter-spacing: -0.001em;
+}
+#g-stock-sm .g-cstyle5 {
+	letter-spacing: -0.003em;
+}
+#g-stock-sm .g-cstyle6 {
+	letter-spacing: -0.007em;
+}
+#g-stock-sm .g-cstyle7 {
+	letter-spacing: -0.008em;
+}
+#g-stock-sm .g-cstyle8 {
+	letter-spacing: -0.01em;
+}
+#g-stock-sm .g-cstyle9 {
+	letter-spacing: -0.002em;
+}
+#g-stock-sm .g-cstyle10 {
+	letter-spacing: -0.009em;
+}
+#g-stock-sm .g-cstyle11 {
+	letter-spacing: 0.001em;
+}
+#g-stock-sm .g-cstyle12 {
+	letter-spacing: 0.008em;
+}
+#g-stock-md {
+	position: relative;
+	overflow: hidden;
+	display: none;
+}
+#g-stock-md p {
+	font-family: var(--theme-font-family-sans-serif), Knowledge, sans-serif;
+	font-weight: regular;
+	line-height: 14px;
+	height: auto;
+	opacity: 1;
+	letter-spacing: 0em;
+	font-size: 12px;
+	text-align: left;
+	color: rgb(166,166,166);
+	text-transform: none;
+	padding-bottom: 0;
+	padding-top: 0;
+	mix-blend-mode: normal;
+	font-style: normal;
+	position: static;
+}
+#g-stock-md .g-pstyle0 {
+	font-weight: 700;
+	line-height: 19px;
+	height: 19px;
+	font-size: 16px;
+	color: rgb(64,64,64);
+}
+#g-stock-md .g-pstyle1 {
+	font-weight: 300;
+	height: 14px;
+	color: rgb(64,64,64);
+}
+#g-stock-md .g-pstyle2 {
+	font-weight: 300;
+	height: 14px;
+	text-align: right;
+}
+#g-stock-md .g-pstyle3 {
+	font-weight: 300;
+	line-height: 13px;
+	height: 13px;
+	font-size: 11px;
+	color: rgb(102,102,102);
+}
+#g-stock-md .g-pstyle4 {
+	font-weight: 300;
+	height: 14px;
+	text-align: center;
+	color: rgb(123,123,123);
+}
+#g-stock-md .g-pstyle5 {
+	font-weight: 300;
+	height: 14px;
+	letter-spacing: 0.001em;
+	text-align: center;
+	color: rgb(123,123,123);
+}
+#g-stock-md .g-pstyle6 {
+	font-weight: 300;
+	height: 14px;
+	color: rgb(102,102,102);
+}
+#g-stock-md .g-cstyle0 {
+	letter-spacing: 0.02em;
+}
+#g-stock-md .g-cstyle1 {
+	letter-spacing: 0.005em;
+}
+#g-stock-md .g-cstyle2 {
+	letter-spacing: -0.005em;
+}
+#g-stock-md .g-cstyle3 {
+	letter-spacing: -0.004em;
+}
+#g-stock-md .g-cstyle4 {
+	letter-spacing: -0.001em;
+}
+#g-stock-md .g-cstyle5 {
+	letter-spacing: -0.003em;
+}
+#g-stock-md .g-cstyle6 {
+	letter-spacing: -0.007em;
+}
+#g-stock-md .g-cstyle7 {
+	letter-spacing: -0.008em;
+}
+#g-stock-md .g-cstyle8 {
+	letter-spacing: -0.01em;
+}
+#g-stock-md .g-cstyle9 {
+	letter-spacing: -0.002em;
+}
+#g-stock-md .g-cstyle10 {
+	letter-spacing: -0.009em;
+}
+#g-stock-md .g-cstyle11 {
+	letter-spacing: 0.001em;
+}
+#g-stock-md .g-cstyle12 {
+	letter-spacing: 0em;
+}
+#g-stock-md .g-cstyle13 {
+	letter-spacing: 0.008em;
+}
+
+/* Custom CSS */
+@mixin shadow-feta($clr){
+$alpha: if(alpha($clr) != 1, alpha($clr), 0.5);
+text-shadow: 0 0 10px rgba($clr, $alpha), 0 0 3px rgba($clr, $alpha);
+
+}
+.g-text {
+  @include shadow-feta(#000000);
+}
+
+
 </style>
+
+<script>
+	let { assetsPath = '/', onAiMounted = null, onArtboardChange = null, ripple, bitcoin, ethereum } = $props();
+import { onMount, untrack } from 'svelte';
+
+let processedPath = $derived(
+
+assetsPath.replace(new RegExp('/([^/.]+)$'), '/$1/') || '/'
+
+);
+
+let aiBox;
+let aiBoxWidth = $state(undefined);
+let allArtboards = $state([]);
+let activeArtboard = $state(undefined);
+onMount(() => {
+allArtboards = Array.from(aiBox.querySelectorAll('.g-artboard'));
+onAiMounted?.();
+});
+$effect(() => {
+if (aiBoxWidth && onArtboardChange) {
+const currentArtboard = allArtboards.filter((artboard) => {
+const minWidth = parseFloat(artboard.dataset.minWidth);
+const maxWidth = parseFloat(artboard.dataset.maxWidth) || Infinity;
+return minWidth <= aiBoxWidth && maxWidth >= aiBoxWidth;
+})[0];
+if (currentArtboard?.id !== activeArtboard?.id) {
+activeArtboard = untrack(() => currentArtboard);
+onArtboardChange(activeArtboard);
+}
+}
+});
+
+</script>
+<div id="g-stock-box" class="ai2svelte" bind:this={aiBox} bind:clientWidth={aiBoxWidth} style:--g-stock-sm-img={`url("${processedPath}images/graphics/stock-sm.png")`};
+style:--g-stock-md-img={`url("${processedPath}images/graphics/stock-md.png")`};>
+	<!-- Artboard: sm -->
+	<div id="g-stock-sm" class="g-artboard" style="max-width: 659px;aspect-ratio: 1.30345154818619;" data-aspect-ratio="1.303" data-min-width="0" data-max-width="659">
+		<div id="g-stock-sm-img" class="g-stock-sm-img g-aiImg" alt="" style=""></div>		<div id="g-ai0-29" class="g-artwork g-aiAbs g-aiPointText" style="top:83.446%;margin-top:-7.5px;left:77.5845%;margin-left:-18px;width:36px;">
+			<p class="g-pstyle4">Jul</p>
+		</div>
+		<div id="g-ai0-30" class="g-artwork g-aiAbs g-aiPointText" style="top:83.446%;margin-top:-7.5px;left:83.7542%;margin-left:-21px;width:42px;">
+			<p class="g-pstyle4">Aug</p>
+		</div>
+		<div id="g-ai0-1" class="g-artwork g-aiAbs g-aiPointText" style="top:5.1535%;margin-top:-10.2px;left:1.2912%;width:298px;">
+			<p class="g-pstyle0">C<span class="g-cstyle0">r</span>yptocurren<span class="g-cstyle1">c</span>y pric<span class="g-cstyle1">e</span>s <span class="g-cstyle2">o</span><span class="g-cstyle3">v</span>er the pa<span class="g-cstyle4">s</span>t <span class="g-cstyle2">y</span>ear</p>
+		</div>
+		<div id="g-ai0-2" class="g-artwork g-aiAbs g-aiPointText" style="top:11.1172%;margin-top:-7.5px;left:4.0853%;width:56px;">
+			<p class="g-pstyle1">Bi<span class="g-cstyle5">t</span><span class="g-cstyle4">c</span>oin</p>
+		</div>
+		<div id="g-ai0-3" class="g-artwork g-aiAbs g-aiPointText" style="top:11.1172%;margin-top:-7.5px;left:14.9677%;width:70px;">
+			<p class="g-pstyle1">Ethe<span class="g-cstyle5">r</span>eum</p>
+		</div>
+		<div id="g-ai0-4" class="g-artwork g-aiAbs g-aiPointText" style="top:11.1172%;margin-top:-7.5px;left:28.7039%;width:54px;">
+			<p class="g-pstyle1">Ripp<span class="g-cstyle6">l</span>e</p>
+		</div>
+		<div id="g-ai0-5" class="g-artwork g-aiAbs g-aiPointText" style="top:18.0178%;margin-top:-7.5px;right:91.1811%;width:59px;">
+			<p class="g-pstyle2">+500%</p>
+		</div>
+		<div id="g-ai0-6" class="g-artwork g-aiAbs g-aiPointText" style="top:23.8961%;margin-top:-7.5px;right:91.1725%;width:49px;">
+			<p class="g-pstyle2">+<span class="g-cstyle5">4</span>50</p>
+		</div>
+		<div id="g-ai0-7" class="g-artwork g-aiAbs g-aiPointText" style="top:29.3112%;margin-top:-6.7px;left:92.4596%;width:52px;">
+			<p class="g-pstyle3">40<span class="g-cstyle7">0.</span><span class="g-cstyle3">0</span>1</p>
+		</div>
+		<div id="g-ai0-8" class="g-artwork g-aiAbs g-aiPointText" style="top:29.7744%;margin-top:-7.5px;right:91.2925%;width:49px;">
+			<p class="g-pstyle2">+400</p>
+		</div>
+		<div id="g-ai0-9" class="g-artwork g-aiAbs g-aiPointText" style="top:35.6527%;margin-top:-7.5px;right:91.2722%;width:48px;">
+			<p class="g-pstyle2">+350</p>
+		</div>
+		<div id="g-ai0-10" class="g-artwork g-aiAbs g-aiPointText" style="top:41.531%;margin-top:-7.5px;right:91.189%;width:49px;">
+			<p class="g-pstyle2">+300</p>
+		</div>
+		<div id="g-ai0-11" class="g-artwork g-aiAbs g-aiPointText" style="top:47.1538%;margin-top:-7.5px;right:91.1373%;width:49px;">
+			<p class="g-pstyle2">+250</p>
+		</div>
+		<div id="g-ai0-12" class="g-artwork g-aiAbs g-aiPointText" style="top:53.0321%;margin-top:-7.5px;right:91.2479%;width:49px;">
+			<p class="g-pstyle2">+<span class="g-cstyle4">2</span>00</p>
+		</div>
+		<div id="g-ai0-13" class="g-artwork g-aiAbs g-aiPointText" style="top:58.9104%;margin-top:-7.5px;right:91.2479%;width:46px;">
+			<p class="g-pstyle2">+150</p>
+		</div>
+		<div id="g-ai0-14" class="g-artwork g-aiAbs g-aiPointText" style="top:64.7887%;margin-top:-7.5px;right:91.1647%;width:47px;">
+			<p class="g-pstyle2">+100</p>
+		</div>
+		<div id="g-ai0-15" class="g-artwork g-aiAbs g-aiPointText" style="top:65.0923%;margin-top:-6.7px;left:92.4596%;width:47px;">
+			<p class="g-pstyle3">8<span class="g-cstyle6">4</span><span class="g-cstyle8">.</span><span class="g-cstyle9">7</span>9</p>
+		</div>
+		<div id="g-ai0-16" class="g-artwork g-aiAbs g-aiPointText" style="top:68.4148%;margin-top:-6.7px;left:92.4596%;width:46px;">
+			<p class="g-pstyle3"><span class="g-cstyle10">7</span>6.93</p>
+		</div>
+		<div id="g-ai0-17" class="g-artwork g-aiAbs g-aiPointText" style="top:70.667%;margin-top:-7.5px;right:91.2675%;width:42px;">
+			<p class="g-pstyle2">+50</p>
+		</div>
+		<div id="g-ai0-18" class="g-artwork g-aiAbs g-aiPointText" style="top:76.2898%;margin-top:-7.5px;right:91.1616%;width:36px;">
+			<p class="g-pstyle2">&plusmn;0</p>
+		</div>
+		<div id="g-ai0-19" class="g-artwork g-aiAbs g-aiPointText" style="top:85.2861%;margin-top:-14.7px;left:11.8997%;margin-left:-24px;width:48px;">
+			<p class="g-pstyle4">Sep</p>
+			<p class="g-pstyle4">2024</p>
+		</div>
+		<div id="g-ai0-20" class="g-artwork g-aiAbs g-aiPointText" style="top:83.446%;margin-top:-7.5px;left:18.469%;margin-left:-19.5px;width:39px;">
+			<p class="g-pstyle4">Oct</p>
+		</div>
+		<div id="g-ai0-21" class="g-artwork g-aiAbs g-aiPointText" style="top:83.446%;margin-top:-7.5px;left:25.0131%;margin-left:-20.5px;width:41px;">
+			<p class="g-pstyle4">Nov</p>
+		</div>
+		<div id="g-ai0-22" class="g-artwork g-aiAbs g-aiPointText" style="top:83.446%;margin-top:-7.5px;left:31.5374%;margin-left:-20.5px;width:41px;">
+			<p class="g-pstyle4">Dec</p>
+		</div>
+		<div id="g-ai0-23" class="g-artwork g-aiAbs g-aiPointText" style="top:85.2861%;margin-top:-14.7px;left:38.3434%;margin-left:-24px;width:48px;">
+			<p class="g-pstyle4">Jan</p>
+			<p class="g-pstyle4">2025</p>
+		</div>
+		<div id="g-ai0-24" class="g-artwork g-aiAbs g-aiPointText" style="top:83.446%;margin-top:-7.5px;left:44.8737%;margin-left:-20px;width:40px;">
+			<p class="g-pstyle4">Feb</p>
+		</div>
+		<div id="g-ai0-25" class="g-artwork g-aiAbs g-aiPointText" style="top:83.446%;margin-top:-7.5px;left:50.8684%;margin-left:-20.5px;width:41px;">
+			<p class="g-pstyle4">Mar</p>
+		</div>
+		<div id="g-ai0-26" class="g-artwork g-aiAbs g-aiPointText" style="top:83.446%;margin-top:-7.5px;left:57.7049%;margin-left:-20px;width:40px;">
+			<p class="g-pstyle4">Apr</p>
+		</div>
+		<div id="g-ai0-27" class="g-artwork g-aiAbs g-aiPointText" style="top:83.446%;margin-top:-7.5px;left:63.9089%;margin-left:-21px;width:42px;">
+			<p class="g-pstyle4">May</p>
+		</div>
+		<div id="g-ai0-28" class="g-artwork g-aiAbs g-aiPointText" style="top:83.446%;margin-top:-7.5px;left:70.8569%;margin-left:-19.5px;width:39px;">
+			<p class="g-pstyle4">Jun</p>
+		</div>
+		<div id="g-ai0-31" class="g-artwork g-aiAbs g-aiPointText" style="top:94.947%;margin-top:-7.5px;left:2.3725%;width:88px;">
+			<p class="g-pstyle5"><span class="g-cstyle11">S</span>ou<span class="g-cstyle5">r</span><span class="g-cstyle4">c</span><span class="g-cstyle12">e</span>: LS<span class="g-cstyle3">E</span>G</p>
+		</div>
+		<div class="g-snippet-layer g-ripple">
+			<div class="g-aiSymbol g-aiSnippet" id="g-snippet-ripple" data-name="ripple" style="width: 4.5098%; height: 5.8783%; margin-left: -2.2549%; margin-top: -2.2549%; left: 89.9548%; top: 29.3325%;">
+{@render ripple?.()}
+</div>
+		</div>
+
+		<div class="g-snippet-layer g-bitcoin">
+			<div class="g-aiSymbol g-aiSnippet" id="g-snippet-bitcoin" data-name="bitcoin" style="width: 4.5098%; height: 5.3672%; margin-left: -2.2549%; margin-top: -2.0588%; left: 89.9548%; top: 63.3245%;">
+{@render bitcoin?.()}
+</div>
+		</div>
+
+		<div class="g-snippet-layer g-ethereum">
+			<div class="g-aiSymbol g-aiSnippet" id="g-snippet-ethereum" data-name="ethereum" style="width: 4.5098%; height: 5.3672%; margin-left: -2.2549%; margin-top: -2.0588%; left: 90.347%; top: 68.436%;">
+{@render ethereum?.()}
+</div>
+		</div>
+
+	</div>
+	<!-- Artboard: md -->
+	<div id="g-stock-md" class="g-artboard" style="min-width: 660px;aspect-ratio: 1.73106191194952;" data-aspect-ratio="1.731" data-min-width="660">
+		<div id="g-stock-md-img" class="g-stock-md-img g-aiImg" alt="" style=""></div>		<div id="g-ai1-29" class="g-artwork g-aiAbs g-aiPointText" style="top:84.8477%;margin-top:-7.5px;left:77.4838%;margin-left:-18px;width:36px;">
+			<p class="g-pstyle4">Jul</p>
+		</div>
+		<div id="g-ai1-30" class="g-artwork g-aiAbs g-aiPointText" style="top:84.8477%;margin-top:-7.5px;left:83.8197%;margin-left:-21px;width:42px;">
+			<p class="g-pstyle4"><span class="g-cstyle5">A</span>ug</p>
+		</div>
+		<div id="g-ai1-1" class="g-artwork g-aiAbs g-aiPointText" style="top:4.5018%;margin-top:-10.2px;left:1.3882%;width:298px;">
+			<p class="g-pstyle0">C<span class="g-cstyle0">r</span>yptocurren<span class="g-cstyle1">c</span>y pric<span class="g-cstyle1">e</span>s <span class="g-cstyle2">o</span><span class="g-cstyle3">v</span>er the pa<span class="g-cstyle4">s</span>t <span class="g-cstyle2">y</span>ear</p>
+		</div>
+		<div id="g-ai1-2" class="g-artwork g-aiAbs g-aiPointText" style="top:10.6219%;margin-top:-7.5px;left:3.5473%;width:56px;">
+			<p class="g-pstyle1">Bi<span class="g-cstyle5">t</span><span class="g-cstyle4">c</span>oin</p>
+		</div>
+		<div id="g-ai1-3" class="g-artwork g-aiAbs g-aiPointText" style="top:10.6219%;margin-top:-7.5px;left:11.9563%;width:70px;">
+			<p class="g-pstyle1">Ethe<span class="g-cstyle5">r</span>eum</p>
+		</div>
+		<div id="g-ai1-4" class="g-artwork g-aiAbs g-aiPointText" style="top:10.6219%;margin-top:-7.5px;left:22.5707%;width:54px;">
+			<p class="g-pstyle1">Ripp<span class="g-cstyle6">l</span>e</p>
+		</div>
+		<div id="g-ai1-5" class="g-artwork g-aiAbs g-aiPointText" style="top:17.7035%;margin-top:-7.5px;right:92.795%;width:59px;">
+			<p class="g-pstyle2">+500%</p>
+		</div>
+		<div id="g-ai1-6" class="g-artwork g-aiAbs g-aiPointText" style="top:23.736%;margin-top:-7.5px;right:92.7883%;width:49px;">
+			<p class="g-pstyle2">+<span class="g-cstyle5">4</span>50</p>
+		</div>
+		<div id="g-ai1-7" class="g-artwork g-aiAbs g-aiPointText" style="top:29.2932%;margin-top:-6.7px;left:92.7417%;width:52px;">
+			<p class="g-pstyle3">40<span class="g-cstyle7">0.</span><span class="g-cstyle3">0</span>1</p>
+		</div>
+		<div id="g-ai1-8" class="g-artwork g-aiAbs g-aiPointText" style="top:29.7685%;margin-top:-7.5px;right:92.881%;width:49px;">
+			<p class="g-pstyle2">+400</p>
+		</div>
+		<div id="g-ai1-9" class="g-artwork g-aiAbs g-aiPointText" style="top:35.801%;margin-top:-7.5px;right:92.8654%;width:48px;">
+			<p class="g-pstyle2">+350</p>
+		</div>
+		<div id="g-ai1-10" class="g-artwork g-aiAbs g-aiPointText" style="top:41.8335%;margin-top:-7.5px;right:92.8011%;width:49px;">
+			<p class="g-pstyle2">+300</p>
+		</div>
+		<div id="g-ai1-11" class="g-artwork g-aiAbs g-aiPointText" style="top:47.6037%;margin-top:-7.5px;right:92.7611%;width:49px;">
+			<p class="g-pstyle2">+250</p>
+		</div>
+		<div id="g-ai1-12" class="g-artwork g-aiAbs g-aiPointText" style="top:53.6362%;margin-top:-7.5px;right:92.8466%;width:49px;">
+			<p class="g-pstyle2">+<span class="g-cstyle4">2</span>00</p>
+		</div>
+		<div id="g-ai1-13" class="g-artwork g-aiAbs g-aiPointText" style="top:59.6687%;margin-top:-7.5px;right:92.8466%;width:46px;">
+			<p class="g-pstyle2">+150</p>
+		</div>
+		<div id="g-ai1-14" class="g-artwork g-aiAbs g-aiPointText" style="top:65.7012%;margin-top:-7.5px;right:92.7823%;width:47px;">
+			<p class="g-pstyle2">+100</p>
+		</div>
+		<div id="g-ai1-15" class="g-artwork g-aiAbs g-aiPointText" style="top:66.0127%;margin-top:-6.7px;left:92.7417%;width:47px;">
+			<p class="g-pstyle3">8<span class="g-cstyle6">4</span><span class="g-cstyle8">.</span><span class="g-cstyle9">7</span>9</p>
+		</div>
+		<div id="g-ai1-16" class="g-artwork g-aiAbs g-aiPointText" style="top:69.4223%;margin-top:-6.7px;left:92.7417%;width:46px;">
+			<p class="g-pstyle3"><span class="g-cstyle10">7</span>6.93</p>
+		</div>
+		<div id="g-ai1-17" class="g-artwork g-aiAbs g-aiPointText" style="top:71.7336%;margin-top:-7.5px;right:92.8617%;width:42px;">
+			<p class="g-pstyle2">+50</p>
+		</div>
+		<div id="g-ai1-18" class="g-artwork g-aiAbs g-aiPointText" style="top:77.5039%;margin-top:-7.5px;right:92.7799%;width:36px;">
+			<p class="g-pstyle2">&plusmn;0</p>
+		</div>
+		<div id="g-ai1-19" class="g-artwork g-aiAbs g-aiPointText" style="top:86.7362%;margin-top:-14.7px;left:10.1476%;margin-left:-24px;width:48px;">
+			<p class="g-pstyle4"><span class="g-cstyle11">S</span>ep</p>
+			<p class="g-pstyle4">2024</p>
+		</div>
+		<div id="g-ai1-20" class="g-artwork g-aiAbs g-aiPointText" style="top:84.8477%;margin-top:-7.5px;left:16.8816%;margin-left:-19.5px;width:39px;">
+			<p class="g-pstyle5">Oc<span class="g-cstyle12">t</span></p>
+		</div>
+		<div id="g-ai1-21" class="g-artwork g-aiAbs g-aiPointText" style="top:84.8477%;margin-top:-7.5px;left:23.595%;margin-left:-20.5px;width:41px;">
+			<p class="g-pstyle4">N<span class="g-cstyle5">o</span>v</p>
+		</div>
+		<div id="g-ai1-22" class="g-artwork g-aiAbs g-aiPointText" style="top:84.8477%;margin-top:-7.5px;left:30.2704%;margin-left:-20.5px;width:41px;">
+			<p class="g-pstyle5">De<span class="g-cstyle12">c</span></p>
+		</div>
+		<div id="g-ai1-23" class="g-artwork g-aiAbs g-aiPointText" style="top:86.7362%;margin-top:-14.7px;left:37.2614%;margin-left:-24px;width:48px;">
+			<p class="g-pstyle4">Jan</p>
+			<p class="g-pstyle4">2025</p>
+		</div>
+		<div id="g-ai1-24" class="g-artwork g-aiAbs g-aiPointText" style="top:84.8477%;margin-top:-7.5px;left:43.9641%;margin-left:-20px;width:40px;">
+			<p class="g-pstyle4"><span class="g-cstyle3">F</span>eb</p>
+		</div>
+		<div id="g-ai1-25" class="g-artwork g-aiAbs g-aiPointText" style="top:84.8477%;margin-top:-7.5px;left:50.1006%;margin-left:-20.5px;width:41px;">
+			<p class="g-pstyle4">Mar</p>
+		</div>
+		<div id="g-ai1-26" class="g-artwork g-aiAbs g-aiPointText" style="top:84.8477%;margin-top:-7.5px;left:57.0971%;margin-left:-20px;width:40px;">
+			<p class="g-pstyle4">Apr</p>
+		</div>
+		<div id="g-ai1-27" class="g-artwork g-aiAbs g-aiPointText" style="top:84.8477%;margin-top:-7.5px;left:63.473%;margin-left:-21px;width:42px;">
+			<p class="g-pstyle4">May</p>
+		</div>
+		<div id="g-ai1-28" class="g-artwork g-aiAbs g-aiPointText" style="top:84.8477%;margin-top:-7.5px;left:70.5911%;margin-left:-19.5px;width:39px;">
+			<p class="g-pstyle4">Jun</p>
+		</div>
+		<div id="g-ai1-31" class="g-artwork g-aiAbs g-aiPointText" style="top:96.6504%;margin-top:-7.5px;left:2.2237%;width:88px;">
+			<p class="g-pstyle6"><span class="g-cstyle11">S</span>ou<span class="g-cstyle5">r</span><span class="g-cstyle4">c</span><span class="g-cstyle13">e</span>: LS<span class="g-cstyle3">E</span>G</p>
+		</div>
+		<div class="g-snippet-layer g-ripple">
+			<div class="g-aiSymbol g-aiSnippet" id="g-snippet-ripple" data-name="ripple" style="width: 3.4848%; height: 6.0325%; margin-left: -1.7424%; margin-top: -1.7424%; left: 90.6586%; top: 29.315%;">
+{@render ripple?.()}
+</div>
+		</div>
+
+		<div class="g-snippet-layer g-bitcoin">
+			<div class="g-aiSymbol g-aiSnippet" id="g-snippet-bitcoin" data-name="bitcoin" style="width: 3.4848%; height: 5.5079%; margin-left: -1.7424%; margin-top: -1.5909%; left: 90.204%; top: 63.9362%;">
+{@render bitcoin?.()}
+</div>
+		</div>
+
+		<div class="g-snippet-layer g-ethereum">
+			<div class="g-aiSymbol g-aiSnippet" id="g-snippet-ethereum" data-name="ethereum" style="width: 3.4848%; height: 5.5079%; margin-left: -1.7424%; margin-top: -1.5909%; left: 90.6586%; top: 69.4441%;">
+{@render ethereum?.()}
+</div>
+		</div>
+
+	</div>
+</div>
+
+
+<!-- End ai2svelte - 2026-04-21 15:58 -->

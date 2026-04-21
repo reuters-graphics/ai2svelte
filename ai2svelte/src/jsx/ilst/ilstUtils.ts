@@ -85,7 +85,7 @@ export function getSelectedItems() {
       } else if (tag == "png" || tag == "png24") {
         // g-snippet-snippetName
         let imageName = (/(.*):png/.exec(objectLayerName) || [])[1] || "";
-        identifier = `.${namespace}png-layer-${imageName}`;
+        identifier = `#${namespace}${tag}-layer-${imageName}`;
       } else if (tag == "div" && (objectName || objectLayerName)) {
         // g-snippet-snippetName
         let imageName = (/(.*):div/.exec(objectLayerName) || [])[1] || "";
@@ -111,12 +111,12 @@ export function getSelectedItems() {
           identifier = `#${namespace}svg-${imageName} #${objectName}`;
         }
       } else if (
-        (tag == "ptext" || tag == "htext") &&
+        (tag == "text" || tag == "htext") &&
         (objectName || objectLayerName)
       ) {
         // g-svg-layerName
         let layerName =
-          (/(.*):[ptext|htext]/.exec(objectLayerName) || [])[1] || "";
+          (/(.*):(text|htext)/.exec(objectLayerName) || [])[1] || "";
         if (allItemsSelected(objectLayer)) {
           identifier = `.${namespace}${layerName}`;
         } else if (objectName) {

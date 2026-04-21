@@ -40,8 +40,8 @@
    ai2svelte-companion:ai-settings="{&quot;image_format&quot;:&quot;png24&quot;,&quot;responsiveness&quot;:&quot;dynamic&quot;,&quot;output&quot;:&quot;one-file&quot;,&quot;html_output_path&quot;:&quot;../../src/components/ai2svelte/&quot;,&quot;html_output_extension&quot;:&quot;.svelte&quot;,&quot;image_output_path&quot;:&quot;../images/graphics/&quot;,&quot;image_source_path&quot;:&quot;images/graphics/&quot;,&quot;png_transparent&quot;:&quot;yes&quot;,&quot;png_number_of_colors&quot;:&quot;256&quot;,&quot;jpg_quality&quot;:&quot;90&quot;,&quot;inline_svg&quot;:&quot;true&quot;,&quot;override_text&quot;:&quot;true&quot;}"
    ai2svelte-companion:preview-timestamp="&quot;2025-07-15T12:27:09Z&quot;"
    ai2svelte-companion:css-settings="{&quot;styleText&quot;:&quot;&quot;}"
-   ai2svelte-companion:version="{&quot;version&quot;:&quot;1.0.5&quot;}"
-   ai2svelte-companion:lastSaved="{&quot;time&quot;:1775071562692}">
+   ai2svelte-companion:version="{&quot;version&quot;:&quot;1.0.6&quot;}"
+   ai2svelte-companion:lastSaved="{&quot;time&quot;:1776767327831}">
    <xmp:Thumbnails>
     <rdf:Alt>
      <rdf:li
