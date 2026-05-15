@@ -336,9 +336,11 @@ export function main(settingsArg) {
       var abIndex = findArtboardIndex(activeArtboard);
       var abSettings = getArtboardSettings(activeArtboard);
       var docArtboardName = getDocumentArtboardName(activeArtboard);
-      var textFrames, textData, imageData, htmlData;
+      var textFrames, textData, imageData, htmlData, abName, containsSVGLayers;
 
       doc.artboards.setActiveArtboardIndex(abIndex);
+
+      containsSVGLayers = findTaggedLayers("svg").length > 0;
 
       // ========================
       // Convert text objects
@@ -372,6 +374,7 @@ export function main(settingsArg) {
       // processes svg, div, png tagged layers
       if (isTrue(settings.write_image_files)) {
         progressBar.setTitle(docArtboardName + ": Capturing image...");
+        abName = getArtboardName(activeArtboard);
         imageData = convertArtItems(
           activeArtboard,
           textFrames,
@@ -379,6 +382,15 @@ export function main(settingsArg) {
           settings,
           group,
         );
+
+        if (containsSVGLayers) {
+          // refetch artboard, in case convertArtItems switched the active document
+          activeArtboard = app.activeDocument.artboards.getByName(abName);
+          abIndex = findArtboardIndex(activeArtboard);
+          abSettings = getArtboardSettings(activeArtboard);
+          docArtboardName = getDocumentArtboardName(activeArtboard);
+          doc.artboards.setActiveArtboardIndex(abIndex);
+        }
       } else {
         imageData = [{ z: -1, html: "" }];
       }
@@ -393,7 +405,7 @@ export function main(settingsArg) {
 
       output.html +=
         "\t<!-- Artboard: " +
-        getArtboardName(activeArtboard) +
+        abName +
         " -->\r" +
         generateArtboardDiv(activeArtboard, group, settings) +
         htmlData +
@@ -3188,6 +3200,7 @@ export function main(settingsArg) {
         getLayerImageName(lyr, activeArtboard, settings),
         uniqNames,
       );
+      var abName = getArtboardName(activeArtboard);
       var svgHtml = exportImage(
         uniqName,
         "svg",
@@ -3197,6 +3210,10 @@ export function main(settingsArg) {
         opts,
         group,
       );
+
+      // reset the state
+      activeArtboard = app.activeDocument.artboards.getByName(abName);
+
       var lyrZ = lyr.zOrderPosition;
       if (svgHtml) {
         uniqNames.push(uniqName);
@@ -3409,7 +3426,15 @@ export function main(settingsArg) {
         layer.blendingMode = BlendModes.NORMAL; // temporarily set to normal to avoid AI bug with SVG export
         svgLayersArg = [layer];
       }
+
+      var originalAbName = getArtboardName(ab);
       svgOutput = exportSVG(outputPath, ab, masks, svgLayersArg, settings);
+
+      // exportSVG switches doc to temporary document containing the exported SVG,
+      // so need to switch back to original artboard state before continuing
+      // restore original artboard variable
+      ab = app.activeDocument.artboards.getByName(originalAbName);
+
       if (layer) {
         layer.blendingMode = aiLayerBlendMode; // restore original blend mode
       }
