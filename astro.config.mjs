@@ -4,6 +4,7 @@ import starlight from "@astrojs/starlight";
 import svelte from "@astrojs/svelte";
 import preprocess from "svelte-preprocess";
 import starlightHeadingBadges from "starlight-heading-badges";
+import starlightLlmsTxt from "starlight-llms-txt";
 
 // https://astro.build/config
 export default defineConfig({
@@ -48,17 +49,28 @@ export default defineConfig({
       sidebar: [
         {
           label: "Users",
-          autogenerate: { directory: "users" },
+          items: [{ autogenerate: { directory: "users" } }],
         },
         {
           label: "Contributors",
-          autogenerate: { directory: "contributors" },
+          items: [{ autogenerate: { directory: "contributors" } }],
         },
       ],
-      plugins: [starlightHeadingBadges()],
+      plugins: [
+        starlightHeadingBadges(),
+        starlightLlmsTxt({
+          projectName: "ai2svelte",
+        }),
+      ],
     }),
   ],
   vite: {
     assetsInclude: ["**/*.glb"],
+    ssr: {
+      noExternal: ["@reuters-graphics/graphics-components"],
+    },
+    resolve: {
+      noExternal: ["@reuters-graphics/graphics-components"],
+    },
   },
 });

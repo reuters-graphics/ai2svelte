@@ -12,14 +12,15 @@
     "build:docs": "astro build"
   },
   "dependencies": {
-    "@astrojs/starlight": "^0.34.4",
+    "@astrojs/starlight": "^0.39.2",
     "@astrojs/svelte": "^7.1.0",
     "@google/model-viewer": "^4.1.0",
-    "@reuters-graphics/graphics-components": "3.0.12",
+    "@reuters-graphics/graphics-components": "3.4.1",
     "@reuters-graphics/savile": "^0.0.4",
-    "astro": "^5.6.1",
+    "astro": "^6.3.3",
     "sharp": "^0.34.3",
     "starlight-heading-badges": "^0.6.1",
+    "starlight-llms-txt": "^0.10.0",
     "svelte": "^5.38.6",
     "three": "^0.179.1"
   },

@@ -102,7 +102,7 @@ export function main(settingsArg) {
   // - Update the version number in package.json
   // - Add an entry to CHANGELOG.md
   // - Run 'npm publish' to create a new GitHub release
-  const scriptVersion = "1.0.6";
+  const scriptVersion = "1.0.7";
 
   // ================================
   // Global variable declarations
@@ -374,7 +374,7 @@ export function main(settingsArg) {
       // processes svg, div, png tagged layers
       if (isTrue(settings.write_image_files)) {
         progressBar.setTitle(docArtboardName + ": Capturing image...");
-        abName = getArtboardName(activeArtboard);
+        abName = activeArtboard.name;
         imageData = convertArtItems(
           activeArtboard,
           textFrames,
@@ -386,10 +386,7 @@ export function main(settingsArg) {
         if (containsSVGLayers) {
           // refetch artboard, in case convertArtItems switched the active document
           activeArtboard = app.activeDocument.artboards.getByName(abName);
-          abIndex = findArtboardIndex(activeArtboard);
-          abSettings = getArtboardSettings(activeArtboard);
-          docArtboardName = getDocumentArtboardName(activeArtboard);
-          doc.artboards.setActiveArtboardIndex(abIndex);
+          restoreAbState(activeArtboard);
         }
       } else {
         imageData = [{ z: -1, html: "" }];
@@ -487,6 +484,13 @@ export function main(settingsArg) {
       n += 2;
     });
     return n;
+  }
+
+  function restoreAbState(activeArtboard) {
+    abIndex = findArtboardIndex(activeArtboard);
+    abSettings = getArtboardSettings(activeArtboard);
+    docArtboardName = getDocumentArtboardName(activeArtboard);
+    doc.artboards.setActiveArtboardIndex(abIndex);
   }
 
   function formatError(e) {
@@ -3200,7 +3204,7 @@ export function main(settingsArg) {
         getLayerImageName(lyr, activeArtboard, settings),
         uniqNames,
       );
-      var abName = getArtboardName(activeArtboard);
+      var abName = activeArtboard.name;
       var svgHtml = exportImage(
         uniqName,
         "svg",
@@ -3213,6 +3217,7 @@ export function main(settingsArg) {
 
       // reset the state
       activeArtboard = app.activeDocument.artboards.getByName(abName);
+      restoreAbState(activeArtboard);
 
       var lyrZ = lyr.zOrderPosition;
       if (svgHtml) {
@@ -3427,13 +3432,14 @@ export function main(settingsArg) {
         svgLayersArg = [layer];
       }
 
-      var originalAbName = getArtboardName(ab);
+      var originalAbName = ab.name; // use raw name for getByName() lookup
       svgOutput = exportSVG(outputPath, ab, masks, svgLayersArg, settings);
 
       // exportSVG switches doc to temporary document containing the exported SVG,
       // so need to switch back to original artboard state before continuing
       // restore original artboard variable
       ab = app.activeDocument.artboards.getByName(originalAbName);
+      restoreAbState(ab);
 
       if (layer) {
         layer.blendingMode = aiLayerBlendMode; // restore original blend mode
@@ -3469,6 +3475,7 @@ export function main(settingsArg) {
           svgInlineStyle,
           settings,
         );
+
         if (layer) {
           message(
             "Generated inline SVG for layer [" + getLayerName(layer) + "]",
