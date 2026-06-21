@@ -54,7 +54,6 @@ export function createMixinsFile(shadows: ShadowCardItem[]) {
     mixins.push(str);
   });
 
-  console.log(mixins.join("\n\n"));
 }
 
 /**
@@ -233,7 +232,6 @@ export function generateAllMixins(stylesObject) {
 
     let allMixins = [...allShadowMixins, ...allAnimationMixins].join("\n\n");
 
-    console.log("allMixins", allMixins);
 
     return allMixins;
   } else {
