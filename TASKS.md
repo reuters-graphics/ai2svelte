@@ -1,319 +1,488 @@
-# ai2svelte — UI Revamp Task Plan
+# ai2svelte — Testing Strategy
 
-Scope: `ai2svelte/src/` only. Do not modify Bolt CEP files (`src/js/lib/`, `cep.config.ts`, `vite.config.ts`, `vite.es.config.ts`).
-
----
-
-## Task 1 — Audit & Code Improvement
-
-### Goal
-
-Improve the maintainability, correctness, and robustness of the existing codebase before any UI changes land. All fixes must be in `ai2svelte/src/js/`.
+Scope: `ai2svelte/src/` only. No test infrastructure changes touch Bolt CEP files, `cep.config.ts`, or build configs unless noted.
 
 ---
 
-### 1.1 — Type Safety
+## Overview
 
-**Issues found:**
-- `stores.ts` uses `Record<string, any>` for settings objects (lines 7, 9, 51).
-- `Settings.svelte` casts file input as `(e as any).files[0]`.
-- `Styles.svelte` has `(e: any)` event handler parameters and bare `@ts-ignore` on lines 17, 26 with no explanation.
-- `Preview.svelte` uses `Record<string, any>` in its comparison function.
-- `Tabs/types.ts` defines `UserProfile = Record<string, unknown>` — inconsistent with stores.
+The extension runs two runtimes. Tests must cover both, but with different tooling:
+
+| Runtime | Tooling | What it covers |
+|---|---|---|
+| **CEP Frontend** (`src/js/`) | Vitest + Svelte Testing Library | Pure utilities, stores, component logic, evalTS call sites |
+| **ExtendScript** (`src/jsx/`) | Manual checklist only | No native test runner for ES3; verify via Illustrator debug console |
+| **End-to-end** | Manual checklist | Full user paths that require a live Illustrator document |
+
+No existing test suite. Every task below sets up infrastructure or adds tests from scratch.
+
+---
+
+## Task 1 — Test Infrastructure
+
+### 1.1 — Install and configure Vitest
 
 **Work items:**
-- [ ] Define strict TypeScript interfaces for `Settings`, `UserProfile`, `StylesConfig`, and `AnimationEntry` in `Tabs/types.ts`.
-- [ ] Replace all `Record<string, any>` usages with these interfaces.
-- [ ] Replace `(e as any)` casts with properly typed event handlers (`Event`, `InputEvent`, `MouseEvent`).
-- [ ] Replace each bare `@ts-ignore` with a `// @ts-ignore: <reason>` comment explaining why suppression is needed. Remove any that can be fixed instead.
+- [ ] `pnpm add -D vitest @vitest/ui jsdom` (inside `ai2svelte/`)
+- [ ] Add a `vitest.config.ts` that:
+  - Sets `environment: "jsdom"` for component tests
+  - Sets `resolve.alias` for `$lib` and other Svelte path aliases matching `vite.config.ts`
+  - Excludes `src/jsx/` (ExtendScript; not testable by Vitest)
+- [ ] Add a `test` script to `ai2svelte/package.json`: `"test": "vitest run"` and `"test:ui": "vitest --ui"`
+- [ ] Confirm `pnpm test` runs and exits 0 (zero test files at this point is fine)
 
 **Acceptance criteria:**
-- `pnpm build` completes with zero new TypeScript errors.
-- No untyped `any` remains in files under `src/js/main/` except where third-party types are genuinely absent and a comment explains it.
+- `pnpm test` from `ai2svelte/` exits cleanly.
+- `vitest.config.ts` exists.
 
 ---
 
-### 1.2 — Duplicate & Dead Code
-
-**Issues found:**
-- `constrain()` is defined in both `utils/utils.ts` (exported) and `Components/utils.ts` (not exported, local only).
-- `toggleShadowCard()` in `Tabs/Styles/utils.ts` is defined but never called — `Shadows.svelte` and `Animations.svelte` have their own local implementations.
+### 1.2 — Install Svelte Testing Library
 
 **Work items:**
-- [ ] Delete the duplicate `constrain()` from `Components/utils.ts`. Update any local callers to import from `utils/utils.ts`.
-- [ ] Remove the dead `toggleShadowCard()` from `Tabs/Styles/utils.ts`. If the intent was a shared helper, document this and implement it properly, or remove it.
+- [ ] `pnpm add -D @testing-library/svelte @testing-library/jest-dom @testing-library/user-event`
+- [ ] Add a `setupTests.ts` that imports `@testing-library/jest-dom/vitest`
+- [ ] Wire `setupTests.ts` into `vitest.config.ts` via `setupFiles`
 
 **Acceptance criteria:**
-- `constrain()` has exactly one definition in the codebase.
-- `Tabs/Styles/utils.ts` contains no unused exports. Verify with a grep for `toggleShadowCard`.
+- `expect(element).toBeInTheDocument()` is available in test files without extra imports.
 
 ---
 
-### 1.3 — Error Handling
+### 1.3 — Mock evalTS globally
 
-**Issues found:**
-- `RunButton.svelte` (lines 42–45): try/catch only logs errors. The user receives no feedback if `ai2svelte` fails mid-run.
-- `Settings.svelte` (lines 133–141): file upload errors are logged but the input is not reset and no user-facing message is shown.
-- `Preview.svelte` (lines 70–90): retries up to 10× at 300ms intervals (3 second hang) with no loading state and no user-facing error if all attempts fail.
-- Multiple `evalTS()` calls across tabs have no `.catch()`.
+`evalTS` calls ExtendScript from the panel. Tests must not hit the real bridge.
 
 **Work items:**
-- [ ] `RunButton.svelte`: on catch, surface the error using the existing `Toast` or `Alert` component. Do not swallow it.
-- [ ] `Settings.svelte`: on file read failure, reset the `<input type="file">` element and show an `Alert`.
-- [ ] `Preview.svelte`: show a loading indicator during the retry loop. After all retries are exhausted, show a user-facing error message instead of silently failing.
-- [ ] Add `.catch()` to all `evalTS()` calls that currently have none. Each catch should at minimum show a `Toast` with the error message.
+- [ ] Create `src/js/__mocks__/bolt.ts` that exports a `vi.fn()` named `evalTS` returning a resolved promise
+- [ ] Register the mock path in `vitest.config.ts` via `alias` or `moduleNameMapper`
+- [ ] Write one smoke test confirming the mock is picked up and `evalTS` does not throw
 
 **Acceptance criteria:**
-- Every `evalTS()` call in `src/js/main/Tabs/` has an error handler.
-- A failed run in `RunButton` triggers a visible `Toast` or `Alert`.
-- `Preview.svelte` does not hang silently — a user will see either a loading state or an error.
+- Any test that imports `evalTS` gets the mock, not the real bridge.
 
 ---
 
-### 1.4 — Performance Bottlenecks
+## Task 2 — Unit Tests: Utility Functions
 
-**Issues found:**
-- `Preview.svelte` (lines 97–101): uses `structuredClone` + `JSON.stringify` with sorted keys for deep equality — extremely expensive, called on every preview update.
-- `Tabs/Styles/utils.ts` (line 82): PostCSS re-parses the full stylesheet on every keystroke in the code editor with no debounce.
-- `stores.ts` (lines 60–68): the `cache` derived store calls `Object.keys()` + `get()` on every `settingsObject`/`styles` change with no debounce before writing to disk.
+### 2.1 — `utils/utils.ts`
+
+Key functions to test: `constrain`, `debounce` (if added per earlier plan), any file-path or string helpers.
 
 **Work items:**
-- [ ] `Preview.svelte`: replace the `structuredClone` + `JSON.stringify` deep-equal with a lightweight comparison (e.g. compare only the fields that drive a re-render, or use a simple JSON.stringify without the clone).
-- [ ] `Tabs/Styles/utils.ts`: wrap the PostCSS parse call in a debounce (200–300ms). Import a small debounce utility from `utils/utils.ts` or add one there.
-- [ ] `stores.ts`: debounce the `writeFile` call inside the cache derived store (300ms). The store can update reactively, but disk writes should not fire on every keystroke.
+- [ ] `constrain(value, min, max)`:
+  - Returns `value` when within range
+  - Clamps to `min` when below
+  - Clamps to `max` when above
+  - Handles equal `min`/`max` edge case
+- [ ] Any exported `debounce`:
+  - Delays execution by the specified timeout
+  - Calls function once per burst (multiple rapid calls → one actual call)
+  - Calls with the most recent arguments
 
-**Acceptance criteria:**
-- Typing in the Styles code editor does not trigger more than one parse per 300ms burst.
-- Disk writes from the cache store are debounced — verified by adding a temporary `console.log` during dev.
-- Preview comparison does not call `structuredClone`.
+**Test file:** `src/js/__tests__/utils.test.ts`
 
 ---
 
-### 1.5 — Resource Cleanup
-
-**Issues found:**
-- `stylesState.svelte.ts` (line 25): `styles.subscribe()` stores no unsubscribe function — the subscription leaks if the component is ever torn down.
-- `Tabs/Styles/Styles.svelte`: `addSelectionChangeEventListener()` is called on mount but has no corresponding cleanup.
-- `main.svelte` (line 195): window `keydown` listener is cleaned up in `onMount`'s return, but this pattern is fragile when combined with the document-switching logic above it.
+### 2.2 — PostCSS / Styles utilities (`Tabs/Styles/utils.ts`)
 
 **Work items:**
-- [ ] `stylesState.svelte.ts`: store the return value of `styles.subscribe()` and call it in `onDestroy` (or use a `$effect` with a cleanup return).
-- [ ] `Styles.svelte`: ensure `addSelectionChangeEventListener` is accompanied by a matching removal on destroy.
-- [ ] `main.svelte`: audit all `addEventListener` calls and confirm each has a matching `removeEventListener` in the appropriate cleanup path.
+- [ ] CSS selector parsing: given a PostCSS AST string, extracting all selectors returns the correct array
+- [ ] Toggle logic: toggling a shadow rule on/off produces the expected CSS output
+- [ ] Toggle logic: toggling an animation rule on/off produces the expected CSS output
+- [ ] Debounce wrapping of `parseCss`: confirm only one parse fires per burst (mock `postcss` parse)
 
-**Acceptance criteria:**
-- No `subscribe()` call in `src/js/main/` is missing its unsubscribe.
-- All `addEventListener` calls have a corresponding `removeEventListener`.
+**Test file:** `src/js/__tests__/stylesUtils.test.ts`
 
 ---
 
-### 1.6 — State Management Consolidation
+### 2.3 — `stores.ts` derived values
 
-**Issues found:**
-- Two parallel state systems exist: legacy Svelte stores (`stores.ts`) and Svelte 5 runes (`state.svelte.ts`, `stylesState.svelte.ts`). New code added to stores occasionally re-reads from rune-based state and vice versa, creating implicit coupling.
-- `state.svelte.ts` is only 9 lines and its purpose is unclear relative to `stores.ts`.
+Focus on logic that is pure / testable without DOM or evalTS.
 
 **Work items:**
-- [ ] Add a comment block at the top of both `stores.ts` and `state.svelte.ts` documenting what each owns and why both exist. This is the minimum — the goal is clarity, not a full migration.
-- [ ] Identify any cross-reads (a store reading from rune state or vice versa) and document them with a comment explaining the dependency direction.
-- [ ] If `state.svelte.ts` is only a stepping stone, open a follow-up issue or add a `// TODO: migrate stores.ts to runes` comment with a short rationale.
+- [ ] `stylesString` derived store: setting `styles` to a PostCSS AST node produces the correct CSS string
+- [ ] `unsavedChanges` derived store: evaluates to `true` when `settingsObject` diverges from `savedSettings`
+- [ ] `cacheObj` derived store: produces the correct shape when `docName`, `settingsObject`, and `stylesString` are set
 
-**Acceptance criteria:**
-- A developer new to the codebase can read the comment headers and understand which system to use for new code.
-- No silent cross-dependencies between the two systems remain undocumented.
+**Test file:** `src/js/__tests__/stores.test.ts`
 
 ---
 
-### 1.7 — Production Logging
+## Task 3 — Component Tests
 
-**Issues found:**
-- 20+ `console.log` calls with development content (emoji, raw objects, partial data) remain in production code across multiple files.
+Each test file lives alongside the component under `__tests__/` in the same directory.
+
+### 3.1 — `Button.svelte`
 
 **Work items:**
-- [ ] Remove all `console.log` calls that are debugging artifacts.
-- [ ] Any logging that is intentional (e.g. reporting CEP bridge errors) should use `console.warn` or `console.error` with a consistent prefix like `[ai2svelte]`.
-
-**Acceptance criteria:**
-- `grep -r "console\.log" src/js/main/` returns zero results, or every remaining result has a comment explaining why it is intentional.
-
----
-
-## Task 2 — bits-ui Adoption
-
-### Goal
-
-Replace the interactive state-management and accessibility layer of specific components with [bits-ui](https://www.bits-ui.com) primitives. Visual appearance, SCSS, and animations must stay the same. Only accessibility behaviour and internal state management change.
-
-Do not replace components that have no applicable bits-ui primitive. Do not introduce Tailwind CSS.
+- [ ] Renders with the correct label text
+- [ ] `disabled` prop disables the button and prevents click
+- [ ] `onClick` callback fires on click when not disabled
+- [ ] `minimal` prop applies the expected CSS class
 
 ---
 
-### 2.0 — Setup
+### 3.2 — `InputText.svelte`
 
-- [ ] Install `bits-ui` as a dependency: `pnpm add bits-ui` (inside `ai2svelte/`).
-- [ ] Verify the installed version supports Svelte 5 runes (bits-ui v2+).
-- [ ] Confirm `pnpm build` still passes after install.
-
-**Acceptance criteria:**
-- `bits-ui` appears in `ai2svelte/package.json` dependencies.
-- No existing component is broken by the install.
+**Work items:**
+- [ ] Renders label and input
+- [ ] Typing updates bound `value`
+- [ ] `readonly` prop prevents input changes
 
 ---
 
-### 2.1 — Dropdown → `bits-ui Select`
+### 3.3 — `Dropdown.svelte`
 
-**File:** `Components/Dropdown.svelte`
-
-**Current problems:**
-- Outside-click dismiss is implemented with a manual `window.addEventListener` / `removeEventListener` pair — fragile and easy to leak.
-- No keyboard navigation (arrow keys, Enter, Escape).
-- No `aria-expanded`, `aria-haspopup`, or `role="listbox"` on the trigger or menu.
-
-**What changes:**
-- Replace the open/close state machine and outside-click handling with `Select.Root`, `Select.Trigger`, `Select.Content`, and `Select.Item` from bits-ui.
-- Keep the existing chaser `<li>` highlight animation — it is purely CSS/Svelte transition and can live inside `Select.Content`'s slot markup.
-- Keep the `fly`/`slide` Svelte transitions on the menu by applying them to the element rendered inside `Select.Content`.
-- Keep all existing SCSS classes unchanged.
-
-**Acceptance criteria:**
-- Dropdown opens and closes with mouse click (same as before).
-- Pressing `Escape` closes the menu.
-- Arrow keys navigate options; `Enter` selects.
-- Clicking outside closes the menu without a leaked window listener.
-- `aria-expanded` is present on the trigger button.
-- Visual appearance and animation are unchanged.
-- The manual `window.addEventListener("click", closeMenu)` pattern is gone.
+**Work items:**
+- [ ] Renders the trigger with initial selected option
+- [ ] Clicking the trigger opens the option list
+- [ ] Clicking an option fires the change handler and closes the list
+- [ ] Pressing `Escape` closes the open list
+- [ ] Arrow keys navigate options; `Enter` selects (bits-ui provides this — test it works)
+- [ ] `aria-expanded` is present on the trigger
 
 ---
 
-### 2.2 — Selector → `bits-ui RadioGroup`
+### 3.4 — `Selector.svelte`
 
-**File:** `Components/Selector.svelte`
-
-**Current problems:**
-- Uses `<button>` elements with `aria-pressed` to simulate a radio group — not semantically correct.
-- No roving tabindex; tabbing cycles through every button individually.
-- The hidden `<input type="radio">` inside each button exists to paper over the semantic gap.
-
-**What changes:**
-- Replace with `RadioGroup.Root` and `RadioGroup.Item` from bits-ui.
-- Remove the hidden `<input type="radio">` — bits-ui handles the role and keyboard behaviour.
-- Keep `svooltip` on each item — it is a Svelte action and composes without conflict.
-- Keep all SCSS classes and the `data-checked` attribute (bits-ui sets `data-state="checked"` — map this in CSS or add a `data-checked` attribute via a snippet).
-- Keep the `$bindable()` two-way binding on `value`.
-
-**Acceptance criteria:**
-- Arrow keys navigate between options within the group; Tab moves focus out of the group entirely (roving tabindex).
-- The hidden `<input type="radio">` is removed.
-- `role="radiogroup"` and `role="radio"` are present in the rendered HTML.
-- Tooltips still appear on hover.
-- Visual appearance is unchanged.
+**Work items:**
+- [ ] Renders all provided label options
+- [ ] Clicking an option updates `value`
+- [ ] Only the active option has `data-checked` / `data-state="checked"`
+- [ ] Arrow keys move focus between options (bits-ui roving tabindex)
+- [ ] Tab key exits the group (roving tabindex)
+- [ ] `role="radiogroup"` and `role="radio"` are present
 
 ---
 
-### 2.3 — InputRange → `bits-ui Slider`
+### 3.5 — `InputRange.svelte`
 
-**File:** `Components/InputRange.svelte`
-
-**Current problems:**
-- Custom mouse event handling (`mousedown`, `mousemove`, `mouseup` on `document`) with no keyboard support.
-- `aria-valuemin` and `aria-valuemax` are hardcoded to 0 and 100 regardless of the `start`/`end` props.
-- No keyboard increment/decrement.
-
-**What changes:**
-- Replace the drag logic with `Slider.Root` and `Slider.Range`/`Slider.Thumb` from bits-ui. bits-ui manages the drag, keyboard, and ARIA values.
-- Keep the Svelte `Spring` animation on the fill bar — read `Slider.Root`'s current value in a `$derived` and feed it into the Spring.
-- Keep the floating value label (`range-value` `<p>`) — render it alongside the bits-ui thumb.
-- Keep all SCSS classes.
-- Wire `start`, `end`, and `stepper` props to bits-ui's `min`, `max`, and `step` attributes.
-
-**Acceptance criteria:**
-- Arrow keys increment/decrement the value by `stepper`.
-- `aria-valuemin`/`aria-valuemax`/`aria-valuenow` reflect the actual `start`/`end`/`value` props.
-- Mouse drag still works.
-- The Spring fill animation is intact.
-- The manual `document.addEventListener("mouseup")` / `document.addEventListener("mousemove")` pattern is removed.
+**Work items:**
+- [ ] Renders with initial `value`
+- [ ] Arrow key press increments value by `stepper`
+- [ ] `aria-valuemin`/`aria-valuemax`/`aria-valuenow` reflect `start`/`end`/`value` props
+- [ ] Value is clamped within `start`–`end` range
 
 ---
 
-### 2.4 — TabBar → `bits-ui Tabs`
+### 3.6 — `Toast.svelte`
 
-**File:** `Components/TabBar.svelte`
-
-**Current problems:**
-- Uses `<input type="radio">` + `<label>` to drive tab switching — the active tab is tracked via a bound DOM reference (`activeTab: HTMLElement`) rather than a value, making the state implicit.
-- `onMount` timeout hack (line ~60) to set the initial active tab by querying the DOM.
-- No `role="tablist"` / `role="tab"` / `role="tabpanel"` structure.
-
-**What changes:**
-- Replace the radio + label mechanism with `Tabs.Root`, `Tabs.List`, `Tabs.Trigger`, and `Tabs.Content` from bits-ui.
-- `activeLabel` becomes the controlled `value` on `Tabs.Root` — replace the DOM reference approach with a string value.
-- Remove the `onMount` timeout. Set the initial value via `Tabs.Root`'s `value` prop.
-- The extra right-side content (ThemeSwitcher, ColorPicker, RunButton) lives outside `Tabs.List` as it does today; no change needed there.
-- Keep all SCSS classes.
-
-**Acceptance criteria:**
-- `role="tablist"`, `role="tab"`, and `role="tabpanel"` are present in rendered HTML.
-- The `onMount` setTimeout is removed.
-- `activeLabel` is driven by a string value, not a DOM element reference.
-- Arrow keys navigate between tabs.
-- Clicking a tab switches content (same as before).
-- Visual appearance is unchanged.
+**Work items:**
+- [ ] Renders with the message text
+- [ ] Auto-dismisses after `duration` ms (use `vi.useFakeTimers`)
+- [ ] Does not render after dismissal
 
 ---
 
-### 2.5 — ThemeSwitcher → `bits-ui Toggle` *(optional)*
+### 3.7 — `Alert.svelte`
 
-**File:** `Components/ThemeSwitcher.svelte`
-
-This is lower priority. The current implementation is functionally correct. Adopting `Toggle.Root` from bits-ui adds `aria-pressed` semantics and keyboard activation automatically.
-
-- [ ] Replace the outer `<button>` with `Toggle.Root`. Bind `pressed` to the `theme` boolean state.
-- Keep all existing SCSS and the animated icon swap.
-
-**Acceptance criteria:**
-- `aria-pressed` is present and updates on toggle.
-- Space/Enter key activates the toggle.
-- Visual appearance is unchanged.
+**Work items:**
+- [ ] Renders when `message` is set in the `alertObject` store
+- [ ] Does not render when `alertObject` message is empty
 
 ---
 
-### 2.6 — Code Readability Standards for Task 2
+### 3.8 — `ThemeSwitcher.svelte`
 
-All components modified in Task 2 must follow these standards:
-
-- **One comment per bits-ui primitive** explaining why it was chosen over a plain HTML element (e.g. `<!-- Slider.Root manages drag, keyboard inc/dec, and ARIA value attributes -->`).
-- **Section separators** in the `<script>` block: group imports, props, derived state, and effects with a single-line comment header (e.g. `// --- props`, `// --- state`, `// --- effects`).
-- **No inline logic in templates** longer than a ternary. Extract complex expressions into `$derived` variables with descriptive names.
-- **Props interfaces** must be defined with explicit TypeScript types — no implicit `any`.
+**Work items:**
+- [ ] Clicking the button toggles the theme between `"dark"` and `"light"`
+- [ ] `aria-pressed` updates to reflect current theme state
+- [ ] Space/Enter key activates the toggle
 
 ---
 
-### Out of Scope for Task 2
+### 3.9 — `Pill.svelte`
 
-The following components must **not** be touched:
-
-| Component | Reason |
-|---|---|
-| `CMTextArea.svelte` | CodeMirror — no bits-ui equivalent |
-| `AnimationCard.svelte` | Domain-specific, purely visual |
-| `ShadowCard.svelte` | Domain-specific, purely visual |
-| `PreviewFrame.svelte` | Custom Spring resize — no bits-ui equivalent |
-| `Confetti.svelte` | Particle animation |
-| `Intro.svelte` | Splash screen, no interactivity |
-| `Logo.svelte` | Static SVG brand asset |
-| `Toast.svelte` | Simple, functional — bits-ui has no Toast primitive |
-| `Alert.svelte` | Simple, functional — bits-ui AlertDialog is a modal, not a banner |
-| `Chip.svelte` / `Pill.svelte` | Simple enough that adding bits-ui overhead is not worth it |
-| `SectionTitle.svelte` / `SectionTabBar.svelte` | Layout-only, no interactive state |
-| `Button.svelte` / `InputText.svelte` | Simple wrappers, no accessibility gap |
-| All `src/jsx/` files | ExtendScript — entirely separate runtime |
-| All Bolt CEP files | Not in scope |
+**Work items:**
+- [ ] Renders the name prop as text
+- [ ] Clicking the remove button fires the `onRemove` callback
+- [ ] `active` prop applies the expected CSS class
+- [ ] Clicking the pill itself (not remove) fires the `onClick` callback
 
 ---
 
-## Branching Strategy
+### 3.10 — `TabBar.svelte`
 
-- Task 1 and Task 2 should be developed on separate branches and merged to `main` sequentially (Task 1 first).
-- Suggested branch names: `fix/code-audit` and `feat/bits-ui`.
-- Each task merges via PR with a summary of what changed and a manual smoke-test checklist against Illustrator.
+**Work items:**
+- [ ] Renders all provided tab labels
+- [ ] Clicking a tab updates `activeLabel`
+- [ ] `role="tablist"` and `role="tab"` are present
+- [ ] Arrow keys navigate between tabs
+- [ ] Tab panels are connected via `aria-controls` / `aria-labelledby`
+
+---
+
+## Task 4 — Integration Tests: evalTS Call Sites
+
+These tests verify that the panel components call `evalTS` correctly and handle its responses (using the mock from Task 1.3).
+
+### 4.1 — `RunButton.svelte`
+
+**Setup:** Mock `evalTS("runAi2Svelte")` to return a resolved value.
+
+**Work items:**
+- [ ] Clicking "Run" calls `evalTS("runAi2Svelte")` with the current settings and CSS code
+- [ ] While running, button is disabled and shows a loading state
+- [ ] On resolved response with missing font families: shows a toast listing them
+- [ ] On resolved response with no missing fonts: triggers confetti (test `triggerConfetti` store is set)
+- [ ] On rejected promise: shows an error toast (test that toast message is set)
+
+**Test file:** `Tabs/Home/__tests__/RunButton.test.ts`
+
+---
+
+### 4.2 — Home tab — Export as Template
+
+**Work items:**
+- [ ] Clicking "Export as Template" calls `evalTS("exportAsTemplate")`
+- [ ] On rejection: shows error toast
+
+**Test file:** `Tabs/Home/__tests__/Home.test.ts`
+
+---
+
+### 4.3 — Settings tab — Profile management
+
+**Setup:** Mock `evalTS("setVariable")` and `evalTS("getVariable")` calls made via `utils.ts`.
+
+**Work items:**
+- [ ] "Save Profile" — opens dialog, accepting a name calls the write path
+- [ ] "Load Profile" — selecting a profile name sets `settingsObject` to that profile's values
+- [ ] "Reset Config" — calls write path with the "default" profile data
+- [ ] "Import from File" — reading a valid JSON blob updates profile store; an invalid file shows an alert
+- [ ] "Export to File" — triggers file download with correct JSON content
+
+**Test file:** `Tabs/Settings/__tests__/Settings.test.ts`
+
+---
+
+### 4.4 — Styles tab — Identifier auto-detection
+
+**Setup:** Mock `evalTS("fetchSelectedItems")` to return `"p.g-pstyle0"`.
+
+**Work items:**
+- [ ] On `ART_SELECTION_CHANGED` event: calls `evalTS("fetchSelectedItems")` and updates the identifier input
+- [ ] The returned selector is added to the styles AST as a new rule
+
+**Test file:** `Tabs/Styles/__tests__/Styles.test.ts`
+
+---
+
+### 4.5 — Inspect tab — Reset metadata
+
+**Work items:**
+- [ ] Clicking "Reset File Metadata" calls `evalTS("setVariable", "ai-settings", {})` and `evalTS("setVariable", "version", ...)`
+- [ ] The button is only available in inspect mode (Ctrl+Shift+I activated)
+
+**Test file:** `Tabs/__tests__/Inspect.test.ts`
+
+---
+
+### 4.6 — `main.svelte` — Document lifecycle
+
+**Setup:** Mock `evalTS("getDocumentName")` and `evalTS("getActiveDocumentsNames")`.
+
+**Work items:**
+- [ ] On mount: calls `getDocumentName` and sets `docName` store
+- [ ] On `documentAfterActivate` event: calls `getDocumentName` again and updates store
+- [ ] Document switching updates the cache correctly (new doc loads cached settings)
+
+**Test file:** `__tests__/main.test.ts`
+
+---
+
+## Task 5 — Manual Test Checklists
+
+These paths require a live Illustrator environment. Execute against a real document before each release.
+
+### 5.1 — First Launch
+
+- [ ] Open Illustrator with no previously saved extension data
+- [ ] Extension panel loads without errors (check CEP console at `localhost:8860`)
+- [ ] Home tab is active by default
+- [ ] Last Saved shows "Never"
+- [ ] Settings tab shows default profile values
+- [ ] Styles tab loads with an empty CSS editor and default identifier
+
+---
+
+### 5.2 — Run ai2svelte (Happy Path)
+
+- [ ] Open a document with Svelte-compatible AI layers
+- [ ] Go to Home tab, click "Run AI2SVELTE"
+- [ ] Button becomes disabled during execution
+- [ ] Confetti plays on success
+- [ ] "Last Saved" timestamp updates
+- [ ] Generated `.svelte` file appears on disk in the expected output path
+
+---
+
+### 5.3 — Run ai2svelte (Missing Fonts)
+
+- [ ] Open a document with a font not mapped in Settings
+- [ ] Click "Run AI2SVELTE"
+- [ ] A toast appears listing the unmapped font families
+- [ ] The run still completes (missing fonts are a warning, not an error)
+
+---
+
+### 5.4 — Run ai2svelte (Failure)
+
+- [ ] Open a document with an intentionally invalid configuration
+- [ ] Click "Run AI2SVELTE"
+- [ ] An error toast appears with a readable message
+- [ ] The panel does not freeze or go into a loading state permanently
+
+---
+
+### 5.5 — Settings: Profile Lifecycle
+
+- [ ] Save a new profile with a custom name → appears in Load Profile dropdown
+- [ ] Load that profile → settings update in the panel
+- [ ] Delete the profile from Load Profile dialog → it no longer appears in the list
+- [ ] Reset Config → settings revert to the "default" profile values
+- [ ] Export profiles → a valid JSON file is downloaded
+- [ ] Import that JSON → profiles appear under Load Profile
+
+---
+
+### 5.6 — Settings: Theme and Accent
+
+- [ ] Toggle theme switcher → panel switches between dark/light; persists across panel close/reopen
+- [ ] Change accent color → primary interactive elements update color; persists
+
+---
+
+### 5.7 — Settings: Font Mapping
+
+- [ ] Add a font mapping (font family name → CSS variable)
+- [ ] Run ai2svelte → generated output uses the mapped CSS variable instead of the literal font name
+- [ ] Remove the mapping → regenerated output reverts to literal font name
+
+---
+
+### 5.8 — Styles: UI Mode — Shadows
+
+- [ ] Select an object in Illustrator → identifier field auto-fills with the CSS class
+- [ ] Toggle a shadow card ON → corresponding `@include shadow-*` rule appears in the code editor
+- [ ] Toggle it OFF → rule is removed
+- [ ] Change shadow color → color hex value updates in the CSS rule
+- [ ] Cycle backdrop images (ExtraConfigs) → shadow preview updates
+- [ ] Change specimen text → preview specimen text updates
+
+---
+
+### 5.9 — Styles: UI Mode — Animations
+
+- [ ] Toggle an animation card ON → animation rule appears in the CSS
+- [ ] Toggle it OFF → animation rule is removed
+- [ ] Multiple animations can be active simultaneously without rules conflicting
+
+---
+
+### 5.10 — Styles: Code Mode
+
+- [ ] Switch to Code format → CodeMirror editor loads with the current CSS
+- [ ] Edit CSS in the editor → parsed AST updates (shadows/animations cards reflect change after switching back to UI mode)
+- [ ] Type invalid CSS → PostCSS parse error appears in the editor gutter or alert
+- [ ] The editor does not block the UI during typing (debounce in effect)
+
+---
+
+### 5.11 — Styles: Selector Pills
+
+- [ ] After adding styles for multiple selectors, all appear as pills in the PillsContainer
+- [ ] Clicking a pill → identifier field updates to that selector and its styles load
+- [ ] Clicking the remove button on a pill → that selector's rules are deleted from the CSS
+- [ ] Removed selector's pill disappears immediately
+
+---
+
+### 5.12 — Preview: Load and Resize
+
+- [ ] Run ai2svelte to generate a preview component
+- [ ] Switch to Preview tab → component loads and renders in the iframe
+- [ ] Drag the resize handle → frame resizes with Spring animation; dimensions display during drag
+- [ ] Click Refresh → preview reloads
+
+---
+
+### 5.13 — Preview: Loading State and Error
+
+- [ ] Delete the generated preview JS file manually
+- [ ] Click Refresh → loading indicator appears during retries
+- [ ] After all retries fail → user-facing error message appears (no silent hang)
+
+---
+
+### 5.14 — Document Switching
+
+- [ ] Open two Illustrator documents with different settings
+- [ ] Switch between documents → panel loads each document's settings and styles independently
+- [ ] Making changes in Document A, then switching to B and back → Document A's unsaved changes are preserved in memory
+
+---
+
+### 5.15 — Export as Template
+
+- [ ] Click "Export as Template" on the Home tab
+- [ ] Illustrator "Save as Template" dialog opens
+- [ ] Saving creates a `.ait` file in the expected location
+
+---
+
+### 5.16 — Inspect Mode (Debug)
+
+- [ ] Press Ctrl+Shift+I → Inspect tab appears
+- [ ] Diff view shows no diff when settings are in sync
+- [ ] Modify settings → diff view shows the change in green/red
+- [ ] Click "Reset File Metadata" → XMP data is cleared; confirms with a log in the CEP console
+- [ ] Press Ctrl+Shift+I again → Inspect tab hides
+
+---
+
+### 5.17 — Error Resilience (CEP Bridge Failures)
+
+- [ ] Simulate ExtendScript error (e.g. call with bad args via Inspect console)
+- [ ] Panel shows a toast with the error message
+- [ ] Panel remains interactive after the error (no frozen state)
+
+---
+
+## Task 6 — ExtendScript Verification Checklist
+
+Run these via Illustrator's ExtendScript Toolkit (ESTK) or the CDP console at `localhost:8860`.
+
+- [ ] `getDocumentName()` returns the active document's filename
+- [ ] `getActiveDocumentsNames()` returns an array of all open document names
+- [ ] `setVariable("ai-settings", {...})` stores data as XMP metadata (verify with `getVariable`)
+- [ ] `getVariable("ai-settings")` retrieves previously stored data
+- [ ] `runAi2Svelte(settings)` processes a well-formed settings object without error
+- [ ] `runPreview(settings, path)` writes a `previewComponent.js` to the given path
+- [ ] `fetchSelectedItems()` returns the CSS class of the currently selected layer
+- [ ] `exportAsTemplate()` triggers the Save as Template dialog
+- [ ] `makeFolder(path)` creates a directory at the given path
+- [ ] `makeFile(path, content)` writes file content and returns the written path
+
+---
+
+## Execution Order
+
+1. **Task 1** — Infrastructure first; unblocks all automated tests
+2. **Task 2** — Quickest wins; pure function tests, no DOM or mocks needed
+3. **Task 3** — Component tests; start with leaf components (Button, Pill) before containers
+4. **Task 4** — evalTS integration tests; depends on the mock from Task 1.3
+5. **Task 5 + 6** — Manual; run before any release regardless of automated coverage
+
+---
+
+## Coverage Goals
+
+| Area | Target | Method |
+|---|---|---|
+| Pure utility functions | 100% | Vitest unit tests |
+| Svelte component interactions | Key user actions per component | Testing Library |
+| evalTS call sites | All 18 call sites have a test | Vitest + mock |
+| Full user paths | 17 manual scenarios | Checklist against Illustrator |
+| ExtendScript functions | 10 core functions | ESTK / CDP console |
