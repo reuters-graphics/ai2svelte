@@ -95,38 +95,41 @@
       The child snippet provides our custom styled container while preserving
       Floating UI positioning (aligns below the trigger automatically).
     -->
+    <!--
+      wrapperProps carries `position: absolute` and the Floating UI transform.
+      Without rendering this wrapper div, the content lands in normal flow and
+      shifts the card layout. props goes on our styled inner div.
+    -->
     <Select.Content>
-      {#snippet child({ props })}
-        <div {...props} class="dropdown-menu">
-          <ul bind:this={parentContainer}>
-            <!-- Chaser: absolute highlight that slides to the hovered item -->
-            <li class="li-selector" bind:this={chaserElement} aria-hidden="true">
-              <button tabindex="-1">{value}</button>
-            </li>
+      {#snippet child({ props, wrapperProps })}
+        <div {...wrapperProps}>
+          <div {...props} class="dropdown-menu">
+            <ul bind:this={parentContainer}>
+              <!-- Chaser: absolute highlight that slides to the hovered item -->
+              <li class="li-selector" bind:this={chaserElement} aria-hidden="true">
+                <button tabindex="-1">{value}</button>
+              </li>
 
-            {#each options as opt}
-              <!--
-                Select.Item provides role="option" and aria-selected.
-                The child snippet lets us apply hover tracking for the chaser.
-              -->
-              <Select.Item value={opt} label={opt}>
-                {#snippet child({ props: itemProps })}
-                  <li
-                    {...itemProps}
-                    class="li-item"
-                    data-active={value === opt}
-                    onmouseenter={(e: MouseEvent) =>
-                      (hoveredElement =
-                        e.currentTarget instanceof HTMLElement
-                          ? e.currentTarget
-                          : undefined)}
-                  >
-                    <span>{opt}</span>
-                  </li>
-                {/snippet}
-              </Select.Item>
-            {/each}
-          </ul>
+              {#each options as opt}
+                <Select.Item value={opt} label={opt}>
+                  {#snippet child({ props: itemProps })}
+                    <li
+                      {...itemProps}
+                      class="li-item"
+                      data-active={value === opt}
+                      onmouseenter={(e: MouseEvent) =>
+                        (hoveredElement =
+                          e.currentTarget instanceof HTMLElement
+                            ? e.currentTarget
+                            : undefined)}
+                    >
+                      <span>{opt}</span>
+                    </li>
+                  {/snippet}
+                </Select.Item>
+              {/each}
+            </ul>
+          </div>
         </div>
       {/snippet}
     </Select.Content>
@@ -193,8 +196,7 @@
     box-shadow:
       0 0 16px rgba(0, 0, 0, 0.2),
       0 0 4px rgba(0, 0, 0, 0.1);
-    /* Ensure width matches the trigger */
-    min-width: var(--bits-select-trigger-width, 100%);
+    width: var(--bits-floating-anchor-width);
   }
 
   ul {
