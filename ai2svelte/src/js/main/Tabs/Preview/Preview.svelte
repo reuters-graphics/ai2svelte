@@ -21,26 +21,27 @@
   import { fs, path } from "../../../lib/cep/node";
 
   // OTHER IMPORTS
-  // @ts-ignore
+  // @ts-ignore: preview-dev.svelte is a generated file and has no TypeScript declarations
   import PreviewDev from "../../example/ai2svelte/preview-dev.svelte";
   import { saveSettings } from "../../utils/utils";
   import config from "../../../../../cep.config";
   import { version } from "../../../../shared/shared";
-  // @ts-ignore
+  // @ts-ignore: startServer.js is a plain JS file with no TypeScript declarations
   import { compileComponent } from "./startServer";
+  import type { PreviewObject } from "../../Tabs/types";
 
   let { forceRender = false }: { forceRender?: boolean } = $props();
 
   let PreviewComponent: ComponentType | undefined = $state();
+  let isLoadingPreview: boolean = $state(false);
+  let previewError: string | undefined = $state(undefined);
 
   let previewWidth: Spring<number> = new Spring(800);
   let previewHeight: Spring<number> = new Spring(400);
 
   let currentArtboard: HTMLElement | undefined = $state();
-
   let frameContent: HTMLDivElement | undefined = $state();
-
-  let component: Record<string, any> | undefined = undefined;
+  let component: Record<string, unknown> | undefined = undefined;
 
   function delay(ms: number) {
     return new Promise((resolve) => setTimeout(resolve, ms));
@@ -58,9 +59,10 @@
   };
 
   async function create() {
-    // reset component if it exists
-    component?.unmount();
+    component?.unmount?.();
     component = undefined;
+    isLoadingPreview = true;
+    previewError = undefined;
 
     const userDataPath = path.join(csi.getSystemPath("userData"), config.id);
     const writablePath = userDataPath + "/writable/";
@@ -79,26 +81,33 @@
             onAiMounted: onAiMounted,
             onArtboardChange: onArtboardChange,
           });
-
-          console.log("Mounted preview component:", component);
         }
       } catch (error) {
-        console.error(error);
+        console.error("[ai2svelte] Preview load attempt failed:", error);
         await delay(300);
       }
       tryCount++;
     }
+
+    if (component == undefined) {
+      previewError =
+        "Could not load the preview component after multiple attempts. Try running ai2svelte again.";
+    }
+
+    isLoadingPreview = false;
   }
 
   function resetForcePreview() {
     $forcePreview = false;
   }
 
-  const stableStringify = (obj: Record<string, any>) =>
+  // Compares two objects by stringifying with sorted keys.
+  // Avoids structuredClone — JSON.stringify does not mutate its input.
+  const stableStringify = (obj: Record<string, unknown>) =>
     JSON.stringify(obj, Object.keys(obj).sort());
 
-  const deepEqual = (a: Record<string, any>, b: Record<string, any>) =>
-    stableStringify(structuredClone(a)) === stableStringify(structuredClone(b));
+  const deepEqual = (a: Record<string, unknown>, b: Record<string, unknown>) =>
+    stableStringify(a) === stableStringify(b);
 
   onMount(async () => {
     previewWidth.target = window.innerWidth;
@@ -125,37 +134,28 @@
   });
 
   /**
-   * Runs the ai2svelte script with the preview settings
-   *
-   * @async
-   * @returns {Promise<void>} Resolves when the preview has been loaded.
+   * Runs the ai2svelte script with the preview settings.
+   * Skips the run if settings and styles have not changed since the last preview.
    */
   async function loadPreview() {
-    // const extensionPath = csi.getSystemPath("extension");
     const userDataPath = path.join(csi.getSystemPath("userData"), config.id);
     const writablePath = userDataPath + "/writable/";
     const inputPath = path.resolve(writablePath, "Preview.svelte");
     const outputPath = path.resolve(writablePath, "previewComponent.js");
 
-    // run ai2svelte script with preview settings
-    // run only if there are unsaved changes
-    const previewObject = {
+    const previewObject: PreviewObject = {
       settings: $settingsObject,
       stylesString: $stylesString,
     };
 
-    if (!deepEqual(previewObject, $lastPreviewObject) || forceRender) {
-      await fs.unlink(inputPath, (err) => {
+    if (!deepEqual(previewObject as Record<string, unknown>, $lastPreviewObject as Record<string, unknown>) || forceRender) {
+      await fs.unlink(inputPath, (err: Error | null) => {
         if (err) throw err;
-        console.log("Preview.svelte was deleted");
       });
 
-      await fs.unlink(outputPath, (err) => {
+      await fs.unlink(outputPath, (err: Error | null) => {
         if (err) throw err;
-        console.log("preview.js was deleted");
       });
-
-      console.log("✅ Generated preview.svelte successfully.");
 
       await evalTS(
         "runPreview",
@@ -172,21 +172,14 @@
       };
 
       compileComponent();
-
-      console.log("✅ Generated preview.js successfully.");
     }
   }
 
   /**
-   * Adds a CSS class to each element with the "g-aiSnippet" class based on its "data-name" attribute,
-   * and injects a style element to define a CSS custom property (--data-name) for each snippet.
-   *
-   * Note: This function assumes that each "g-aiSnippet" element has a unique "data-name" attribute.
+   * Adds a CSS class and a ::after pseudo-element to each .g-aiSnippet element
+   * so the snippet name is displayed as an overlay in the preview.
    */
   function displaySnippetNames() {
-    console.log("Displaying snippet names...");
-
-    // fetch all the snippets
     const allSnippets = Array.from(document.querySelectorAll(".g-aiSnippet"));
 
     allSnippets.forEach((snippetNode) => {
@@ -197,8 +190,6 @@
       snippetNode.appendChild(style);
 
       const sheet = style.sheet;
-
-      // Add CSS rules
       sheet?.insertRule(
         `
                 .${snippetName}-variable::after {
@@ -212,6 +203,11 @@
 </script>
 
 <div class="tab-content">
+  {#if isLoadingPreview}
+    <p class="preview-status">Loading preview…</p>
+  {:else if previewError}
+    <p class="preview-status preview-error">{previewError}</p>
+  {/if}
   <PreviewFrame {previewWidth} {previewHeight}>
     <div class="frame-content" bind:this={frameContent}></div>
   </PreviewFrame>
@@ -229,6 +225,17 @@
     width: 100%;
     height: 100%;
     overflow: overlay;
+  }
+
+  .preview-status {
+    font-size: var(--font-size-base);
+    opacity: 0.6;
+    padding: var(--space-xs);
+  }
+
+  .preview-error {
+    color: #ff4444;
+    opacity: 1;
   }
 
   :global {

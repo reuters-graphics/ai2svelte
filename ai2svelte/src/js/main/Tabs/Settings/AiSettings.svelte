@@ -4,15 +4,16 @@
   import SectionTitle from "../../Components/SectionTitle.svelte";
   import Input from "../../Components/Input.svelte";
   import CmTextArea from "../../Components/CMTextArea.svelte";
-  // @ts-ignore
+  // @ts-ignore: settingsTokens.js is a plain JS file with no TypeScript declarations
   import { aiSettingsTokens } from "../../utils/settingsTokens";
   import { convertStringToObject } from "./utils";
+  import type { SettingsObject } from "../../Tabs/types";
 
   let { activeFormat = $bindable("UI"), defaultProfile } = $props();
 
   let codeContent: HTMLElement | undefined = $state();
 
-  let previousSettings: Record<string, any> | undefined = $state();
+  let previousSettings: SettingsObject | undefined = $state();
 
   // holds key-value pairs as string
   let yamlString: string = $derived.by(() => {

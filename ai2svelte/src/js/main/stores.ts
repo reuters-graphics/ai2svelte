@@ -1,16 +1,27 @@
 import type { Writable } from "svelte/store";
 import { derived, get, writable } from "svelte/store";
-import type { Style, ShadowItem, AnimationItem } from "./Tabs/types";
+import type { Style, ShadowItem, AnimationItem, SettingsObject, PreviewObject } from "./Tabs/types";
 import { generateAllMixins } from "./utils/cssUtils";
 import type { Result, Root } from "postcss";
 
-export const settingsObject = writable<Record<string, any>>({});
+// --- Svelte stores (legacy reactive primitives) ---
+// These stores use Svelte 4's writable/derived API and are consumed throughout
+// the app with the $-prefix shorthand (e.g. $settingsObject).
+//
+// New state should prefer Svelte 5 runes ($state / $derived) in .svelte.ts files.
+// Do NOT add new stores here for UI-preference data — use state.svelte.ts for that.
+// See state.svelte.ts for: accentColor, theme, fontsConfig.
+//
+// Ownership map:
+//   settingsObject / savedSettings  — AI plugin config (from Illustrator XMP)
+//   styles / savedStyles            — PostCSS AST of the user's CSS
+//   stylesString                    — derived CSS string for passing to ExtendScript
+//   cache / cacheObj                — per-document snapshot for fast tab switching
+//   userAnimations/Shadows/etc.     — user-editable JSON lists loaded from disk
 
-export const savedSettings = writable<Record<string, any>>({});
+export const settingsObject = writable<SettingsObject>({});
 
-const testStyle: Style = {
-  "#text1": ["color: yellow", "stroke: white"],
-};
+export const savedSettings = writable<SettingsObject>({});
 
 export const savedStyles: Writable<Result<Root>> = writable();
 
@@ -48,18 +59,25 @@ export const triggerConfetti: Writable<boolean> = writable(false);
 
 export const lastSaved: Writable<{ time: Date } | "Never"> = writable("Never");
 
-export const lastPreviewObject: Writable<Record<string, any>> = writable({});
+// Snapshot of the last object sent to the Preview tab.
+// Used to skip re-renders when settings/styles have not changed.
+export const lastPreviewObject: Writable<PreviewObject> = writable({
+  settings: {},
+  stylesString: "",
+});
 
 export const docName: Writable<string> = writable("");
 
+// Per-document cache keyed by document name.
+// Allows restoring the correct settings/styles when the user switches AI documents.
 export const cacheObj: Record<
   string,
-  { settingsObject: unknown; styles: unknown }
+  { settingsObject: SettingsObject; styles: Result<Root> }
 > = {};
 
 export const cache = derived([settingsObject, styles], () => {
   const docStore = get(docName);
-  if (docStore === "") return {};
+  if (docStore === "") return cacheObj;
   cacheObj[docStore] = {
     settingsObject: get(settingsObject),
     styles: get(styles),

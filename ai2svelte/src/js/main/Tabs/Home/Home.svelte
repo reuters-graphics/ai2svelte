@@ -1,7 +1,9 @@
 <script lang="ts">
+  import { mount } from "svelte";
   import { settingsObject, styles } from "../../stores";
   import { evalTS } from "../../../lib/utils/bolt";
   import { saveSettings, tooltipSettings } from "../../utils/utils";
+  import Toast from "../../Components/Toast.svelte";
   import { company, displayName, version } from "../../../../shared/shared";
   import { tooltip } from "svooltip";
   import { lastSaved } from "../../stores";
@@ -22,7 +24,18 @@
       onclick={async () => {
         if (window.cep) {
           saveSettings($settingsObject, $styles, version);
-          await evalTS("exportAsTemplate");
+          try {
+            await evalTS("exportAsTemplate");
+          } catch (error) {
+            console.error("[ai2svelte] exportAsTemplate failed:", error);
+            mount(Toast, {
+              target: document.body,
+              props: {
+                message: `Error exporting template: ${error instanceof Error ? error.message : String(error)}`,
+                duration: 4000,
+              },
+            });
+          }
         }
       }}
       use:tooltip={{

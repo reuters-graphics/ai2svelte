@@ -1,4 +1,5 @@
 import { styles } from "../../stores";
+import type { Result, Root } from "postcss";
 
 export type SpecimenWeight = 200 | 300 | 400 | 500 | 600 | 700 | 800 | 900;
 
@@ -22,11 +23,18 @@ export const stylesState: StylesState = $state({
   shadowColor: "#000000",
 });
 
+// Keeps the selectors list in sync with the PostCSS AST in the styles store.
+//
+// Note: this subscription is module-scoped and intentionally lives for the
+// entire application lifetime. In a CEP panel, the JS context is never torn
+// down, so there is no effective memory leak. If this module is ever used in
+// a remountable context, capture the returned unsubscribe function and call
+// it in onDestroy.
 styles.subscribe((rawStyles) => {
   updateStylesState(rawStyles);
 });
 
-export function updateStylesState(rawStyles) {
+export function updateStylesState(rawStyles: Result<Root> | undefined) {
   stylesState.selectors = [];
   rawStyles?.root?.walk((node) => {
     const isTopLevelNode = node.parent?.type === "root";

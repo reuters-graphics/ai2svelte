@@ -1,6 +1,6 @@
 <script lang="ts">
   // SVELTE IMPORTS
-  import { onMount, untrack } from "svelte";
+  import { mount, onMount, untrack } from "svelte";
   import { fly } from "svelte/transition";
   // BOLT IMPORTS
   import { evalTS } from "../../../lib/utils/bolt";
@@ -14,16 +14,17 @@
   import {
     AIEvent,
     AIEventAdapter,
-    // @ts-ignore
+    // @ts-ignore: BoltHostAdapter.js is a plain JS Adobe SDK file with no TypeScript declarations
   } from "../../../../public/BoltHostAdapter.js";
 
   // COMPONENT IMPORTS
   import CmTextArea from "../../Components/CMTextArea.svelte";
+  import Toast from "../../Components/Toast.svelte";
   import Input from "../../Components/Input.svelte";
   import SectionTabBar from "../../Components/SectionTabBar.svelte";
   import PillsContainer from "./PillsContainer.svelte";
   import ExtraConfigs from "./ExtraConfigs.svelte";
-  // @ts-ignore
+  // @ts-ignore: postcss-safe-parser has no TypeScript declarations
   import safeParser from "postcss-safe-parser";
 
   // MISC
@@ -33,6 +34,7 @@
   import Shadows from "./Shadows.svelte";
   import Animations from "./Animations.svelte";
   import { stringToStyles } from "./utils";
+  import { debounce } from "../../utils/utils";
 
   let activeTab: string = $state("shadows");
   let activeFormat: string = $state("UI");
@@ -83,12 +85,23 @@
 
   // updates cssSelector based on the selected item in AI document
   async function detectIdentifier(): Promise<void> {
-    const identifier = await evalTS("fetchSelectedItems");
+    try {
+      const identifier = await evalTS("fetchSelectedItems");
 
-    if (identifier) {
-      stylesState.cssSelector = identifier;
-    } else {
-      stylesState.cssSelector = 'p[class^="g-pstyle"]';
+      if (identifier) {
+        stylesState.cssSelector = identifier;
+      } else {
+        stylesState.cssSelector = 'p[class^="g-pstyle"]';
+      }
+    } catch (error) {
+      console.error("[ai2svelte] fetchSelectedItems failed:", error);
+      mount(Toast, {
+        target: document.body,
+        props: {
+          message: `Error detecting identifier: ${error instanceof Error ? error.message : String(error)}`,
+          duration: 4000,
+        },
+      });
     }
   }
 
@@ -100,10 +113,13 @@
    * Responsible for populating active css identifier when art selection changes.
    *
    */
+  // The AIEventAdapter is a singleton — this listener is registered once and
+  // intentionally lives for the panel's lifetime. CEP panels are never truly
+  // unmounted, so no cleanup is required. If this changes, store the adapter
+  // reference and call removeEventListener() in onDestroy.
   function addSelectionChangeEventListener(): void {
     const adapter = AIEventAdapter.getInstance();
-    adapter.addEventListener(AIEvent.ART_SELECTION_CHANGED, async (e: any) => {
-      console.log("ai2svelte in progress: styles", $ai2svelteInProgress);
+    adapter.addEventListener(AIEvent.ART_SELECTION_CHANGED, async (_e: Event) => {
       if ($ai2svelteInProgress) return;
       await detectIdentifier();
     });
@@ -154,6 +170,10 @@
   async function updateStyle(string: string): Promise<void> {
     $styles = (await stringToStyles(string)) as Result<Root>;
   }
+
+  // Debounced wrapper — PostCSS parsing + Prettier formatting on every keystroke
+  // is expensive; we wait for a 250ms pause before committing the update.
+  const debouncedUpdateStyle = debounce(updateStyle, 250);
 
   function fetchSelectorFromEditor(): void {
     if (!codeEditor) return;
@@ -216,7 +236,7 @@
           bind:textValue={editableCssString}
           type="css"
           onUpdate={(e: string) => {
-            updateStyle(e);
+            debouncedUpdateStyle(e);
             getStyleIdentifier();
             fetchSelectorFromEditor();
           }}

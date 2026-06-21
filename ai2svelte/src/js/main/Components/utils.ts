@@ -1,7 +1,7 @@
-function constrain(n: number, low: number, high: number) {
-    return Math.max(Math.min(n, high), low);
-}
+import { constrain } from "../utils/utils";
 
+// Maps n from one range to another, optionally clamping to the target range.
+// Used by InputRange for mouse-drag-to-value conversion.
 export function map(n: number, start1: number, stop1: number, start2: number, stop2: number, withinBounds: boolean = true) {
     const newval =
       ((n - start1) / (stop1 - start1)) * (stop2 - start2) + start2;
