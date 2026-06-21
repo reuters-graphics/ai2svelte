@@ -8,8 +8,10 @@
   } from "../stores";
 
   // COMPONENT
+  import { mount } from "svelte";
   import SectionTitle from "../Components/SectionTitle.svelte";
   import Button from "../Components/Button.svelte";
+  import Toast from "../Components/Toast.svelte";
 
   // BOLT IMPORTS
   import { version } from "../../../shared/shared";
@@ -66,9 +68,18 @@
   let activeTab = $state("Settings");
 
   function resetFileData() {
-    console.log("Resetting file data...");
-    evalTS("setVariable", "ai-settings", {});
-    evalTS("setVariable", "version", { version: version });
+    const onError = (label: string) => (error: unknown) => {
+      console.error(`[ai2svelte] ${label} failed:`, error);
+      mount(Toast, {
+        target: document.body,
+        props: {
+          message: `Error resetting file data: ${error instanceof Error ? error.message : String(error)}`,
+          duration: 4000,
+        },
+      });
+    };
+    evalTS("setVariable", "ai-settings", {}).catch(onError("setVariable ai-settings"));
+    evalTS("setVariable", "version", { version: version }).catch(onError("setVariable version"));
     alert("File data has been reset. Rerun ai2svelte to save changes.");
   }
 
@@ -77,7 +88,7 @@
   );
   let stylesDiff = $derived(diffLines(savedCssString, currentCssString));
 
-  $inspect(settingsDiff);
+
 </script>
 
 <div class="tab-content">

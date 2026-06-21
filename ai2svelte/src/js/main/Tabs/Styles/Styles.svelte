@@ -1,6 +1,6 @@
 <script lang="ts">
   // SVELTE IMPORTS
-  import { onMount, untrack } from "svelte";
+  import { mount, onMount, untrack } from "svelte";
   import { fly } from "svelte/transition";
   // BOLT IMPORTS
   import { evalTS } from "../../../lib/utils/bolt";
@@ -19,6 +19,7 @@
 
   // COMPONENT IMPORTS
   import CmTextArea from "../../Components/CMTextArea.svelte";
+  import Toast from "../../Components/Toast.svelte";
   import Input from "../../Components/Input.svelte";
   import SectionTabBar from "../../Components/SectionTabBar.svelte";
   import PillsContainer from "./PillsContainer.svelte";
@@ -84,12 +85,23 @@
 
   // updates cssSelector based on the selected item in AI document
   async function detectIdentifier(): Promise<void> {
-    const identifier = await evalTS("fetchSelectedItems");
+    try {
+      const identifier = await evalTS("fetchSelectedItems");
 
-    if (identifier) {
-      stylesState.cssSelector = identifier;
-    } else {
-      stylesState.cssSelector = 'p[class^="g-pstyle"]';
+      if (identifier) {
+        stylesState.cssSelector = identifier;
+      } else {
+        stylesState.cssSelector = 'p[class^="g-pstyle"]';
+      }
+    } catch (error) {
+      console.error("[ai2svelte] fetchSelectedItems failed:", error);
+      mount(Toast, {
+        target: document.body,
+        props: {
+          message: `Error detecting identifier: ${error instanceof Error ? error.message : String(error)}`,
+          duration: 4000,
+        },
+      });
     }
   }
 
