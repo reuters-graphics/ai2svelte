@@ -31,6 +31,7 @@
     "@reuters-graphics/svelte-markdown": "^0.0.3",
     "@reuters-graphics/vite-plugin-purge-styles": "^0.0.3",
     "@tsparticles/confetti": "^3.9.1",
+    "bits-ui": "^2.18.1",
     "codemirror": "^6.0.2",
     "diff": "^8.0.3",
     "express": "^5.2.1",
