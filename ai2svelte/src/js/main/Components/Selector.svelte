@@ -27,7 +27,7 @@
   The child snippet lets us apply the tooltip Svelte action directly on the
   item's button, since Svelte actions cannot be applied to component wrappers.
 -->
-<RadioGroup.Root bind:value class="radio-group">
+<RadioGroup.Root bind:value>
   {#each labels as label, index}
     <RadioGroup.Item value={label}>
       {#snippet child({ props })}
@@ -52,12 +52,6 @@
 <style lang="scss">
   @use "../styles/variables.scss" as *;
 
-  .radio-group {
-    display: flex;
-    flex-direction: row;
-    gap: 8px;
-  }
-
   .radio-button {
     cursor: pointer;
     font-size: var(--font-size-lg);
@@ -71,6 +65,10 @@
     text-transform: uppercase;
     user-select: none;
     @include animation-default;
+  }
+
+  :global(.radio-button + .radio-button) {
+    margin-left: 0.5rem;
   }
 
   .radio-button:hover {
