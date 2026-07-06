@@ -4890,8 +4890,7 @@ export function main(settingsArg) {
     htmlFileDestinationFolder = docPath + settings.html_output_path;
 
     checkForOutputFolder(htmlFileDestinationFolder, "html_output_path");
-    htmlFileDestination =
-      htmlFileDestinationFolder + pageName + settings.html_output_extension;
+    htmlFileDestination = htmlFileDestinationFolder + pageName + ".svelte";
 
     // write file
     saveTextFile(htmlFileDestination, textForFile);

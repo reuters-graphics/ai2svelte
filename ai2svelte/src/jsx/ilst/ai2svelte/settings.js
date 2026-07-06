@@ -8,7 +8,6 @@ export let defaultSettings = {
   output: "one-file", // Options: one-file, multiple-files
   project_name: "", // Defaults to the name of the AI file
   html_output_path: "ai2html-output/",
-  html_output_extension: ".svelte",
   image_output_path: "ai2html-output/",
   image_source_path: "",
   image_alt_text: "", // Generally, use alt_text instead
@@ -40,7 +39,6 @@ export let placeholderSettings = {
   responsiveness: "dynamic",
   output: "one-file",
   html_output_path: "../src/lib/ai2svelte/",
-  html_output_extension: ".svelte",
   image_output_path: "../../statics/images/graphics/",
   image_source_path: "images/graphics/",
   png_transparent: "yes",

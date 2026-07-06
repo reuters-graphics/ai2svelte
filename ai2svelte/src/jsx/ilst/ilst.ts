@@ -66,7 +66,6 @@ export const runPreview = (settings, path) => {
 
     settings.settings.isPreview = "true";
     settings.settings.html_output_path = path;
-    settings.settings.html_output_extension = ".svelte";
     settings.settings.image_output_path = path;
     settings.settings.image_source_path = "";
     // container queries are not supported in Chrmoe 74, so disable for preview
