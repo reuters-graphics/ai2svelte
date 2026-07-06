@@ -713,11 +713,10 @@ export function main(settingsArg) {
     // pass default settings
     if (!settingsObj.settings) {
       warn("No settings found, passed default settings.");
-      var defSettings = {
+      return {
         settings: placeholderSettings,
         code: settingsObj.code || {},
       };
-      return defSettings;
     }
 
     // convert image_format arg to array
@@ -725,8 +724,8 @@ export function main(settingsArg) {
       settingsObj.settings["image_format"] = parseAsArray(
         settingsObj.settings["image_format"],
       );
-      return settingsObj;
     }
+    return settingsObj;
   }
 
   // Derive ai2svelte program settings by merging default settings and overrides.

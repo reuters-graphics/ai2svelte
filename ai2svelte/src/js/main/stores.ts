@@ -90,8 +90,14 @@ export const cacheObj: Record<
 export const cache = derived([settingsObject, styles], () => {
   const docStore = get(docName);
   if (docStore === "") return cacheObj;
+  const so = get(settingsObject);
+  // Don't poison the cache with an empty settingsObject. During startup this
+  // derived runs after docName is set but before fetchSettings() populates the
+  // store; caching {} here would make the next handleCache() restore empty
+  // settings and skip the fetch entirely.
+  if (Object.keys(so).length === 0) return cacheObj;
   cacheObj[docStore] = {
-    settingsObject: get(settingsObject),
+    settingsObject: so,
     styles: get(styles),
   };
   return cacheObj;

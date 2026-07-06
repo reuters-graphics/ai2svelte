@@ -5,6 +5,7 @@
     styles,
     ai2svelteInProgress,
     triggerConfetti,
+    updateInProgress,
   } from "../../stores";
   import { evalTS } from "../../../lib/utils/bolt";
   import { mount } from "svelte";
@@ -86,6 +87,7 @@
 <button
   class="cta-button"
   class:minimal
+  disabled={$updateInProgress}
   onclick={async (e) => {
     const ele = e.currentTarget;
     ele.textContent = "Running...";

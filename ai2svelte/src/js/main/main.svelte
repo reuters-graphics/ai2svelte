@@ -142,18 +142,28 @@
         }
       });
 
-      if ($cache[$docName]?.settingsObject) {
+      // An empty {} settingsObject is truthy, so a poisoned/empty cache entry
+      // would otherwise count as a hit and get restored, and fetchSettings()
+      // would never run — leaving $settingsObject empty and the first run
+      // exporting with default paths. Require actual keys to count as a hit.
+      const cached = $cache[$docName]?.settingsObject as SettingsObject | undefined;
+      const cacheHit = !!cached && Object.keys(cached).length > 0;
+      if (cacheHit) {
         // Snapshot cached values BEFORE touching any store. The `cache` derived
         // re-snapshots get(styles) on every settingsObject change, so assigning
         // settingsObject first would overwrite cacheObj[docName].styles with the
         // previous document's styles — which we'd then read back on the next line.
-        const cachedSettings = $cache[$docName].settingsObject as SettingsObject;
+        const cachedSettings = cached;
         const cachedStyles = $cache[$docName].styles;
         await fetchSavedSettings();
         $settingsObject = cachedSettings;
         $styles = cachedStyles;
       } else {
-        fetchSettings().catch((err) => {
+        // Must be awaited: performPrecheck() awaits handleCache() and then
+        // flips $updateInProgress false, which is what unblocks RunButton.
+        // A fire-and-forget call here let the button run before settings
+        // (e.g. the export path) had actually loaded from the doc.
+        await fetchSettings().catch((err) => {
           console.error("[ai2svelte] fetchSettings failed:", err);
         });
       }
@@ -163,16 +173,18 @@
   }
 
   async function performPrecheck() {
-    precheck();
-
-    handleCache().catch((err) => {
-      console.error("[ai2svelte] handleCache error during precheck:", err);
+    // Must be awaited before handleCache(): precheck() -> checkVersion() reads
+    // the document's hidden XMP data (getVariable "version"). handleCache() ->
+    // fetchSettings() reads the same file's XMP (getVariable "ai-settings").
+    // Run un-awaited, these two XMPFile reads on the same .ai file overlap and
+    // the ai-settings read can fail, leaving $settingsObject empty — so the
+    // first run exports with default paths. Serialize them.
+    await precheck().catch((err) => {
+      console.error("[ai2svelte] precheck failed:", err);
     });
 
-    $docName = ((await evalTS("getDocumentName")) as unknown as string) || "";
-
-    fetchSettings().catch((err) => {
-      console.error("[ai2svelte] fetchSettings error during precheck:", err);
+    await handleCache().catch((err) => {
+      console.error("[ai2svelte] handleCache error during precheck:", err);
     });
 
     $updateInProgress = false;
@@ -243,9 +255,14 @@
           // Skip if ai2svelte is mid-run — the window may focus in/out during that
           if ($ai2svelteInProgress) return;
 
-          handleCache().catch((err) => {
+          // Gate the run button while the new document's settings load, same as
+          // performPrecheck. Without this, running right after a doc switch fires
+          // with the previous doc's (or empty) settings — wrong export path.
+          $updateInProgress = true;
+          await handleCache().catch((err) => {
             console.error("[ai2svelte] handleCache error on document change:", err);
           });
+          $updateInProgress = false;
         });
       });
     }
