@@ -4061,28 +4061,29 @@ export function main(settingsArg) {
     // It's better to export SVG layers at the original artboard size.
     // That allows users to perform modifications based on the original size
     // rather than trimming it to visible artwork
-    // if (settings.tagPrefix == "svg") {
-    // Run menu command to trim svg to visible items
-    //   app.executeMenuCommand("Fit Artboard to artwork bounds");
-    //   var svgBounds = convertAiBounds(exportDoc.artboards[0].artboardRect);
-    // trimming artboard repositions final artboard
-    // to artwork's x, y
-    //   left = svgBounds.left - parentArtboardBounds.left;
-    //   top = svgBounds.top - parentArtboardBounds.top;
-    // if svg bounds exceed parent artboard's bounds,
-    // revert trimming operation and use parent artboard's bounds
-    //   if (
-    //     svgBounds.width > parentArtboardBounds.width ||
-    //     svgBounds.height > parentArtboardBounds.height
-    //   ) {
-    //     app.executeMenuCommand("undo");
-    //     svgBounds = convertAiBounds(exportDoc.artboards[0].artboardRect);
-    //     left = 0;
-    //     top = 0;
-    //   }
-    //   width = svgBounds.width;
-    //   height = svgBounds.height;
-    // }
+    if (settings.tagPrefix == "svg") {
+      // Run menu command to trim svg to visible items
+      app.executeMenuCommand("Fit Artboard to artwork bounds");
+      var svgBounds = convertAiBounds(exportDoc.artboards[0].artboardRect);
+      // trimming artboard repositions final artboard
+      // to artwork's x, y
+      left = svgBounds.left - parentArtboardBounds.left;
+      top = svgBounds.top - parentArtboardBounds.top;
+      // if svg bounds exceed parent artboard's bounds,
+      // revert trimming operation and use parent artboard's bounds
+      if (
+        svgBounds.width > parentArtboardBounds.width ||
+        svgBounds.height > parentArtboardBounds.height
+      ) {
+        app.executeMenuCommand("undo");
+        svgBounds = convertAiBounds(exportDoc.artboards[0].artboardRect);
+        left = 0;
+        top = 0;
+      }
+      width = svgBounds.width;
+      height = svgBounds.height;
+    }
+
     exportDoc.exportFile(new File(ofile), ExportType.SVG, opts);
 
     doc.activate();
@@ -4090,8 +4091,8 @@ export function main(settingsArg) {
     exportDoc.close(SaveOptions.DONOTSAVECHANGES);
 
     var response = {
-      width: parentArtboardBounds.width,
-      height: parentArtboardBounds.height,
+      width: width,
+      height: height,
       left: left,
       top: top,
     };
