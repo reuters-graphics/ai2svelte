@@ -75,7 +75,7 @@
         ...existingProfiles,
         [newProfileName]: $settingsObject,
       });
-      existingProfiles = readFile("user-profiles.json") || {};
+      existingProfiles = (readFile("user-profiles.json") as UserProfiles) || {};
       mount(Toast, {
         target: document.body,
         props: {

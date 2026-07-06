@@ -1,4 +1,4 @@
-import type { Rule } from "postcss";
+import type { Result, Root, Rule } from "postcss";
 import postcss from "postcss";
 import type { Plugin } from "postcss";
 import * as prettier from "prettier/standalone";
@@ -40,7 +40,7 @@ export async function stringToStyles(string: string) {
   return object;
 }
 
-export function removeSelectorFromResult(result, selector) {
+export function removeSelectorFromResult(result: Result<Root>, selector: string) {
   result.root.walkRules((rule) => {
     if (rule.selector === selector) {
       rule.remove();

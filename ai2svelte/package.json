@@ -14,6 +14,9 @@
     "delsymlink": "cross-env BOLT_ACTION=delsymlink vite",
     "bake-shadows": "node scripts/bakeShadows.js bake-shadows-raw -- --input=src/js/main/Tabs/data/shadows.json --output=src/js/main/Tabs/data/shadowsBaked.json",
     "bump": "node scripts/bumpVersion.js",
+    "check": "pnpm check:frontend && pnpm check:jsx",
+    "check:frontend": "node scripts/checkFrontend.js",
+    "check:jsx": "node scripts/checkJsx.js",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:ui": "vitest --ui"

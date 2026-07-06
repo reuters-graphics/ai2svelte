@@ -1,25 +1,34 @@
 import JSON5 from "json5";
 import animationsRaw from "../Tabs/data/animations.json?raw";
 import shadowsRaw from "../Tabs/data/shadows.json?raw";
-import type { AnimationItem, ShadowCardItem } from "../Tabs/types";
+import type {
+  AnimationItem,
+  ShadowCardItem,
+  ShadowItem,
+  Style,
+} from "../Tabs/types";
+// ponytail: postcss-safe-parser ships no types; ambient module declared in src/js/global.d.ts
 import safeParser from "postcss-safe-parser";
 import postcss from "postcss";
+import type { Result, Root } from "postcss";
 import * as prettier from "prettier/standalone";
 import parserPostCSS from "prettier/plugins/postcss";
 import { readFile } from "./utils";
 
-let animations;
-let shadows;
+let animations: AnimationItem[];
+let shadows: ShadowItem[];
 
 if (window.cep) {
-  let userAnimations = readFile("user-animations.json");
+  const userAnimations = readFile("user-animations.json") as
+    | AnimationItem[]
+    | null;
   if (userAnimations && Object.keys(userAnimations).length !== 0) {
     animations = userAnimations;
   } else {
     animations = JSON5.parse(animationsRaw);
   }
 
-  let userShadows = readFile("user-shadows.json");
+  const userShadows = readFile("user-shadows.json") as ShadowItem[] | null;
   if (userShadows && Object.keys(userShadows).length !== 0) {
     shadows = userShadows;
   } else {
@@ -134,7 +143,19 @@ export function createAnimationMixinFromCSS(animation: AnimationItem) {
  * @returns The string representation of the SCSS node. Returns an empty string
  *   for unknown node types.
  */
-export function parseSCSS(style) {
+type SCSSNode = {
+  type: string;
+  prop?: string;
+  value?: string;
+  important?: boolean;
+  name?: string;
+  params?: string;
+  text?: string;
+  selector?: string;
+  nodes?: SCSSNode[];
+};
+
+export function parseSCSS(style: SCSSNode): string {
   switch (style.type) {
     case "decl":
       return `${style.prop} : ${style.value}${style.important ? " !important" : ""}`;
@@ -143,7 +164,7 @@ export function parseSCSS(style) {
       return `@${style.name} ${style.params}`;
 
     case "rule":
-      const styles = style.nodes.map((x) => parseSCSS(x)).join(";\n");
+      const styles = (style.nodes ?? []).map((x) => parseSCSS(x)).join(";\n");
       const str = `${style.selector} {
 ${styles};
 }`;
@@ -157,7 +178,7 @@ ${styles};
   }
 }
 
-export function styleObjectToString(stylesObject) {
+export function styleObjectToString(stylesObject: Style) {
   const selectors = Object.keys(stylesObject);
   let string = "";
 
@@ -175,7 +196,7 @@ export function styleObjectToString(stylesObject) {
  *
  * @returns {string} A string containing all generated mixin code, joined by newlines.
  */
-export function generateAllMixins(stylesObject) {
+export function generateAllMixins(stylesObject: Result<Root> | undefined) {
   const mixinShadowRegex = new RegExp(/shadow-(.*)\((#[0-9a-fA-F]+)\)/);
   const mixinAnimationRegex = new RegExp(/animation-(.*)\((.*)\)/);
 
@@ -237,61 +258,6 @@ export function generateAllMixins(stylesObject) {
   } else {
     return "";
   }
-}
-
-export function _generateAllMixins(stylesObject) {
-  const mixinShadowRegex = new RegExp(
-    /@include\sshadow-(.*)\((#[0-9a-fA-F]+)\)/,
-  );
-  const mixinAnimationRegex = new RegExp(/@include\sanimation-(.*)\((.*)\)/);
-
-  // get all unique shadow styles
-  const allShadowStyles = new Set(
-    Object.keys(stylesObject)
-      .map((x) => stylesObject[x])
-      .flat()
-      .filter((x) => mixinShadowRegex.test(x))
-      .map((x) => {
-        const match = x.match(mixinShadowRegex);
-        return match ? match[1] : undefined;
-      }),
-  );
-
-  // get all unique animation styles
-  const allAnimationStyles = new Set(
-    Object.keys(stylesObject)
-      .map((x) => stylesObject[x])
-      .flat()
-      .filter((x) => mixinAnimationRegex.test(x))
-      .flatMap((x) => {
-        const match = x.match(mixinAnimationRegex);
-        return match ? match[1] : undefined;
-      }),
-  );
-
-  // get all shadows CSS
-  const allShadowStylesCSS = Array.from(allShadowStyles).map((x) =>
-    shadows.find((s) => s.id.toLowerCase().replace(" ", "") == x.toLowerCase()),
-  );
-
-  // get all animations CSS
-  const allAnimationStylesCSS = Array.from(allAnimationStyles).map((x) =>
-    animations.find((s) => s.name.toLowerCase() == x.toLowerCase()),
-  );
-
-  // generate all shadow mixins
-  const allShadowMixins = allShadowStylesCSS.map((shadow) =>
-    createShadowMixinFromCSS({ ...shadow, active: false } as ShadowCardItem),
-  );
-
-  // generate all animation mixins
-  const allAnimationMixins = allAnimationStylesCSS.map((animation) =>
-    createAnimationMixinFromCSS(animation as AnimationItem),
-  );
-
-  let allMixins = [...allShadowMixins, ...allAnimationMixins].join("\n\n");
-
-  return allMixins;
 }
 
 export async function parseCSS(css: string) {

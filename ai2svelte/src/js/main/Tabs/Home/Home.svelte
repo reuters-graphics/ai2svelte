@@ -23,7 +23,11 @@
       class="cta-button"
       onclick={async () => {
         if (window.cep) {
-          saveSettings($settingsObject, $styles, version);
+          saveSettings(
+            $settingsObject,
+            { styleText: $styles?.root?.toString() },
+            version
+          );
           try {
             await evalTS("exportAsTemplate");
           } catch (error) {

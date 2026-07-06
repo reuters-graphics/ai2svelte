@@ -34,13 +34,14 @@
       // unless set by user
       try {
         // ai2svelte returns a list of missing font families, if any
-        missingFontFamilies = await evalTS("runAi2Svelte", {
-          settings: {
-            show_completion_dialog_box: true,
-            ...$settingsObject,
-          },
-          code: { css: $stylesString, fontsConfig: userData.fontsConfig },
-        });
+        missingFontFamilies =
+          (await evalTS("runAi2Svelte", {
+            settings: {
+              show_completion_dialog_box: true,
+              ...$settingsObject,
+            },
+            code: { css: $stylesString, fontsConfig: userData.fontsConfig },
+          })) ?? [];
       } catch (error) {
         console.error("[ai2svelte] runAi2Svelte failed:", error);
         mount(Toast, {

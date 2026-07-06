@@ -5,8 +5,8 @@
 
   interface Props {
     labels: Array<string>;
-    value: string;
-    tooltipDescription: Array<string>;
+    value?: string;
+    tooltipDescription?: Array<string>;
   }
 
   let {

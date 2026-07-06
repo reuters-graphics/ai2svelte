@@ -36,25 +36,25 @@ export const addSnippetLayer = () => {
   }
 };
 
-export const setVariable = (key, value) => {
+export const setVariable = (key: string, value: unknown) => {
   if (app) {
     return storeHiddenData(key, value);
   }
 };
 
-export const getVariable = (key) => {
+export const getVariable = (key: string) => {
   if (app) {
     return getHiddenData(key);
   }
 };
 
-export const runAi2Svelte = (settings) => {
+export const runAi2Svelte = (settings: any) => {
   if (app) {
     return main(settings);
   }
 };
 
-export const runPreview = (settings, path) => {
+export const runPreview = (settings: any, path: string) => {
   if (app) {
     // rename existing preview folder to preview_old and delete it
     // rename to avoid clashes with the creation of new preview folder
@@ -86,13 +86,13 @@ export const getFilePath = () => {
   }
 };
 
-export const makeFolder = (path) => {
+export const makeFolder = (path: string) => {
   if (app) {
     return createFolder(path);
   }
 };
 
-export const makeFile = (path, content) => {
+export const makeFile = (path: string, content: string) => {
   if (app) {
     createFile(path, content);
     return path;

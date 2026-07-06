@@ -50,6 +50,6 @@ export function addSnippet(layerName: string = "snippet") {
         rect.fillColor = accentColor;
         
     } catch (error) {
-        alert("Error: " + error.message);
+        alert("Error: " + (error as Error).description);
     }
 }

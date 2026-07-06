@@ -62,7 +62,7 @@
       // If rule doesn't exist, create it
       if (!rule) {
         rule = postcss.rule({ selector: stylesState.cssSelector });
-        $styles.root.append(rule);
+        $styles?.root?.append(rule);
       }
 
       // add animation definition as comment

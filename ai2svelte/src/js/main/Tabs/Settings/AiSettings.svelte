@@ -4,7 +4,6 @@
   import SectionTitle from "../../Components/SectionTitle.svelte";
   import Input from "../../Components/Input.svelte";
   import CmTextArea from "../../Components/CMTextArea.svelte";
-  // @ts-ignore: settingsTokens.js is a plain JS file with no TypeScript declarations
   import { aiSettingsTokens } from "../../utils/settingsTokens";
   import { convertStringToObject } from "./utils";
   import type { SettingsObject } from "../../Tabs/types";
@@ -58,7 +57,7 @@
               {#if type == "select"}
                 {@const options = aiSettingsTokens.find(
                   (item) => item.label == key
-                ).options}
+                )?.options}
                 <Input
                   label={key}
                   {options}
@@ -68,13 +67,13 @@
               {:else if type == "range"}
                 {@const start = aiSettingsTokens.find(
                   (item) => item.label == key
-                ).start}
+                )?.start}
                 {@const end = aiSettingsTokens.find(
                   (item) => item.label == key
-                ).end}
+                )?.end}
                 <Input
                   label={key}
-                  bind:value={$settingsObject[key]}
+                  bind:value={$settingsObject[key] as number}
                   start={start ?? 0}
                   end={end ?? 100}
                   type="range"
@@ -84,7 +83,7 @@
                 <!-- avoid condition here to allow any keys from Code section as text input -->
                 <Input
                   label={key}
-                  bind:value={$settingsObject[key]}
+                  bind:value={$settingsObject[key] as string}
                   type="text"
                   delay={index * 30}
                 />

@@ -133,18 +133,9 @@
       if (!update.docChanged) return;
 
       // test if the text change is made by user input
-      let userInput;
-
-      if (
-        update.transactions.length > 0 &&
-        update.transactions[0].annotations
-      ) {
-        userInput = update.transactions[0].annotations.some(
-          (x) =>
-            x.value.toString().match(/input/) ||
-            x.value.toString().match(/delete/)
-        );
-      }
+      const userInput = update.transactions.some(
+        (tr) => tr.isUserEvent("input") || tr.isUserEvent("delete")
+      );
 
       // if made by the user input,
       // run onUpdate

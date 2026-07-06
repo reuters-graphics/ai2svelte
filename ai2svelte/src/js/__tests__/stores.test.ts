@@ -111,9 +111,9 @@ describe('cache derived store', () => {
     styles.set(cachedStyles);
     get(cache);
 
-    expect(get(styles).root.toString()).toContain('.doc-a');
-    expect(get(styles).root.toString()).not.toContain('.doc-b');
-    expect(cacheObj['a.ai'].styles.root.toString()).toContain('.doc-a');
+    expect(get(styles)!.root.toString()).toContain('.doc-a');
+    expect(get(styles)!.root.toString()).not.toContain('.doc-b');
+    expect(cacheObj['a.ai'].styles!.root.toString()).toContain('.doc-a');
   });
 });
 
@@ -125,7 +125,7 @@ describe('commitStyles', () => {
   it('commits the result when the active document has not changed', async () => {
     const pending = makeResult('.a { color: red; }');
     await commitStyles(pending);
-    expect(get(styles).root.toString()).toContain('.a');
+    expect(get(styles)!.root.toString()).toContain('.a');
   });
 
   it('discards the result if the active document changed while parsing was in flight', async () => {

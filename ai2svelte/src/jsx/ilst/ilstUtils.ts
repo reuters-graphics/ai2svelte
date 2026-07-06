@@ -8,7 +8,7 @@ export function getDocPath() {
   return filePath;
 }
 
-export function createFolder(folderPath) {
+export function createFolder(folderPath: string) {
   var folder = new Folder(folderPath);
   if (!folder.exists) {
     folder.create();
@@ -17,28 +17,29 @@ export function createFolder(folderPath) {
 }
 
 // Recursively deletes a folder and all its contents
-export function deleteFolderRecursive(folderPath) {
+export function deleteFolderRecursive(folderPath: string) {
   var folder = new Folder(folderPath);
   folder.rename(folder.name + "_old");
   const items = folder.getFiles();
   for (let i = 0; i < items.length; i++) {
-    if (items[i] instanceof Folder) {
-      deleteFolderRecursive(items[i]);
+    const item = items[i];
+    if (item instanceof Folder) {
+      deleteFolderRecursive(item.fsName);
     } else {
-      items[i].remove();
+      item.remove();
     }
   }
   folder.remove();
 }
 
-export function createFile(filePath, fileContent) {
+export function createFile(filePath: string, fileContent: string) {
   var file = new File(filePath);
   file.open("w");
   file.write(fileContent);
   file.close();
 }
 
-function allItemsSelected(layer) {
+function allItemsSelected(layer: Layer) {
   let flag = true;
 
   for (let i = 0; i < layer.pageItems.length; i++) {
@@ -69,7 +70,7 @@ export function getSelectedItems() {
     let objectName = doc.selection[0].name;
 
     if (objectLayerName) {
-      var settings = getHiddenData("ai-settings");
+      var settings = getHiddenData("ai-settings") as any;
       var namespace = "g-";
       // retrieve custom namespace if used
       if (settings?.settings?.namespace) {

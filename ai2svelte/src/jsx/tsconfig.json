@@ -1,6 +1,5 @@
 {
   "compilerOptions": {
-    "target": "es3",
     "noLib": true,
     "strict": true,
     "types": [
@@ -9,5 +8,6 @@
       "../../node_modules/types-for-adobe/shared/PlugPlugExternalObject"
     ]
   },
-  "include": ["./**/*"]
+  "include": ["./**/*"],
+  "exclude": ["./ilst"]
 }

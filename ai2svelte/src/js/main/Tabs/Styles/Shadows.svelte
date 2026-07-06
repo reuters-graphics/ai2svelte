@@ -51,7 +51,7 @@
       //  create it
       if (!rule) {
         rule = postcss.rule({ selector: stylesState.cssSelector });
-        $styles.root.append(rule);
+        $styles?.root?.append(rule);
       }
 
       // Add or update a declaration

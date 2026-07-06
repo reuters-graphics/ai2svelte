@@ -23,9 +23,9 @@ export const settingsObject = writable<SettingsObject>({});
 
 export const savedSettings = writable<SettingsObject>({});
 
-export const savedStyles: Writable<Result<Root>> = writable();
+export const savedStyles: Writable<Result<Root> | undefined> = writable();
 
-export const styles: Writable<Result<Root>> = writable();
+export const styles: Writable<Result<Root> | undefined> = writable();
 
 export const stylesString = derived(styles, ($styles) => {
   return generateAllMixins($styles) + "\n" + ($styles?.root?.toString() || "");
@@ -84,7 +84,7 @@ export async function commitStyles(pending: Promise<Result<Root>>) {
 // Allows restoring the correct settings/styles when the user switches AI documents.
 export const cacheObj: Record<
   string,
-  { settingsObject: SettingsObject; styles: Result<Root> }
+  { settingsObject: SettingsObject; styles: Result<Root> | undefined }
 > = {};
 
 export const cache = derived([settingsObject, styles], () => {
