@@ -28,7 +28,7 @@ export const savedStyles: Writable<Result<Root>> = writable();
 export const styles: Writable<Result<Root>> = writable();
 
 export const stylesString = derived(styles, ($styles) => {
-  return generateAllMixins($styles) + "\n" + $styles.root.toString();
+  return generateAllMixins($styles) + "\n" + ($styles?.root?.toString() || "");
 });
 
 export const updateInProgress: Writable<boolean> = writable(false);

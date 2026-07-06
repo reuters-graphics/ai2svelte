@@ -40,7 +40,7 @@
     const animationIdentifier = mixinCheck ? mixinCheck[1] : undefined;
 
     let rule: Rule | null =
-      ($styles.root?.nodes.find(
+      ($styles?.root?.nodes.find(
         (node) =>
           node.type === "rule" && node.selector === stylesState.cssSelector
       ) as Rule) || null;
@@ -126,7 +126,7 @@
       x.active = false;
 
       let rule: Rule | null =
-        ($styles.root?.nodes.find(
+        ($styles?.root?.nodes.find(
           (node) =>
             node.type === "rule" && node.selector === stylesState.cssSelector
         ) as Rule) || null;
