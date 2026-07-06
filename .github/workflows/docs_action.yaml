@@ -10,7 +10,7 @@ on:
       node_version:
         required: false
         type: string
-        default: "20"
+        default: "22"
       build_script:
         required: false
         type: string
