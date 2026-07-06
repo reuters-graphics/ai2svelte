@@ -20,7 +20,10 @@ src/
 ├── js/main/             # Svelte 5 panel UI (runs in CEP browser context)
 │   ├── main.svelte      # Root component
 │   ├── stores.ts        # Reactive Svelte stores
-│   ├── Tabs/            # Tab components: Home, Settings, Styles, Inspect
+│   ├── state.svelte.ts  # Rune-based shared state
+│   ├── polyfills.ts     # CEP/Chromium 99 shims (e.g. pointer events)
+│   ├── precheck/        # Startup environment checks
+│   ├── Tabs/            # Tab components: Home, Settings, Styles, Inspect, Preview
 │   ├── Components/      # ~22 reusable UI components
 │   ├── utils/           # File I/O, styling helpers
 │   └── styles/          # SCSS stylesheets
@@ -28,10 +31,12 @@ src/
 │   ├── index.ts         # Entry point — dispatches to app modules
 │   └── ilst/            # Illustrator-specific logic
 │       ├── ilst.ts      # Exported functions called from the panel
+│       ├── ilstUtils.ts # Shared ExtendScript helpers
 │       ├── ai2svelte/   # Core SVG→Svelte conversion logic
 │       ├── addSnippet.ts
 │       ├── fetchSelectors.ts
 │       ├── updateSettings.ts
+│       ├── previewWrapper.ts
 │       └── dataOperations.ts
 └── shared/              # Types shared between JS and JSX
 ```
@@ -51,6 +56,9 @@ pnpm build      # Full build → dist/cep/
 pnpm zxp        # Package as installable .zxp
 pnpm zip        # Package .zxp + assets as .zip for release
 pnpm bake-shadows  # Regen shadowsBaked.json from shadows.json raw data
+pnpm test       # Run the Vitest suite once
+pnpm test:watch # Vitest in watch mode
+pnpm test:ui    # Vitest UI
 ```
 
 Docs site (root):
@@ -59,7 +67,14 @@ pnpm dev        # Astro dev server
 pnpm build      # Build static docs to /docs/
 ```
 
-No test suite exists.
+## Tests
+
+Vitest (jsdom) suite under `src/js/**/__tests__/`. Config in `vitest.config.ts`;
+setup in `src/js/__tests__/setup.ts`. The CEP bolt bridge (`lib/utils/bolt`) is
+aliased to a stub in `src/js/__mocks__/bolt.ts` because the real module calls
+`new CSInterface()` at load, which fails outside CEP. Covers stores, utils, and
+UI components; ExtendScript (`src/jsx/`) is not unit-tested — verify that in
+Illustrator.
 
 ## Architecture: Two Runtimes
 
@@ -85,7 +100,7 @@ export const ai2svelte = (layers: Layer[], settings: Settings) => { ... };
 - **ExtendScript files must compile to ES3.** No arrow functions, spread, destructuring, template literals, `const`/`let` in places where the Rollup Babel transform can't reach. The build uses `@babel/preset-env` targeting ES3. When adding code to `src/jsx/`, test that the compiled output in `dist/` is ES3-clean.
 - **Svelte 5 runes syntax** is used throughout the frontend (`$state`, `$derived`, `$effect`, `$props`). Do not use legacy Svelte 4 reactive declarations (`$:`, `export let`).
 - **SCSS modules** for component styles. Global tokens in `src/js/main/styles/`.
-- **No test suite.** Verify by running the actual extension in Illustrator.
+- **Tests:** Vitest for frontend (`pnpm test`). No test coverage for ExtendScript — verify that by running the actual extension in Illustrator.
 - **Branching:** feature branches → `main`. Semver releases tagged; ZXP packages attached to GitHub releases.
 
 ## ExtendScript Gotchas

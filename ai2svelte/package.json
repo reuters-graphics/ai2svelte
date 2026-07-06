@@ -1,7 +1,7 @@
 {
   "name": "com.reuters-graphics.ai2svelte",
   "private": true,
-  "version": "1.0.7",
+  "version": "1.0.8",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -13,6 +13,7 @@
     "symlink": "cross-env BOLT_ACTION=symlink vite",
     "delsymlink": "cross-env BOLT_ACTION=delsymlink vite",
     "bake-shadows": "node scripts/bakeShadows.js bake-shadows-raw -- --input=src/js/main/Tabs/data/shadows.json --output=src/js/main/Tabs/data/shadowsBaked.json",
+    "bump": "node scripts/bumpVersion.js",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:ui": "vitest --ui"
