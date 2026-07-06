@@ -2827,7 +2827,7 @@ export function main(settingsArg) {
   // Union of a layer's visible page-item bounds (recursing into sublayers),
   // clipped to the artboard. Used to trim tagged :png/:png24 exports to their
   // content instead of exporting the whole (possibly huge) artboard. See #90.
-  // ponytail: a clipped group can report unclipped child bounds, so this may
+  // a clipped group can report unclipped child bounds, so this may
   // slightly over-estimate; result is always clamped to the artboard, so the
   // worst case is the old full-artboard behavior (never crops content).
   function getLayerContentBounds(lyr, abRect) {
