@@ -143,9 +143,15 @@
       });
 
       if ($cache[$docName]?.settingsObject) {
+        // Snapshot cached values BEFORE touching any store. The `cache` derived
+        // re-snapshots get(styles) on every settingsObject change, so assigning
+        // settingsObject first would overwrite cacheObj[docName].styles with the
+        // previous document's styles — which we'd then read back on the next line.
+        const cachedSettings = $cache[$docName].settingsObject as SettingsObject;
+        const cachedStyles = $cache[$docName].styles;
         await fetchSavedSettings();
-        $settingsObject = $cache[$docName].settingsObject as SettingsObject;
-        $styles = $cache[$docName].styles;
+        $settingsObject = cachedSettings;
+        $styles = cachedStyles;
       } else {
         fetchSettings().catch((err) => {
           console.error("[ai2svelte] fetchSettings failed:", err);

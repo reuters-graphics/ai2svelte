@@ -68,6 +68,18 @@ export const lastPreviewObject: Writable<PreviewObject> = writable({
 
 export const docName: Writable<string> = writable("");
 
+// Commits an async-parsed styles result to the `styles` store, but only if the
+// active document hasn't changed while the parse was in flight. Without this,
+// a shadow/animation/CSS edit started on document A can land on document B's
+// styles if the user switches documents before the parse promise resolves.
+export async function commitStyles(pending: Promise<Result<Root>>) {
+  const docAtStart = get(docName);
+  const result = await pending;
+  if (get(docName) === docAtStart) {
+    styles.set(result);
+  }
+}
+
 // Per-document cache keyed by document name.
 // Allows restoring the correct settings/styles when the user switches AI documents.
 export const cacheObj: Record<

@@ -2,7 +2,7 @@
   // COMPONENT IMPORTS
   import AnimationCard from "../../Components/AnimationCard.svelte";
 
-  import { styles, userAnimations } from "../../stores";
+  import { styles, userAnimations, commitStyles } from "../../stores";
   import { stylesState } from "./stylesState.svelte";
 
   // OTHER LIB IMPORTS
@@ -118,9 +118,7 @@
       removeIfEmpty(rule);
     }
 
-    $styles = (await stringToStyles(
-      $styles?.root?.toString() || ""
-    )) as Result<Root>;
+    await commitStyles(stringToStyles($styles?.root?.toString() || "") as Promise<Result<Root>>);
   }
 
   function clearAnimationSelection() {

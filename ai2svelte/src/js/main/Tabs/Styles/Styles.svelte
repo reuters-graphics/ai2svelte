@@ -6,7 +6,7 @@
   import { evalTS } from "../../../lib/utils/bolt";
 
   // DATA IMPORTS
-  import { styles, updateInProgress, ai2svelteInProgress } from "../../stores";
+  import { styles, updateInProgress, ai2svelteInProgress, commitStyles } from "../../stores";
 
   // OTHER LIB IMPORTS
   import postcss from "postcss";
@@ -168,7 +168,7 @@
    * Ignores errors to allow for incomplete or in-progress user input.
    */
   async function updateStyle(string: string): Promise<void> {
-    $styles = (await stringToStyles(string)) as Result<Root>;
+    await commitStyles(stringToStyles(string) as Promise<Result<Root>>);
   }
 
   // Debounced wrapper — PostCSS parsing + Prettier formatting on every keystroke

@@ -1,7 +1,7 @@
 <script lang="ts">
   import ShadowCard from "../../Components/ShadowCard.svelte";
 
-  import { styles, userShadowsBaked } from "../../stores";
+  import { styles, userShadowsBaked, commitStyles } from "../../stores";
   import { stylesState } from "./stylesState.svelte";
 
   // OTHER LIB IMPORTS
@@ -66,9 +66,7 @@
       removeIfEmpty(rule);
     }
 
-    $styles = (await stringToStyles(
-      $styles?.root?.toString() || ""
-    )) as Result<Root>;
+    await commitStyles(stringToStyles($styles?.root?.toString() || "") as Promise<Result<Root>>);
   }
 
   function fetchShadows() {

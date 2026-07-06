@@ -118,6 +118,32 @@ describe('parseSCSS', () => {
     expect(parseSCSS(node)).toBe('/* a comment */');
   });
 
+  it('formats a line comment (//) the same as a block comment (/* */)', async () => {
+    const scss = await import('postcss-scss');
+    const root = scss.default.parse(
+      '.foo { color: red; // a line comment\n /* a block comment */ }'
+    );
+    const comments: any[] = [];
+    root.walkComments((c) => {
+      comments.push(c);
+    });
+
+    expect(parseSCSS(comments[0])).toBe('/* a line comment */');
+    expect(parseSCSS(comments[1])).toBe('/* a block comment */');
+  });
+
+  it('formats a comment nested inside a rule', () => {
+    const node = {
+      type: 'rule',
+      selector: '.foo',
+      nodes: [
+        { type: 'comment', text: 'note' },
+        { type: 'decl', prop: 'color', value: 'red', important: false },
+      ],
+    };
+    expect(parseSCSS(node)).toContain('/* note */');
+  });
+
   it('returns empty string for unknown node types', () => {
     expect(parseSCSS({ type: 'unknown' })).toBe('');
   });
