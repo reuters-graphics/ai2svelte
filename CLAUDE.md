@@ -155,8 +155,10 @@ Requires:
 
 1. Bump version in `ai2svelte/package.json` (drives `cep.config.ts` via import)
 2. Update root `CHANGELOG.md`
-3. `pnpm zip` → creates `.zip` in `dist/`
-4. Tag release on `main`, attach `.zip` to GitHub release
+3. Tag release on `main` — `.github/workflows/release.yml` drafts a GitHub release for the tag (no build; see below)
+4. Run `pnpm zxp` **on macOS** to build the signed `.zxp`, then attach it to the draft release (`gh release upload <tag> dist/zxp/*.zxp` or via the GitHub UI)
+
+`pnpm zxp`/`pnpm zip` both shell out to Adobe's `ZXPSignCmd` (bundled in `vite-cep-plugin`), which only ships macOS and Windows binaries — it cannot run on `ubuntu-latest`, so the release workflow no longer builds or signs the package itself.
 
 ## Docs Site
 
