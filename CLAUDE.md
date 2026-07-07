@@ -155,7 +155,8 @@ Requires:
 
 1. Bump version in `ai2svelte/package.json` (drives `cep.config.ts` via import)
 2. Update root `CHANGELOG.md`
-3. Tag release on `main` — `.github/workflows/release.yml` runs `pnpm zxp` and attaches the `.zxp` to a draft GitHub release
+3. `pnpm zip` → creates `.zip` in `dist/`
+4. Tag release on `main`, attach `.zip` to GitHub release
 
 ## Docs Site
 

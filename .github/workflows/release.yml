@@ -31,10 +31,10 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Build zxp package
-        run: pnpm zxp
+      - name: Build zip package
+        run: pnpm zip
 
       - name: Draft release
-        run: gh release create "${{ github.ref_name }}" dist/zxp/*.zxp --draft --title "${{ github.ref_name }}" --generate-notes
+        run: gh release create "${{ github.ref_name }}" dist/zip/*.zip --draft --title "${{ github.ref_name }}" --generate-notes
         env:
           GH_TOKEN: ${{ github.token }}
