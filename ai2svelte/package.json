@@ -94,6 +94,7 @@
     "postcss-discard-empty": "^7.0.1",
     "postcss-prettify": "^0.3.4",
     "postcss-scss": "^4.0.9",
+    "process": "0.11.10",
     "rimraf": "^3.0.2",
     "rollup": "^4.42.0",
     "rollup-plugin-multi-input": "^1.5.0",

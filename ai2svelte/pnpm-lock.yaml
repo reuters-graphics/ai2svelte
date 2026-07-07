@@ -213,6 +213,9 @@ importers:
       postcss-scss:
         specifier: ^4.0.9
         version: 4.0.9(postcss@8.5.6)
+      process:
+        specifier: 0.11.10
+        version: 0.11.10
       rimraf:
         specifier: ^3.0.2
         version: 3.0.2
