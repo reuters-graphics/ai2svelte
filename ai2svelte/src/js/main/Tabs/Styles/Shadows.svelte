@@ -1,7 +1,7 @@
 <script lang="ts">
   import ShadowCard from "../../Components/ShadowCard.svelte";
 
-  import { styles, userShadowsBaked } from "../../stores";
+  import { styles, userShadowsBaked, commitStyles } from "../../stores";
   import { stylesState } from "./stylesState.svelte";
 
   // OTHER LIB IMPORTS
@@ -33,7 +33,7 @@
     const shadowParam = `shadow-${shadowName}(${stylesState.shadowColor})`;
 
     let rule: Rule | null =
-      ($styles.root?.nodes.find(
+      ($styles?.root?.nodes.find(
         (node) =>
           node.type === "rule" && node.selector === stylesState.cssSelector
       ) as Rule) || null;
@@ -51,7 +51,7 @@
       //  create it
       if (!rule) {
         rule = postcss.rule({ selector: stylesState.cssSelector });
-        $styles.root.append(rule);
+        $styles?.root?.append(rule);
       }
 
       // Add or update a declaration
@@ -66,9 +66,7 @@
       removeIfEmpty(rule);
     }
 
-    $styles = (await stringToStyles(
-      $styles?.root?.toString() || ""
-    )) as Result<Root>;
+    await commitStyles(stringToStyles($styles?.root?.toString() || "") as Promise<Result<Root>>);
   }
 
   function fetchShadows() {

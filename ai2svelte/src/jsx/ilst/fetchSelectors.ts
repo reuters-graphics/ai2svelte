@@ -5,5 +5,5 @@ export function fetchSelectors() {
   for(let i = 0; i < docTextFrames.length; i++) {
   }
 
-  alert(docTextFrames.length);
+  alert(String(docTextFrames.length));
 }

@@ -1,13 +1,12 @@
 // converts string in textarea to js object
-export function convertStringToObject(s: string): { [key: string]: unknown } {
-  const obj: { [key: string]: unknown } = {};
+export function convertStringToObject(s: string): Record<string, string> {
+  const obj: Record<string, string> = {};
   s.trim()
     .split("\n")
     .forEach((line) => {
       const [key, ...rest] = line.split(":");
       if (key && rest.length) {
-        let value: unknown = rest.join(":").trim();
-        obj[key.trim()] = value;
+        obj[key.trim()] = rest.join(":").trim();
       }
     });
 

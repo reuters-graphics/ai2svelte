@@ -5,11 +5,14 @@
     styles,
     ai2svelteInProgress,
     triggerConfetti,
+    updateInProgress,
   } from "../../stores";
   import { evalTS } from "../../../lib/utils/bolt";
+  import { mount } from "svelte";
 
   import { userData } from "../../state.svelte";
   import { saveSettings, tooltipSettings, writeFile } from "../../utils/utils";
+  import Toast from "../../Components/Toast.svelte";
 
   import { version } from "../../../../shared/shared";
   import { tooltip } from "svooltip";
@@ -31,17 +34,26 @@
       // set show_completion_dialog_box
       // unless set by user
       try {
-        // ai2svelte throws list of missing font families, if any
-        missingFontFamilies = await evalTS("runAi2Svelte", {
-          settings: {
-            show_completion_dialog_box: true,
-            ...$settingsObject,
-          },
-          code: { css: $stylesString, fontsConfig: userData.fontsConfig },
-        });
+        // ai2svelte returns a list of missing font families, if any
+        missingFontFamilies =
+          (await evalTS("runAi2Svelte", {
+            settings: {
+              show_completion_dialog_box: true,
+              ...$settingsObject,
+            },
+            code: { css: $stylesString, fontsConfig: userData.fontsConfig },
+          })) ?? [];
       } catch (error) {
-        console.log("Error running ai2svelte");
-        console.log(error);
+        console.error("[ai2svelte] runAi2Svelte failed:", error);
+        mount(Toast, {
+          target: document.body,
+          props: {
+            message: `Error running ai2svelte: ${error instanceof Error ? error.message : String(error)}`,
+            duration: 4000,
+          },
+        });
+        $ai2svelteInProgress = false;
+        return;
       }
 
       if (missingFontFamilies.length > 0) {
@@ -75,6 +87,7 @@
 <button
   class="cta-button"
   class:minimal
+  disabled={$updateInProgress}
   onclick={async (e) => {
     const ele = e.currentTarget;
     ele.textContent = "Running...";

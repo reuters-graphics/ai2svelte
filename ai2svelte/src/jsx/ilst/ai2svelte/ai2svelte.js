@@ -102,7 +102,7 @@ export function main(settingsArg) {
   // - Update the version number in package.json
   // - Add an entry to CHANGELOG.md
   // - Run 'npm publish' to create a new GitHub release
-  const scriptVersion = "1.0.7";
+  const scriptVersion = "1.0.8";
 
   // ================================
   // Global variable declarations
@@ -713,11 +713,10 @@ export function main(settingsArg) {
     // pass default settings
     if (!settingsObj.settings) {
       warn("No settings found, passed default settings.");
-      var defSettings = {
+      return {
         settings: placeholderSettings,
         code: settingsObj.code || {},
       };
-      return defSettings;
     }
 
     // convert image_format arg to array
@@ -725,8 +724,8 @@ export function main(settingsArg) {
       settingsObj.settings["image_format"] = parseAsArray(
         settingsObj.settings["image_format"],
       );
-      return settingsObj;
     }
+    return settingsObj;
   }
 
   // Derive ai2svelte program settings by merging default settings and overrides.
@@ -2824,6 +2823,46 @@ export function main(settingsArg) {
     }
   }
 
+  // Union of a layer's visible page-item bounds (recursing into sublayers),
+  // clipped to the artboard. Used to trim tagged :png/:png24 exports to their
+  // content instead of exporting the whole (possibly huge) artboard. See #90.
+  // a clipped group can report unclipped child bounds, so this may
+  // slightly over-estimate; result is always clamped to the artboard, so the
+  // worst case is the old full-artboard behavior (never crops content).
+  function getLayerContentBounds(lyr, abRect) {
+    var b = null;
+    function grow(bnds) {
+      if (!b) {
+        b = [bnds[0], bnds[1], bnds[2], bnds[3]];
+        return;
+      }
+      if (bnds[0] < b[0]) b[0] = bnds[0];
+      if (bnds[1] > b[1]) b[1] = bnds[1];
+      if (bnds[2] > b[2]) b[2] = bnds[2];
+      if (bnds[3] < b[3]) b[3] = bnds[3];
+    }
+    function walk(container) {
+      forEach(container.pageItems, function (item) {
+        if (item.hidden || item.guides || item.typename == "GroupItem") return;
+        if (testBoundsIntersection(item.visibleBounds, abRect)) {
+          grow(item.visibleBounds);
+        }
+      });
+      forEach(container.layers, function (sub) {
+        if (!objectIsHidden(sub)) walk(sub);
+      });
+    }
+    walk(lyr);
+    if (!b) return abRect;
+    // clip to artboard (AI bounds: [left, top, right, bottom], top > bottom)
+    return [
+      Math.max(b[0], abRect[0]),
+      Math.min(b[1], abRect[1]),
+      Math.min(b[2], abRect[2]),
+      Math.max(b[3], abRect[3]),
+    ];
+  }
+
   // Convert paths representing simple shapes to HTML and hide them
   function exportSymbols(lyr, ab, masks, opts) {
     var items = [];
@@ -3507,9 +3546,26 @@ export function main(settingsArg) {
       ) {
         var lyrOpacity = layer.opacity;
 
+        // trim the export to the layer's content instead of the whole artboard (#90)
+        var cropRect = getLayerContentBounds(layer, ab.artboardRect);
+
         // export layer at opacity 100%
         layer.opacity = 100;
-        exportRasterImage(outputPath, ab, format, settings);
+        exportRasterImage(outputPath, ab, format, settings, cropRect);
+
+        // position the (now trimmed) image within the artboard
+        var abBox = convertAiBounds(ab.artboardRect);
+        var cropBox = convertAiBounds(cropRect);
+        pngInlineStyle += "position:absolute;";
+        pngInlineStyle +=
+          "left:" + formatCssPct(cropBox.left - abBox.left, abBox.width) + ";";
+        pngInlineStyle +=
+          "top:" + formatCssPct(cropBox.top - abBox.top, abBox.height) + ";";
+        // aiImg sets width:100% !important, so override needs !important too
+        pngInlineStyle +=
+          "width:" + formatCssPct(cropBox.width, abBox.width) + " !important;";
+        pngInlineStyle +=
+          "height:" + formatCssPct(cropBox.height, abBox.height) + ";";
 
         // add style for opacity
         pngInlineStyle += "opacity:" + roundTo(lyrOpacity / 100, 2) + ";";
@@ -3802,7 +3858,10 @@ export function main(settingsArg) {
   // ab: assumed to be active artboard
   // format: png, png24, jpg
   //
-  function exportRasterImage(imgPath, ab, format, settings) {
+  // cropRect: optional AI bounds to crop the export to (e.g. a tagged layer's
+  //   content bounds). Scale is still derived from the full artboard so pixel
+  //   density is unchanged; the artboard is temporarily shrunk for the export.
+  function exportRasterImage(imgPath, ab, format, settings, cropRect) {
     // This constant is specified in the Illustrator Scripting Reference under ExportOptionsJPEG.
     var MAX_JPG_SCALE = 776.19;
     var abPos = convertAiBounds(ab.artboardRect);
@@ -3853,7 +3912,16 @@ export function main(settingsArg) {
     exportOptions.artBoardClipping = true;
     exportOptions.antiAliasing = false;
 
+    // trim to content bounds by temporarily shrinking the artboard
+    var origRect;
+    if (cropRect) {
+      origRect = ab.artboardRect;
+      ab.artboardRect = cropRect;
+    }
     app.activeDocument.exportFile(new File(imgPath), fileType, exportOptions);
+    if (cropRect) {
+      ab.artboardRect = origRect;
+    }
   }
 
   function makeTmpDocument(doc, ab) {
@@ -4061,28 +4129,29 @@ export function main(settingsArg) {
     // It's better to export SVG layers at the original artboard size.
     // That allows users to perform modifications based on the original size
     // rather than trimming it to visible artwork
-    // if (settings.tagPrefix == "svg") {
-    // Run menu command to trim svg to visible items
-    //   app.executeMenuCommand("Fit Artboard to artwork bounds");
-    //   var svgBounds = convertAiBounds(exportDoc.artboards[0].artboardRect);
-    // trimming artboard repositions final artboard
-    // to artwork's x, y
-    //   left = svgBounds.left - parentArtboardBounds.left;
-    //   top = svgBounds.top - parentArtboardBounds.top;
-    // if svg bounds exceed parent artboard's bounds,
-    // revert trimming operation and use parent artboard's bounds
-    //   if (
-    //     svgBounds.width > parentArtboardBounds.width ||
-    //     svgBounds.height > parentArtboardBounds.height
-    //   ) {
-    //     app.executeMenuCommand("undo");
-    //     svgBounds = convertAiBounds(exportDoc.artboards[0].artboardRect);
-    //     left = 0;
-    //     top = 0;
-    //   }
-    //   width = svgBounds.width;
-    //   height = svgBounds.height;
-    // }
+    if (settings.tagPrefix == "svg") {
+      // Run menu command to trim svg to visible items
+      app.executeMenuCommand("Fit Artboard to artwork bounds");
+      var svgBounds = convertAiBounds(exportDoc.artboards[0].artboardRect);
+      // trimming artboard repositions final artboard
+      // to artwork's x, y
+      left = svgBounds.left - parentArtboardBounds.left;
+      top = svgBounds.top - parentArtboardBounds.top;
+      // if svg bounds exceed parent artboard's bounds,
+      // revert trimming operation and use parent artboard's bounds
+      if (
+        svgBounds.width > parentArtboardBounds.width ||
+        svgBounds.height > parentArtboardBounds.height
+      ) {
+        app.executeMenuCommand("undo");
+        svgBounds = convertAiBounds(exportDoc.artboards[0].artboardRect);
+        left = 0;
+        top = 0;
+      }
+      width = svgBounds.width;
+      height = svgBounds.height;
+    }
+
     exportDoc.exportFile(new File(ofile), ExportType.SVG, opts);
 
     doc.activate();
@@ -4090,8 +4159,8 @@ export function main(settingsArg) {
     exportDoc.close(SaveOptions.DONOTSAVECHANGES);
 
     var response = {
-      width: parentArtboardBounds.width,
-      height: parentArtboardBounds.height,
+      width: width,
+      height: height,
       left: left,
       top: top,
     };
@@ -4890,8 +4959,7 @@ export function main(settingsArg) {
     htmlFileDestinationFolder = docPath + settings.html_output_path;
 
     checkForOutputFolder(htmlFileDestinationFolder, "html_output_path");
-    htmlFileDestination =
-      htmlFileDestinationFolder + pageName + settings.html_output_extension;
+    htmlFileDestination = htmlFileDestinationFolder + pageName + ".svelte";
 
     // write file
     saveTextFile(htmlFileDestination, textForFile);

@@ -3,7 +3,7 @@ if (ExternalObject.AdobeXMPScript == undefined) {
 }
 
 // Corrected XMP implementation
-export function storeHiddenData(key, value) {
+export function storeHiddenData(key: string, value: unknown) {
   try {
     // Load AdobeXMPScript if not already loaded
     if (ExternalObject.AdobeXMPScript === undefined) {
@@ -16,8 +16,8 @@ export function storeHiddenData(key, value) {
     // Open the file for update
     var xmpFile = new XMPFile(
       filePath,
-      XMPConst.UNKNOWN,
-      XMPConst.OPEN_FOR_UPDATE
+      XMPConst!.UNKNOWN,
+      XMPConst!.OPEN_FOR_UPDATE
     );
     var xmpMeta = xmpFile.getXMP(); // Get current metadata
 
@@ -26,8 +26,8 @@ export function storeHiddenData(key, value) {
     var prefix = "ai2svelte-companion";
 
     // Register namespace if needed
-    if (!XMPMeta.getNamespacePrefix(namespace)) {
-      XMPMeta.registerNamespace(namespace, prefix);
+    if (!XMPMeta!.getNamespacePrefix(namespace)) {
+      XMPMeta!.registerNamespace(namespace, prefix);
     }
 
     // Set the property
@@ -35,16 +35,16 @@ export function storeHiddenData(key, value) {
 
     // Write metadata back to file
     xmpFile.putXMP(xmpMeta);
-    xmpFile.closeFile(XMPConst.CLOSE_UPDATE_SAFELY);
+    xmpFile.closeFile(XMPConst!.CLOSE_UPDATE_SAFELY);
 
     return true;
   } catch (e) {
-    $.writeln("Error storing data: " + e.message);
+    $.writeln("Error storing data: " + (e as Error).description);
     return false;
   }
 }
 
-export function getHiddenData(key) {
+export function getHiddenData(key: string) {
   try {
     // Load AdobeXMPScript if not already loaded
     if (ExternalObject.AdobeXMPScript === undefined) {
@@ -57,8 +57,8 @@ export function getHiddenData(key) {
     // Open the file for reading
     var xmpFile = new XMPFile(
       filePath,
-      XMPConst.UNKNOWN,
-      XMPConst.OPEN_FOR_READ
+      XMPConst!.UNKNOWN,
+      XMPConst!.OPEN_FOR_READ
     );
     var xmpMeta = xmpFile.getXMP();
 
@@ -66,8 +66,8 @@ export function getHiddenData(key) {
     var prefix = "ai2svelte-companion";
 
     // Register namespace if needed
-    if (!XMPMeta.getNamespacePrefix(namespace)) {
-      XMPMeta.registerNamespace(namespace, prefix);
+    if (!XMPMeta!.getNamespacePrefix(namespace)) {
+      XMPMeta!.registerNamespace(namespace, prefix);
     }
 
     // Check and retrieve the property
@@ -80,7 +80,7 @@ export function getHiddenData(key) {
     xmpFile.closeFile(); // Close even if not found
     return {};
   } catch (e) {
-    $.writeln("Error retrieving data: " + e.message);
+    $.writeln("Error retrieving data: " + (e as Error).description);
     return {};
   }
 }

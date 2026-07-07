@@ -68,14 +68,6 @@ export let aiSettingsTokens = [
     inputType: "text",
   },
   {
-    label: "html_output_extension",
-    type: "variable",
-    info: "Output file extension",
-    default: ".svelte",
-    inputType: "select",
-    options: [".svelte", ".html"],
-  },
-  {
     label: "image_output_path",
     type: "variable",
     info: "Location to export image files",

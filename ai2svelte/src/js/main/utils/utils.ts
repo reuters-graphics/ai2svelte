@@ -17,14 +17,28 @@ import {
 } from "../stores";
 import defaultProfile from "../Tabs/data/default-profile.json";
 import postcss from "postcss";
-// @ts-ignore
+// @ts-ignore: postcss-safe-parser has no TypeScript declarations
 import safeParser from "postcss-safe-parser";
 import { parseCSS } from "./cssUtils";
+import type { SettingsObject } from "../Tabs/types";
 
 let userDataPath = window.cep ? csi.getSystemPath("userData") : "";
 
 export function constrain(n: number, low: number, high: number) {
   return Math.max(Math.min(n, high), low);
+}
+
+// Returns a debounced version of fn that delays execution by `delay` ms.
+// Each new call resets the timer, so rapid calls only fire once.
+export function debounce<T extends (...args: Parameters<T>) => ReturnType<T>>(
+  fn: T,
+  delay: number,
+): (...args: Parameters<T>) => void {
+  let timer: ReturnType<typeof setTimeout>;
+  return (...args: Parameters<T>) => {
+    clearTimeout(timer);
+    timer = setTimeout(() => fn(...args), delay);
+  };
 }
 
 export const tooltipSettings: Options = {
@@ -35,34 +49,32 @@ export const tooltipSettings: Options = {
 };
 
 /**
- *
- * Makes a network request to "https://picsum.photos/300/200" and returns the final image URL.
- * If the request fails, logs the error and returns `undefined`.
- *
- * @returns {Promise<string | undefined>} A promise that resolves to the image URL, or `undefined` if an error occurs.
+ * Returns the local path to the current backdrop image asset.
+ * Falls back to undefined on failure.
  */
-export async function fetchNewImageURL() {
-  let currBackdrop = get(currentBackdrop);
+export async function fetchNewImageURL(): Promise<string | undefined> {
+  const currBackdrop = get(currentBackdrop);
   try {
-    let imgURL = "";
     if (process.env.NODE_ENV === "production") {
-      imgURL = `../js/assets/images/backdrops/backdrop_${currBackdrop}.jpg`;
+      return `../js/assets/images/backdrops/backdrop_${currBackdrop}.jpg`;
     } else {
-      imgURL = `../../assets/images/backdrops/backdrop_${currBackdrop}.jpg`;
+      return `../../assets/images/backdrops/backdrop_${currBackdrop}.jpg`;
     }
-    return imgURL;
   } catch (error) {
-    console.log(error);
+    console.error("[ai2svelte] fetchNewImageURL error:", error);
     return undefined;
   }
 }
 
-export function saveSettings(aiSettings, styleSettings, version) {
+export function saveSettings(
+  aiSettings: SettingsObject,
+  styleSettings: { styleText?: string },
+  version: string,
+) {
   if (window.cep) {
-    console.log("saving data");
     evalTS("setVariable", "ai-settings", aiSettings);
     evalTS("setVariable", "css-settings", styleSettings);
-    evalTS("setVariable", "version", { version: version });
+    evalTS("setVariable", "version", { version });
     evalTS("setVariable", "lastSaved", { time: Date.now() });
   }
 }
@@ -122,22 +134,20 @@ export const myTheme = EditorView.theme(
   { dark: true },
 );
 
-export function readFile(fileName) {
+export function readFile(fileName: string): unknown {
   const filePath = path.join(userDataPath, config.id, fileName);
   if (fs.existsSync(filePath)) {
     try {
-      // valid json data
-      var data = JSON5.parse(fs.readFileSync(filePath, "utf8"));
-      return data;
+      return JSON5.parse(fs.readFileSync(filePath, "utf8"));
     } catch (error) {
-      console.log("Error reading flags:", error);
+      console.error("[ai2svelte] Error reading file:", error);
       return null;
     }
   }
   return null;
 }
 
-export function writeFile(fileName, data) {
+export function writeFile(fileName: string, data: unknown): boolean {
   try {
     const filePath = path.join(userDataPath, config.id, fileName);
     if (!fs.existsSync(filePath)) {
@@ -146,102 +156,81 @@ export function writeFile(fileName, data) {
     fs.writeFileSync(filePath, JSON.stringify(data));
     return true;
   } catch (error) {
-    console.error("Error writing file:", error);
+    console.error("[ai2svelte] Error writing file:", error);
     return false;
   }
 }
 
 /**
- * Fetches plugin settings from Illustrator document,
- * updates the corresponding Svelte stores, and manages the splash screen state.
- *
- * @async
- * @returns {Promise<void>} Resolves when settings and styles have been fetched and updated.
+ * Fetches plugin settings from the Illustrator document,
+ * updates the corresponding Svelte stores, and loads user preferences.
  */
 export async function fetchSettings(): Promise<void> {
-  // fetch user settings
-  // and update the store
-  const userSettings = readFile("user-settings.json");
-  if (userSettings && Object.keys(userSettings).length != 0) {
-    console.log("found user settings");
+  const userSettings = readFile("user-settings.json") as Record<string, string> | null;
+  if (userSettings && Object.keys(userSettings).length !== 0) {
     userData.theme = userSettings.theme;
     userData.accentColor = userSettings.accentColor;
-    userData.fontsConfig = userSettings.fontsConfig || {};
+    userData.fontsConfig = (userSettings.fontsConfig as unknown as { [key: string]: string }) || {};
   } else {
-    console.log("no user settings found, creating settings file");
     writeFile("user-settings.json", userData);
   }
 
-  console.log("fetching settings...");
-  const fetchedSettings = await evalTS("getVariable", "ai-settings");
+  const fetchedSettings = await evalTS("getVariable", "ai-settings") as SettingsObject;
 
-  if (Object.keys(fetchedSettings).length == 0) {
-    // no settings found, first time use
-    // use user's default settings
-    let usersProfiles = await readFile("user-profiles.json");
+  if (Object.keys(fetchedSettings).length === 0) {
+    const usersProfiles = readFile("user-profiles.json") as Record<string, SettingsObject> | null;
 
     if (usersProfiles && Object.keys(usersProfiles).includes("default")) {
       settingsObject.set(usersProfiles.default);
     } else {
-      settingsObject.set(defaultProfile.default);
+      settingsObject.set(defaultProfile.default as SettingsObject);
     }
     savedSettings.set({});
     styles.set(await postcss().process("", { parser: safeParser }));
     savedStyles.set(await postcss().process("", { parser: safeParser }));
     lastSaved.set("Never");
   } else {
-    // settings found, use them
     savedSettings.set({ ...fetchedSettings });
     settingsObject.set({ ...fetchedSettings });
-    const fetchedStyles = await evalTS("getVariable", "css-settings");
-    const stylesAST = await parseCSS(fetchedStyles.styleText);
+    const fetchedStyles = await evalTS("getVariable", "css-settings") as { styleText?: string };
+    const stylesAST = await parseCSS(fetchedStyles.styleText || "");
     savedStyles.set(
-      await postcss().process(stylesAST.root.clone(), {
-        from: undefined,
-      }),
+      await postcss().process(stylesAST.root.clone(), { from: undefined }),
     );
     styles.set(
-      await postcss().process(stylesAST.root.clone(), {
-        from: undefined,
-      }),
+      await postcss().process(stylesAST.root.clone(), { from: undefined }),
     );
-
-    lastSaved.set(await evalTS("getVariable", "lastSaved"));
+    lastSaved.set(await evalTS("getVariable", "lastSaved") as { time: Date });
   }
 }
 
+/**
+ * Fetches only the saved (last-committed) settings from the Illustrator document.
+ * Does not update the active settingsObject/styles stores.
+ */
 export async function fetchSavedSettings(): Promise<void> {
-  // fetch user settings
-  // and update the store
-  const userSettings = readFile("user-settings.json");
-  if (userSettings && Object.keys(userSettings).length != 0) {
-    console.log("found user settings");
+  const userSettings = readFile("user-settings.json") as Record<string, string> | null;
+  if (userSettings && Object.keys(userSettings).length !== 0) {
     userData.theme = userSettings.theme;
     userData.accentColor = userSettings.accentColor;
-    userData.fontsConfig = userSettings.fontsConfig || {};
+    userData.fontsConfig = (userSettings.fontsConfig as unknown as { [key: string]: string }) || {};
   } else {
-    console.log("no user settings found, creating settings file");
     writeFile("user-settings.json", userData);
   }
 
-  console.log("fetching settings...");
-  const fetchedSettings = await evalTS("getVariable", "ai-settings");
+  const fetchedSettings = await evalTS("getVariable", "ai-settings") as SettingsObject;
 
-  if (Object.keys(fetchedSettings).length == 0) {
+  if (Object.keys(fetchedSettings).length === 0) {
     savedSettings.set({});
     savedStyles.set(await postcss().process("", { parser: safeParser }));
     lastSaved.set("Never");
   } else {
-    // settings found, use them
     savedSettings.set({ ...fetchedSettings });
-    const fetchedStyles = await evalTS("getVariable", "css-settings");
-    const stylesAST = await parseCSS(fetchedStyles.styleText);
+    const fetchedStyles = await evalTS("getVariable", "css-settings") as { styleText?: string };
+    const stylesAST = await parseCSS(fetchedStyles.styleText || "");
     savedStyles.set(
-      await postcss().process(stylesAST.root.clone(), {
-        from: undefined,
-      }),
+      await postcss().process(stylesAST.root.clone(), { from: undefined }),
     );
-
-    lastSaved.set(await evalTS("getVariable", "lastSaved"));
+    lastSaved.set(await evalTS("getVariable", "lastSaved") as { time: Date });
   }
 }

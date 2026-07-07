@@ -2,7 +2,7 @@
   // COMPONENT IMPORTS
   import AnimationCard from "../../Components/AnimationCard.svelte";
 
-  import { styles, userAnimations } from "../../stores";
+  import { styles, userAnimations, commitStyles } from "../../stores";
   import { stylesState } from "./stylesState.svelte";
 
   // OTHER LIB IMPORTS
@@ -40,7 +40,7 @@
     const animationIdentifier = mixinCheck ? mixinCheck[1] : undefined;
 
     let rule: Rule | null =
-      ($styles.root?.nodes.find(
+      ($styles?.root?.nodes.find(
         (node) =>
           node.type === "rule" && node.selector === stylesState.cssSelector
       ) as Rule) || null;
@@ -62,7 +62,7 @@
       // If rule doesn't exist, create it
       if (!rule) {
         rule = postcss.rule({ selector: stylesState.cssSelector });
-        $styles.root.append(rule);
+        $styles?.root?.append(rule);
       }
 
       // add animation definition as comment
@@ -118,9 +118,7 @@
       removeIfEmpty(rule);
     }
 
-    $styles = (await stringToStyles(
-      $styles?.root?.toString() || ""
-    )) as Result<Root>;
+    await commitStyles(stringToStyles($styles?.root?.toString() || "") as Promise<Result<Root>>);
   }
 
   function clearAnimationSelection() {
@@ -128,7 +126,7 @@
       x.active = false;
 
       let rule: Rule | null =
-        ($styles.root?.nodes.find(
+        ($styles?.root?.nodes.find(
           (node) =>
             node.type === "rule" && node.selector === stylesState.cssSelector
         ) as Rule) || null;

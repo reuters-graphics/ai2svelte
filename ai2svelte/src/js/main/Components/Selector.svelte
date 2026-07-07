@@ -1,11 +1,12 @@
 <script lang="ts">
+  import { RadioGroup } from "bits-ui";
   import { tooltip } from "svooltip";
   import { tooltipSettings } from "../utils/utils";
 
   interface Props {
     labels: Array<string>;
-    value: string;
-    tooltipDescription: Array<string>;
+    value?: string;
+    tooltipDescription?: Array<string>;
   }
 
   let {
@@ -16,46 +17,40 @@
   }: Props = $props();
 </script>
 
-{#snippet button(label: string, tooltipDescription: string)}
-  <button
-    type="button"
-    class="radio-button"
-    data-checked={value == label}
-    aria-pressed={value == label}
-    onclick={() => (value = label)}
-    {...rest}
-    use:tooltip={{
-      ...tooltipSettings,
-      content: tooltipDescription,
-    }}
-  >
-    <input
-      type="radio"
-      name="format-choice"
-      id={"radio-" + label}
-      value={label}
-      checked={value == label}
-      tabindex="-1"
-      aria-hidden="true"
-      style="position: absolute; opacity: 0; pointer-events: none;"
-    />{label}</button
-  >
-{/snippet}
+<!--
+  RadioGroup.Root provides:
+  - role="radiogroup" on the container
+  - Roving tabindex: arrow keys move focus between items
+  - Keyboard selection: Space selects the focused item
 
-<div class="radio-group">
+  RadioGroup.Item provides role="radio" and aria-checked for each option.
+  The child snippet lets us apply the tooltip Svelte action directly on the
+  item's button, since Svelte actions cannot be applied to component wrappers.
+-->
+<RadioGroup.Root bind:value>
   {#each labels as label, index}
-    {@render button(label, tooltipDescription[index])}
+    <RadioGroup.Item value={label}>
+      {#snippet child({ props })}
+        <button
+          type="button"
+          {...props}
+          {...rest}
+          class="radio-button"
+          data-checked={value === label}
+          use:tooltip={{
+            ...tooltipSettings,
+            content: tooltipDescription[index] ?? "",
+          }}
+        >
+          {label}
+        </button>
+      {/snippet}
+    </RadioGroup.Item>
   {/each}
-</div>
+</RadioGroup.Root>
 
 <style lang="scss">
   @use "../styles/variables.scss" as *;
-
-  .radio-group {
-    display: flex;
-    flex-direction: row;
-    gap: 8px;
-  }
 
   .radio-button {
     cursor: pointer;
@@ -70,6 +65,10 @@
     text-transform: uppercase;
     user-select: none;
     @include animation-default;
+  }
+
+  :global(.radio-button + .radio-button) {
+    margin-left: 0.5rem;
   }
 
   .radio-button:hover {

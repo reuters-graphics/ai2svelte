@@ -1,7 +1,7 @@
 {
   "name": "com.reuters-graphics.ai2svelte",
   "private": true,
-  "version": "1.0.7",
+  "version": "1.0.8",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -12,7 +12,16 @@
     "serve": "cross-env SERVE_PANEL=true vite preview",
     "symlink": "cross-env BOLT_ACTION=symlink vite",
     "delsymlink": "cross-env BOLT_ACTION=delsymlink vite",
-    "bake-shadows": "node scripts/bakeShadows.js bake-shadows-raw -- --input=src/js/main/Tabs/data/shadows.json --output=src/js/main/Tabs/data/shadowsBaked.json"
+    "bake-shadows": "node scripts/bakeShadows.js bake-shadows-raw -- --input=src/js/main/Tabs/data/shadows.json --output=src/js/main/Tabs/data/shadowsBaked.json",
+    "bump": "node scripts/bumpVersion.js",
+    "check": "pnpm check:frontend && pnpm check:jsx",
+    "check:frontend": "node scripts/checkFrontend.js",
+    "check:jsx": "node scripts/checkJsx.js",
+    "test": "vitest run",
+    "test:visual:generate": "node scripts/visual-test/generate.mjs",
+    "test:visual": "pnpm test:visual:generate && playwright test && vitest run src/js/main/__tests__/ai2svelte-output.test.ts",
+    "test:watch": "vitest",
+    "test:ui": "vitest --ui"
   },
   "dependencies": {
     "@codemirror/autocomplete": "^6.20.1",
@@ -31,6 +40,7 @@
     "@reuters-graphics/svelte-markdown": "^0.0.3",
     "@reuters-graphics/vite-plugin-purge-styles": "^0.0.3",
     "@tsparticles/confetti": "^3.9.1",
+    "bits-ui": "^2.18.1",
     "codemirror": "^6.0.2",
     "diff": "^8.0.3",
     "express": "^5.2.1",
@@ -53,6 +63,7 @@
     "@babel/preset-typescript": "^7.16.0",
     "@babel/runtime": "^7.16.3",
     "@codemirror/lint": "^6.9.0",
+    "@playwright/test": "^1.61.1",
     "@rollup/plugin-babel": "^6.0.4",
     "@rollup/plugin-commonjs": "^28.0.3",
     "@rollup/plugin-image": "^3.0.3",
@@ -60,10 +71,14 @@
     "@rollup/plugin-node-resolve": "^13.1.3",
     "@rollup/plugin-replace": "^6.0.2",
     "@sveltejs/vite-plugin-svelte": "^5.1.0",
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/svelte": "^5.4.0",
+    "@testing-library/user-event": "^14.6.1",
     "@tsconfig/svelte": "^5.0.4",
     "@types/fs-extra": "^9.0.13",
     "@types/node": "^16.11.7",
     "@types/trusted-types": "^2.0.2",
+    "@vitest/ui": "^4.1.9",
     "autoprefixer": "^10.4.23",
     "babel-plugin-transform-scss": "^1.2.0",
     "babel-preset-env": "^0.0.0",
@@ -75,6 +90,7 @@
     "eslint": "^9.30.1",
     "extendscriptr": "^1.1.5",
     "fs-extra": "^10.0.0",
+    "jsdom": "^29.1.1",
     "postcss-discard-empty": "^7.0.1",
     "postcss-prettify": "^0.3.4",
     "postcss-scss": "^4.0.9",
@@ -96,7 +112,8 @@
     "typescript": "^5.8.3",
     "typescript-eslint": "^8.38.0",
     "vite": "^6.3.5",
-    "vite-cep-plugin": "^2.1.1"
+    "vite-cep-plugin": "^2.1.1",
+    "vitest": "^4.1.9"
   },
   "pnpm": {
     "onlyBuiltDependencies": [

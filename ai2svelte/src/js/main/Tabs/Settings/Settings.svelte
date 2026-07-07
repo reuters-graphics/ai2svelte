@@ -23,13 +23,13 @@
   let activeFormat: string = $state("UI");
   let existingProfiles: UserProfiles = $derived.by(() => {
     if (window.cep) {
-      let usersProfiles = readFile("user-profiles.json") || {};
+      let usersProfiles = (readFile("user-profiles.json") as UserProfiles) || {};
       if (usersProfiles && !Object.keys(usersProfiles).includes("default")) {
         writeFile("user-profiles.json", {
           ...usersProfiles,
           ...defaultProfile,
         });
-        usersProfiles = readFile("user-profiles.json");
+        usersProfiles = (readFile("user-profiles.json") as UserProfiles) || {};
       }
       return { ...usersProfiles };
     } else {
@@ -75,7 +75,7 @@
         ...existingProfiles,
         [newProfileName]: $settingsObject,
       });
-      existingProfiles = readFile("user-profiles.json") || {};
+      existingProfiles = (readFile("user-profiles.json") as UserProfiles) || {};
       mount(Toast, {
         target: document.body,
         props: {
@@ -99,18 +99,16 @@
 
   function refreshProfile(): void {
     if (window.cep) {
-      existingProfiles = readFile("user-profiles.json") || {};
+      existingProfiles = (readFile("user-profiles.json") as UserProfiles) || {};
     }
   }
 
-  function saveProfilesFromFile(e: unknown): void {
-    const file = (e as any).files[0];
+  function saveProfilesFromFile(input: HTMLInputElement): void {
+    const file = input.files?.[0];
+    if (!file) return;
 
-    console.log(file);
-
-    let jsonData;
-
-    file?.text().then((text: string) => {
+    file.text().then((text: string) => {
+      let jsonData: UserProfiles;
       try {
         jsonData = JSON.parse(text);
 
@@ -119,8 +117,7 @@
             ...existingProfiles,
             ...jsonData,
           });
-
-          existingProfiles = readFile("user-profiles.json") || {};
+          existingProfiles = (readFile("user-profiles.json") as UserProfiles) || {};
         }
 
         mount(Toast, {
@@ -130,15 +127,18 @@
             duration: 2000,
           },
         });
-      } catch (err: Error | unknown) {
-        console.error("Invalid JSON format:", err);
+      } catch (err: unknown) {
+        console.error("[ai2svelte] Invalid JSON in profiles file:", err);
         mount(Toast, {
           target: document.body,
           props: {
-            message: `Error occured while loading ${file.name}. Try again.`,
-            duration: 2000,
+            message: `Error loading ${file.name}. File must be valid JSON.`,
+            duration: 3000,
           },
         });
+      } finally {
+        // Always reset the input so the same file can be re-selected after an error
+        input.value = "";
       }
     });
   }
@@ -206,7 +206,7 @@
       name="avatar"
       accept="application/json"
       style="display: none;"
-      onchange={function () {
+      onchange={function (this: HTMLInputElement) {
         saveProfilesFromFile(this);
       }}
     />

@@ -38,9 +38,10 @@
     writeFile,
   } from "./utils/utils";
   import { bakeShadows } from "./utils/bakeShadows";
-  // @ts-ignore
+  // @ts-ignore: precheck.js is a plain JS file with no TypeScript declarations
   import { precheck } from "./precheck/precheck.js";
   import { fetchSettings } from "./utils/utils";
+  import type { SettingsObject } from "./Tabs/types";
 
   // TABS
   import TabBar from "./Components/TabBar.svelte";
@@ -49,68 +50,66 @@
   import Home from "./Tabs/Home/Home.svelte";
   import Inspect from "./Tabs/Inspect.svelte";
   import Alert from "./Components/Alert.svelte";
-  //   import Preview from "./Tabs/Preview/Preview.svelte";
   import Confetti from "./Components/Confetti.svelte";
+
+  // --- state ---
 
   let splashScreen: boolean = $state(false);
   let activeTab: string = $state("HOME");
-  let previousSettings: Record<string, any> | undefined = $state();
-
+  let previousSettings: SettingsObject | undefined = $state();
   let inspectMode: boolean = $state(false);
 
   /**
-   * Fetches users style JSONs from user data
+   * Loads user-authored JSON data (animations, shadows, specimens) from disk.
+   * Falls back to bundled defaults if no user file exists.
    */
   function fetchStyleJSONs(): void {
     if (window.cep == undefined) {
-      // take defaults into account for browser
       $userAnimations = JSON5.parse(defaultAnimations);
       $userShadows = JSON5.parse(defaultShadows);
       $userSpecimens = JSON5.parse(defaultSpecimens);
       $userShadowsBaked = bakeShadows($userShadows);
       return;
     }
-    // handle user animations
+
     let animations = readFile("user-animations.json");
-    if (animations && Object.keys(animations).length !== 0) {
-      $userAnimations = animations;
+    if (animations && Object.keys(animations as object).length !== 0) {
+      $userAnimations = animations as typeof $userAnimations;
     } else {
-      let defAnimations = JSON5.parse(defaultAnimations);
+      const defAnimations = JSON5.parse(defaultAnimations);
       writeFile("user-animations.json", defAnimations);
       $userAnimations = defAnimations;
     }
 
-    // handle user shadows
     let shadows = readFile("user-shadows.json");
-    if (shadows && Object.keys(shadows).length !== 0) {
-      $userShadows = shadows;
+    if (shadows && Object.keys(shadows as object).length !== 0) {
+      $userShadows = shadows as typeof $userShadows;
     } else {
-      let defShadows = JSON5.parse(defaultShadows);
+      const defShadows = JSON5.parse(defaultShadows);
       writeFile("user-shadows.json", defShadows);
       $userShadows = defShadows;
     }
 
     $userShadowsBaked = bakeShadows($userShadows);
 
-    // handle user specimens
     let specimens = readFile("user-specimens.json");
-    if (specimens && Object.keys(specimens).length !== 0) {
-      $userSpecimens = specimens;
+    if (specimens && Object.keys(specimens as object).length !== 0) {
+      $userSpecimens = specimens as string[];
     } else {
-      let defSpecimens = JSON5.parse(defaultSpecimens);
+      const defSpecimens = JSON5.parse(defaultSpecimens);
       writeFile("user-specimens.json", defSpecimens);
       $userSpecimens = defSpecimens;
     }
   }
 
-  //   Trigger Inspect Tab with Ctrl+Shift+I
+  // Trigger Inspect Tab with Ctrl+Shift+I
   function keyboardListener(e: KeyboardEvent) {
     const isCtrl = e.ctrlKey;
     const isShift = e.shiftKey;
     const isIKey = e.key.toLowerCase() === "i";
 
     if (isCtrl && isShift && isIKey) {
-      e.preventDefault(); // Optional: prevent default DevTools opening
+      e.preventDefault();
       inspectMode = !inspectMode;
 
       if (!inspectMode && activeTab === "INSPECT") {
@@ -126,49 +125,67 @@
     }
   }
 
+  /**
+   * Restores settings/styles from the in-memory cache when the active AI document
+   * changes. Falls back to a full fetchSettings() if no cache entry exists.
+   */
   async function handleCache() {
-    $docName = ((await evalTS("getDocumentName")) as unknown as string) || "";
-    console.log("changed doc to ", $docName);
+    try {
+      $docName = ((await evalTS("getDocumentName")) as unknown as string) || "";
 
-    console.log("Cache content ", $docName, JSON.stringify($cache));
+      const activeDocs = ((await evalTS("getActiveDocumentsNames")) as string[]) || [];
 
-    const activeDocs = (await evalTS("getActiveDocumentsNames")) || [];
+      // Evict cache entries for documents that are no longer open
+      Object.keys($cache).forEach((key) => {
+        if (!activeDocs.includes(key)) {
+          delete $cache[key];
+        }
+      });
 
-    Object.keys($cache).forEach((key) => {
-      if (!activeDocs.includes(key)) {
-        delete $cache[key];
-        console.log("Deleted cache for document:", key);
+      // An empty {} settingsObject is truthy, so a poisoned/empty cache entry
+      // would otherwise count as a hit and get restored, and fetchSettings()
+      // would never run — leaving $settingsObject empty and the first run
+      // exporting with default paths. Require actual keys to count as a hit.
+      const cached = $cache[$docName]?.settingsObject as SettingsObject | undefined;
+      const cacheHit = !!cached && Object.keys(cached).length > 0;
+      if (cacheHit) {
+        // Snapshot cached values BEFORE touching any store. The `cache` derived
+        // re-snapshots get(styles) on every settingsObject change, so assigning
+        // settingsObject first would overwrite cacheObj[docName].styles with the
+        // previous document's styles — which we'd then read back on the next line.
+        const cachedSettings = cached;
+        const cachedStyles = $cache[$docName].styles;
+        await fetchSavedSettings();
+        $settingsObject = cachedSettings;
+        $styles = cachedStyles;
+      } else {
+        // Must be awaited: performPrecheck() awaits handleCache() and then
+        // flips $updateInProgress false, which is what unblocks RunButton.
+        // A fire-and-forget call here let the button run before settings
+        // (e.g. the export path) had actually loaded from the doc.
+        await fetchSettings().catch((err) => {
+          console.error("[ai2svelte] fetchSettings failed:", err);
+        });
       }
-    });
-
-    if ($cache[$docName]?.settingsObject) {
-      //   await fetchSettings();
-
-      await fetchSavedSettings();
-      const cachedSettings = $cache[$docName].settingsObject;
-      const cachedStyles = $cache[$docName].styles;
-      $settingsObject = cachedSettings;
-      $styles = cachedStyles;
-      console.log("Cache content ", $docName, JSON.stringify($cache));
-      console.log("Restored settingsObject from cache");
-    } else {
-      fetchSettings();
+    } catch (err) {
+      console.error("[ai2svelte] handleCache failed:", err);
     }
   }
 
-  $effect(() => {
-    if ($cache) {
-      console.log($cache);
-    }
-  });
-
-  // do initial checks and fetch settings
   async function performPrecheck() {
-    precheck();
+    // Must be awaited before handleCache(): precheck() -> checkVersion() reads
+    // the document's hidden XMP data (getVariable "version"). handleCache() ->
+    // fetchSettings() reads the same file's XMP (getVariable "ai-settings").
+    // Run un-awaited, these two XMPFile reads on the same .ai file overlap and
+    // the ai-settings read can fail, leaving $settingsObject empty — so the
+    // first run exports with default paths. Serialize them.
+    await precheck().catch((err) => {
+      console.error("[ai2svelte] precheck failed:", err);
+    });
 
-    handleCache();
-    $docName = ((await evalTS("getDocumentName")) as unknown as string) || "";
-    fetchSettings();
+    await handleCache().catch((err) => {
+      console.error("[ai2svelte] handleCache error during precheck:", err);
+    });
 
     $updateInProgress = false;
 
@@ -176,17 +193,17 @@
   }
 
   onMount(() => {
-    // load user settings and styles on mount
     if (window.cep) {
       $updateInProgress = true;
 
-      performPrecheck();
+      performPrecheck().catch((err) => {
+        console.error("[ai2svelte] performPrecheck failed:", err);
+      });
 
       previousSettings = { ...$settingsObject };
       splashScreen = true;
     } else {
       fetchStyleJSONs();
-      // handle splash for testing
       setTimeout(() => {
         splashScreen = true;
       }, 300);
@@ -194,33 +211,30 @@
 
     window.addEventListener("keydown", keyboardListener);
 
-    // save settings on unmount
-    // DOUBTFUL in the context of CEP runtime
     return () => {
       window.removeEventListener("keydown", keyboardListener);
 
-      // save XMPMetadata when settings object changes
-      // avoid saving XMPMetadata on style changes to prevent too many calls
+      // Save settings on panel unload if they changed.
+      // Note: in a CEP runtime the panel is rarely truly unloaded,
+      // but this acts as a safety net for browser testing.
       if (window.cep) {
-        // save settings objects if settings are modified
         if (
           JSON.stringify(previousSettings) !== JSON.stringify($settingsObject)
         ) {
-          saveSettings($settingsObject, $styles, version);
+          saveSettings($settingsObject, { styleText: $styles?.root?.toString() }, version);
         }
       }
     };
   });
 
-  // if settings/styles changes,
-  // show alert saying there are unsaved changes
+  // Show the unsaved-changes banner whenever settings or styles drift from their saved state
   $effect(() => {
     if ($settingsObject || $styles) {
       const settingsMatch =
-        JSON.stringify($savedSettings) == JSON.stringify($settingsObject);
+        JSON.stringify($savedSettings) === JSON.stringify($settingsObject);
       const savedCSS = $savedStyles?.root?.toString() || "";
       const currentCSS = $styles?.root?.toString() || "";
-      const stylesMatch = savedCSS?.trim() == currentCSS?.trim();
+      const stylesMatch = savedCSS.trim() === currentCSS.trim();
 
       if (stylesMatch && settingsMatch) {
         $unsavedChanges = { flag: false, message: "" };
@@ -233,18 +247,22 @@
     }
   });
 
-  // if plugin is running in Illustrator,
-  // listen to document change event
+  // Re-fetch settings when the active Illustrator document changes
   $effect(() => {
     if (csi && window.cep) {
       untrack(() => {
-        // fetch current ai file's settings when document changed
         csi.addEventListener("documentAfterActivate", async () => {
-          // don't fetch settings if ai2svelte is in progress
-          // the window might focus off and on while ai2svelte is running
+          // Skip if ai2svelte is mid-run — the window may focus in/out during that
           if ($ai2svelteInProgress) return;
 
-          handleCache();
+          // Gate the run button while the new document's settings load, same as
+          // performPrecheck. Without this, running right after a doc switch fires
+          // with the previous doc's (or empty) settings — wrong export path.
+          $updateInProgress = true;
+          await handleCache().catch((err) => {
+            console.error("[ai2svelte] handleCache error on document change:", err);
+          });
+          $updateInProgress = false;
         });
       });
     }
@@ -263,10 +281,6 @@
     <Home refreshSettings={fetchSettings} />
   {:else if activeTab === "STYLES"}
     <Styles />
-    <!-- {:else if activeTab === "PREVIEW"}
-    {#key $forcePreview}
-      <Preview forceRender={$forcePreview} />
-    {/key} -->
   {:else if activeTab === "SETTINGS"}
     <Settings />
   {:else if activeTab === "INSPECT"}

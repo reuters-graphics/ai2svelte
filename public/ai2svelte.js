@@ -65,7 +65,6 @@ function main() {
     project_name: "", // Defaults to the name of the AI file
     project_type: "",
     html_output_path: "/ai2html-output/",
-    html_output_extension: ".html",
     image_output_path: "",
     image_source_path: null,
     image_alt_text: "",
@@ -98,7 +97,6 @@ function main() {
       "responsiveness",
       "output",
       "html_output_path",
-      "html_output_extension",
       "image_output_path",
       "local_preview_template",
       "png_number_of_colors",
@@ -355,22 +353,22 @@ function main() {
     if (!String(app.activeDocument.fullName)) {
       error(
         "Ai2html is unable to run because Illustrator is confused by this document's file path." +
-        " Does the path contain any forward slashes or other unusual characters?"
+          " Does the path contain any forward slashes or other unusual characters?",
       );
     }
     if (!String(app.activeDocument.path)) {
       error(
-        "You need to save your Illustrator file before running this script"
+        "You need to save your Illustrator file before running this script",
       );
     }
     if (app.activeDocument.documentColorSpace != DocumentColorSpace.RGB) {
       error(
-        'You should change the document color mode to "RGB" before running ai2html (File>Document Color Mode>RGB Color).'
+        'You should change the document color mode to "RGB" before running ai2html (File>Document Color Mode>RGB Color).',
       );
     }
     if (app.activeDocument.activeLayer.name == "Isolation Mode") {
       error(
-        "Ai2html is unable to run because the document is in Isolation Mode."
+        "Ai2html is unable to run because the document is in Isolation Mode.",
       );
     }
     if (
@@ -379,7 +377,7 @@ function main() {
     ) {
       // TODO: find a better way to detect this condition (mask can be renamed)
       error(
-        "Ai2html is unable to run because you are editing an Opacity Mask."
+        "Ai2html is unable to run because you are editing an Opacity Mask.",
       );
     }
 
@@ -435,7 +433,7 @@ function main() {
     message(
       "Script ran in",
       ((+new Date() - startTime) / 1000).toFixed(1),
-      "seconds"
+      "seconds",
     );
     showCompletionAlert();
   }
@@ -499,7 +497,7 @@ function main() {
           activeArtboard,
           textFrames,
           masks,
-          settings
+          settings,
         );
       } else {
         imageData = { html: "" };
@@ -522,13 +520,13 @@ function main() {
       artboardContent.css += generateArtboardCss(
         activeArtboard,
         textData.styles,
-        settings
+        settings,
       );
 
       assignArtboardContentToFile(
         settings.output == "one-file" ? getDocumentName() : docArtboardName,
         artboardContent,
-        fileContentArr
+        fileContentArr,
       );
     }); // end artboard loop
 
@@ -673,8 +671,8 @@ function main() {
   function firstBy(f1, f2) {
     var compare = f2
       ? function (a, b) {
-        return f1(a, b) || f2(a, b);
-      }
+          return f1(a, b) || f2(a, b);
+        }
       : f1;
     compare.thenBy = function (f) {
       return firstBy(compare, f);
@@ -718,7 +716,7 @@ function main() {
   function encodeHtmlEntities(text) {
     return replaceChars(
       text,
-      basicCharacterReplacements.concat(extraCharacterReplacements)
+      basicCharacterReplacements.concat(extraCharacterReplacements),
     );
   }
 
@@ -728,7 +726,7 @@ function main() {
     // OVERRIDING THIS HERE. we need to replace those two angular brackets becuase we have out text inside gettexts.
     return replaceChars(
       text,
-      basicCharacterReplacements.concat(extraCharacterReplacements)
+      basicCharacterReplacements.concat(extraCharacterReplacements),
     );
   }
 
@@ -847,7 +845,7 @@ function main() {
     var keyExp = "([_a-zA-Z][\\w-]*)";
     var mustachePattern = new RegExp(
       "\\{\\{\\{? *" + keyExp + " *\\}\\}\\}?",
-      "g"
+      "g",
     );
     var ejsPattern = new RegExp("<%=? *" + keyExp + " *%>", "g");
     var replace = function (match, name) {
@@ -999,12 +997,12 @@ function main() {
       if (outputFolderCreated) {
         message(
           "The " +
-          nickname +
-          " folder did not exist, so the folder was created."
+            nickname +
+            " folder did not exist, so the folder was created.",
         );
       } else {
         warn(
-          "The " + nickname + " folder did not exist and could not be created."
+          "The " + nickname + " folder did not exist and could not be created.",
         );
       }
     }
@@ -1192,7 +1190,7 @@ function main() {
         settings.grouped_artboards = true;
         if (settings.output == "one-file") {
           warnOnce(
-            'Artboards should have unique names. "' + name + '" is duplicated.'
+            'Artboards should have unique names. "' + name + '" is duplicated.',
           );
         } else {
           warnOnce('Found a group of artboards named "' + name + '".');
@@ -1284,7 +1282,7 @@ function main() {
   function validateDocumentSettings(settings) {
     if (isTrue(settings.include_resizer_classes)) {
       error(
-        "The include_resizer_classes option was removed. Please file a GitHub issue if you need this feature."
+        "The include_resizer_classes option was removed. Please file a GitHub issue if you need this feature.",
       );
     }
 
@@ -1296,7 +1294,7 @@ function main() {
     ) {
       warn(
         'Unsupported "responsiveness" setting: ' +
-        (settings.responsiveness || "[]")
+          (settings.responsiveness || "[]"),
       );
     }
   }
@@ -1386,17 +1384,17 @@ function main() {
         Date.prototype.toJSON = function () {
           return isFinite(this.valueOf())
             ? this.getUTCFullYear() +
-            "-" +
-            f(this.getUTCMonth() + 1) +
-            "-" +
-            f(this.getUTCDate()) +
-            "T" +
-            f(this.getUTCHours()) +
-            ":" +
-            f(this.getUTCMinutes()) +
-            ":" +
-            f(this.getUTCSeconds()) +
-            "Z"
+                "-" +
+                f(this.getUTCMonth() + 1) +
+                "-" +
+                f(this.getUTCDate()) +
+                "T" +
+                f(this.getUTCHours()) +
+                ":" +
+                f(this.getUTCMinutes()) +
+                ":" +
+                f(this.getUTCSeconds()) +
+                "Z"
             : null;
         };
         Boolean.prototype.toJSON = this_value;
@@ -1411,13 +1409,13 @@ function main() {
         rx_escapable.lastIndex = 0;
         return rx_escapable.test(string)
           ? '"' +
-          string.replace(rx_escapable, function (a) {
-            var c = meta[a];
-            return typeof c === "string"
-              ? c
-              : "\\u" + ("0000" + a.charCodeAt(0).toString(16)).slice(-4);
-          }) +
-          '"'
+              string.replace(rx_escapable, function (a) {
+                var c = meta[a];
+                return typeof c === "string"
+                  ? c
+                  : "\\u" + ("0000" + a.charCodeAt(0).toString(16)).slice(-4);
+              }) +
+              '"'
           : '"' + string + '"';
       }
       function str(key, holder) {
@@ -1461,7 +1459,12 @@ function main() {
                 partial.length === 0
                   ? "[]"
                   : gap
-                    ? "[\n" + gap + partial.join(",\n" + gap) + "\n" + mind + "]"
+                    ? "[\n" +
+                      gap +
+                      partial.join(",\n" + gap) +
+                      "\n" +
+                      mind +
+                      "]"
                     : "[" + partial.join(",") + "]";
               gap = mind;
               return v;
@@ -1563,7 +1566,7 @@ function main() {
               text
                 .replace(rx_two, "@")
                 .replace(rx_three, "]")
-                .replace(rx_four, "")
+                .replace(rx_four, ""),
             )
           ) {
             j = eval("(" + text + ")");
@@ -1625,7 +1628,7 @@ function main() {
     textArea.contents = settingsLines.join("\n");
     textArea.name = "ai2html-settings";
     message(
-      "A settings text block was created to the left of all your artboards."
+      "A settings text block was created to the left of all your artboards.",
     );
     return textArea;
   }
@@ -1708,10 +1711,10 @@ function main() {
 
     if (errors.length > 0) {
       alertHed = "The Script Was Unable to Finish";
-    } 
+    }
     // else if (scriptEnvironment == "nyt-preview") {
     //   alertHed = "Actually, that\u2019s not half bad :)"; // &rsquo;
-    // } 
+    // }
     else {
       alertHed = "Nice work!";
     }
@@ -1752,7 +1755,7 @@ function main() {
     var win = new Window(
       "palette",
       opts.name || "Progress",
-      [150, 150, 600, 260]
+      [150, 150, 600, 260],
     );
     win.pnl = win.add("panel", [10, 10, 440, 100], "Progress");
     win.pnl.progBar = win.pnl.add("progressbar", [20, 35, 410, 60], 0, 100);
@@ -2430,8 +2433,8 @@ function main() {
     ) {
       warnOnce(
         "Found a <" +
-        tagName +
-        "> tag. Try using Illustrator formatting instead."
+          tagName +
+          "> tag. Try using Illustrator formatting instead.",
       );
     }
     return tagName ? straightenCurlyQuotesInsideAngleBrackets(str) : str;
@@ -2584,8 +2587,8 @@ function main() {
       if (pdata.aiStyle.blendMode && !pdata.cssStyle["mix-blend-mode"]) {
         warnOnce(
           "Missing a rule for converting " +
-          pdata.aiStyle.blendMode +
-          " to CSS."
+            pdata.aiStyle.blendMode +
+            " to CSS.",
         );
       }
     }
@@ -2594,7 +2597,7 @@ function main() {
       range.cssStyle = analyzeTextStyle(
         range.aiStyle,
         range.text,
-        currCharStyles
+        currCharStyles,
       );
       if (range.warning) {
         warn(range.warning.replace("%s", truncateString(range.text, 35)));
@@ -2602,10 +2605,10 @@ function main() {
       if (range.aiStyle.aifont && !range.cssStyle["font-family"]) {
         warnOnce(
           "Missing a rule for converting font: " +
-          range.aiStyle.aifont +
-          ". Sample text: " +
-          truncateString(range.text, 35),
-          range.aiStyle.aifont
+            range.aiStyle.aifont +
+            ". Sample text: " +
+            truncateString(range.text, 35),
+          range.aiStyle.aifont,
         );
       }
     }
@@ -2674,7 +2677,7 @@ function main() {
 
     var findWeight = function () {
       var weight = aifont.match(
-        /(semi-?bold|bold|black|extra-?light|light|regular|medium|ultra-?light)/gi
+        /(semi-?bold|bold|black|extra-?light|light|regular|medium|ultra-?light)/gi,
       );
       if (weight && weights[weight[0].toLowerCase()]) {
         return weights[weight[0].toLowerCase()];
@@ -2687,7 +2690,7 @@ function main() {
       // Source has semibold/bold/black"It" name for italics
       // so source semibold italic shows up as Source-SemiBoldIt. weird.
       var style = aifont.match(
-        /(italic|(?:semi-?bold|bold|black|extra-?light|light|regular)it)/gi
+        /(italic|(?:semi-?bold|bold|black|extra-?light|light|regular)it)/gi,
       );
       if (style) {
         return "italic";
@@ -2696,7 +2699,9 @@ function main() {
     };
 
     var findFamily = function () {
-      var family = aifont.match(/(source|knowledge|menlo|arial|georgia|freight|)/gi);
+      var family = aifont.match(
+        /(source|knowledge|menlo|arial|georgia|freight|)/gi,
+      );
       if (family && fontFamilies[family[0].toLowerCase()]) {
         return fontFamilies[family[0].toLowerCase()];
       }
@@ -2925,7 +2930,7 @@ function main() {
   function getTextFramesByArtboard(ab, masks, settings) {
     var candidateFrames = findTextFramesToRender(
       doc.textFrames,
-      ab.artboardRect
+      ab.artboardRect,
     );
     var excludedFrames = getClippedTextFramesByArtboard(ab, masks);
     candidateFrames = arraySubtract(candidateFrames, excludedFrames);
@@ -2949,7 +2954,7 @@ function main() {
         return v2.top - v1.top;
       }).thenBy(function (v1, v2) {
         return v1.left - v2.left;
-      })
+      }),
     );
     return selected;
   }
@@ -2974,7 +2979,7 @@ function main() {
   function getUntransformedTextBounds(textFrame) {
     var copy = textFrame.duplicate(
       textFrame.parent,
-      ElementPlacement.PLACEATEND
+      ElementPlacement.PLACEATEND,
     );
     var matrix = clearMatrixShift(textFrame.matrix);
     copy.transform(app.invertMatrix(matrix));
@@ -3026,7 +3031,7 @@ function main() {
     if (scaleX != 100 || scaleY != 100) {
       warn(
         "Vertical or horizontal text scaling will be lost. Affected text: " +
-        truncateString(textFrame.contents, 35)
+          truncateString(textFrame.contents, 35),
       );
     }
 
@@ -3062,7 +3067,7 @@ function main() {
       ? getUntransformedTextBounds(thisFrame)
       : thisFrame.geometricBounds;
     var htmlBox = convertAiBounds(
-      shiftBounds(aiBounds, -abBox.left, abBox.top)
+      shiftBounds(aiBounds, -abBox.left, abBox.top),
     );
     var thisFrameAttributes = parseDataAttributes(thisFrame.note);
     // estimated space between top of HTML container and character glyphs
@@ -3236,7 +3241,7 @@ function main() {
         border = "border";
       }
       styles.push(
-        border + ": " + style.strokeWidth + "px solid " + style.stroke
+        border + ": " + style.strokeWidth + "px solid " + style.stroke,
       );
     }
     if (style.fill) {
@@ -3596,7 +3601,7 @@ function main() {
       forEach(svgLayers, function (lyr) {
         var svgName = uniqAssetName(
           getLayerImageName(lyr, activeArtboard, settings),
-          svgNames
+          svgNames,
         );
         var svgHtml = exportImage(
           svgName,
@@ -3604,7 +3609,7 @@ function main() {
           activeArtboard,
           masks,
           lyr,
-          settings
+          settings,
         );
         if (svgHtml) {
           svgNames.push(svgName);
@@ -3663,7 +3668,7 @@ function main() {
     return pathJoin(
       docPath,
       settings.html_output_path,
-      settings.image_output_path
+      settings.image_output_path,
     );
   }
 
@@ -3705,11 +3710,11 @@ function main() {
           outputPath,
           imgClass,
           svgInlineStyle,
-          settings
+          settings,
         );
         if (layer) {
           message(
-            "Generated inline SVG for layer [" + getLayerName(layer) + "]"
+            "Generated inline SVG for layer [" + getLayerName(layer) + "]",
           );
         }
       } else {
@@ -3720,7 +3725,7 @@ function main() {
           imgClass,
           svgInlineStyle,
           ab,
-          settings
+          settings,
         );
         if (layer) {
           message("Exported an SVG layer as " + outputPath.replace(/.*\//, ""));
@@ -3762,7 +3767,10 @@ function main() {
     if (dupes.length > 0) {
       msg = truncateString(dupes.sort().join(", "), 65, true);
       warnOnce(
-        "Found duplicate SVG " + (dupes.length == 1 ? "id" : "ids") + ": " + msg
+        "Found duplicate SVG " +
+          (dupes.length == 1 ? "id" : "ids") +
+          ": " +
+          msg,
       );
     }
     return svg;
@@ -3838,7 +3846,7 @@ function main() {
 
     if (!formats.length) {
       warnOnce(
-        "No images were created because no image formats were specified."
+        "No images were created because no image formats were specified.",
       );
       return "";
     }
@@ -3850,8 +3858,8 @@ function main() {
     ) {
       warnOnce(
         "An artboard contains a raster image -- consider exporting to jpg instead of " +
-        formats[0] +
-        "."
+          formats[0] +
+          ".",
       );
     }
 
@@ -3869,7 +3877,9 @@ function main() {
 
   // Create an <img> tag for the artboard image
   function generateImageHtml(imgFile, imgId, imgClass, imgStyle, ab, settings) {
-    var imgDir = "{ assetsPath.replace(new RegExp('/([^/.]+)$'), '/$1/') || '/' }" + settings.image_source_path,
+    var imgDir =
+        "{ assetsPath.replace(new RegExp('/([^/.]+)$'), '/$1/') || '/' }" +
+        settings.image_source_path,
       imgAlt = encodeHtmlEntities(settings.image_alt_text || ""),
       html,
       src;
@@ -3929,8 +3939,8 @@ function main() {
     if (pixels > warnThreshold) {
       warn(
         "An output image contains ~" +
-        Math.round(pixels / 1e6) +
-        " million pixels -- this may cause problems on mobile devices"
+          Math.round(pixels / 1e6) +
+          " million pixels -- this may cause problems on mobile devices",
       );
     }
     return k;
@@ -3957,7 +3967,7 @@ function main() {
           abPos.width,
           abPos.height,
           format,
-          settings.use_2x_images_if_possible
+          settings.use_2x_images_if_possible,
         );
     }
 
@@ -3975,8 +3985,8 @@ function main() {
         imageScale = MAX_JPG_SCALE;
         warn(
           imgPath.split("/").pop() +
-          " was output at a smaller size than desired because of a limit on jpg exports in Illustrator." +
-          " If the file needs to be larger, change the image format to png which does not appear to have limits."
+            " was output at a smaller size than desired because of a limit on jpg exports in Illustrator." +
+            " If the file needs to be larger, change the image format to png which does not appear to have limits.",
         );
       }
       fileType = ExportType.JPEG;
@@ -4004,8 +4014,8 @@ function main() {
   //   smaller SVG output.
   function copyArtboardForImageExport(ab, masks, layers) {
     var layerMasks = filter(masks, function (o) {
-      return !!o.layer;
-    }),
+        return !!o.layer;
+      }),
       artboardBounds = ab.artboardRect,
       sourceLayers = layers || toArray(doc.layers),
       destLayer = doc.layers.add(),
@@ -4030,7 +4040,7 @@ function main() {
         DocumentColorSpace.RGB,
         doc.width,
         doc.height,
-        1
+        1,
       );
       doc2.pageOrigin = doc.pageOrigin; // not sure if needed
       doc2.rulerOrigin = doc.rulerOrigin;
@@ -4192,11 +4202,11 @@ function main() {
       "rect,circle,path,line,polyline".split(","),
       function (name) {
         return "#" + id + " " + name;
-      }
+      },
     ).join(", ");
     svg = injectCSSinSVG(
       svg,
-      selector + " { vector-effect: non-scaling-stroke; }"
+      selector + " { vector-effect: non-scaling-stroke; }",
     );
     // remove images from filesystem and SVG file
     svg = removeImagesInSVG(svg, path);
@@ -4242,11 +4252,11 @@ function main() {
         count++;
         deleteFile(pathJoin(dir, href));
         return "";
-      }
+      },
     );
     if (count > 0) {
       warnOnce(
-        "This document contains images or effects that can't be exported to SVG."
+        "This document contains images or effects that can't be exported to SVG.",
       );
     }
     return content;
@@ -4284,9 +4294,9 @@ function main() {
     var aspectRatio = abBox.width / abBox.height;
     var inlineStyle = "display: none;";
     var html = "";
-    var aspectRatio = '';
+    var aspectRatio = "";
 
-    aspectRatio = "aspect-ratio: " + (abBox.width / abBox.height )+ ";";
+    aspectRatio = "aspect-ratio: " + abBox.width / abBox.height + ";";
 
     html +=
       '\t<div id="' +
@@ -4362,26 +4372,31 @@ function main() {
     css +=
       blockStart + "." + nameSpace + "aiPointText p { white-space: nowrap; }\r";
 
-      css += blockStart + "{\r";
-      css += "container-type: inline-size;\r";
+    css += blockStart + "{\r";
+    css += "container-type: inline-size;\r";
 
-      forEachUsableArtboard(function (ab, abIndex) {
-        var id = nameSpace + getArtboardFullName(ab, settings);
-        var visibleRange = getArtboardVisibilityRange(ab, settings);
+    forEachUsableArtboard(function (ab, abIndex) {
+      var id = nameSpace + getArtboardFullName(ab, settings);
+      var visibleRange = getArtboardVisibilityRange(ab, settings);
 
-        if (visibleRange[1] < Infinity) {
-          css += "@container (min-width:" + visibleRange[0] + "px) and (max-width: " + visibleRange[1] + "px) {\r";
-        } else {
-          css += "@container (min-width:" + visibleRange[0] + "px) {\r";
-        }
+      if (visibleRange[1] < Infinity) {
+        css +=
+          "@container (min-width:" +
+          visibleRange[0] +
+          "px) and (max-width: " +
+          visibleRange[1] +
+          "px) {\r";
+      } else {
+        css += "@container (min-width:" + visibleRange[0] + "px) {\r";
+      }
 
-        css += "#" + id + " {\r";
-        css += "display: block !important;\r";
-        css += "}\r";
-        css += "}\r";
-      });
-
+      css += "#" + id + " {\r";
+      css += "display: block !important;\r";
       css += "}\r";
+      css += "}\r";
+    });
+
+    css += "}\r";
 
     return css;
   }
@@ -4392,7 +4407,8 @@ function main() {
     //
     var svelteJS = "<script>\r\t";
 
-    svelteJS += "let { assetsPath = '/', onAiMounted = () => {} } = $props();\r";
+    svelteJS +=
+      "let { assetsPath = '/', onAiMounted = () => {} } = $props();\r";
 
     // add prop for onmount function that defaults to noop
     svelteJS += "import { onMount } from 'svelte';\n";
@@ -4407,10 +4423,10 @@ function main() {
   function outputLocalPreviewPage(
     textForFile,
     localPreviewDestination,
-    settings
+    settings,
   ) {
     var localPreviewTemplateText = readTextFile(
-      docPath + settings.local_preview_template
+      docPath + settings.local_preview_template,
     );
     settings.ai2htmlPartial = textForFile; // TODO: don't modify global settings this way
     var localPreviewHtml = applyTemplate(localPreviewTemplateText, settings);
@@ -4424,7 +4440,7 @@ function main() {
         "\r\t/* Custom CSS */\r" +
         (customBlocks.css.join("\r\t\n") + "\n" + mQ).replace(
           /\{\{(project_name|filename)\}\}/g,
-          docName
+          docName,
         ) +
         "\r";
     } else {
@@ -4510,8 +4526,7 @@ function main() {
     htmlFileDestination = htmlFileDestinationFolder + pageName + ".svelte";
 
     if (settings.output == "one-file" && settings.project_type == "ai2html") {
-      htmlFileDestination =
-        htmlFileDestinationFolder + "index" + settings.html_output_extension;
+      htmlFileDestination = htmlFileDestinationFolder + "index" + ".svelte";
     }
 
     // write file
