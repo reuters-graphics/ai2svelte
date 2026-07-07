@@ -32,6 +32,20 @@ pnpm test       # run the Vitest suite
 
 Dev setup requires Adobe Illustrator, PlayerDebugMode enabled, pnpm 9.6+, and Node 18+. See the [contributor docs](https://reuters-graphics.github.io/ai2svelte/) and [`CLAUDE.md`](./CLAUDE.md) for architecture notes (the extension spans two runtimes: a Svelte panel UI and Adobe ExtendScript).
 
+### Visual regression testing
+
+Before tagging a release, run `pnpm test:visual` (local-only, requires Illustrator installed and a prior `pnpm build`) to catch unintended changes to the conversion engine. It drives real Illustrator to export sample `.ai` fixtures through the actual production export path, then checks the output two ways: a Playwright pixel diff against a committed screenshot, and a Vitest structural diff against the generated `.svelte` text.
+
+The main fixture, `example/preview-dev.ai`, deliberately packs most of ai2svelte's features into a single file — a base raster layer, a tagged PNG24 layer with a blend mode, a tagged SVG layer with nested blend-mode shapes, HTML and plain text layers, a snippet/chart layer, and multiple responsive artboards — so one fixture gives broad coverage without maintaining a pile of small ones.
+
+Baselines are "last approved," not immutable — when a change is intentional, regenerate and accept it:
+
+```bash
+pnpm test:visual:generate            # re-run the real Illustrator export
+playwright test --update-snapshots   # accept new screenshots
+vitest run src/js/main/__tests__/ai2svelte-output.test.ts -u  # accept new .svelte snapshot
+```
+
 Feature branches merge into `main`. Please open an issue or PR on [GitHub](https://github.com/reuters-graphics/ai2svelte).
 
 ## License

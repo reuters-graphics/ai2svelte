@@ -1,0 +1,26 @@
+<!doctype html>
+<html>
+  <body style="margin: 0">
+    <div id="frameContent" style="width: 800px"></div>
+    <script type="module">
+      const params = new URLSearchParams(location.search);
+      const bundlePath = params.get("bundle");
+      const assetsPath = params.get("assetsPath") || "/";
+      const mod = await import(bundlePath);
+      const taggedText = {
+        text: {
+          plain: {
+            text1: "A plain text here.",
+          },
+        },
+        htext: {
+          html: {
+            text1:
+              '<span style="padding: 2px; background-color: crimson; color: white;">h</span>text',
+          },
+        },
+      };
+      mod.default(document.getElementById("frameContent"), { assetsPath, taggedText });
+    </script>
+  </body>
+</html>

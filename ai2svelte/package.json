@@ -18,6 +18,8 @@
     "check:frontend": "node scripts/checkFrontend.js",
     "check:jsx": "node scripts/checkJsx.js",
     "test": "vitest run",
+    "test:visual:generate": "node scripts/visual-test/generate.mjs",
+    "test:visual": "pnpm test:visual:generate && playwright test && vitest run src/js/main/__tests__/ai2svelte-output.test.ts",
     "test:watch": "vitest",
     "test:ui": "vitest --ui"
   },
@@ -61,6 +63,7 @@
     "@babel/preset-typescript": "^7.16.0",
     "@babel/runtime": "^7.16.3",
     "@codemirror/lint": "^6.9.0",
+    "@playwright/test": "^1.61.1",
     "@rollup/plugin-babel": "^6.0.4",
     "@rollup/plugin-commonjs": "^28.0.3",
     "@rollup/plugin-image": "^3.0.3",

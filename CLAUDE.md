@@ -59,6 +59,8 @@ pnpm bake-shadows  # Regen shadowsBaked.json from shadows.json raw data
 pnpm test       # Run the Vitest suite once
 pnpm test:watch # Vitest in watch mode
 pnpm test:ui    # Vitest UI
+
+pnpm test:visual  # Visual regression test — see Visual Regression Testing below
 ```
 
 Docs site (root):
@@ -75,6 +77,37 @@ aliased to a stub in `src/js/__mocks__/bolt.ts` because the real module calls
 `new CSInterface()` at load, which fails outside CEP. Covers stores, utils, and
 UI components; ExtendScript (`src/jsx/`) is not unit-tested — verify that in
 Illustrator.
+
+### Visual Regression Testing
+
+`pnpm test:visual` (in `ai2svelte/`) catches unintended changes to the
+`ai2svelte.js` conversion engine. **Local-only** — requires Illustrator
+installed and a prior `pnpm build` (needs `dist/cep/jsx/index.js`); not run in
+CI, which has no licensed Illustrator.
+
+Pipeline (`scripts/visual-test/`): drives real Illustrator via
+`osascript`/`do javascript` to run the real export path (`runAi2Svelte`, the
+same function `RunButton.svelte` calls) against fixture `.ai` files listed in
+`fixtures.json`, bundles the generated `.svelte` output with `src/server.cjs`,
+then Playwright renders it and screenshot-diffs against committed baselines
+in `scripts/visual-test/__screenshots__/`. A companion Vitest snapshot test
+(`src/js/main/__tests__/ai2svelte-output.test.ts`) diffs the generated
+`.svelte` text itself, catching logic changes a pixel diff might miss.
+
+Baselines are "last approved," not immutable — when a change is intentional,
+regenerate and review the diff, then accept:
+```bash
+pnpm test:visual:generate            # re-run the real Illustrator export
+playwright test --update-snapshots   # accept new screenshots
+vitest run src/js/main/__tests__/ai2svelte-output.test.ts -u  # accept new .svelte snapshot
+```
+
+`harness.html` renders fixtures at a fixed 800px width, so only the artboard
+whose container-query range covers that width gets screenshotted (currently
+the `md` breakpoint of `preview-dev.ai`'s xs/sm/md/lg/xl set) — the other
+breakpoints' CSS isn't exercised. Deliberate for now: one width keeps the
+baseline count low; add a viewport per breakpoint to `visual.spec.ts` if
+breakpoint-specific regressions become a real risk.
 
 ## Architecture: Two Runtimes
 
