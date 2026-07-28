@@ -1,0 +1,45 @@
+---
+title: Testing
+description: Running the frontend test suite and visual regression tests
+slug: contributors/testing
+sidebar:
+  order: 202
+---
+
+import { Aside } from "@astrojs/starlight/components";
+
+### Frontend tests
+
+The Svelte panel UI (`src/js/`) is covered by a Vitest suite:
+
+```bash
+pnpm test        # run once
+pnpm test:watch  # watch mode
+pnpm test:ui     # Vitest UI
+```
+
+<Aside type="note">
+  The ExtendScript conversion engine (`src/jsx/`) has no unit tests — it runs
+  inside Illustrator's scripting engine, not Node, so it's verified with the
+  visual regression suite below or by hand in Illustrator.
+</Aside>
+
+### Visual regression tests
+
+```bash
+pnpm test:visual
+```
+
+This catches unintended changes to the `ai2svelte.js` conversion engine. It's **local-only**: it requires Illustrator installed and a prior `pnpm build` (needs `dist/cep/jsx/index.js`). It doesn't run in CI, which has no licensed Illustrator.
+
+The pipeline drives real Illustrator via `osascript`/`do javascript` to run the actual export path against fixture `.ai` files listed in `scripts/visual-test/fixtures.json`, bundles the generated `.svelte` output, then uses Playwright to screenshot-diff it against committed baselines in `scripts/visual-test/__screenshots__/`. A companion Vitest snapshot test diffs the generated `.svelte` text itself, catching logic changes a pixel diff might miss.
+
+To add a fixture, add an entry to `fixtures.json` with a name, an `.ai` file path, and optionally an export `settings` override (e.g. `{ "image_format": "svg" }` to test the SVG export path against the same artboard).
+
+Baselines are "last approved," not immutable. When a change is intentional, regenerate and review the diff before accepting:
+
+```bash
+pnpm test:visual:generate            # re-run the real Illustrator export
+playwright test --update-snapshots   # accept new screenshots
+vitest run src/js/main/__tests__/ai2svelte-output.test.ts -u  # accept new .svelte snapshot
+```
