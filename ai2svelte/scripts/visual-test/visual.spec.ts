@@ -4,7 +4,7 @@ import fixtures from "./fixtures.json" with { type: "json" };
 
 for (const fixture of fixtures) {
   test(`visual: ${fixture.name}`, async ({ page }) => {
-    const outputDir = `${path.dirname(fixture.aiPath)}/visual-test-output`;
+    const outputDir = `${path.dirname(fixture.aiPath)}/visual-test-output-${fixture.name}`;
     await page.goto(
       `/scripts/visual-test/harness.html?bundle=/${outputDir}/bundle.js&assetsPath=/${outputDir}`,
     );

@@ -102,7 +102,7 @@ export function main(settingsArg) {
   // - Update the version number in package.json
   // - Add an entry to CHANGELOG.md
   // - Run 'npm publish' to create a new GitHub release
-  const scriptVersion = "1.0.8";
+  const scriptVersion = "1.0.9";
 
   // ================================
   // Global variable declarations
@@ -505,7 +505,8 @@ export function main(settingsArg) {
   // display debugging message in completion alert box
   // (in debug mode)
   function message() {
-    feedback.push(concatMessages(arguments));
+    var msg = concatMessages(arguments);
+    if (!contains(feedback, msg)) feedback.push(msg);
   }
 
   function concatMessages(args) {
@@ -536,6 +537,7 @@ export function main(settingsArg) {
   }
 
   function warn(msg) {
+    if (contains(warnings, msg)) return;
     warnings.push(msg);
   }
 
@@ -3433,7 +3435,8 @@ export function main(settingsArg) {
     // position:static to set the artboard height)
     var check = layer && parseObjectName(layer.name).inline;
     var inlineSvg = isTrue(settings.inline_svg) || check;
-    var svgInlineStyle, svgLayersArg;
+    var svgInlineStyle = "",
+      svgLayersArg;
     var svgOutput, html;
     var layerBlendMode = "normal";
     var aiLayerBlendMode = "NORMAL";
@@ -3463,7 +3466,7 @@ export function main(settingsArg) {
       imgClass += " " + nameSpace + "svg";
 
       if (layer) {
-        svgInlineStyle = getLayerOpacityCSS(layer);
+        svgInlineStyle = getLayerOpacityCSS(layer) ?? "";
         if (layerBlendMode !== "normal") {
           svgInlineStyle += "mix-blend-mode: " + layerBlendMode + ";";
         }
@@ -3489,21 +3492,23 @@ export function main(settingsArg) {
       rewriteSVGFile(outputPath, imgId, settings, pageName);
 
       if (inlineSvg) {
+        // Illustrator's SVG export always trims to the artwork's bounding
+        // box (see exportSVG), regardless of tagPrefix, so this CSS override
+        // is needed for every tagPrefix, not just "svg".
+        width = roundTo(svgOutput.width, 3);
+        height = roundTo(svgOutput.height, 3);
+        left = roundTo(svgOutput.left, 3);
+        top = roundTo(svgOutput.top, 3);
+        var abBox = convertAiBounds(ab.artboardRect);
+
+        svgInlineStyle += "position: absolute;";
+        svgInlineStyle += "width: " + formatCssPct(width, abBox.width) + ";";
+        svgInlineStyle += "height: " + formatCssPct(height, abBox.height) + ";";
+        svgInlineStyle += "top: " + formatCssPct(top, abBox.height) + ";";
+        // vertical margin pct is calculated as pct of width
+        svgInlineStyle += "left: " + formatCssPct(left, abBox.width) + ";";
+
         if (settings.tagPrefix == "svg") {
-          width = roundTo(svgOutput.width, 1);
-          height = roundTo(svgOutput.height, 1);
-          left = roundTo(svgOutput.left, 1);
-          top = roundTo(svgOutput.top, 1);
-          var abBox = convertAiBounds(ab.artboardRect);
-
-          svgInlineStyle += "position: absolute;";
-          svgInlineStyle += "width: " + formatCssPct(width, abBox.width) + ";";
-          svgInlineStyle +=
-            "height: " + formatCssPct(height, abBox.height) + ";";
-          svgInlineStyle += "top: " + formatCssPct(top, abBox.height) + ";";
-          // vertical margin pct is calculated as pct of width
-          svgInlineStyle += "left: " + formatCssPct(left, abBox.width) + ";";
-
           // remove namespace-aiImg class to avoid other CSS styles
           imgClass = imgClass.replace(" " + nameSpace + "aiImg", "");
         }
@@ -3521,6 +3526,18 @@ export function main(settingsArg) {
           );
         }
       } else {
+        width = roundTo(svgOutput.width, 3);
+        height = roundTo(svgOutput.height, 3);
+        left = roundTo(svgOutput.left, 3);
+        top = roundTo(svgOutput.top, 3);
+        var abBox = convertAiBounds(ab.artboardRect);
+
+        svgInlineStyle += "width: " + formatCssPct(width, abBox.width) + ";";
+        svgInlineStyle += "height: " + formatCssPct(height, abBox.height) + ";";
+        svgInlineStyle += "top: " + formatCssPct(top, abBox.height) + ";";
+        // vertical margin pct is calculated as pct of width
+        svgInlineStyle += "left: " + formatCssPct(left, abBox.width) + ";";
+
         // generate link to external SVG file
         html = generateImageHtml(
           imgFile,
@@ -3531,6 +3548,7 @@ export function main(settingsArg) {
           settings,
           group,
         );
+
         if (layer) {
           message("Exported an SVG layer as " + outputPath.replace(/.*\//, ""));
         }
@@ -3976,9 +3994,14 @@ export function main(settingsArg) {
       group2 = destGroup.duplicate(doc2.layers[0], ElementPlacement.PLACEATEND);
       group2.position = groupPos;
     }
-    destGroup.remove();
+    doc.activate();
+    // Removing the layer also removes destGroup (its only content) --
+    // explicitly calling destGroup.remove() first can throw a PARM/MRAP
+    // error for certain groups (e.g. ones with a transparency/opacity
+    // mask or blend mode), even though the parent layer's cascading
+    // removal of the same group does not.
     destLayer.remove();
-    return doc2 || null;
+    return doc2 ? { doc: doc2, itemCount: itemCount } : null;
 
     function copyLayer(lyr) {
       var mask;
@@ -4088,13 +4111,27 @@ export function main(settingsArg) {
         objectIsHidden(item) ||
         item.clipping;
       var copy;
-      if (!excluded) {
+      if (excluded) return;
+      // Illustrator can throw a PARM/MRAP error when duplicating certain
+      // GroupItems (or reading properties like .pageItems/.textFrames
+      // right after duplicating one) -- catch it here so one bad item
+      // doesn't crash the whole export.
+      try {
         copy = item.duplicate(dest, ElementPlacement.PLACEATEND); //  duplicateItem(item, dest);
         handleEffects(copy);
         itemCount++;
         if (copy.typename == "GroupItem") {
           removeHiddenItems(copy);
         }
+      } catch (e) {
+        warn(
+          "Skipped a " +
+            item.typename +
+            " (" +
+            (item.name || "unnamed") +
+            ") that could not be copied for image export -- " +
+            e.message,
+        );
       }
     }
   }
@@ -4107,9 +4144,12 @@ export function main(settingsArg) {
     //   clip to the current artboard), so we copy artboard objects to a temporary
     //   document for export.
     var parentArtboardBounds = convertAiBounds(ab.artboardRect);
-    var exportDoc = copyArtboardForImageExport(ab, masks, items);
+    var width = parentArtboardBounds.width;
+    var height = parentArtboardBounds.height;
+    var exported = copyArtboardForImageExport(ab, masks, items);
     var opts = new ExportOptionsSVG();
-    if (!exportDoc) return false;
+    if (!exported) return false;
+    var exportDoc = exported.doc;
 
     opts.embedAllFonts = false;
     opts.fontSubsetting = SVGFontSubsetting.None;
@@ -4126,30 +4166,43 @@ export function main(settingsArg) {
 
     exportDoc.activate();
 
-    // It's better to export SVG layers at the original artboard size.
-    // That allows users to perform modifications based on the original size
-    // rather than trimming it to visible artwork
-    if (settings.tagPrefix == "svg") {
-      // Run menu command to trim svg to visible items
-      app.executeMenuCommand("Fit Artboard to artwork bounds");
-      var svgBounds = convertAiBounds(exportDoc.artboards[0].artboardRect);
-      // trimming artboard repositions final artboard
-      // to artwork's x, y
-      left = svgBounds.left - parentArtboardBounds.left;
-      top = svgBounds.top - parentArtboardBounds.top;
-      // if svg bounds exceed parent artboard's bounds,
-      // revert trimming operation and use parent artboard's bounds
-      if (
-        svgBounds.width > parentArtboardBounds.width ||
-        svgBounds.height > parentArtboardBounds.height
-      ) {
-        app.executeMenuCommand("undo");
-        svgBounds = convertAiBounds(exportDoc.artboards[0].artboardRect);
+    // Illustrator's SVG exporter always sizes the <svg> to the artwork's
+    // bounding box, not the artboard -- it trims whitespace no matter what
+    // tagPrefix is set to. Run the same menu command for every export (not
+    // just tagPrefix=="svg") so left/top/width/height reflect the real,
+    // already-trimmed output for every format.
+    // "Fit Artboard to artwork bounds" errors on a doc with no artwork (the
+    // base-image export path creates an empty exportDoc for artboards with
+    // no visible content) -- skip trimming and keep the full artboard bounds.
+    if (exported.itemCount > 0) {
+      try {
+        app.executeMenuCommand("Fit Artboard to artwork bounds");
+        var svgBounds = convertAiBounds(exportDoc.artboards[0].artboardRect);
+        // trimming artboard repositions final artboard
+        // to artwork's x, y -- keep these even when the artwork overflows
+        // the parent artboard: the exported SVG file is trimmed to this same
+        // bounding box regardless (see comment above), so reverting here
+        // would leave left/top/width/height out of sync with the real file.
+        // The root container's overflow:hidden (unless allow_overflow) crops
+        // the overflowing part visually.
+        left = svgBounds.left - parentArtboardBounds.left;
+        top = svgBounds.top - parentArtboardBounds.top;
+        width = svgBounds.width;
+        height = svgBounds.height;
+      } catch (e) {
+        // "Fit Artboard to artwork bounds"/"undo" can throw on some artwork
+        // (e.g. grouped items) -- fall back to untrimmed artboard bounds
+        // rather than crashing the whole export.
+        warn(
+          "Could not trim SVG export to artwork bounds (" +
+            e.message +
+            ") -- using full artboard bounds instead.",
+        );
         left = 0;
         top = 0;
+        width = parentArtboardBounds.width;
+        height = parentArtboardBounds.height;
       }
-      width = svgBounds.width;
-      height = svgBounds.height;
     }
 
     exportDoc.exportFile(new File(ofile), ExportType.SVG, opts);
@@ -4514,7 +4567,7 @@ export function main(settingsArg) {
       position: "absolute",
       top: "0",
       display: "block",
-      width: "100% !important",
+      width: settings.image_format == "svg" ? "100%" : "100% !important",
       height: "100%",
       "background-size": "contain",
       "background-repeat": "no-repeat",

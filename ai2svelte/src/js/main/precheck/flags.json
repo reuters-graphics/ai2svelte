@@ -7,5 +7,8 @@
   },
   "1.0.6": {
     "fixedAnimations": false
+  },
+  "1.0.9": {
+    "removedHtmlOutputExtension": false
   }
 }
