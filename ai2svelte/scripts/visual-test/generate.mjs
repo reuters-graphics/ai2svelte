@@ -25,16 +25,17 @@ const serverScript = path.join(rootDir, "src/server.cjs");
 
 for (const fixture of fixtures) {
   const aiPath = path.resolve(rootDir, fixture.aiPath);
-  const outputDir = path.join(path.dirname(aiPath), "visual-test-output");
+  const outputDir = path.join(path.dirname(aiPath), `visual-test-output-${fixture.name}`);
   mkdirSync(outputDir, { recursive: true });
 
   const settingsArg = {
     settings: {
       show_completion_dialog_box: false,
-      html_output_path: "visual-test-output/",
-      image_output_path: "visual-test-output/",
+      html_output_path: `visual-test-output-${fixture.name}/`,
+      image_output_path: `visual-test-output-${fixture.name}/`,
       inline_svg: true,
       override_text: true,
+      ...fixture.settings,
     },
     code: { css: "", fontsConfig: {} },
   };
