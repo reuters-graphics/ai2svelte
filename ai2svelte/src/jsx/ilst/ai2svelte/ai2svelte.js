@@ -102,7 +102,7 @@ export function main(settingsArg) {
   // - Update the version number in package.json
   // - Add an entry to CHANGELOG.md
   // - Run 'npm publish' to create a new GitHub release
-  const scriptVersion = "1.0.8";
+  const scriptVersion = "1.0.9";
 
   // ================================
   // Global variable declarations
