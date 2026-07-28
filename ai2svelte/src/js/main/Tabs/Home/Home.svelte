@@ -3,20 +3,42 @@
   import { settingsObject, styles } from "../../stores";
   import { evalTS } from "../../../lib/utils/bolt";
   import { saveSettings, tooltipSettings } from "../../utils/utils";
+  import { checkForUpdate } from "../../utils/updateCheck";
   import Toast from "../../Components/Toast.svelte";
+  import UpdateTicker from "../../Components/UpdateTicker.svelte";
   import { company, displayName, version } from "../../../../shared/shared";
   import { tooltip } from "svooltip";
   import { lastSaved } from "../../stores";
+  import { updateStatus } from "../../state.svelte";
 
   import Logo from "../../Components/Logo.svelte";
   import RunButton from "./RunButton.svelte";
   import { fly } from "svelte/transition";
 
   let { refreshSettings = () => {} } = $props();
+
+  $effect(() => {
+    if (updateStatus.checked) return;
+    updateStatus.checked = true;
+    checkForUpdate(version).then((update) => {
+      if (!update) return;
+      updateStatus.available = true;
+      updateStatus.version = update.version;
+      updateStatus.url = update.url;
+    });
+  });
 </script>
 
 <div class="tab-content">
   <div class="content">
+    {#if updateStatus.available && !updateStatus.dismissed}
+      <UpdateTicker
+        url={updateStatus.url}
+        version={updateStatus.version}
+        onDismiss={() => (updateStatus.dismissed = true)}
+      />
+    {/if}
+
     <RunButton {refreshSettings} />
 
     <button
@@ -26,7 +48,7 @@
           saveSettings(
             $settingsObject,
             { styleText: $styles?.root?.toString() },
-            version
+            version,
           );
           try {
             await evalTS("exportAsTemplate");
