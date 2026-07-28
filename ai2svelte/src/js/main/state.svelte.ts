@@ -15,3 +15,13 @@ export const userData = $state({
       "var(--theme-font-family-sans-serif), Knowledge, sans-serif",
   } as { [key: string]: string },
 });
+
+// Session-only: whether a newer release is available. Not persisted —
+// dismissing the update ticker only lasts for the current panel session.
+export const updateStatus = $state({
+  checked: false,
+  available: false,
+  version: null as string | null,
+  url: null as string | null,
+  dismissed: false,
+});
