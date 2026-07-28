@@ -61,7 +61,7 @@ async function checkVersion() {
 
   // fixes fixed to dynamic responsiveness issue
   if (
-    pluginVersion === "1.0.2" &&
+    compareVersions(pluginVersion, "1.0.2") >= 0 &&
     usersDefaultProfile &&
     usersDefaultProfile.responsiveness &&
     usersDefaultProfile.responsiveness === "fixed" &&
@@ -94,7 +94,7 @@ async function checkVersion() {
   }
 
   // fixes Pecorino II to Pecorino 2 shadow ID issue
-  if (pluginVersion === "1.0.3" && userFlags) {
+  if (compareVersions(pluginVersion, "1.0.3") >= 0 && userFlags) {
     if (userFlags["1.0.3"] == undefined) {
       userFlags["1.0.3"] = {};
       let userShadows = readFile("user-shadows.json");
@@ -114,7 +114,7 @@ async function checkVersion() {
   }
 
   // fixes transform animations issue
-  if (pluginVersion === "1.0.6" && userFlags) {
+  if (compareVersions(pluginVersion, "1.0.6") >= 0 && userFlags) {
     if (userFlags["1.0.6"] == undefined) {
       userFlags["1.0.6"] = {};
       let userAnimations = readFile("user-animations.json");
@@ -133,6 +133,21 @@ async function checkVersion() {
       }
 
       userFlags["1.0.6"].fixedAnimations = true;
+      writeFile(".flags.json", userFlags);
+    }
+  }
+
+  // removes deprecated html_output_extension from the default profile (.svelte is now the only supported output)
+  if (compareVersions(pluginVersion, "1.0.9") >= 0 && userFlags) {
+    if (userFlags["1.0.9"] == undefined) {
+      userFlags["1.0.9"] = {};
+
+      if (usersProfile && usersProfile.default && "html_output_extension" in usersProfile.default) {
+        delete usersProfile.default.html_output_extension;
+        writeFile("user-profiles.json", usersProfile);
+      }
+
+      userFlags["1.0.9"].removedHtmlOutputExtension = true;
       writeFile(".flags.json", userFlags);
     }
   }
