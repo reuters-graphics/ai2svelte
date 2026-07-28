@@ -14,7 +14,7 @@ describe("ai2svelte generated output (visual-test)", () => {
         __dirname,
         "../../../../",
         path.dirname(fixture.aiPath),
-        "visual-test-output"
+        `visual-test-output-${fixture.name}`
       );
       if (!existsSync(outputDir)) {
         console.warn(`Skipping ${fixture.name}: run "pnpm test:visual:generate" first.`);

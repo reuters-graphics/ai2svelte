@@ -1,3 +1,8 @@
 [
-  { "name": "preview-dev", "aiPath": "src/js/main/example/preview-dev.ai" }
+  { "name": "preview-dev", "aiPath": "src/js/main/example/preview-dev.ai" },
+  {
+    "name": "preview-dev-svg",
+    "aiPath": "src/js/main/example/preview-dev.ai",
+    "settings": { "image_format": "svg" }
+  }
 ]
