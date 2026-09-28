@@ -1,5 +1,8 @@
 ---
 import FluidBackdrop from "../components/fluid/FluidBackdrop.svelte";
+// Inlined rather than linked as an <img> so the paths inherit `currentColor`
+// and the section can transition the logotype's fill on hover.
+import logotype from "../svg/logotype.svg?raw";
 
 const base = "/ai2svelte";
 
@@ -227,14 +230,7 @@ const repo = "https://github.com/reuters-graphics/ai2svelte/";
 
       <section class="outro">
         <FluidBackdrop client:visible startColor="#dc4300" />
-        <img
-          class="wordmark"
-          src={`${base}/images/home/wordmark-lg.svg`}
-          alt=""
-          aria-hidden="true"
-          width="798.832"
-          height="130.099"
-        />
+        <div class="wordmark" aria-hidden="true" set:html={logotype}></div>
         <div class="outro-actions">
           <a class="btn btn-primary" href={releases}>DOWNLOAD EXTENSION</a>
           <a class="btn" href={`${base}/docs/`}>READ DOCS</a>
@@ -731,13 +727,28 @@ const repo = "https://github.com/reuters-graphics/ai2svelte/";
     z-index: 1;
     display: block;
     width: 798.832px;
-    height: 130.099px;
     max-width: 100%;
     user-select: none;
+    /* Sits at the same value the flat artwork was drawn in, and warms to
+       white while the cursor is anywhere in the section. */
+    color: var(--line);
+    transition: color 420ms ease;
     /* Decorative, and the simulation reads pointer moves off its own canvas,
        so letting the cursor through keeps the fluid responding across the
        whole section rather than dying over the wordmark. */
     pointer-events: none;
+  }
+
+  /* `set:html` output isn't scoped, so the inlined logotype needs a global
+     selector to pick up its sizing. */
+  .wordmark :global(svg) {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+
+  .outro:hover .wordmark {
+    color: #fff;
   }
 
   .outro-actions {
