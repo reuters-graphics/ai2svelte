@@ -1003,6 +1003,23 @@ const repo = "https://github.com/reuters-graphics/ai2svelte/";
 
   if (dots.length && "IntersectionObserver" in window) {
     const motion = window.matchMedia("(prefers-reduced-motion: reduce)");
+
+    /**
+     * Pace of the dither-in. Higher is faster: 2 runs it in half the time,
+     * 0.5 takes twice as long. The three timings below are in milliseconds
+     * at speed 1 and are divided through by it.
+     */
+    const ditherSpeed = 1;
+
+    /** How long a single character churns before locking to its real glyph. */
+    const cellDuration = 170;
+    /** Extra delay per character, which is what resolves the word left to right. */
+    const cellStagger = 25;
+    /** Random slack added per character, so cells don't finish in lockstep. */
+    const cellJitter = 230;
+    /** Roughly how often a churning cell picks a new glyph. */
+    const rerollEvery = 38;
+
     // ASCII density ramp, sparse to dense. Each cell walks along it as it
     // resolves, so the title condenses out of a faint stipple instead of
     // cycling through random letters. Punctuation only, so nothing in here
@@ -1016,18 +1033,21 @@ const repo = "https://github.com/reuters-graphics/ai2svelte/";
       if (!title) continue;
 
       titles.set(dot, title);
-      // Scrambling rewrites the text, so pin the real wording as the heading's
+      // Dithering rewrites the text, so pin the real wording as the heading's
       // accessible name. Screen readers then never see the intermediate junk.
       dot.parentElement.setAttribute("aria-label", title.textContent);
     }
 
     /**
-     * Glitch a title into place: every character cycles through random glyphs
-     * until its own finish time, which is staggered so the word resolves left
-     * to right. Titles are set in Geist Mono, so swapping glyphs can't shift
-     * the layout. Spaces are left alone to keep the word shapes readable.
+     * Dither a title into place: every character churns through the density
+     * ramp until its own finish time, which is staggered so the word resolves
+     * left to right. Titles are set in Geist Mono, so swapping glyphs can't
+     * shift the layout. Spaces are left alone to keep the word shapes readable.
+     *
+     * Driven by elapsed time rather than a frame count, so the pace is the
+     * same on a 60Hz and a 120Hz display.
      */
-    const scramble = (el) => {
+    const dither = (el) => {
       if (running.has(el)) return;
       running.add(el);
 
@@ -1035,17 +1055,21 @@ const repo = "https://github.com/reuters-graphics/ai2svelte/";
       const queue = [...text].map((char, i) => ({
         char,
         glyph: ditherRamp[0],
-        end: i * 1.5 + 10 + Math.random() * 14,
+        nextRoll: 0,
+        end:
+          (i * cellStagger + cellDuration + Math.random() * cellJitter) /
+          ditherSpeed,
       }));
 
-      let frame = 0;
+      const started = performance.now();
 
-      const tick = () => {
+      const tick = (now) => {
+        const elapsed = now - started;
         let out = "";
         let settled = 0;
 
         for (const item of queue) {
-          if (item.char === " " || frame >= item.end) {
+          if (item.char === " " || elapsed >= item.end) {
             out += item.char;
             settled++;
           } else {
@@ -1053,19 +1077,24 @@ const repo = "https://github.com/reuters-graphics/ai2svelte/";
             // little so neighbouring cells land on different densities. That
             // spread is what gives the row its dithered texture rather than a
             // uniform sweep.
-            if (Math.random() < 0.45) {
+            if (elapsed >= item.nextRoll) {
               const span = ditherRamp.length - 1;
               const level = Math.round(
-                (frame / item.end) * span + (Math.random() * 3 - 1.5)
+                (elapsed / item.end) * span + (Math.random() * 3 - 1.5)
               );
+
               item.glyph = ditherRamp[Math.max(0, Math.min(span, level))];
+              // Random interval rather than a fixed one, so cells fall out of
+              // phase with each other instead of flickering in unison.
+              item.nextRoll =
+                elapsed + (rerollEvery * (0.5 + Math.random())) / ditherSpeed;
             }
+
             out += item.glyph;
           }
         }
 
         el.textContent = out;
-        frame++;
 
         if (settled === queue.length) {
           el.textContent = text;
@@ -1089,8 +1118,7 @@ const repo = "https://github.com/reuters-graphics/ai2svelte/";
           entry.target.classList.toggle("on", entry.isIntersecting);
 
           const title = titles.get(entry.target);
-          if (entry.isIntersecting && title && !motion.matches)
-            scramble(title);
+          if (entry.isIntersecting && title && !motion.matches) dither(title);
         }
       },
       { rootMargin: "100000px 0px -75% 0px" }
