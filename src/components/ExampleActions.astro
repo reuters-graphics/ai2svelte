@@ -12,12 +12,19 @@ const { file, component } = Astro.props;
 const base = import.meta.env.BASE_URL.replace(/\/$/, "");
 const source = `https://github.com/reuters-graphics/ai2svelte/blob/main/src/components/${component}`;
 
-// Read the size at build time so the label warns before a 19MB download starts.
+// Read the size at build time so the label warns before a 20MB download starts.
 let size = "";
 try {
   const bytes = statSync(new URL(`../../public/examples/${file}`, import.meta.url)).size;
   const kb = bytes / 1024;
-  size = kb >= 1024 ? `${Math.round(kb / 1024)} MB` : `${Math.round(kb)} KB`;
+  const mb = kb / 1024;
+  // Keep a decimal under 10 MB, where rounding to a whole number is misleading.
+  size =
+    mb >= 10
+      ? `${Math.round(mb)} MB`
+      : mb >= 1
+        ? `${mb.toFixed(1)} MB`
+        : `${Math.round(kb)} KB`;
 } catch {
   size = "";
 }
