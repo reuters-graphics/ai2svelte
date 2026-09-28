@@ -88,7 +88,7 @@ const repo = "https://github.com/reuters-graphics/ai2svelte/";
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500&family=Inter:wght@400;500&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@300;400;500&family=Inter:wght@400;500&display=swap"
       rel="stylesheet"
     />
     <title>ai2svelte — Illustrator graphics to responsive Svelte</title>
@@ -101,7 +101,9 @@ const repo = "https://github.com/reuters-graphics/ai2svelte/";
   <body>
     <div class="shell">
       <header class="topbar">
-        <a class="brand" href={`${base}/`}>ai2svelte</a>
+        <a class="brand" href={`${base}/`} aria-label="ai2svelte home">
+          <img src={`${base}/images/home/wordmark.svg`} alt="ai2svelte" width="120" height="19.543" />
+        </a>
         <nav class="topnav" aria-label="Primary">
           <a class="btn" href={`${base}/docs/`}>READ DOCS</a>
           <a class="btn" href={repo}>GITHUB</a>
@@ -127,7 +129,7 @@ const repo = "https://github.com/reuters-graphics/ai2svelte/";
 
         <img
           class="hero-panel"
-          src={`${base}/images/home/hero-panel.png`}
+          src={`${base}/images/home/hero-panel.svg`}
           alt="The ai2svelte panel in Illustrator showing export settings, profiles and font configuration."
         />
       </section>
@@ -136,7 +138,7 @@ const repo = "https://github.com/reuters-graphics/ai2svelte/";
         {
           featuresLead.map((item) => (
             <article class="card">
-              <h2><span class="dot" aria-hidden="true" />{item.title}</h2>
+              <h2><span class="dot" aria-hidden="true" /><span class="t">{item.title}</span></h2>
               <div class="card-body">
                 <p>{item.copy}</p>
                 <div class="card-more">
@@ -152,7 +154,7 @@ const repo = "https://github.com/reuters-graphics/ai2svelte/";
         {
           featuresGrid.map((item) => (
             <article class:list={["card", { wide: item.wide }]}>
-              <h2><span class="dot" aria-hidden="true" />{item.title}</h2>
+              <h2><span class="dot" aria-hidden="true" /><span class="t">{item.title}</span></h2>
               <div class="card-body">
                 <p>{item.copy}</p>
                 <div class="card-more">
@@ -166,7 +168,7 @@ const repo = "https://github.com/reuters-graphics/ai2svelte/";
 
       <section class="examples">
         <div class="section-head">
-          <h2><span class="dot on" aria-hidden="true" />EXAMPLES</h2>
+          <h2><span class="dot on" aria-hidden="true" /><span class="t">EXAMPLES</span></h2>
           <span class="rule" aria-hidden="true"></span>
         </div>
 
@@ -186,12 +188,21 @@ const repo = "https://github.com/reuters-graphics/ai2svelte/";
       </section>
 
       <section class="outro">
-        <p class="wordmark" aria-hidden="true">ai2svelte</p>
+        <img
+          class="wordmark"
+          src={`${base}/images/home/wordmark-lg.svg`}
+          alt=""
+          aria-hidden="true"
+          width="798.832"
+          height="130.099"
+        />
         <div class="outro-actions">
           <a class="btn btn-primary" href={releases}>DOWNLOAD EXTENSION</a>
           <a class="btn" href={`${base}/docs/`}>READ DOCS</a>
         </div>
       </section>
+
+      <div class="shell-tail" aria-hidden="true"></div>
     </div>
   </body>
 </html>
@@ -248,15 +259,15 @@ const repo = "https://github.com/reuters-graphics/ai2svelte/";
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    height: 33px;
-    padding: 0 12px;
+    padding: 8px 12px;
     border: 1px solid var(--line);
     background: transparent;
     color: var(--text);
     font-family: var(--mono);
-    font-size: 13px;
+    font-size: 12.16px;
     font-weight: 400;
-    line-height: 1;
+    line-height: 15px;
+    letter-spacing: 0.4864px;
     white-space: nowrap;
     transition:
       background-color 160ms ease,
@@ -287,17 +298,19 @@ const repo = "https://github.com/reuters-graphics/ai2svelte/";
     align-items: center;
     justify-content: space-between;
     height: 80px;
-    padding: 0 20px;
-    border-bottom: 1px solid var(--line);
+    padding: 0 21.6px;
+    box-shadow: 0 1px 0 var(--line);
   }
 
   .brand {
-    font-family: var(--mono);
-    font-size: 27.5px;
-    font-weight: 500;
-    letter-spacing: -0.116em;
-    line-height: 1;
-    color: #fff;
+    display: block;
+    line-height: 0;
+  }
+
+  .brand img {
+    display: block;
+    width: 120px;
+    height: 19.543px;
   }
 
   .topnav {
@@ -311,7 +324,7 @@ const repo = "https://github.com/reuters-graphics/ai2svelte/";
     position: relative;
     height: 800px;
     background: var(--hero-bg);
-    border-bottom: 1px solid var(--line);
+    box-shadow: 0 1px 0 var(--line);
     overflow: hidden;
   }
 
@@ -327,52 +340,56 @@ const repo = "https://github.com/reuters-graphics/ai2svelte/";
 
   .hero-card {
     position: absolute;
-    top: 50%;
+    top: 255px;
     left: 32px;
     width: 638px;
     padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
     background: var(--bg);
-    transform: translateY(-50%);
+    filter: drop-shadow(0 32px 32px rgba(0, 0, 0, 0.4));
   }
 
   .hero-eyebrow {
     margin: 0;
     color: var(--orange);
     font-family: var(--mono);
-    font-size: 13px;
-    line-height: 18px;
-    letter-spacing: 0.0464em;
+    font-size: 12px;
+    font-weight: 500;
+    line-height: 15px;
+    letter-spacing: 1.2px;
   }
 
   h1 {
-    margin: 13.5px 0 0;
+    margin: 0;
     font-family: var(--mono);
     font-size: 48px;
-    font-weight: 400;
-    line-height: 52px;
-    letter-spacing: -0.0848em;
+    font-weight: 300;
+    line-height: 53px;
+    letter-spacing: -0.0833333em;
     color: var(--text);
   }
 
   .hero-copy {
-    margin: 18px 0 0;
+    margin: 0;
     color: var(--copy);
     font-size: 14px;
-    line-height: 20.5px;
+    line-height: 20px;
   }
 
   .hero-actions {
     display: flex;
-    gap: 12.5px;
-    margin-top: 31.5px;
+    gap: 12px;
+    padding-top: 16px;
   }
 
   .hero-panel {
     position: absolute;
-    top: 50%;
-    right: 106px;
-    width: 296px;
-    transform: translateY(-50%);
+    top: 69.46px;
+    left: 671.907px;
+    width: 464px;
+    height: 725px;
     display: block;
   }
 
@@ -380,7 +397,7 @@ const repo = "https://github.com/reuters-graphics/ai2svelte/";
 
   .features {
     display: grid;
-    border-bottom: 1px solid var(--line);
+    box-shadow: 0 1px 0 var(--line);
   }
 
   .features-lead {
@@ -396,7 +413,7 @@ const repo = "https://github.com/reuters-graphics/ai2svelte/";
     display: flex;
     flex-direction: column;
     justify-content: space-between;
-    padding: 32px 32px 33.5px;
+    padding: 32px;
     border-left: 1px solid var(--line);
     isolation: isolate;
   }
@@ -410,7 +427,7 @@ const repo = "https://github.com/reuters-graphics/ai2svelte/";
   }
 
   .features-grid .card {
-    min-height: 314px;
+    min-height: 315px;
   }
 
   .features-grid .card:nth-child(4) {
@@ -431,74 +448,73 @@ const repo = "https://github.com/reuters-graphics/ai2svelte/";
   .card h2,
   .section-head h2 {
     display: flex;
-    align-items: center;
+    height: 12px;
     margin: 0;
     font-family: var(--mono);
     font-size: 16px;
-    font-weight: 400;
-    line-height: 1.2;
-    letter-spacing: 0.105em;
-    color: var(--muted);
-    transition: color 220ms ease;
+    font-weight: 500;
+    line-height: 1;
+    letter-spacing: 1.6px;
   }
 
   .card h2 {
-    margin-top: -4.5px;
+    align-items: flex-start;
   }
 
-  .card:hover h2 {
-    color: var(--text);
+  .section-head h2 {
+    align-items: center;
+  }
+
+  .card h2 .t,
+  .section-head h2 .t {
+    display: block;
+    color: #fff;
+    /* Design trims the title box to cap-height. Geist Mono 500 at 16px/1 puts
+       the baseline 13.5px and the cap top 2.14px below the box top, so these
+       margins reproduce the trim in engines without `text-box`. */
+    margin: -2.14px 0 -2.5px;
+    transition: opacity 220ms ease;
+  }
+
+  @supports (text-box: trim-both cap alphabetic) {
+    .card h2 .t,
+    .section-head h2 .t {
+      margin: 0;
+      text-box: trim-both cap alphabetic;
+    }
+  }
+
+  .card h2 .t {
+    opacity: 0.5;
+  }
+
+  .card:hover h2 .t {
+    opacity: 1;
   }
 
   .dot {
     position: relative;
     flex: none;
     width: 0;
-    height: 11.5px;
+    height: 12px;
     margin-right: 0;
     background: var(--orange);
     opacity: 0;
     transition:
       width 220ms ease,
       margin-right 220ms ease,
-      opacity 220ms ease;
-  }
-
-  .dot::after {
-    content: "";
-    position: absolute;
-    left: 50%;
-    top: 50%;
-    width: 80px;
-    height: 80px;
-    transform: translate(-50%, -50%);
-    background: radial-gradient(
-      circle 40px at 40px 40px,
-      rgba(220, 67, 0, 0.45) 0,
-      rgba(220, 67, 0, 0.36) 7px,
-      rgba(220, 67, 0, 0.22) 10px,
-      rgba(220, 67, 0, 0.125) 13px,
-      rgba(220, 67, 0, 0.06) 16px,
-      rgba(220, 67, 0, 0.047) 19px,
-      rgba(220, 67, 0, 0.033) 25px,
-      rgba(220, 67, 0, 0) 40px
-    );
-    opacity: 0;
-    transition: opacity 220ms ease;
-    pointer-events: none;
-    z-index: -1;
+      opacity 220ms ease,
+      box-shadow 220ms ease;
   }
 
   .card:hover .dot,
   .dot.on {
-    width: 11.5px;
-    margin-right: 9px;
+    width: 12px;
+    margin-right: 8px;
     opacity: 1;
-  }
-
-  .card:hover .dot::after,
-  .dot.on::after {
-    opacity: 1;
+    box-shadow:
+      0 0 40px 0 var(--orange),
+      0 0 12px 0 var(--orange);
   }
 
   .card-body p {
@@ -534,8 +550,8 @@ const repo = "https://github.com/reuters-graphics/ai2svelte/";
   /* ---------- examples ---------- */
 
   .examples {
-    padding: 116px 0 119px;
-    border-bottom: 1px solid var(--line);
+    padding: 120px 0;
+    box-shadow: 0 1px 0 var(--line);
     overflow: hidden;
   }
 
@@ -552,14 +568,14 @@ const repo = "https://github.com/reuters-graphics/ai2svelte/";
     background: linear-gradient(
       to right,
       var(--orange) 0 63px,
-      #373737 63px 100%
+      rgba(255, 255, 255, 0.2) 63px 100%
     );
   }
 
   .example-rail {
     display: flex;
     gap: 16px;
-    margin-top: 116px;
+    margin-top: 120px;
     padding: 0 32px;
     overflow-x: auto;
     scrollbar-width: none;
@@ -579,27 +595,28 @@ const repo = "https://github.com/reuters-graphics/ai2svelte/";
   .example img {
     display: block;
     width: 100%;
-    height: 240.5px;
+    height: 240px;
     object-fit: cover;
     border-bottom: 1px solid var(--line);
   }
 
   .example-meta {
-    padding: 14.5px 12px 0;
+    padding: 16px 12px;
     height: 76px;
   }
 
   .example-title {
     margin: 0;
     font-size: 16px;
-    line-height: 20px;
+    font-weight: 500;
+    line-height: 19px;
     color: var(--text);
   }
 
   .example-copy {
-    margin: 8.5px 0 0;
+    margin: 8px 0 0;
     font-size: 14px;
-    line-height: 18px;
+    line-height: 17px;
     color: var(--copy);
   }
 
@@ -610,28 +627,30 @@ const repo = "https://github.com/reuters-graphics/ai2svelte/";
   /* ---------- outro ---------- */
 
   .outro {
-    padding: 56.5px 0 82.25px;
-    border-bottom: 1px solid var(--line);
-    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 40px;
+    padding: 80px 32px;
+    box-shadow: 0 1px 0 var(--line);
+  }
+
+  .shell-tail {
+    height: 64px;
   }
 
   .wordmark {
-    margin: 0;
-    font-family: var(--mono);
-    font-size: 179px;
-    font-weight: 400;
-    line-height: 1;
-    letter-spacing: -0.103em;
-    padding-right: 0.103em;
-    color: #181818;
+    display: block;
+    width: 798.832px;
+    height: 130.099px;
+    max-width: 100%;
     user-select: none;
   }
 
   .outro-actions {
     display: flex;
     justify-content: center;
-    gap: 16.5px;
-    margin-top: 10.75px;
+    gap: 16px;
   }
 
   /* ---------- responsive ---------- */
@@ -732,16 +751,20 @@ const repo = "https://github.com/reuters-graphics/ai2svelte/";
     .hero-panel {
       position: relative;
       top: auto;
+      left: auto;
       right: auto;
       z-index: 1;
       transform: none;
       display: block;
+      width: 464px;
+      height: auto;
       margin: 48px auto 0;
       max-width: calc(100% - 40px);
     }
 
     .wordmark {
-      font-size: 14vw;
+      width: 100%;
+      height: auto;
     }
   }
 
@@ -778,13 +801,16 @@ const repo = "https://github.com/reuters-graphics/ai2svelte/";
     }
 
     .dot {
-      width: 11.5px;
-      margin-right: 9px;
+      width: 12px;
+      margin-right: 8px;
       opacity: 1;
+      box-shadow:
+        0 0 40px 0 var(--orange),
+        0 0 12px 0 var(--orange);
     }
 
-    .card h2 {
-      color: var(--text);
+    .card h2 .t {
+      opacity: 1;
     }
 
     h1 {
