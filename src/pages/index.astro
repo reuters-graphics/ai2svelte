@@ -1,4 +1,6 @@
 ---
+import FluidBackdrop from "../components/fluid/FluidBackdrop.svelte";
+
 const base = "/ai2svelte";
 
 const featuresLead = [
@@ -224,6 +226,7 @@ const repo = "https://github.com/reuters-graphics/ai2svelte/";
       </section>
 
       <section class="outro">
+        <FluidBackdrop client:visible startColor="#dc4300" />
         <img
           class="wordmark"
           src={`${base}/images/home/wordmark-lg.svg`}
@@ -699,12 +702,24 @@ const repo = "https://github.com/reuters-graphics/ai2svelte/";
   /* ---------- outro ---------- */
 
   .outro {
+    position: relative;
     display: flex;
     flex-direction: column;
     align-items: center;
     gap: 40px;
     padding: 80px 32px;
     box-shadow: 0 1px 0 var(--line);
+    /* Clips the canvas to the section and keeps its stacking to itself, so
+       the backdrop can't escape into the sticky topbar's layer. */
+    overflow: hidden;
+    isolation: isolate;
+  }
+
+  /* Astro gives every island `display: contents`, so the backdrop inside this
+     one resolves its position against the section rather than the island. The
+     z-index keeps it behind the wordmark and buttons. */
+  .outro :global(astro-island) {
+    z-index: 0;
   }
 
   .shell-tail {
@@ -712,17 +727,31 @@ const repo = "https://github.com/reuters-graphics/ai2svelte/";
   }
 
   .wordmark {
+    position: relative;
+    z-index: 1;
     display: block;
     width: 798.832px;
     height: 130.099px;
     max-width: 100%;
     user-select: none;
+    /* Decorative, and the simulation reads pointer moves off its own canvas,
+       so letting the cursor through keeps the fluid responding across the
+       whole section rather than dying over the wordmark. */
+    pointer-events: none;
   }
 
   .outro-actions {
+    position: relative;
+    z-index: 1;
     display: flex;
     justify-content: center;
     gap: 16px;
+  }
+
+  /* The dye runs straight through this row, so the outline button needs a
+     ground of its own to stay readable against it. */
+  .outro-actions .btn:not(.btn-primary) {
+    background: rgba(5, 5, 5, 0.72);
   }
 
   /* ---------- responsive ---------- */
