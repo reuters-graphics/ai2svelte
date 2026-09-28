@@ -169,10 +169,28 @@ const repo = "https://github.com/reuters-graphics/ai2svelte/";
       <section class="examples">
         <div class="section-head">
           <h2><span class="dot on" aria-hidden="true" /><span class="t">EXAMPLES</span></h2>
-          <span class="rule" aria-hidden="true"></span>
+          <div
+            class="rule"
+            role="scrollbar"
+            tabindex="0"
+            aria-controls="example-rail"
+            aria-orientation="horizontal"
+            aria-label="Scroll examples"
+            aria-valuemin="0"
+            aria-valuemax="100"
+            aria-valuenow="0"
+          >
+            <span class="rule-knob" aria-hidden="true"></span>
+          </div>
         </div>
 
-        <div class="example-rail">
+        <div
+          class="example-rail"
+          id="example-rail"
+          role="group"
+          aria-label="Examples"
+          tabindex="0"
+        >
           {
             examples.map((item) => (
               <a class="example" href={item.href}>
@@ -563,13 +581,48 @@ const repo = "https://github.com/reuters-graphics/ai2svelte/";
   }
 
   .rule {
+    position: relative;
+    flex: none;
     width: 280px;
     height: 2px;
-    background: linear-gradient(
-      to right,
-      var(--orange) 0 63px,
-      rgba(255, 255, 255, 0.2) 63px 100%
-    );
+    background: rgba(255, 255, 255, 0.2);
+    cursor: grab;
+    touch-action: none;
+  }
+
+  /* A 2px-tall bar is an unusable pointer target, so grow the hit
+     area vertically without disturbing layout. */
+  .rule::before {
+    content: "";
+    position: absolute;
+    inset: -14px 0;
+  }
+
+  .rule:focus-visible {
+    outline: 1px solid var(--orange);
+    outline-offset: 6px;
+  }
+
+  .rule.is-dragging {
+    cursor: grabbing;
+  }
+
+  .rule.is-idle {
+    cursor: default;
+  }
+
+  .rule-knob {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 63px;
+    height: 100%;
+    background: var(--orange);
+    will-change: transform;
+  }
+
+  .rule.is-idle .rule-knob {
+    width: 100%;
   }
 
   .example-rail {
@@ -579,6 +632,12 @@ const repo = "https://github.com/reuters-graphics/ai2svelte/";
     padding: 0 32px;
     overflow-x: auto;
     scrollbar-width: none;
+    overscroll-behavior-x: contain;
+  }
+
+  .example-rail:focus-visible {
+    outline: 1px solid var(--orange);
+    outline-offset: -1px;
   }
 
   .example-rail::-webkit-scrollbar {
@@ -834,3 +893,106 @@ const repo = "https://github.com/reuters-graphics/ai2svelte/";
     }
   }
 </style>
+
+<script>
+  const rail = document.getElementById("example-rail");
+  const track = document.querySelector(".rule");
+  const knob = track && track.querySelector(".rule-knob");
+
+  if (rail && track && knob) {
+    const CARD_STEP = 338; /* 322 card + 16 gap */
+    let maxScroll = 0;
+    let travel = 0;
+    let lastValue = -1;
+
+    const clamp = (n, min, max) => Math.min(max, Math.max(min, n));
+
+    const behavior = () =>
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches
+        ? "auto"
+        : "smooth";
+
+    const sync = () => {
+      const progress = maxScroll > 0 ? rail.scrollLeft / maxScroll : 0;
+      knob.style.transform = `translateX(${progress * travel}px)`;
+
+      const value = Math.round(progress * 100);
+      if (value !== lastValue) {
+        lastValue = value;
+        track.setAttribute("aria-valuenow", String(value));
+      }
+    };
+
+    const measure = () => {
+      maxScroll = Math.max(0, rail.scrollWidth - rail.clientWidth);
+      travel = Math.max(0, track.clientWidth - knob.offsetWidth);
+
+      const idle = maxScroll < 1;
+      track.classList.toggle("is-idle", idle);
+      track.setAttribute("tabindex", idle ? "-1" : "0");
+      track.setAttribute("aria-disabled", String(idle));
+      sync();
+    };
+
+    /* ---- drag the knob, or click the track to scrub ---- */
+    let grabOffset = 0;
+
+    const scrubTo = (clientX) => {
+      if (travel <= 0) return;
+      const left = clientX - track.getBoundingClientRect().left - grabOffset;
+      rail.scrollLeft = clamp(left / travel, 0, 1) * maxScroll;
+    };
+
+    track.addEventListener("pointerdown", (event) => {
+      if (maxScroll < 1) return;
+
+      const knobBox = knob.getBoundingClientRect();
+      const onKnob =
+        event.clientX >= knobBox.left && event.clientX <= knobBox.right;
+
+      grabOffset = onKnob ? event.clientX - knobBox.left : knob.offsetWidth / 2;
+      track.setPointerCapture(event.pointerId);
+      track.classList.add("is-dragging");
+      scrubTo(event.clientX);
+
+      event.preventDefault();
+      track.focus();
+    });
+
+    track.addEventListener("pointermove", (event) => {
+      if (track.hasPointerCapture(event.pointerId)) scrubTo(event.clientX);
+    });
+
+    const endDrag = (event) => {
+      if (!track.hasPointerCapture(event.pointerId)) return;
+      track.releasePointerCapture(event.pointerId);
+      track.classList.remove("is-dragging");
+    };
+
+    track.addEventListener("pointerup", endDrag);
+    track.addEventListener("pointercancel", endDrag);
+
+    /* ---- keyboard ---- */
+    track.addEventListener("keydown", (event) => {
+      const step = {
+        ArrowLeft: -CARD_STEP,
+        ArrowRight: CARD_STEP,
+        PageUp: -rail.clientWidth,
+        PageDown: rail.clientWidth,
+      }[event.key];
+
+      let left;
+      if (step !== undefined) left = rail.scrollLeft + step;
+      else if (event.key === "Home") left = 0;
+      else if (event.key === "End") left = maxScroll;
+      else return;
+
+      event.preventDefault();
+      rail.scrollTo({ left: clamp(left, 0, maxScroll), behavior: behavior() });
+    });
+
+    rail.addEventListener("scroll", sync, { passive: true });
+    new ResizeObserver(measure).observe(rail);
+    measure();
+  }
+</script>
