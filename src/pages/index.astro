@@ -1,0 +1,810 @@
+---
+const base = "/ai2svelte";
+
+const featuresLead = [
+  {
+    title: "SNIPPET LAYERS",
+    copy:
+      "Snippet layers allow you to add dynamic content into the placeholder region you specify. Plug in any Svelte snippet to render custom component.",
+    href: `${base}/users/snippets/`,
+  },
+  {
+    title: "TAGGED LAYERS",
+    copy:
+      "Supercharge your layers with new capabilities using tagged layers. Tagged layers allows layers to behave differently than the usual static layers.",
+    href: `${base}/users/tagged-layers/`,
+  },
+];
+
+const featuresGrid = [
+  {
+    title: "GUI BASED EXTENSION",
+    copy:
+      "No more fiddling the docs. The new GUI provides you the exact key value pairs supported by the script.",
+    href: `${base}/users/ai2svelte-settings/`,
+  },
+  {
+    title: "CUSTOM FONT MAPPING",
+    copy:
+      "Now you can directly configure custom fonts inside the plugin without worrying about manually tweaking the styles in the generated component.",
+    href: `${base}/users/font-config/`,
+  },
+  {
+    title: "STYLE PRESETS",
+    copy: "Apply bundled shadows and animations to any object with one click.",
+    href: `${base}/users/styles/`,
+  },
+  {
+    title: "PROFILES",
+    copy: "Save and load ai2svelte settings as reusable, shareable profiles.",
+    href: `${base}/users/profiles/`,
+    wide: true,
+  },
+  {
+    title: "EVENT LISTENERS",
+    copy:
+      "Hook into onAiMounted and onArtboardChange to drive interactivity as the component mounts or its active breakpoint changes.",
+    href: `${base}/users/event-listeners/`,
+  },
+];
+
+const examples = [
+  {
+    title: "Headline snippet",
+    copy: "Typography and component embed",
+    href: `${base}/example1/`,
+    image: `${base}/images/graphics/headline-xl.png`,
+  },
+  {
+    title: "Map video",
+    copy: "Responsive embed with annotations",
+    href: `${base}/example2/`,
+    image: `${base}/images/graphics/mapVideo-xl.png`,
+  },
+  {
+    title: "Fire annotations",
+    copy: "Tagged overlays with motion assets",
+    href: `${base}/example6/`,
+    image: `${base}/images/graphics/fire-xl.png`,
+  },
+  {
+    title: "Stock graphic",
+    copy: "Responsive image, newsroom polish",
+    href: `${base}/example5/`,
+    image: `${base}/images/graphics/stock-md.png`,
+  },
+];
+
+const releases = "https://github.com/reuters-graphics/ai2svelte/releases/";
+const repo = "https://github.com/reuters-graphics/ai2svelte/";
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="generator" content={Astro.generator} />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500&family=Inter:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+    <title>ai2svelte — Illustrator graphics to responsive Svelte</title>
+    <meta
+      name="description"
+      content="ai2svelte is a newsroom-focused Illustrator extension for shipping responsive, text-selectable, interactive graphics without redrawing them by hand in code."
+    />
+  </head>
+
+  <body>
+    <div class="shell">
+      <header class="topbar">
+        <a class="brand" href={`${base}/`}>ai2svelte</a>
+        <nav class="topnav" aria-label="Primary">
+          <a class="btn" href={`${base}/docs/`}>READ DOCS</a>
+          <a class="btn" href={repo}>GITHUB</a>
+        </nav>
+      </header>
+
+      <section class="hero">
+        <img class="hero-orb" src={`${base}/images/home/hero-orb.png`} alt="" aria-hidden="true" />
+
+        <div class="hero-card">
+          <p class="hero-eyebrow">BRING INTERACTIVITY TO ILLUSTRATOR</p>
+          <h1>Illustrator graphics to responsive Svelte.</h1>
+          <p class="hero-copy">
+            ai2svelte is a newsroom-focused Illustrator extension for shipping
+            responsive, text-selectable, interactive graphics without redrawing
+            them by hand in code.
+          </p>
+          <div class="hero-actions">
+            <a class="btn btn-primary" href={releases}>DOWNLOAD EXTENSION</a>
+            <a class="btn" href={`${base}/docs/`}>READ DOCS</a>
+          </div>
+        </div>
+
+        <img
+          class="hero-panel"
+          src={`${base}/images/home/hero-panel.png`}
+          alt="The ai2svelte panel in Illustrator showing export settings, profiles and font configuration."
+        />
+      </section>
+
+      <section class="features features-lead">
+        {
+          featuresLead.map((item) => (
+            <article class="card">
+              <h2><span class="dot" aria-hidden="true" />{item.title}</h2>
+              <div class="card-body">
+                <p>{item.copy}</p>
+                <div class="card-more">
+                  <div><a class="btn" href={item.href}>READ MORE</a></div>
+                </div>
+              </div>
+            </article>
+          ))
+        }
+      </section>
+
+      <section class="features features-grid">
+        {
+          featuresGrid.map((item) => (
+            <article class:list={["card", { wide: item.wide }]}>
+              <h2><span class="dot" aria-hidden="true" />{item.title}</h2>
+              <div class="card-body">
+                <p>{item.copy}</p>
+                <div class="card-more">
+                  <div><a class="btn" href={item.href}>READ MORE</a></div>
+                </div>
+              </div>
+            </article>
+          ))
+        }
+      </section>
+
+      <section class="examples">
+        <div class="section-head">
+          <h2><span class="dot on" aria-hidden="true" />EXAMPLES</h2>
+          <span class="rule" aria-hidden="true"></span>
+        </div>
+
+        <div class="example-rail">
+          {
+            examples.map((item) => (
+              <a class="example" href={item.href}>
+                <img src={item.image} alt="" />
+                <div class="example-meta">
+                  <p class="example-title">{item.title}</p>
+                  <p class="example-copy">{item.copy}</p>
+                </div>
+              </a>
+            ))
+          }
+        </div>
+      </section>
+
+      <section class="outro">
+        <p class="wordmark" aria-hidden="true">ai2svelte</p>
+        <div class="outro-actions">
+          <a class="btn btn-primary" href={releases}>DOWNLOAD EXTENSION</a>
+          <a class="btn" href={`${base}/docs/`}>READ DOCS</a>
+        </div>
+      </section>
+    </div>
+  </body>
+</html>
+
+<style is:global>
+  :root {
+    color-scheme: dark;
+    --bg: #050505;
+    --hero-bg: #000000;
+    --line: #2b2b2b;
+    --text: #f3f3f3;
+    --muted: #828282;
+    --copy: #b9b9b9;
+    --orange: #dc4300;
+    --mono: "Geist Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+    --sans: "Inter", system-ui, -apple-system, Segoe UI, sans-serif;
+    --shell: 1180px;
+    --pad: 31px;
+  }
+
+  * {
+    box-sizing: border-box;
+  }
+
+  html {
+    background: var(--bg);
+  }
+
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
+</style>
+
+<style>
+  .shell {
+    width: min(var(--shell), 100%);
+    margin: 0 auto;
+    border-left: 1px solid var(--line);
+    border-right: 1px solid var(--line);
+  }
+
+  /* ---------- shared button ---------- */
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 33px;
+    padding: 0 12px;
+    border: 1px solid var(--line);
+    background: transparent;
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 13px;
+    font-weight: 400;
+    line-height: 1;
+    white-space: nowrap;
+    transition:
+      background-color 160ms ease,
+      border-color 160ms ease,
+      color 160ms ease;
+  }
+
+  .btn:hover {
+    border-color: #4a4a4a;
+    background: rgba(255, 255, 255, 0.04);
+  }
+
+  .btn-primary {
+    border-color: var(--orange);
+    background: var(--orange);
+    color: #fff;
+  }
+
+  .btn-primary:hover {
+    border-color: #f2560d;
+    background: #f2560d;
+  }
+
+  /* ---------- topbar ---------- */
+
+  .topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 80px;
+    padding: 0 20px;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .brand {
+    font-family: var(--mono);
+    font-size: 27.5px;
+    font-weight: 500;
+    letter-spacing: -0.116em;
+    line-height: 1;
+    color: #fff;
+  }
+
+  .topnav {
+    display: flex;
+    gap: 8px;
+  }
+
+  /* ---------- hero ---------- */
+
+  .hero {
+    position: relative;
+    height: 800px;
+    background: var(--hero-bg);
+    border-bottom: 1px solid var(--line);
+    overflow: hidden;
+  }
+
+  .hero-orb {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: left top;
+    pointer-events: none;
+  }
+
+  .hero-card {
+    position: absolute;
+    top: 50%;
+    left: 32px;
+    width: 638px;
+    padding: 16px;
+    background: var(--bg);
+    transform: translateY(-50%);
+  }
+
+  .hero-eyebrow {
+    margin: 0;
+    color: var(--orange);
+    font-family: var(--mono);
+    font-size: 13px;
+    line-height: 18px;
+    letter-spacing: 0.0464em;
+  }
+
+  h1 {
+    margin: 13.5px 0 0;
+    font-family: var(--mono);
+    font-size: 48px;
+    font-weight: 400;
+    line-height: 52px;
+    letter-spacing: -0.0848em;
+    color: var(--text);
+  }
+
+  .hero-copy {
+    margin: 18px 0 0;
+    color: var(--copy);
+    font-size: 14px;
+    line-height: 20.5px;
+  }
+
+  .hero-actions {
+    display: flex;
+    gap: 12.5px;
+    margin-top: 31.5px;
+  }
+
+  .hero-panel {
+    position: absolute;
+    top: 50%;
+    right: 106px;
+    width: 296px;
+    transform: translateY(-50%);
+    display: block;
+  }
+
+  /* ---------- feature cards ---------- */
+
+  .features {
+    display: grid;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .features-lead {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .features-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 32px 32px 33.5px;
+    border-left: 1px solid var(--line);
+    isolation: isolate;
+  }
+
+  .card:first-child {
+    border-left: 0;
+  }
+
+  .features-lead .card {
+    min-height: 277px;
+  }
+
+  .features-grid .card {
+    min-height: 314px;
+  }
+
+  .features-grid .card:nth-child(4) {
+    border-top: 1px solid var(--line);
+    border-left: 0;
+    min-height: 295px;
+  }
+
+  .features-grid .card:nth-child(5) {
+    border-top: 1px solid var(--line);
+    min-height: 295px;
+  }
+
+  .card.wide {
+    grid-column: span 2;
+  }
+
+  .card h2,
+  .section-head h2 {
+    display: flex;
+    align-items: center;
+    margin: 0;
+    font-family: var(--mono);
+    font-size: 16px;
+    font-weight: 400;
+    line-height: 1.2;
+    letter-spacing: 0.105em;
+    color: var(--muted);
+    transition: color 220ms ease;
+  }
+
+  .card h2 {
+    margin-top: -4.5px;
+  }
+
+  .card:hover h2 {
+    color: var(--text);
+  }
+
+  .dot {
+    position: relative;
+    flex: none;
+    width: 0;
+    height: 11.5px;
+    margin-right: 0;
+    background: var(--orange);
+    opacity: 0;
+    transition:
+      width 220ms ease,
+      margin-right 220ms ease,
+      opacity 220ms ease;
+  }
+
+  .dot::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 80px;
+    height: 80px;
+    transform: translate(-50%, -50%);
+    background: radial-gradient(
+      circle 40px at 40px 40px,
+      rgba(220, 67, 0, 0.45) 0,
+      rgba(220, 67, 0, 0.36) 7px,
+      rgba(220, 67, 0, 0.22) 10px,
+      rgba(220, 67, 0, 0.125) 13px,
+      rgba(220, 67, 0, 0.06) 16px,
+      rgba(220, 67, 0, 0.047) 19px,
+      rgba(220, 67, 0, 0.033) 25px,
+      rgba(220, 67, 0, 0) 40px
+    );
+    opacity: 0;
+    transition: opacity 220ms ease;
+    pointer-events: none;
+    z-index: -1;
+  }
+
+  .card:hover .dot,
+  .dot.on {
+    width: 11.5px;
+    margin-right: 9px;
+    opacity: 1;
+  }
+
+  .card:hover .dot::after,
+  .dot.on::after {
+    opacity: 1;
+  }
+
+  .card-body p {
+    margin: 0;
+    color: var(--copy);
+    font-size: 14px;
+    line-height: 20px;
+  }
+
+  .card-more {
+    display: grid;
+    grid-template-rows: 0fr;
+    opacity: 0;
+    transition:
+      grid-template-rows 240ms ease,
+      opacity 240ms ease;
+  }
+
+  .card-more > div {
+    overflow: hidden;
+    min-height: 0;
+  }
+
+  .card:hover .card-more {
+    grid-template-rows: 1fr;
+    opacity: 1;
+  }
+
+  .card-more .btn {
+    margin-top: 16px;
+  }
+
+  /* ---------- examples ---------- */
+
+  .examples {
+    padding: 116px 0 119px;
+    border-bottom: 1px solid var(--line);
+    overflow: hidden;
+  }
+
+  .section-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 32px;
+  }
+
+  .rule {
+    width: 280px;
+    height: 2px;
+    background: linear-gradient(
+      to right,
+      var(--orange) 0 63px,
+      #373737 63px 100%
+    );
+  }
+
+  .example-rail {
+    display: flex;
+    gap: 16px;
+    margin-top: 116px;
+    padding: 0 32px;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .example-rail::-webkit-scrollbar {
+    display: none;
+  }
+
+  .example {
+    flex: none;
+    width: 322px;
+    border: 1px solid var(--line);
+    background: var(--bg);
+  }
+
+  .example img {
+    display: block;
+    width: 100%;
+    height: 240.5px;
+    object-fit: cover;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .example-meta {
+    padding: 14.5px 12px 0;
+    height: 76px;
+  }
+
+  .example-title {
+    margin: 0;
+    font-size: 16px;
+    line-height: 20px;
+    color: var(--text);
+  }
+
+  .example-copy {
+    margin: 8.5px 0 0;
+    font-size: 14px;
+    line-height: 18px;
+    color: var(--copy);
+  }
+
+  .example:hover .example-title {
+    color: var(--orange);
+  }
+
+  /* ---------- outro ---------- */
+
+  .outro {
+    padding: 56.5px 0 82.25px;
+    border-bottom: 1px solid var(--line);
+    text-align: center;
+  }
+
+  .wordmark {
+    margin: 0;
+    font-family: var(--mono);
+    font-size: 179px;
+    font-weight: 400;
+    line-height: 1;
+    letter-spacing: -0.103em;
+    padding-right: 0.103em;
+    color: #181818;
+    user-select: none;
+  }
+
+  .outro-actions {
+    display: flex;
+    justify-content: center;
+    gap: 16.5px;
+    margin-top: 10.75px;
+  }
+
+  /* ---------- responsive ---------- */
+
+  @media (max-width: 1180px) {
+    .hero-panel {
+      right: 24px;
+    }
+
+    .hero-card {
+      width: min(639px, calc(100% - 340px));
+    }
+  }
+
+  @media (max-width: 900px) {
+    :root {
+      --pad: 20px;
+    }
+
+    .hero {
+      height: auto;
+      padding: 40px 0;
+    }
+
+    .hero-orb {
+      object-position: center top;
+      opacity: 0.55;
+    }
+
+    .hero-card,
+    .hero-panel {
+      position: relative;
+      top: auto;
+      right: auto;
+      left: auto;
+      transform: none;
+    }
+
+    .hero-card {
+      width: calc(100% - 40px);
+      margin: 180px 20px 0;
+    }
+
+    .hero-panel {
+      margin: 32px auto 0;
+    }
+
+    h1 {
+      font-size: 40px;
+      line-height: 44px;
+    }
+
+    .features-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+
+    .features-grid .card:nth-child(3),
+    .features-grid .card:nth-child(5) {
+      border-top: 1px solid var(--line);
+    }
+
+    .features-grid .card:nth-child(3),
+    .features-grid .card:nth-child(4) {
+      border-left: 0;
+    }
+
+    .card.wide {
+      grid-column: auto;
+    }
+
+    .examples {
+      padding: 64px 0 72px;
+    }
+
+    .example-rail {
+      margin-top: 56px;
+    }
+
+    .hero {
+      height: auto;
+      padding: 72px 0 80px;
+    }
+
+    .hero-orb {
+      object-position: center top;
+    }
+
+    .hero-card {
+      position: relative;
+      top: auto;
+      left: auto;
+      z-index: 1;
+      transform: none;
+      width: auto;
+      margin: 0 20px;
+    }
+
+    .hero-panel {
+      position: relative;
+      top: auto;
+      right: auto;
+      z-index: 1;
+      transform: none;
+      display: block;
+      margin: 48px auto 0;
+      max-width: calc(100% - 40px);
+    }
+
+    .wordmark {
+      font-size: 14vw;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .topbar {
+      height: auto;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 16px;
+      padding: 20px;
+    }
+
+    .features-lead,
+    .features-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .features-lead .card,
+    .features-grid .card,
+    .features-grid .card:nth-child(4),
+    .features-grid .card:nth-child(5) {
+      min-height: 0;
+      border-left: 0;
+      border-top: 1px solid var(--line);
+    }
+
+    .features-lead .card:first-child {
+      border-top: 0;
+    }
+
+    .card-more {
+      grid-template-rows: 1fr;
+      opacity: 1;
+    }
+
+    .dot {
+      width: 11.5px;
+      margin-right: 9px;
+      opacity: 1;
+    }
+
+    .card h2 {
+      color: var(--text);
+    }
+
+    h1 {
+      font-size: 34px;
+      line-height: 38px;
+    }
+
+    .hero-actions,
+    .outro-actions {
+      flex-direction: column;
+    }
+
+    .section-head {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 16px;
+    }
+
+    .rule {
+      width: 100%;
+    }
+  }
+</style>
