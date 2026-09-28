@@ -9,43 +9,53 @@ sidebar:
 import { Aside } from "@astrojs/starlight/components";
 import { Image } from "astro:assets";
 import { LinkCard } from "@astrojs/starlight/components";
+import ExampleCard from "../../../components/ExampleCard.astro";
 
 ## Interactive Examples
 
-Below are some interactive examples of components exported from Adobe Illustrator using ai2svelte:
+Below are some interactive examples of components exported from Adobe Illustrator using ai2svelte.
 
-<LinkCard
+Each one ships with the Illustrator file it was exported from, so you can open it, inspect how the layers and snippets are set up, and re-export it yourself.
+
+<ExampleCard
   title="Example 1"
   href="../../example1/"
   description="using Snippet to add a headline"
+  file="headline.ai"
 />
-<LinkCard
+<ExampleCard
   title="Example 2"
   href="../../example2/"
   description="using Snippet for precise video positioning and alignment"
+  file="mapVideo.ai"
 />
-<LinkCard
+<ExampleCard
   title="Example 3"
   href="../../example3/"
   description="using Snippets to embed 3D models"
+  file="3d.ai"
 />
-<LinkCard
+<ExampleCard
   title="Example 4"
   href="../../example4/"
   description="leveraging Snippet and PNG layers for interactivity"
+  file="beforeAfter.ai"
 />
-<LinkCard
+<ExampleCard
   title="Example 5"
   href="../../example5/"
   description="using Snippet to embed 3rd party widget"
+  file="stock.ai"
 />
-<LinkCard
+<ExampleCard
   title="Example 6"
   href="../../example6/"
   description="advanced interactivity using PNG layer"
+  file="fire.ai"
 />
-<LinkCard
+<ExampleCard
   title="Example 7"
   href="../../example7/"
   description="using tagged text layers for dynamic text content"
+  file="dynamicText.ai"
 />

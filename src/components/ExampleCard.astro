@@ -1,0 +1,104 @@
+---
+import { statSync } from "node:fs";
+import { LinkCard } from "@astrojs/starlight/components";
+
+interface Props {
+  title: string;
+  href: string;
+  description: string;
+  /** Filename in public/examples/, e.g. "headline.ai" */
+  file: string;
+}
+
+const { title, href, description, file } = Astro.props;
+const base = import.meta.env.BASE_URL.replace(/\/$/, "");
+
+// Read the size at build time so the label warns before a 20MB download starts.
+let size = "";
+try {
+  const bytes = statSync(new URL(`../../public/examples/${file}`, import.meta.url)).size;
+  const mb = bytes / 1024 ** 2;
+  size = mb >= 10 ? `${Math.round(mb)} MB` : `${mb.toFixed(1)} MB`;
+} catch {
+  size = "";
+}
+---
+
+<div class="example-card">
+  <LinkCard title={title} href={href} description={description} />
+  <a class="ai-download" href={`${base}/examples/${file}`} download={file}>
+    <svg
+      aria-hidden="true"
+      width="16"
+      height="16"
+      viewBox="0 0 16 16"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="1.5"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+    >
+      <path d="M8 2v8m0 0 3-3m-3 3L5 7" />
+      <path d="M2.5 11.5v1a1 1 0 0 0 1 1h9a1 1 0 0 0 1-1v-1" />
+    </svg>
+    <span>Download <code>.ai</code></span>
+    {size && <span class="ai-download-size">{size}</span>}
+  </a>
+</div>
+
+<style>
+  .example-card {
+    display: flex;
+    align-items: stretch;
+    gap: 0.5rem;
+  }
+
+  .example-card > :global(.sl-link-card) {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .ai-download {
+    flex: none;
+    align-self: center;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 0.75rem;
+    border: 1px solid var(--sl-color-gray-5);
+    border-radius: 0.5rem;
+    color: var(--sl-color-white);
+    text-decoration: none;
+    line-height: 1.2;
+    white-space: nowrap;
+  }
+
+  .ai-download:hover,
+  .ai-download:focus-visible {
+    border-color: var(--sl-color-accent);
+    background: var(--sl-color-gray-6);
+  }
+
+  .ai-download code {
+    background: none;
+    padding: 0;
+    font-size: inherit;
+  }
+
+  .ai-download-size {
+    color: var(--sl-color-gray-3);
+    font-size: var(--sl-text-xs);
+  }
+
+  @media (max-width: 50rem) {
+    .example-card {
+      flex-direction: column;
+      gap: 0;
+    }
+
+    .ai-download {
+      align-self: flex-start;
+      margin: 0.25rem 0 1rem;
+    }
+  }
+</style>

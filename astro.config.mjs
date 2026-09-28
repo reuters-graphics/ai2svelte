@@ -5,6 +5,7 @@ import svelte from "@astrojs/svelte";
 import preprocess from "svelte-preprocess";
 import starlightHeadingBadges from "starlight-heading-badges";
 import starlightLlmsTxt from "starlight-llms-txt";
+import exampleExportPaths from "./scripts/example-export-paths.mjs";
 
 // https://astro.build/config
 export default defineConfig({
@@ -13,6 +14,7 @@ export default defineConfig({
   outDir: "./docs",
   trailingSlash: "always",
   integrations: [
+    exampleExportPaths(),
     svelte({
       preprocess: preprocess(),
     }),
