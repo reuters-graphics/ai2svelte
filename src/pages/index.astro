@@ -1226,7 +1226,7 @@ const repo = "https://github.com/reuters-graphics/ai2svelte/";
         which is what gives the trail a direction. */
     const letterCalm = 4;
 
-    const scrambleSet = "0123456789ABCDEF";
+    const scrambleSet = "abcdefghijklmnopqrstuvwxyz";
 
     const cells = [...wordmark.querySelectorAll("span")].map((el) => ({
       el,
@@ -1243,7 +1243,11 @@ const repo = "https://github.com/reuters-graphics/ai2svelte/";
      * the `t` overlap outright, and the `t` only tucks in because the `l` is a
      * bare stem — so a slot can't take just any glyph. Allowing only glyphs
      * that sit within the bounds of the letter they replace means the
-     * scramble can never open a gap the artwork doesn't already have.
+     * scramble can never reach anywhere the artwork doesn't already reach.
+     *
+     * The rule runs downwards as well as sideways: the word has no
+     * descenders, so the box is trimmed tight under the baseline and a `g` or
+     * a `j` would drop into the buttons below.
      */
     const stock = () => {
       const style = getComputedStyle(wordmark);
@@ -1256,7 +1260,11 @@ const repo = "https://github.com/reuters-graphics/ai2svelte/";
       const slack = size * 0.02;
       const edges = (char) => {
         const m = ctx.measureText(char);
-        return { left: -m.actualBoundingBoxLeft, right: m.actualBoundingBoxRight };
+        return {
+          left: -m.actualBoundingBoxLeft,
+          right: m.actualBoundingBoxRight,
+          below: m.actualBoundingBoxDescent,
+        };
       };
 
       for (const cell of cells) {
@@ -1265,8 +1273,15 @@ const repo = "https://github.com/reuters-graphics/ai2svelte/";
         cell.pool =
           [...scrambleSet]
             .filter((char) => {
+              // Its own letter would read as the churn stopping early.
+              if (char === cell.char) return false;
+
               const g = edges(char);
-              return g.right <= real.right + slack && g.left >= real.left - slack;
+              return (
+                g.right <= real.right + slack &&
+                g.left >= real.left - slack &&
+                g.below <= real.below + slack
+              );
             })
             .join("") || cell.char;
       }
