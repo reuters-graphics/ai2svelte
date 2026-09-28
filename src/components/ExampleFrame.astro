@@ -1,0 +1,282 @@
+---
+interface Props {
+  /** Filename in public/examples/, e.g. "headline.ai" */
+  file: string;
+  /** Filename in src/components/, e.g. "component1.svelte" */
+  component: string;
+}
+
+const { file, component } = Astro.props;
+import ExampleActions from "./ExampleActions.astro";
+---
+
+<div class="ex-stage">
+  <div class="ex-frame">
+    <main>
+      <slot />
+    </main>
+  </div>
+</div>
+
+<div class="ex-chrome">
+  <ExampleActions file={file} component={component} />
+
+  <!-- Revealed by the script once it finds more than one artboard, so the page
+       still works untouched without JS. -->
+  <div class="ab" hidden>
+    <span class="ab-label">Artboard</span>
+    <input
+      class="ab-range"
+      type="range"
+      min="0"
+      max="0"
+      step="1"
+      value="0"
+      aria-label="Artboard"
+    />
+    <span class="ab-readout"><b class="ab-name"></b> <span class="ab-size"></span></span>
+  </div>
+</div>
+
+<style>
+  .ex-stage {
+    /* The frame is laid out at the artboard's real width and only scaled
+       visually, so it can overhang this box. */
+    overflow: hidden;
+    display: flex;
+    justify-content: center;
+    /* Not stretch: the stage gets an explicit height when the frame is scaled,
+       and a stretched frame would inherit it, feeding its own measurement back
+       in and collapsing both to zero. */
+    align-items: flex-start;
+  }
+
+  .ex-frame {
+    flex: none;
+    width: 100%;
+    transform-origin: top center;
+  }
+
+  .ex-chrome {
+    position: fixed;
+    top: 16px;
+    right: 16px;
+    z-index: 999;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 8px;
+    max-width: calc(100vw - 32px);
+  }
+
+  .ab {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 12px;
+    border: 1px solid #2b2b2b;
+    background: #050505;
+    color: #f3f3f3;
+    font-family: "Geist Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 12.16px;
+    line-height: 15px;
+    letter-spacing: 0.4864px;
+    white-space: nowrap;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.28);
+  }
+
+  .ab[hidden] {
+    display: none;
+  }
+
+  .ab-label {
+    text-transform: uppercase;
+    color: #828282;
+  }
+
+  .ab-readout {
+    /* Reserve room so the panel doesn't jitter as the label changes width. */
+    min-width: 8.5ch;
+  }
+
+  .ab-name {
+    font-weight: 500;
+  }
+
+  .ab-size {
+    color: #828282;
+  }
+
+  .ab-range {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 108px;
+    height: 12px;
+    margin: 0;
+    background: none;
+    cursor: pointer;
+  }
+
+  .ab-range::-webkit-slider-runnable-track {
+    height: 2px;
+    background: #2b2b2b;
+  }
+
+  .ab-range::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 10px;
+    height: 10px;
+    margin-top: -4px;
+    border: 0;
+    border-radius: 0;
+    background: #dc4300;
+  }
+
+  .ab-range::-moz-range-track {
+    height: 2px;
+    background: #2b2b2b;
+  }
+
+  .ab-range::-moz-range-thumb {
+    width: 10px;
+    height: 10px;
+    border: 0;
+    border-radius: 0;
+    background: #dc4300;
+  }
+
+  .ab-range:focus-visible {
+    outline: 2px solid #fff;
+    outline-offset: 3px;
+  }
+
+  @media (max-width: 30rem) {
+    .ex-chrome {
+      top: 10px;
+      right: 10px;
+      gap: 6px;
+      max-width: calc(100vw - 20px);
+    }
+
+    /* A phone can't usefully preview a 1200px artboard, and the panel costs
+       more of the artwork than it's worth at this width. */
+    .ab,
+    .ab[hidden] {
+      display: none;
+    }
+  }
+
+  @media print {
+    .ex-chrome {
+      display: none;
+    }
+  }
+</style>
+
+<script>
+  const stage = document.querySelector<HTMLElement>(".ex-stage");
+  const frame = document.querySelector<HTMLElement>(".ex-frame");
+  const panel = document.querySelector<HTMLElement>(".ab");
+  const range = document.querySelector<HTMLInputElement>(".ab-range");
+  const nameOut = document.querySelector<HTMLElement>(".ab-name");
+  const sizeOut = document.querySelector<HTMLElement>(".ab-size");
+
+  if (stage && frame && panel && range && nameOut && sizeOut) {
+    type Artboard = { min: number; max: number; label: string };
+
+    let artboards: Artboard[] = [];
+    let scale = 1;
+    // Until the slider is touched the page stays fully responsive, exactly as
+    // it behaved before the control existed.
+    let pinned = false;
+    // Matches the media query that hides the control.
+    const phone = matchMedia("(max-width: 30rem)");
+
+    const readArtboards = (): Artboard[] =>
+      Array.from(document.querySelectorAll<HTMLElement>(".g-artboard"))
+        .map((el) => {
+          const max = parseFloat(el.dataset.maxWidth ?? "");
+          return {
+            min: parseFloat(el.dataset.minWidth ?? "") || 0,
+            max: Number.isFinite(max) ? max : Infinity,
+            // "g-headline-xs" -> "xs"
+            label: el.id.split("-").pop() || "",
+          };
+        })
+        .sort((a, b) => a.min - b.min);
+
+    const indexFor = (width: number) => {
+      const i = artboards.findIndex((a) => width >= a.min && width <= a.max);
+      return i === -1 ? artboards.length - 1 : i;
+    };
+
+    /**
+     * Width to lay the frame out at. Clamping the available width into the
+     * artboard's own range means the naturally-active artboard renders at the
+     * real viewport width — so an untouched page is pixel-identical to before —
+     * while any other artboard gets the nearest width that its container query
+     * actually matches.
+     */
+    const widthFor = (a: Artboard, available: number) => {
+      const ceiling = a.max === Infinity ? Math.max(available, a.min) : a.max;
+      return Math.round(Math.min(Math.max(available, a.min), ceiling));
+    };
+
+    const syncHeight = () => {
+      // Transforms don't affect layout, so the stage has to be told how tall
+      // the scaled frame actually paints.
+      stage.style.height = scale < 1 ? `${Math.round(frame.offsetHeight * scale)}px` : "";
+    };
+
+    const apply = () => {
+      if (!artboards.length) return;
+      const available = stage.clientWidth;
+      // Drop the pin outright rather than just ignoring it: apply() rewrites
+      // range.value as it tracks the natural artboard, so a pin held through a
+      // phone-width resize would come back pointing at the wrong artboard.
+      if (phone.matches) pinned = false;
+      const index = pinned ? Number(range.value) : indexFor(available);
+      const artboard = artboards[index];
+      const width = widthFor(artboard, available);
+      scale = Math.min(1, available / width);
+
+      range.value = String(index);
+      frame.style.width = `${width}px`;
+      frame.style.transform = scale < 1 ? `scale(${scale})` : "";
+      syncHeight();
+
+      nameOut.textContent = artboard.label;
+      sizeOut.textContent = `${width}px`;
+      range.setAttribute("aria-valuetext", `${artboard.label}, ${width} pixels wide`);
+    };
+
+    const start = () => {
+      artboards = readArtboards();
+      if (artboards.length < 2) return false;
+
+      range.max = String(artboards.length - 1);
+      panel.hidden = false;
+
+      range.addEventListener("input", () => {
+        pinned = true;
+        apply();
+      });
+
+      new ResizeObserver(syncHeight).observe(frame);
+      addEventListener("resize", apply);
+      apply();
+      return true;
+    };
+
+    if (!start()) {
+      // Client-side components can replace their markup on hydration, so wait
+      // for the artboards rather than giving up on the first look.
+      const observer = new MutationObserver(() => {
+        if (start()) observer.disconnect();
+      });
+      observer.observe(document.body, { childList: true, subtree: true });
+      setTimeout(() => observer.disconnect(), 10000);
+    }
+  }
+</script>
