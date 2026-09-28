@@ -51,19 +51,19 @@ const featuresGrid = [
 const examples = [
   {
     title: "Headline snippet",
-    copy: "Typography and component embed",
+    copy: "Using snippet layer to render headline component",
     href: `${base}/example1/`,
     image: `${base}/images/examples/example1.webp`,
   },
   {
-    title: "Map video",
-    copy: "Responsive embed with annotations",
+    title: "Video snippet",
+    copy: "Using snippet layer to accurately place video content",
     href: `${base}/example2/`,
     image: `${base}/images/examples/example2.webp`,
   },
   {
     title: "3D model",
-    copy: "Snippet-embedded interactive geometry",
+    copy: "Snippet layer to place 3D models",
     href: `${base}/example3/`,
     image: `${base}/images/examples/example3.webp`,
   },
@@ -679,7 +679,6 @@ const repo = "https://github.com/reuters-graphics/ai2svelte/";
 
   .example-meta {
     padding: 16px 12px;
-    height: 76px;
   }
 
   .example-title {
@@ -1003,14 +1002,88 @@ const repo = "https://github.com/reuters-graphics/ai2svelte/";
   const dots = document.querySelectorAll(".dot");
 
   if (dots.length && "IntersectionObserver" in window) {
+    const motion = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const scrambleChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+    const titles = new Map();
+    const running = new WeakSet();
+
+    for (const dot of dots) {
+      const title = dot.parentElement?.querySelector(".t");
+      if (!title) continue;
+
+      titles.set(dot, title);
+      // Scrambling rewrites the text, so pin the real wording as the heading's
+      // accessible name. Screen readers then never see the intermediate junk.
+      dot.parentElement.setAttribute("aria-label", title.textContent);
+    }
+
+    /**
+     * Glitch a title into place: every character cycles through random glyphs
+     * until its own finish time, which is staggered so the word resolves left
+     * to right. Titles are set in Geist Mono, so swapping glyphs can't shift
+     * the layout. Spaces are left alone to keep the word shapes readable.
+     */
+    const scramble = (el) => {
+      if (running.has(el)) return;
+      running.add(el);
+
+      const text = el.textContent;
+      const queue = [...text].map((char, i) => ({
+        char,
+        glyph: char,
+        end: i * 1.5 + 10 + Math.random() * 14,
+      }));
+
+      let frame = 0;
+
+      const tick = () => {
+        let out = "";
+        let settled = 0;
+
+        for (const item of queue) {
+          if (item.char === " " || frame >= item.end) {
+            out += item.char;
+            settled++;
+          } else {
+            // Reroll intermittently rather than every frame, so the churn
+            // reads as a glitch instead of a blur.
+            if (Math.random() < 0.35)
+              item.glyph =
+                scrambleChars[
+                  Math.floor(Math.random() * scrambleChars.length)
+                ];
+            out += item.glyph;
+          }
+        }
+
+        el.textContent = out;
+        frame++;
+
+        if (settled === queue.length) {
+          el.textContent = text;
+          running.delete(el);
+          return;
+        }
+
+        requestAnimationFrame(tick);
+      };
+
+      requestAnimationFrame(tick);
+    };
+
     // Light a dot once it rises past a line 75% of the viewport height up from
     // the bottom. The region runs from that line upwards without end, so a dot
     // stays lit above it and a fast scroll can't jump the whole region in one
     // step without the observer firing.
     const lighting = new IntersectionObserver(
       (entries) => {
-        for (const entry of entries)
+        for (const entry of entries) {
           entry.target.classList.toggle("on", entry.isIntersecting);
+
+          const title = titles.get(entry.target);
+          if (entry.isIntersecting && title && !motion.matches)
+            scramble(title);
+        }
       },
       { rootMargin: "100000px 0px -75% 0px" }
     );
