@@ -52,9 +52,5 @@
   .fluid-backdrop {
     position: absolute;
     inset: 0;
-    /* The simulation paints at full strength, which reads as a wall of dye
-       rather than a backdrop. Knocking it back keeps the wordmark and the
-       buttons on top of it legible. */
-    opacity: 0.55;
   }
 </style>
