@@ -1003,7 +1003,11 @@ const repo = "https://github.com/reuters-graphics/ai2svelte/";
 
   if (dots.length && "IntersectionObserver" in window) {
     const motion = window.matchMedia("(prefers-reduced-motion: reduce)");
-    const scrambleChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+    // ASCII density ramp, sparse to dense. Each cell walks along it as it
+    // resolves, so the title condenses out of a faint stipple instead of
+    // cycling through random letters. Punctuation only, so nothing in here
+    // reads as a word mid-flight.
+    const ditherRamp = ".,:;-~=+*!#%&@$";
     const titles = new Map();
     const running = new WeakSet();
 
@@ -1030,7 +1034,7 @@ const repo = "https://github.com/reuters-graphics/ai2svelte/";
       const text = el.textContent;
       const queue = [...text].map((char, i) => ({
         char,
-        glyph: char,
+        glyph: ditherRamp[0],
         end: i * 1.5 + 10 + Math.random() * 14,
       }));
 
@@ -1045,13 +1049,17 @@ const repo = "https://github.com/reuters-graphics/ai2svelte/";
             out += item.char;
             settled++;
           } else {
-            // Reroll intermittently rather than every frame, so the churn
-            // reads as a glitch instead of a blur.
-            if (Math.random() < 0.35)
-              item.glyph =
-                scrambleChars[
-                  Math.floor(Math.random() * scrambleChars.length)
-                ];
+            // Walk the ramp in step with this cell's progress, jittered a
+            // little so neighbouring cells land on different densities. That
+            // spread is what gives the row its dithered texture rather than a
+            // uniform sweep.
+            if (Math.random() < 0.45) {
+              const span = ditherRamp.length - 1;
+              const level = Math.round(
+                (frame / item.end) * span + (Math.random() * 3 - 1.5)
+              );
+              item.glyph = ditherRamp[Math.max(0, Math.min(span, level))];
+            }
             out += item.glyph;
           }
         }
