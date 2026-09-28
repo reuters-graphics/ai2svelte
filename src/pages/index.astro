@@ -1,8 +1,20 @@
 ---
 import FluidBackdrop from "../components/fluid/FluidBackdrop.svelte";
-// Inlined rather than linked as an <img> so the paths inherit `currentColor`
-// and the section can transition the logotype's fill on hover.
-import logotype from "../svg/logotype.svg?raw";
+
+// The logotype is Geist Mono 550 with the pairs hand-kerned tight. These
+// offsets were fitted against the original artwork and land within ~95% of
+// it; they're in em so the mark scales as one piece.
+const logotype: [string, number][] = [
+  ["a", 0],
+  ["i", -0.0774],
+  ["2", -0.039],
+  ["s", -0.0642],
+  ["v", -0.0714],
+  ["e", -0.0934],
+  ["l", -0.083],
+  ["t", -0.2189],
+  ["e", -0.0903],
+];
 
 const base = "/ai2svelte";
 
@@ -111,7 +123,7 @@ const repo = "https://github.com/reuters-graphics/ai2svelte/";
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@300;400;500&family=Inter:wght@400;500&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@300..600&family=Inter:wght@400;500&display=swap"
       rel="stylesheet"
     />
     <title>ai2svelte — Illustrator graphics to responsive Svelte</title>
@@ -230,7 +242,13 @@ const repo = "https://github.com/reuters-graphics/ai2svelte/";
 
       <section class="outro">
         <FluidBackdrop client:visible startColor="#dc4300" />
-        <div class="wordmark" aria-hidden="true" set:html={logotype}></div>
+        <div class="wordmark" aria-hidden="true">
+          {
+            logotype.map(([char, kern]) => (
+              <span style={`margin-left:${kern}em`}>{char}</span>
+            ))
+          }
+        </div>
         <div class="outro-actions">
           <a class="btn btn-primary" href={releases}>DOWNLOAD EXTENSION</a>
           <a class="btn" href={`${base}/docs/`}>READ DOCS</a>
@@ -709,6 +727,9 @@ const repo = "https://github.com/reuters-graphics/ai2svelte/";
        the backdrop can't escape into the sticky topbar's layer. */
     overflow: hidden;
     isolation: isolate;
+    /* The wordmark is live text, so it can't scale itself the way the old
+       artwork did. This gives it a width to size against. */
+    container-type: inline-size;
   }
 
   /* Astro gives every island `display: contents`, so the backdrop inside this
@@ -726,8 +747,17 @@ const repo = "https://github.com/reuters-graphics/ai2svelte/";
     position: relative;
     z-index: 1;
     display: block;
-    width: 798.832px;
-    max-width: 100%;
+    font-family: var(--mono);
+    font-weight: 550;
+    /* 175.26px draws the mark at the 798.832px the artwork used to occupy;
+       below that the container query shrinks it to fit. The divisor is the
+       mark's advance width in ems, measured against the original. */
+    font-size: min(175.26px, 21.4445cqw);
+    line-height: 1;
+    white-space: nowrap;
+    /* Trims the half-leading above and below so the box hugs the letterforms,
+       the way the artwork's own bounds did, and the section's gaps stay put. */
+    margin: -0.1438em 0 -0.1343em;
     user-select: none;
     /* Sits at the same value the flat artwork was drawn in, and warms to
        white while the cursor is anywhere in the section. */
@@ -739,12 +769,10 @@ const repo = "https://github.com/reuters-graphics/ai2svelte/";
     pointer-events: none;
   }
 
-  /* `set:html` output isn't scoped, so the inlined logotype needs a global
-     selector to pick up its sizing. */
-  .wordmark :global(svg) {
-    display: block;
-    width: 100%;
-    height: auto;
+  /* Each letter is its own box so the pair kerning can be applied as a margin
+     and so individual glyphs stay addressable. */
+  .wordmark span {
+    display: inline-block;
   }
 
   .outro:hover .wordmark {
@@ -872,11 +900,6 @@ const repo = "https://github.com/reuters-graphics/ai2svelte/";
       height: auto;
       margin: 48px auto 0;
       max-width: calc(100% - 40px);
-    }
-
-    .wordmark {
-      width: 100%;
-      height: auto;
     }
   }
 
