@@ -769,13 +769,10 @@ const repo = "https://github.com/reuters-graphics/ai2svelte/";
     pointer-events: none;
   }
 
-  /* Each letter is its own box so the pair kerning can be applied as a margin
-     and so individual glyphs stay addressable. Pinning the width to one
-     character keeps the mark on its grid while the hover scramble swaps
-     glyphs through it. */
+  /* Each letter is its own box so the pair kerning can be applied as a
+     margin. */
   .wordmark span {
     display: inline-block;
-    width: 0.6em;
   }
 
   .outro:hover .wordmark {
@@ -1065,11 +1062,6 @@ const repo = "https://github.com/reuters-graphics/ai2svelte/";
     measure();
   }
 
-  // ASCII density ramp, sparse to dense. Shared by the title dither and the
-  // wordmark scramble so both speak the same visual language. Punctuation
-  // only, so nothing in here reads as a word mid-flight.
-  const asciiRamp = ".,:;-~=+*!#%&@$";
-
   const dots = document.querySelectorAll(".dot");
 
   if (dots.length && "IntersectionObserver" in window) {
@@ -1094,7 +1086,9 @@ const repo = "https://github.com/reuters-graphics/ai2svelte/";
     // ASCII density ramp, sparse to dense. Each cell walks along it as it
     // resolves, so the title condenses out of a faint stipple instead of
     // cycling through random letters.
-    const ditherRamp = asciiRamp;
+    // ASCII density ramp, sparse to dense. Punctuation only, so nothing in
+    // here reads as a word mid-flight.
+    const ditherRamp = ".,:;-~=+*!#%&@$";
     const titles = new Map();
     const running = new WeakSet();
 
@@ -1195,219 +1189,5 @@ const repo = "https://github.com/reuters-graphics/ai2svelte/";
     );
 
     for (const dot of dots) lighting.observe(dot);
-  }
-
-  const wordmark = document.querySelector(".wordmark");
-  const outro = document.querySelector(".outro");
-
-  if (wordmark && outro) {
-    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)");
-
-    /**
-     * Pace of the hover scramble. Higher is faster: 2 settles a letter in
-     * half the time, 0.5 takes twice as long. The three timings below are in
-     * milliseconds at speed 1 and are divided through by it.
-     */
-    const scrambleSpeed = 1;
-
-    /**
-     * How long a letter churns before snapping back. This is what sets the
-     * length of the trail: a sweep leaves behind every letter crossed in the
-     * last `letterDuration` milliseconds, so raising it drags more of the
-     * word along behind the cursor.
-     */
-    const letterDuration = 540;
-    /** Beat between the cursor crossing a letter and that letter breaking up. */
-    const letterLag = 55;
-    /** How fast a letter flickers the moment it breaks up. */
-    const letterReroll = 42;
-    /** How much the flicker slows by the time a letter settles, as a multiple
-        of `letterReroll`. Letters further behind the cursor visibly calm down,
-        which is what gives the trail a direction. */
-    const letterCalm = 4;
-
-    const scrambleSet = "abcdefghijklmnopqrstuvwxyz";
-
-    const cells = [...wordmark.querySelectorAll("span")].map((el) => ({
-      el,
-      char: el.textContent,
-      pool: scrambleSet,
-      glyph: "",
-      start: -Infinity,
-      nextRoll: 0,
-    }));
-
-    /**
-     * Pick the glyphs each slot is allowed to churn through. The pairs are
-     * kerned tight around the letters that are actually there — the `l` and
-     * the `t` overlap outright, and the `t` only tucks in because the `l` is a
-     * bare stem — so a slot can't take just any glyph. Allowing only glyphs
-     * that sit within the bounds of the letter they replace means the
-     * scramble can never reach anywhere the artwork doesn't already reach.
-     *
-     * The rule runs downwards as well as sideways: the word has no
-     * descenders, so the box is trimmed tight under the baseline and a `g` or
-     * a `j` would drop into the buttons below.
-     */
-    const stock = () => {
-      const style = getComputedStyle(wordmark);
-      const size = parseFloat(style.fontSize);
-      const ctx = document.createElement("canvas").getContext("2d");
-
-      ctx.font = `${style.fontWeight} ${size}px ${style.fontFamily}`;
-
-      // A hair of slack, or the tightest slots are left with nothing to draw.
-      const slack = size * 0.02;
-      const edges = (char) => {
-        const m = ctx.measureText(char);
-        return {
-          left: -m.actualBoundingBoxLeft,
-          right: m.actualBoundingBoxRight,
-          below: m.actualBoundingBoxDescent,
-        };
-      };
-
-      for (const cell of cells) {
-        const real = edges(cell.char);
-
-        cell.pool =
-          [...scrambleSet]
-            .filter((char) => {
-              // Its own letter would read as the churn stopping early.
-              if (char === cell.char) return false;
-
-              const g = edges(char);
-              return (
-                g.right <= real.right + slack &&
-                g.left >= real.left - slack &&
-                g.below <= real.below + slack
-              );
-            })
-            .join("") || cell.char;
-      }
-    };
-
-    // Offsets of each letter's centre from the left of the mark. Stable under
-    // scroll, so a pointer move only has to read the one box below.
-    let centres = [];
-
-    const measure = () => {
-      const box = wordmark.getBoundingClientRect();
-
-      centres = cells.map((cell) => {
-        const r = cell.el.getBoundingClientRect();
-        return r.left + r.width / 2 - box.left;
-      });
-    };
-
-    let frame = 0;
-
-    /**
-     * Walk every letter that's mid-churn. A letter flickers hard the moment
-     * the cursor crosses it and slows as it settles, so the letters furthest
-     * behind are already calming down by the time the cursor reaches the end
-     * of the word. That falloff is the trail.
-     *
-     * Driven by elapsed time rather than a frame count, so the pace is the
-     * same on a 60Hz and a 120Hz display. The mark is set in Geist Mono and
-     * every cell is pinned to one character width, so swapping glyphs can't
-     * shift the letters.
-     */
-    const tick = (now) => {
-      let active = 0;
-
-      for (const cell of cells) {
-        const elapsed = (now - cell.start) * scrambleSpeed;
-
-        // Still inside its lag, so it hasn't broken up yet.
-        if (elapsed < 0) {
-          active++;
-          continue;
-        }
-
-        if (elapsed >= letterDuration) {
-          if (cell.el.textContent !== cell.char) cell.el.textContent = cell.char;
-          continue;
-        }
-
-        active++;
-
-        if (elapsed >= cell.nextRoll) {
-          // Never twice in a row: a repeat reads as the flicker stalling.
-          let next = cell.pool[Math.floor(Math.random() * cell.pool.length)];
-          if (next === cell.glyph && cell.pool.length > 1) {
-            next = cell.pool[(cell.pool.indexOf(next) + 1) % cell.pool.length];
-          }
-
-          cell.glyph = next;
-          cell.el.textContent = next;
-
-          const progress = elapsed / letterDuration;
-          cell.nextRoll =
-            elapsed +
-            letterReroll * (0.5 + Math.random()) * (1 + progress * letterCalm);
-        }
-      }
-
-      frame = active ? requestAnimationFrame(tick) : 0;
-    };
-
-    let hovered = -1;
-
-    // The mark itself is `pointer-events: none` so the simulation keeps
-    // reading moves across the whole section, so the letter under the cursor
-    // is found by hit-testing here rather than by hovering the letters.
-    const onMove = (event) => {
-      if (reduced.matches) return;
-
-      const box = wordmark.getBoundingClientRect();
-
-      if (
-        event.clientY < box.top ||
-        event.clientY > box.bottom ||
-        event.clientX < box.left ||
-        event.clientX > box.right
-      ) {
-        hovered = -1;
-        return;
-      }
-
-      const x = event.clientX - box.left;
-      let nearest = 0;
-
-      // Nearest centre rather than a hit on the letter's own box: the pairs
-      // are kerned tight enough to overlap, so boxes alone are ambiguous.
-      for (let i = 1; i < centres.length; i++) {
-        if (Math.abs(x - centres[i]) < Math.abs(x - centres[nearest])) {
-          nearest = i;
-        }
-      }
-
-      // Only fire on crossing into a new letter, so resting on one doesn't
-      // hold it churning.
-      if (nearest === hovered) return;
-
-      hovered = nearest;
-      cells[nearest].start = performance.now() + letterLag / scrambleSpeed;
-      cells[nearest].nextRoll = 0;
-
-      if (!frame) frame = requestAnimationFrame(tick);
-    };
-
-    outro.addEventListener("pointermove", onMove, { passive: true });
-    outro.addEventListener("pointerleave", () => {
-      hovered = -1;
-    });
-
-    const remeasure = () => {
-      measure();
-      stock();
-    };
-
-    window.addEventListener("resize", remeasure, { passive: true });
-    remeasure();
-    // The mark is set in a webfont, so both the letter positions and the
-    // glyph bounds the stock is picked from only settle once that lands.
-    if (document.fonts) document.fonts.ready.then(remeasure);
   }
 </script>
