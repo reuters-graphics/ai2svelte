@@ -1,4 +1,5 @@
 import { readdir, readFile, writeFile } from "node:fs/promises";
+import { basename } from "node:path";
 import { fileURLToPath } from "node:url";
 
 /**
@@ -44,9 +45,12 @@ const rewritePacket = (packet) =>
     packet,
   );
 
-export async function rewriteExportPaths(file) {
-  const original = await readFile(file);
-
+/**
+ * Returns the rewritten bytes, or null when nothing needed changing.
+ * Throws rather than degrading: shipping a file with the wrong paths silently
+ * is worse than a failed build.
+ */
+export function rewriteBuffer(original, label = "buffer") {
   // latin1 keeps one byte per character, so string offsets are byte offsets
   // even though the packet itself is UTF-8.
   const binary = original.toString("latin1");
@@ -54,12 +58,12 @@ export async function rewriteExportPaths(file) {
   const end = binary.indexOf(PACKET_END, start);
 
   if (start === -1 || end === -1) {
-    throw new Error(`${file}: no writable XMP packet`);
+    throw new Error(`${label}: no writable XMP packet`);
   }
 
   const packet = binary.slice(start, end);
   const rewritten = rewritePacket(packet);
-  if (rewritten === packet) return false;
+  if (rewritten === packet) return null;
 
   // An .ai file is a PDF, and its xref table holds absolute byte offsets, so
   // the file length must not move. XMP packets carry trailing whitespace
@@ -70,7 +74,7 @@ export async function rewriteExportPaths(file) {
 
   if (delta > padding) {
     throw new Error(
-      `${file}: needs ${delta} bytes of padding but only ${padding} available`,
+      `${label}: needs ${delta} bytes of padding but only ${padding} available`,
     );
   }
 
@@ -86,25 +90,64 @@ export async function rewriteExportPaths(file) {
 
   if (next.length !== original.length) {
     throw new Error(
-      `${file}: size changed ${original.length} -> ${next.length}`,
+      `${label}: size changed ${original.length} -> ${next.length}`,
     );
   }
 
+  return next;
+}
+
+async function rewriteFile(file) {
+  const next = rewriteBuffer(await readFile(file), file);
+  if (!next) return false;
   await writeFile(file, next);
   return true;
 }
 
-/** Rewrites the built copies in the output directory, not the sources in public/. */
 export default function exampleExportPaths() {
+  let examplesDir;
+
   return {
     name: "ai2svelte-example-export-paths",
     hooks: {
+      "astro:config:done": ({ config }) => {
+        examplesDir = new URL("examples/", config.publicDir);
+      },
+
+      /**
+       * The dev server streams public/ straight from disk, so without this the
+       * same download would hand over the unrewritten original and the feature
+       * would look like it simply does not work.
+       */
+      "astro:server:setup": ({ server, logger }) => {
+        server.middlewares.use((req, res, next) => {
+          const path = (req.url ?? "").split("?")[0];
+          if (!path.endsWith(".ai") || !path.includes("/examples/")) {
+            return next();
+          }
+
+          const name = basename(decodeURIComponent(path));
+          readFile(fileURLToPath(new URL(name, examplesDir)))
+            .then((original) => {
+              const body = rewriteBuffer(original, name) ?? original;
+              res.setHeader("Content-Type", "application/illustrator");
+              res.setHeader("Content-Length", body.length);
+              res.end(body);
+            })
+            .catch((error) => {
+              logger.error(`${name}: ${error.message}`);
+              next();
+            });
+        });
+      },
+
+      /** Rewrites the built copies in the output directory, not the sources in public/. */
       "astro:build:done": async ({ dir, logger }) => {
-        const examples = new URL("examples/", dir);
+        const built = new URL("examples/", dir);
 
         let files;
         try {
-          files = (await readdir(examples)).filter((n) => n.endsWith(".ai"));
+          files = (await readdir(built)).filter((n) => n.endsWith(".ai"));
         } catch {
           logger.warn("no examples/ directory in the build output");
           return;
@@ -112,8 +155,8 @@ export default function exampleExportPaths() {
 
         let changed = 0;
         for (const name of files) {
-          const file = fileURLToPath(new URL(name, examples));
-          if (await rewriteExportPaths(file)) changed += 1;
+          if (await rewriteFile(fileURLToPath(new URL(name, built))))
+            changed += 1;
         }
 
         logger.info(
