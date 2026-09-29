@@ -1,5 +1,6 @@
 ---
 import Component from '../components/component4.svelte'
+import ExampleFrame from '../components/ExampleFrame.astro'
 ---
 
 <html lang="en">
@@ -11,9 +12,9 @@ import Component from '../components/component4.svelte'
     <title>ai2svelte Example 4</title>
   </head>
   <body>
-    <main>
+    <ExampleFrame file="beforeAfter.ai" component="component4.svelte">
         <Component client:load />
-    </main>
+    </ExampleFrame>
   </body>
   <style>
     body {

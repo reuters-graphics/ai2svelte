@@ -1,5 +1,6 @@
 ---
 import Component from '../components/component3.svelte'
+import ExampleFrame from '../components/ExampleFrame.astro'
 ---
 
 <html lang="en">
@@ -11,9 +12,9 @@ import Component from '../components/component3.svelte'
     <title>ai2svelte Example 3</title>
   </head>
   <body>
-    <main>
+    <ExampleFrame file="3d.ai" component="component3.svelte">
         <Component client:load />
-    </main>
+    </ExampleFrame>
   </body>
   <style>
     body {

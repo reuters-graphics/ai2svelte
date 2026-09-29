@@ -1,0 +1,1193 @@
+---
+import FluidBackdrop from "../components/fluid/FluidBackdrop.svelte";
+
+// The logotype is Geist Mono 550 with the pairs hand-kerned tight. These
+// offsets were fitted against the original artwork and land within ~95% of
+// it; they're in em so the mark scales as one piece.
+const logotype: [string, number][] = [
+  ["a", 0],
+  ["i", -0.0774],
+  ["2", -0.039],
+  ["s", -0.0642],
+  ["v", -0.0714],
+  ["e", -0.0934],
+  ["l", -0.083],
+  ["t", -0.2189],
+  ["e", -0.0903],
+];
+
+const base = "/ai2svelte";
+
+const featuresLead = [
+  {
+    title: "SNIPPET LAYERS",
+    copy:
+      "Snippet layers allow you to add dynamic content into the placeholder region you specify. Plug in any Svelte snippet to render custom component.",
+    href: `${base}/users/snippets/`,
+  },
+  {
+    title: "TAGGED LAYERS",
+    copy:
+      "Supercharge your layers with new capabilities using tagged layers. Tagged layers allows layers to behave differently than the usual static layers.",
+    href: `${base}/users/tagged-layers/`,
+  },
+];
+
+const featuresGrid = [
+  {
+    title: "GUI BASED EXTENSION",
+    copy:
+      "No more fiddling the docs. The new GUI provides you the exact key value pairs supported by the script.",
+    href: `${base}/users/ai2svelte-settings/`,
+  },
+  {
+    title: "CUSTOM FONT MAPPING",
+    copy:
+      "Now you can directly configure custom fonts inside the plugin without worrying about manually tweaking the styles in the generated component.",
+    href: `${base}/users/font-config/`,
+  },
+  {
+    title: "STYLE PRESETS",
+    copy: "Apply bundled shadows and animations to any object with one click.",
+    href: `${base}/users/styles/`,
+  },
+  {
+    title: "PROFILES",
+    copy: "Save and load ai2svelte settings as reusable, shareable profiles.",
+    href: `${base}/users/profiles/`,
+    wide: true,
+  },
+  {
+    title: "EVENT LISTENERS",
+    copy:
+      "Hook into onAiMounted and onArtboardChange to drive interactivity as the component mounts or its active breakpoint changes.",
+    href: `${base}/users/event-listeners/`,
+  },
+];
+
+const examples = [
+  {
+    title: "Headline snippet",
+    copy: "Using snippet layer to render headline component",
+    href: `${base}/example1/`,
+    image: `${base}/images/examples/example1.webp`,
+  },
+  {
+    title: "Video snippet",
+    copy: "Using snippet layer to accurately place video content",
+    href: `${base}/example2/`,
+    image: `${base}/images/examples/example2.webp`,
+  },
+  {
+    title: "3D model",
+    copy: "Snippet layer to place 3D models",
+    href: `${base}/example3/`,
+    image: `${base}/images/examples/example3.webp`,
+  },
+  {
+    title: "Before and after",
+    copy: "Snippet and PNG layers driving interactivity",
+    href: `${base}/example4/`,
+    image: `${base}/images/examples/example4.webp`,
+  },
+  {
+    title: "Stock graphic",
+    copy: "Third-party widget inside a snippet",
+    href: `${base}/example5/`,
+    image: `${base}/images/examples/example5.webp`,
+  },
+  {
+    title: "Fire annotations",
+    copy: "Advanced interactivity on a PNG layer",
+    href: `${base}/example6/`,
+    image: `${base}/images/examples/example6.webp`,
+  },
+  {
+    title: "Dynamic text",
+    copy: "Tagged text layers with live values",
+    href: `${base}/example7/`,
+    image: `${base}/images/examples/example7.webp`,
+  },
+];
+
+const releases = "https://github.com/reuters-graphics/ai2svelte/releases/";
+const repo = "https://github.com/reuters-graphics/ai2svelte/";
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="generator" content={Astro.generator} />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@300..600&family=Inter:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+    <title>ai2svelte — Illustrator graphics to responsive Svelte</title>
+    <meta
+      name="description"
+      content="ai2svelte is a newsroom-focused Illustrator extension for shipping responsive, text-selectable, interactive graphics without redrawing them by hand in code."
+    />
+  </head>
+
+  <body>
+    <div class="shell">
+      <header class="topbar">
+        <a class="brand" href={`${base}/`} aria-label="ai2svelte home">
+          <img src={`${base}/images/home/wordmark.svg`} alt="ai2svelte" width="120" height="19.543" />
+        </a>
+        <nav class="topnav" aria-label="Primary">
+          <a class="btn" href={`${base}/docs/`}>READ DOCS</a>
+          <a class="btn" href={repo}>GITHUB</a>
+        </nav>
+      </header>
+
+      <section class="hero">
+        <img class="hero-orb" src={`${base}/images/home/hero-orb.png`} alt="" aria-hidden="true" />
+
+        <div class="hero-card">
+          <p class="hero-eyebrow">BRING INTERACTIVITY TO ILLUSTRATOR</p>
+          <h1>Illustrator graphics to responsive Svelte.</h1>
+          <p class="hero-copy">
+            ai2svelte is a newsroom-focused Illustrator extension for shipping
+            responsive, text-selectable, interactive graphics without redrawing
+            them by hand in code.
+          </p>
+          <div class="hero-actions">
+            <a class="btn btn-primary" href={releases}>DOWNLOAD EXTENSION</a>
+            <a class="btn" href={`${base}/docs/`}>READ DOCS</a>
+          </div>
+        </div>
+
+        <img
+          class="hero-panel"
+          src={`${base}/images/home/hero-panel.svg`}
+          alt="The ai2svelte panel in Illustrator showing export settings, profiles and font configuration."
+        />
+      </section>
+
+      <section class="features features-lead">
+        {
+          featuresLead.map((item) => (
+            <article class="card">
+              <h2><span class="dot" aria-hidden="true" /><span class="t">{item.title}</span></h2>
+              <div class="card-body">
+                <p>{item.copy}</p>
+                <div class="card-more">
+                  <div><a class="btn" href={item.href}>READ MORE</a></div>
+                </div>
+              </div>
+            </article>
+          ))
+        }
+      </section>
+
+      <section class="features features-grid">
+        {
+          featuresGrid.map((item) => (
+            <article class:list={["card", { wide: item.wide }]}>
+              <h2><span class="dot" aria-hidden="true" /><span class="t">{item.title}</span></h2>
+              <div class="card-body">
+                <p>{item.copy}</p>
+                <div class="card-more">
+                  <div><a class="btn" href={item.href}>READ MORE</a></div>
+                </div>
+              </div>
+            </article>
+          ))
+        }
+      </section>
+
+      <section class="examples">
+        <div class="section-head">
+          <h2><span class="dot" aria-hidden="true" /><span class="t">EXAMPLES</span></h2>
+          <div
+            class="rule"
+            role="scrollbar"
+            tabindex="0"
+            aria-controls="example-rail"
+            aria-orientation="horizontal"
+            aria-label="Scroll examples"
+            aria-valuemin="0"
+            aria-valuemax="100"
+            aria-valuenow="0"
+          >
+            <span class="rule-knob" aria-hidden="true"></span>
+          </div>
+        </div>
+
+        <div
+          class="example-rail"
+          id="example-rail"
+          role="group"
+          aria-label="Examples"
+          tabindex="0"
+        >
+          {
+            examples.map((item) => (
+              <a class="example" href={item.href}>
+                <img src={item.image} alt="" />
+                <div class="example-meta">
+                  <p class="example-title">{item.title}</p>
+                  <p class="example-copy">{item.copy}</p>
+                </div>
+              </a>
+            ))
+          }
+        </div>
+      </section>
+
+      <section class="outro">
+        <FluidBackdrop client:visible startColor="#dc4300" />
+        <div class="wordmark" aria-hidden="true">
+          {
+            logotype.map(([char, kern]) => (
+              <span style={`margin-left:${kern}em`}>{char}</span>
+            ))
+          }
+        </div>
+        <div class="outro-actions">
+          <a class="btn btn-primary" href={releases}>DOWNLOAD EXTENSION</a>
+          <a class="btn" href={`${base}/docs/`}>READ DOCS</a>
+        </div>
+      </section>
+
+      <div class="shell-tail" aria-hidden="true"></div>
+    </div>
+  </body>
+</html>
+
+<style is:global>
+  :root {
+    color-scheme: dark;
+    --bg: #050505;
+    --hero-bg: #000000;
+    --line: #2b2b2b;
+    --text: #f3f3f3;
+    --muted: #828282;
+    --copy: #b9b9b9;
+    --orange: #dc4300;
+    --mono: "Geist Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+    --sans: "Inter", system-ui, -apple-system, Segoe UI, sans-serif;
+    --shell: 1180px;
+    --pad: 31px;
+  }
+
+  * {
+    box-sizing: border-box;
+  }
+
+  html {
+    background: var(--bg);
+  }
+
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
+</style>
+
+<style>
+  .shell {
+    width: min(var(--shell), 100%);
+    margin: 0 auto;
+    border-left: 1px solid var(--line);
+    border-right: 1px solid var(--line);
+  }
+
+  /* ---------- shared button ---------- */
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8px 12px;
+    border: 1px solid var(--line);
+    background: transparent;
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 12.16px;
+    font-weight: 400;
+    line-height: 15px;
+    letter-spacing: 0.4864px;
+    white-space: nowrap;
+    transition:
+      background-color 160ms ease,
+      border-color 160ms ease,
+      color 160ms ease;
+  }
+
+  .btn:hover {
+    border-color: #4a4a4a;
+    background: rgba(255, 255, 255, 0.04);
+  }
+
+  .btn-primary {
+    border-color: var(--orange);
+    background: var(--orange);
+    color: #fff;
+  }
+
+  .btn-primary:hover {
+    border-color: #f2560d;
+    background: #f2560d;
+  }
+
+  /* ---------- topbar ---------- */
+
+  .topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 80px;
+    padding: 0 21.6px;
+    box-shadow: 0 1px 0 var(--line);
+    position: sticky;
+    top: 0px;
+    z-index: 2;
+    background: var(--bg);
+  }
+
+  .brand {
+    display: block;
+    line-height: 0;
+  }
+
+  .brand img {
+    display: block;
+    width: 120px;
+    height: 19.543px;
+  }
+
+  .topnav {
+    display: flex;
+    gap: 8px;
+  }
+
+  /* ---------- hero ---------- */
+
+  .hero {
+    position: relative;
+    height: 800px;
+    background: var(--hero-bg);
+    box-shadow: 0 1px 0 var(--line);
+    overflow: hidden;
+  }
+
+  .hero-orb {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: left top;
+    pointer-events: none;
+  }
+
+  .hero-card {
+    position: absolute;
+    top: 255px;
+    left: 32px;
+    width: 638px;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    background: var(--bg);
+    outline: 1px solid var(--line);
+    filter: drop-shadow(0 32px 32px rgba(0, 0, 0, 0.4));
+  }
+
+  .hero-eyebrow {
+    margin: 0;
+    color: var(--orange);
+    font-family: var(--mono);
+    font-size: 12px;
+    font-weight: 500;
+    line-height: 15px;
+    letter-spacing: 1.2px;
+  }
+
+  h1 {
+    margin: 0;
+    font-family: var(--mono);
+    font-size: 48px;
+    font-weight: 300;
+    line-height: 53px;
+    letter-spacing: -0.0833333em;
+    color: var(--text);
+  }
+
+  .hero-copy {
+    margin: 0;
+    color: var(--copy);
+    font-size: 14px;
+    line-height: 20px;
+  }
+
+  .hero-actions {
+    display: flex;
+    gap: 12px;
+    padding-top: 16px;
+  }
+
+  .hero-panel {
+    position: absolute;
+    top: 69.46px;
+    left: 671.907px;
+    width: 464px;
+    height: 725px;
+    display: block;
+  }
+
+  /* ---------- feature cards ---------- */
+
+  .features {
+    display: grid;
+    box-shadow: 0 1px 0 var(--line);
+  }
+
+  .features-lead {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .features-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 32px;
+    border-left: 1px solid var(--line);
+    isolation: isolate;
+  }
+
+  .card:first-child {
+    border-left: 0;
+  }
+
+  .features-lead .card {
+    min-height: 277px;
+  }
+
+  .features-grid .card {
+    min-height: 315px;
+  }
+
+  .features-grid .card:nth-child(4) {
+    border-top: 1px solid var(--line);
+    border-left: 0;
+    min-height: 295px;
+  }
+
+  .features-grid .card:nth-child(5) {
+    border-top: 1px solid var(--line);
+    min-height: 295px;
+  }
+
+  .card.wide {
+    grid-column: span 2;
+  }
+
+  .card h2,
+  .section-head h2 {
+    display: flex;
+    height: 12px;
+    margin: 0;
+    font-family: var(--mono);
+    font-size: 16px;
+    font-weight: 500;
+    line-height: 1;
+    letter-spacing: 1.6px;
+  }
+
+  .card h2 {
+    align-items: flex-start;
+  }
+
+  .section-head h2 {
+    align-items: center;
+  }
+
+  .card h2 .t,
+  .section-head h2 .t {
+    display: block;
+    color: #fff;
+    /* Design trims the title box to cap-height. Geist Mono 500 at 16px/1 puts
+       the baseline 13.5px and the cap top 2.14px below the box top, so these
+       margins reproduce the trim in engines without `text-box`. */
+    margin: -2.14px 0 -2.5px;
+    transition: opacity 220ms ease;
+  }
+
+  @supports (text-box: trim-both cap alphabetic) {
+    .card h2 .t,
+    .section-head h2 .t {
+      margin: 0;
+      text-box: trim-both cap alphabetic;
+    }
+  }
+
+  .card h2 .t {
+    opacity: 0.5;
+  }
+
+  .card:hover h2 .t {
+    opacity: 1;
+  }
+
+  .dot {
+    position: relative;
+    flex: none;
+    width: 12px;
+    height: 12px;
+    margin-right: 8px;
+    background: var(--muted);
+    transition:
+      background 220ms ease,
+      box-shadow 220ms ease;
+  }
+
+  .card:hover .dot,
+  .dot.on {
+    background: var(--orange);
+    box-shadow:
+      0 0 40px 0 var(--orange),
+      0 0 12px 0 var(--orange);
+  }
+
+  .card-body p {
+    margin: 0;
+    color: var(--copy);
+    font-size: 14px;
+    line-height: 20px;
+  }
+
+  .card-more {
+    display: grid;
+    grid-template-rows: 0fr;
+    opacity: 0;
+    transition:
+      grid-template-rows 240ms ease,
+      opacity 240ms ease;
+  }
+
+  .card-more > div {
+    overflow: hidden;
+    min-height: 0;
+  }
+
+  .card:hover .card-more {
+    grid-template-rows: 1fr;
+    opacity: 1;
+  }
+
+  .card-more .btn {
+    margin-top: 16px;
+  }
+
+  /* ---------- examples ---------- */
+
+  .examples {
+    padding: 120px 0;
+    box-shadow: 0 1px 0 var(--line);
+    overflow: hidden;
+  }
+
+  .section-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 32px;
+  }
+
+  .rule {
+    position: relative;
+    flex: none;
+    width: 280px;
+    height: 2px;
+    background: rgba(255, 255, 255, 0.2);
+    cursor: grab;
+    touch-action: none;
+  }
+
+  /* A 2px-tall bar is an unusable pointer target, so grow the hit
+     area vertically without disturbing layout. */
+  .rule::before {
+    content: "";
+    position: absolute;
+    inset: -14px 0;
+  }
+
+  .rule:focus-visible {
+    outline: 1px solid var(--orange);
+    outline-offset: 6px;
+  }
+
+  .rule.is-dragging {
+    cursor: grabbing;
+  }
+
+  .rule.is-idle {
+    cursor: default;
+  }
+
+  .rule-knob {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 63px;
+    height: 100%;
+    background: var(--orange);
+    will-change: transform;
+  }
+
+  .rule.is-idle .rule-knob {
+    width: 100%;
+  }
+
+  .example-rail {
+    display: flex;
+    gap: 16px;
+    margin-top: 120px;
+    padding: 0 32px;
+    overflow-x: auto;
+    scrollbar-width: none;
+    overscroll-behavior-x: contain;
+  }
+
+  .example-rail:focus-visible {
+    outline: 1px solid var(--orange);
+    outline-offset: -1px;
+  }
+
+  .example-rail::-webkit-scrollbar {
+    display: none;
+  }
+
+  .example {
+    flex: none;
+    width: 322px;
+    border: 1px solid var(--line);
+    background: var(--bg);
+  }
+
+  .example img {
+    display: block;
+    width: 100%;
+    aspect-ratio: 3 / 2;
+    object-fit: cover;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .example-meta {
+    padding: 16px 12px;
+  }
+
+  .example-title {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 500;
+    line-height: 19px;
+    color: var(--text);
+  }
+
+  .example-copy {
+    margin: 8px 0 0;
+    font-size: 14px;
+    line-height: 17px;
+    color: var(--copy);
+  }
+
+  /* ---------- outro ---------- */
+
+  .outro {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 40px;
+    padding: 80px 32px;
+    box-shadow: 0 1px 0 var(--line);
+    /* Clips the canvas to the section and keeps its stacking to itself, so
+       the backdrop can't escape into the sticky topbar's layer. */
+    overflow: hidden;
+    isolation: isolate;
+    /* The wordmark is live text, so it can't scale itself the way the old
+       artwork did. This gives it a width to size against. */
+    container-type: inline-size;
+  }
+
+  /* Astro gives every island `display: contents`, so the backdrop inside this
+     one resolves its position against the section rather than the island. The
+     z-index keeps it behind the wordmark and buttons. */
+  .outro :global(astro-island) {
+    z-index: 0;
+  }
+
+  .shell-tail {
+    height: 64px;
+  }
+
+  .wordmark {
+    position: relative;
+    z-index: 1;
+    display: block;
+    font-family: var(--mono);
+    font-weight: 550;
+    /* 175.26px draws the mark at the 798.832px the artwork used to occupy;
+       below that the container query shrinks it to fit. The divisor is the
+       mark's advance width in ems, measured against the original. */
+    font-size: min(175.26px, 21.4445cqw);
+    line-height: 1;
+    white-space: nowrap;
+    /* Trims the half-leading above and below so the box hugs the letterforms,
+       the way the artwork's own bounds did, and the section's gaps stay put. */
+    margin: -0.1438em 0 -0.1343em;
+    user-select: none;
+    /* Sits at the same value the flat artwork was drawn in, and warms to
+       white while the cursor is anywhere in the section. */
+    color: var(--line);
+    transition: color 420ms ease;
+    /* Decorative, and the simulation reads pointer moves off its own canvas,
+       so letting the cursor through keeps the fluid responding across the
+       whole section rather than dying over the wordmark. */
+    pointer-events: none;
+  }
+
+  /* Each letter is its own box so the pair kerning can be applied as a
+     margin. */
+  .wordmark span {
+    display: inline-block;
+  }
+
+  .outro:hover .wordmark {
+    color: #fff;
+  }
+
+  .outro-actions {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    justify-content: center;
+    gap: 16px;
+  }
+
+  /* The dye runs straight through this row, so the outline button needs a
+     ground of its own to stay readable against it. */
+  .outro-actions .btn:not(.btn-primary) {
+    background: rgba(5, 5, 5, 0.72);
+  }
+
+  /* ---------- responsive ---------- */
+
+  @media (max-width: 1180px) {
+    .hero-panel {
+      right: 24px;
+    }
+
+    .hero-card {
+      width: min(639px, calc(100% - 340px));
+    }
+  }
+
+  @media (max-width: 900px) {
+    :root {
+      --pad: 20px;
+    }
+
+    .hero {
+      height: auto;
+      padding: 40px 0;
+    }
+
+    .hero-orb {
+      object-position: center top;
+      opacity: 0.55;
+    }
+
+    .hero-card,
+    .hero-panel {
+      position: relative;
+      top: auto;
+      right: auto;
+      left: auto;
+      transform: none;
+    }
+
+    .hero-card {
+      width: calc(100% - 40px);
+      margin: 180px 20px 0;
+    }
+
+    .hero-panel {
+      margin: 32px auto 0;
+    }
+
+    h1 {
+      font-size: 40px;
+      line-height: 44px;
+    }
+
+    .features-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+
+    .features-grid .card:nth-child(3),
+    .features-grid .card:nth-child(5) {
+      border-top: 1px solid var(--line);
+    }
+
+    .features-grid .card:nth-child(3),
+    .features-grid .card:nth-child(4) {
+      border-left: 0;
+    }
+
+    .card.wide {
+      grid-column: auto;
+    }
+
+    .examples {
+      padding: 64px 0 72px;
+    }
+
+    .example-rail {
+      margin-top: 56px;
+    }
+
+    .hero {
+      height: auto;
+      padding: 72px 0 80px;
+    }
+
+    .hero-orb {
+      object-position: center top;
+    }
+
+    .hero-card {
+      position: relative;
+      top: auto;
+      left: auto;
+      z-index: 1;
+      transform: none;
+      width: auto;
+      margin: 0 20px;
+    }
+
+    .hero-panel {
+      position: relative;
+      top: auto;
+      left: auto;
+      right: auto;
+      z-index: 1;
+      transform: none;
+      display: block;
+      width: 464px;
+      height: auto;
+      margin: 48px auto 0;
+      max-width: calc(100% - 40px);
+    }
+  }
+
+  @media (max-width: 640px) {
+    .topbar {
+      height: auto;
+      align-items: center;
+      gap: 16px;
+      padding: 20px;
+    }
+
+    .features-lead,
+    .features-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .features-lead .card,
+    .features-grid .card,
+    .features-grid .card:nth-child(4),
+    .features-grid .card:nth-child(5) {
+      min-height: 240px;
+      border-left: 0;
+      border-top: 1px solid var(--line);
+    }
+
+    .features-lead .card:first-child {
+      border-top: 0;
+    }
+
+    .card-more {
+      grid-template-rows: 1fr;
+      opacity: 1;
+    }
+
+    .card h2 .t {
+      opacity: 1;
+    }
+
+    h1 {
+      font-size: 34px;
+      line-height: 38px;
+    }
+
+    .hero-actions,
+    .outro-actions {
+      flex-direction: column;
+    }
+
+    .section-head {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 16px;
+    }
+
+    .rule {
+      width: 100%;
+    }
+  }
+</style>
+
+<script>
+  const rail = document.getElementById("example-rail");
+  const track = document.querySelector(".rule");
+  const knob = track && track.querySelector(".rule-knob");
+
+  if (rail && track && knob) {
+    const CARD_STEP = 338; /* 322 card + 16 gap */
+    let maxScroll = 0;
+    let travel = 0;
+    let lastValue = -1;
+
+    const clamp = (n, min, max) => Math.min(max, Math.max(min, n));
+
+    const behavior = () =>
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches
+        ? "auto"
+        : "smooth";
+
+    const sync = () => {
+      const progress = maxScroll > 0 ? rail.scrollLeft / maxScroll : 0;
+      knob.style.transform = `translateX(${progress * travel}px)`;
+
+      const value = Math.round(progress * 100);
+      if (value !== lastValue) {
+        lastValue = value;
+        track.setAttribute("aria-valuenow", String(value));
+      }
+    };
+
+    const measure = () => {
+      maxScroll = Math.max(0, rail.scrollWidth - rail.clientWidth);
+      travel = Math.max(0, track.clientWidth - knob.offsetWidth);
+
+      const idle = maxScroll < 1;
+      track.classList.toggle("is-idle", idle);
+      track.setAttribute("tabindex", idle ? "-1" : "0");
+      track.setAttribute("aria-disabled", String(idle));
+      sync();
+    };
+
+    /* ---- drag the knob, or click the track to scrub ---- */
+    let grabOffset = 0;
+
+    const scrubTo = (clientX) => {
+      if (travel <= 0) return;
+      const left = clientX - track.getBoundingClientRect().left - grabOffset;
+      rail.scrollLeft = clamp(left / travel, 0, 1) * maxScroll;
+    };
+
+    track.addEventListener("pointerdown", (event) => {
+      if (maxScroll < 1) return;
+
+      const knobBox = knob.getBoundingClientRect();
+      const onKnob =
+        event.clientX >= knobBox.left && event.clientX <= knobBox.right;
+
+      grabOffset = onKnob ? event.clientX - knobBox.left : knob.offsetWidth / 2;
+      track.setPointerCapture(event.pointerId);
+      track.classList.add("is-dragging");
+      scrubTo(event.clientX);
+
+      event.preventDefault();
+      track.focus();
+    });
+
+    track.addEventListener("pointermove", (event) => {
+      if (track.hasPointerCapture(event.pointerId)) scrubTo(event.clientX);
+    });
+
+    const endDrag = (event) => {
+      if (!track.hasPointerCapture(event.pointerId)) return;
+      track.releasePointerCapture(event.pointerId);
+      track.classList.remove("is-dragging");
+    };
+
+    track.addEventListener("pointerup", endDrag);
+    track.addEventListener("pointercancel", endDrag);
+
+    /* ---- keyboard ---- */
+    track.addEventListener("keydown", (event) => {
+      const step = {
+        ArrowLeft: -CARD_STEP,
+        ArrowRight: CARD_STEP,
+        PageUp: -rail.clientWidth,
+        PageDown: rail.clientWidth,
+      }[event.key];
+
+      let left;
+      if (step !== undefined) left = rail.scrollLeft + step;
+      else if (event.key === "Home") left = 0;
+      else if (event.key === "End") left = maxScroll;
+      else return;
+
+      event.preventDefault();
+      rail.scrollTo({ left: clamp(left, 0, maxScroll), behavior: behavior() });
+    });
+
+    rail.addEventListener("scroll", sync, { passive: true });
+    new ResizeObserver(measure).observe(rail);
+    measure();
+  }
+
+  const dots = document.querySelectorAll(".dot");
+
+  if (dots.length && "IntersectionObserver" in window) {
+    const motion = window.matchMedia("(prefers-reduced-motion: reduce)");
+
+    /**
+     * Pace of the dither-in. Higher is faster: 2 runs it in half the time,
+     * 0.5 takes twice as long. The three timings below are in milliseconds
+     * at speed 1 and are divided through by it.
+     */
+    const ditherSpeed = 1;
+
+    /** How long a single character churns before locking to its real glyph. */
+    const cellDuration = 170;
+    /** Extra delay per character, which is what resolves the word left to right. */
+    const cellStagger = 25;
+    /** Random slack added per character, so cells don't finish in lockstep. */
+    const cellJitter = 230;
+    /** Roughly how often a churning cell picks a new glyph. */
+    const rerollEvery = 38;
+
+    // ASCII density ramp, sparse to dense. Each cell walks along it as it
+    // resolves, so the title condenses out of a faint stipple instead of
+    // cycling through random letters.
+    // ASCII density ramp, sparse to dense. Punctuation only, so nothing in
+    // here reads as a word mid-flight.
+    const ditherRamp = ".,:;-~=+*!#%&@$";
+    const titles = new Map();
+    const running = new WeakSet();
+
+    for (const dot of dots) {
+      const title = dot.parentElement?.querySelector(".t");
+      if (!title) continue;
+
+      titles.set(dot, title);
+      // Dithering rewrites the text, so pin the real wording as the heading's
+      // accessible name. Screen readers then never see the intermediate junk.
+      dot.parentElement.setAttribute("aria-label", title.textContent);
+    }
+
+    /**
+     * Dither a title into place: every character churns through the density
+     * ramp until its own finish time, which is staggered so the word resolves
+     * left to right. Titles are set in Geist Mono, so swapping glyphs can't
+     * shift the layout. Spaces are left alone to keep the word shapes readable.
+     *
+     * Driven by elapsed time rather than a frame count, so the pace is the
+     * same on a 60Hz and a 120Hz display.
+     */
+    const dither = (el) => {
+      if (running.has(el)) return;
+      running.add(el);
+
+      const text = el.textContent;
+      const queue = [...text].map((char, i) => ({
+        char,
+        glyph: ditherRamp[0],
+        nextRoll: 0,
+        end:
+          (i * cellStagger + cellDuration + Math.random() * cellJitter) /
+          ditherSpeed,
+      }));
+
+      const started = performance.now();
+
+      const tick = (now) => {
+        const elapsed = now - started;
+        let out = "";
+        let settled = 0;
+
+        for (const item of queue) {
+          if (item.char === " " || elapsed >= item.end) {
+            out += item.char;
+            settled++;
+          } else {
+            // Walk the ramp in step with this cell's progress, jittered a
+            // little so neighbouring cells land on different densities. That
+            // spread is what gives the row its dithered texture rather than a
+            // uniform sweep.
+            if (elapsed >= item.nextRoll) {
+              const span = ditherRamp.length - 1;
+              const level = Math.round(
+                (elapsed / item.end) * span + (Math.random() * 3 - 1.5)
+              );
+
+              item.glyph = ditherRamp[Math.max(0, Math.min(span, level))];
+              // Random interval rather than a fixed one, so cells fall out of
+              // phase with each other instead of flickering in unison.
+              item.nextRoll =
+                elapsed + (rerollEvery * (0.5 + Math.random())) / ditherSpeed;
+            }
+
+            out += item.glyph;
+          }
+        }
+
+        el.textContent = out;
+
+        if (settled === queue.length) {
+          el.textContent = text;
+          running.delete(el);
+          return;
+        }
+
+        requestAnimationFrame(tick);
+      };
+
+      requestAnimationFrame(tick);
+    };
+
+    // Light a dot once it rises past a line 75% of the viewport height up from
+    // the bottom. The region runs from that line upwards without end, so a dot
+    // stays lit above it and a fast scroll can't jump the whole region in one
+    // step without the observer firing.
+    const lighting = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          entry.target.classList.toggle("on", entry.isIntersecting);
+
+          const title = titles.get(entry.target);
+          if (entry.isIntersecting && title && !motion.matches) dither(title);
+        }
+      },
+      { rootMargin: "100000px 0px -75% 0px" }
+    );
+
+    for (const dot of dots) lighting.observe(dot);
+  }
+</script>
