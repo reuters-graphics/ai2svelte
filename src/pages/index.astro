@@ -559,12 +559,25 @@ const repo = "https://github.com/reuters-graphics/ai2svelte/";
       box-shadow 220ms ease;
   }
 
-  .card:hover .dot,
-  .dot.on {
-    background: var(--orange);
-    box-shadow:
-      0 0 40px 0 var(--orange),
-      0 0 12px 0 var(--orange);
+  /* Desktop lights a dot while its block is hovered; touch screens have no
+     hover, so the script lights it by scroll position instead (`.on`). */
+  @media (hover: hover) {
+    .card:is(:hover, :focus-within) .dot,
+    .examples:is(:hover, :focus-within) .dot {
+      background: var(--orange);
+      box-shadow:
+        0 0 40px 0 var(--orange),
+        0 0 12px 0 var(--orange);
+    }
+  }
+
+  @media (hover: none) {
+    .dot.on {
+      background: var(--orange);
+      box-shadow:
+        0 0 40px 0 var(--orange),
+        0 0 12px 0 var(--orange);
+    }
   }
 
   .card-body p {
@@ -1185,6 +1198,18 @@ const repo = "https://github.com/reuters-graphics/ai2svelte/";
       { rootMargin: "100000px 0px -75% 0px" }
     );
 
-    for (const dot of dots) lighting.observe(dot);
+    // ponytail: hover capability is read once; a device that switches input
+    // mid-visit keeps the mode it loaded with until reload.
+    if (window.matchMedia("(hover: hover)").matches) {
+      // The glow itself is CSS :hover; the script only dithers the title in.
+      for (const [dot, title] of titles) {
+        const block = dot.closest(".card, .examples");
+        block?.addEventListener("pointerenter", () => {
+          if (!motion.matches) dither(title);
+        });
+      }
+    } else {
+      for (const dot of dots) lighting.observe(dot);
+    }
   }
 </script>
