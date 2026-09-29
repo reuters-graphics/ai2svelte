@@ -121,6 +121,14 @@ const repo = "https://github.com/reuters-graphics/ai2svelte/";
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="generator" content={Astro.generator} />
+    <script is:inline>
+      // Runs before paint so a saved light theme never flashes dark.
+      try {
+        const saved = localStorage.getItem("theme");
+        const light = saved ? saved === "light" : matchMedia("(prefers-color-scheme: light)").matches;
+        if (light) document.documentElement.dataset.theme = "light";
+      } catch {}
+    </script>
     <Font cssVariable="--font-geist-mono" preload />
     <Font cssVariable="--font-inter" preload />
     <title>ai2svelte — Illustrator graphics to responsive Svelte</title>
@@ -139,6 +147,9 @@ const repo = "https://github.com/reuters-graphics/ai2svelte/";
         <nav class="topnav" aria-label="Primary">
           <a class="btn" href={`${base}/users/intro/`}>READ DOCS</a>
           <a class="btn" href={repo}>GITHUB</a>
+          <button class="btn theme-toggle" type="button" aria-label="Toggle light mode">
+            <span class="to-light">LIGHT</span><span class="to-dark">DARK</span>
+          </button>
         </nav>
       </header>
 
@@ -267,10 +278,32 @@ const repo = "https://github.com/reuters-graphics/ai2svelte/";
     --muted: #828282;
     --copy: #b9b9b9;
     --orange: #dc4300;
+    --heading: #fff;
+    --hover-line: #4a4a4a;
+    --hover-bg: rgba(255, 255, 255, 0.04);
+    --track: rgba(255, 255, 255, 0.2);
+    --scrim: rgba(5, 5, 5, 0.72);
+    --card-shadow: rgba(0, 0, 0, 0.4);
     --mono: var(--font-geist-mono);
     --sans: var(--font-inter);
     --shell: 1180px;
     --pad: 31px;
+  }
+
+  :root[data-theme="light"] {
+    color-scheme: light;
+    --bg: #fafafa;
+    --hero-bg: #ffffff;
+    --line: #dcdcdc;
+    --text: #111111;
+    --muted: #a0a0a0;
+    --copy: #4a4a4a;
+    --heading: #000;
+    --hover-line: #b5b5b5;
+    --hover-bg: rgba(0, 0, 0, 0.04);
+    --track: rgba(0, 0, 0, 0.15);
+    --scrim: rgba(250, 250, 250, 0.72);
+    --card-shadow: rgba(0, 0, 0, 0.1);
   }
 
   * {
@@ -326,8 +359,8 @@ const repo = "https://github.com/reuters-graphics/ai2svelte/";
   }
 
   .btn:hover {
-    border-color: #4a4a4a;
-    background: rgba(255, 255, 255, 0.04);
+    border-color: var(--hover-line);
+    background: var(--hover-bg);
   }
 
   .btn-primary {
@@ -372,6 +405,27 @@ const repo = "https://github.com/reuters-graphics/ai2svelte/";
     gap: 8px;
   }
 
+  .theme-toggle {
+    cursor: pointer;
+  }
+
+  :global([data-theme="light"]) .to-light,
+  .to-dark {
+    display: none;
+  }
+
+  :global([data-theme="light"]) .to-dark {
+    display: inline;
+  }
+
+  /* The wordmark and moon are white-on-black artwork; inverting them is
+     enough for the light theme. The hero panel stays dark, it's a picture of
+     the real Illustrator panel. */
+  :global([data-theme="light"]) .brand img,
+  :global([data-theme="light"]) .hero-orb {
+    filter: invert(1);
+  }
+
   /* ---------- hero ---------- */
 
   .hero {
@@ -403,7 +457,7 @@ const repo = "https://github.com/reuters-graphics/ai2svelte/";
     gap: 16px;
     background: var(--bg);
     outline: 1px solid var(--line);
-    filter: drop-shadow(0 32px 32px rgba(0, 0, 0, 0.4));
+    filter: drop-shadow(0 32px 32px var(--card-shadow));
   }
 
   .hero-eyebrow {
@@ -523,7 +577,7 @@ const repo = "https://github.com/reuters-graphics/ai2svelte/";
   .card h2 .t,
   .section-head h2 .t {
     display: block;
-    color: #fff;
+    color: var(--heading);
     /* Design trims the title box to cap-height. Geist Mono 500 at 16px/1 puts
        the baseline 13.5px and the cap top 2.14px below the box top, so these
        margins reproduce the trim in engines without `text-box`. */
@@ -630,7 +684,7 @@ const repo = "https://github.com/reuters-graphics/ai2svelte/";
     flex: none;
     width: 280px;
     height: 2px;
-    background: rgba(255, 255, 255, 0.2);
+    background: var(--track);
     cursor: grab;
     touch-action: none;
   }
@@ -786,7 +840,7 @@ const repo = "https://github.com/reuters-graphics/ai2svelte/";
   }
 
   .outro:hover .wordmark {
-    color: #fff;
+    color: var(--heading);
   }
 
   .outro-actions {
@@ -800,7 +854,7 @@ const repo = "https://github.com/reuters-graphics/ai2svelte/";
   /* The dye runs straight through this row, so the outline button needs a
      ground of its own to stay readable against it. */
   .outro-actions .btn:not(.btn-primary) {
-    background: rgba(5, 5, 5, 0.72);
+    background: var(--scrim);
   }
 
   /* ---------- responsive ---------- */
@@ -971,6 +1025,16 @@ const repo = "https://github.com/reuters-graphics/ai2svelte/";
 </style>
 
 <script>
+  document.querySelector(".theme-toggle")?.addEventListener("click", () => {
+    const root = document.documentElement;
+    const light = root.dataset.theme !== "light";
+    if (light) root.dataset.theme = "light";
+    else delete root.dataset.theme;
+    try {
+      localStorage.setItem("theme", light ? "light" : "dark");
+    } catch {}
+  });
+
   const rail = document.getElementById("example-rail");
   const track = document.querySelector(".rule");
   const knob = track && track.querySelector(".rule-knob");
