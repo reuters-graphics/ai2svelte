@@ -69,6 +69,8 @@ Docs site (root):
 ```bash
 pnpm dev        # Astro dev server
 pnpm build      # Build static docs to /docs/
+pnpm lint       # ESLint over the docs site (skips ai2svelte/, legacy/, docs/)
+pnpm format     # Prettier --write (format:check to verify only)
 ```
 
 ## Tests
