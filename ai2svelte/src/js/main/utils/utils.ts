@@ -24,6 +24,23 @@ import type { SettingsObject } from "../Tabs/types";
 
 let userDataPath = window.cep ? csi.getSystemPath("userData") : "";
 
+const allowedUserDataFiles = new Set([
+  ".flags.json",
+  "user-animations.json",
+  "user-profiles.json",
+  "user-settings.json",
+  "user-shadows.json",
+  "user-specimens.json",
+]);
+
+function resolveUserDataFilePath(fileName: string): string | null {
+  if (!allowedUserDataFiles.has(fileName)) {
+    console.error(`[ai2svelte] Rejected unexpected file access: ${fileName}`);
+    return null;
+  }
+  return path.join(userDataPath, config.id, fileName);
+}
+
 export function constrain(n: number, low: number, high: number) {
   return Math.max(Math.min(n, high), low);
 }
@@ -135,7 +152,10 @@ export const myTheme = EditorView.theme(
 );
 
 export function readFile(fileName: string): unknown {
-  const filePath = path.join(userDataPath, config.id, fileName);
+  const filePath = resolveUserDataFilePath(fileName);
+  if (!filePath) {
+    return null;
+  }
   if (fs.existsSync(filePath)) {
     try {
       return JSON5.parse(fs.readFileSync(filePath, "utf8"));
@@ -149,7 +169,10 @@ export function readFile(fileName: string): unknown {
 
 export function writeFile(fileName: string, data: unknown): boolean {
   try {
-    const filePath = path.join(userDataPath, config.id, fileName);
+    const filePath = resolveUserDataFilePath(fileName);
+    if (!filePath) {
+      return false;
+    }
     if (!fs.existsSync(filePath)) {
       fs.mkdirSync(path.dirname(filePath), { recursive: true });
     }
