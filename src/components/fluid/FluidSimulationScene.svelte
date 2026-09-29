@@ -172,7 +172,7 @@
 		initialized: false,
 	});
 	const previewState = $state<PreviewState>({
-		enabled: true,
+		enabled: false,
 		timeMs: 0,
 	});
 	const canvasMetrics = $state<CanvasMetrics>({

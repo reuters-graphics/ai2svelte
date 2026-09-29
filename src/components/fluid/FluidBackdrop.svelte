@@ -1,9 +1,8 @@
 <!--
   Fluid simulation sized to sit behind a section.
 
-  The simulation is a WebGL canvas that runs an idle wandering preview until
-  the pointer first moves across it, so it animates on its own as a backdrop
-  and picks up the cursor when someone reaches it.
+  The simulation is a WebGL canvas that sits still until the pointer moves
+  across it, so the dye is only ever stirred by the cursor.
 -->
 <script lang="ts">
   import { onMount } from "svelte";
