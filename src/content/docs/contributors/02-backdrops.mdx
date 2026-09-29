@@ -1,15 +1,15 @@
 ---
 title: Backdrops
-description: How to configure shadow backdrops
+description: Add or change the backdrop images behind the shadow previews.
 slug: contributors/backdrops
 sidebar:
   order: 202
 ---
 
-Background images used for shadow preview cards in the Styles tab are stored in the [backdrops](ai2svelte/src/js/assets/images/backdrops) folder. You can modify this collection to add or customize backdrop images for shadow testing purposes.
+The backdrop images behind the shadow preview cards in the `Styles` tab live in the [backdrops](https://github.com/reuters-graphics/ai2svelte/tree/main/ai2svelte/src/js/assets/images/backdrops) folder. Add or replace images there to change the backdrops available for testing shadows.
 
-For optimal performance and file size management, maintain image dimensions at approximately 320×180 pixels.
+Keep images at about 320×180 pixels to keep file sizes small.
 
-Backdrop images should be ordered by text legibility, progressing from high contrast (easy to read) to low contrast (challenging to read). This ordering helps users select the most appropriate shadows for their content. The first backdrop in the collection serves as the default when the Styles tab opens.
+Order backdrops by how easy text is to read on them, from high contrast (easy) to low contrast (hard). The first backdrop is the default when the `Styles` tab opens.
 
-All backdrop files must follow the `backdrop_<number>.jpg` naming convention, where `<number>` is a unique sequential identifier. After adding new backdrop images, update the `maxBackdropCount` variable in [Styles.svelte](ai2svelte/src/js/main/Tabs/Styles.svelte) to reflect the total number of available backdrops.
+Name each file `backdrop_<number>.jpg`, where `<number>` is the next unused number in the sequence. After adding backdrops, update `maxBackdropCount` in [ExtraConfigs.svelte](https://github.com/reuters-graphics/ai2svelte/blob/main/ai2svelte/src/js/main/Tabs/Styles/ExtraConfigs.svelte) to the new total.
