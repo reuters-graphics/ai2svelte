@@ -68,6 +68,18 @@ export default defineConfig({
   ],
   vite: {
     assetsInclude: ["**/*.glb"],
+    // model-viewer is imported dynamically in component3, so Vite only
+    // discovers it on first use and re-optimizes mid-session (504 Outdated
+    // Optimize Dep). Pre-bundling it at startup avoids that.
+    optimizeDeps: {
+      include: ["@google/model-viewer"],
+      // graphics-components' TileMap imports a maplibre-gl worker with a
+      // ?worker&url query, which the dep optimizer can't resolve. It crashes
+      // the optimizer outright, which hangs every module request in dev. The
+      // package is already noExternal below, so skipping the pre-bundle is
+      // consistent, and nothing here imports TileMap.
+      exclude: ["@reuters-graphics/graphics-components"],
+    },
     ssr: {
       noExternal: ["@reuters-graphics/graphics-components"],
     },
