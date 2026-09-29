@@ -23,45 +23,45 @@ const featuresLead = [
   {
     title: "SNIPPET LAYERS",
     copy:
-      "Snippet layers allow you to add dynamic content into the placeholder region you specify. Plug in any Svelte snippet to render custom component.",
+      "Mark a region of your artwork as a placeholder and render any Svelte snippet inside it: charts, video, 3D, live widgets.",
     href: `${base}/users/snippets/`,
   },
   {
     title: "TAGGED LAYERS",
     copy:
-      "Supercharge your layers with new capabilities using tagged layers. Tagged layers allows layers to behave differently than the usual static layers.",
+      "Add a tag like :svg, :png or :div to a layer's name to change how it's exported, so one layer becomes vector, another raster, another a scaling HTML box.",
     href: `${base}/users/tagged-layers/`,
   },
 ];
 
 const featuresGrid = [
   {
-    title: "GUI BASED EXTENSION",
+    title: "SETTINGS PANEL",
     copy:
-      "No more fiddling the docs. The new GUI provides you the exact key value pairs supported by the script.",
+      "No more hand-editing settings text blocks. Every option ai2svelte supports is in the panel, with the valid values right there.",
     href: `${base}/users/ai2svelte-settings/`,
   },
   {
     title: "CUSTOM FONT MAPPING",
     copy:
-      "Now you can directly configure custom fonts inside the plugin without worrying about manually tweaking the styles in the generated component.",
+      "Map Illustrator fonts to your site's CSS font stacks once, and every export uses them. No more patching styles by hand in the generated component.",
     href: `${base}/users/font-config/`,
   },
   {
     title: "STYLE PRESETS",
-    copy: "Apply bundled shadows and animations to any object with one click.",
+    copy: "Apply built-in shadows and animations to any object in one click.",
     href: `${base}/users/styles/`,
   },
   {
     title: "PROFILES",
-    copy: "Save and load ai2svelte settings as reusable, shareable profiles.",
+    copy: "Save your settings as profiles you can reuse across projects and share with your team.",
     href: `${base}/users/profiles/`,
     wide: true,
   },
   {
     title: "EVENT LISTENERS",
     copy:
-      "Hook into onAiMounted and onArtboardChange to drive interactivity as the component mounts or its active breakpoint changes.",
+      "Use onAiMounted and onArtboardChange to run code when the graphic mounts or switches breakpoints.",
     href: `${base}/users/event-listeners/`,
   },
 ];
@@ -69,43 +69,43 @@ const featuresGrid = [
 const examples = [
   {
     title: "Headline snippet",
-    copy: "Using snippet layer to render headline component",
+    copy: "A headline component rendered in a snippet layer",
     href: `${base}/example1/`,
     image: `${base}/images/examples/example1.webp`,
   },
   {
     title: "Video snippet",
-    copy: "Using snippet layer to accurately place video content",
+    copy: "Video placed precisely with a snippet layer",
     href: `${base}/example2/`,
     image: `${base}/images/examples/example2.webp`,
   },
   {
     title: "3D model",
-    copy: "Snippet layer to place 3D models",
+    copy: "A 3D model embedded through a snippet layer",
     href: `${base}/example3/`,
     image: `${base}/images/examples/example3.webp`,
   },
   {
     title: "Before and after",
-    copy: "Snippet and PNG layers driving interactivity",
+    copy: "Snippet and PNG layers driving an interactive slider",
     href: `${base}/example4/`,
     image: `${base}/images/examples/example4.webp`,
   },
   {
     title: "Stock graphic",
-    copy: "Third-party widget inside a snippet",
+    copy: "A third-party widget inside a snippet",
     href: `${base}/example5/`,
     image: `${base}/images/examples/example5.webp`,
   },
   {
     title: "Fire annotations",
-    copy: "Advanced interactivity on a PNG layer",
+    copy: "Interactive annotations on a PNG layer",
     href: `${base}/example6/`,
     image: `${base}/images/examples/example6.webp`,
   },
   {
     title: "Dynamic text",
-    copy: "Tagged text layers with live values",
+    copy: "Tagged text layers showing live values",
     href: `${base}/example7/`,
     image: `${base}/images/examples/example7.webp`,
   },
@@ -137,17 +137,17 @@ const repo = "https://github.com/reuters-graphics/ai2svelte/";
     </script>
     <Font cssVariable="--font-geist-mono" preload />
     <Font cssVariable="--font-inter" preload />
-    <title>ai2svelte — Illustrator graphics to responsive Svelte</title>
+    <title>ai2svelte: Illustrator graphics to responsive Svelte</title>
     <meta
       name="description"
-      content="ai2svelte is a newsroom-focused Illustrator extension for shipping responsive, text-selectable, interactive graphics without redrawing them by hand in code."
+      content="An Illustrator extension from Reuters Graphics that turns artwork into responsive, text-selectable, interactive Svelte components. Built on ai2html."
     />
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://reuters-graphics.github.io/ai2svelte/" />
-    <meta property="og:title" content="ai2svelte — Illustrator graphics to responsive Svelte" />
+    <meta property="og:title" content="ai2svelte: Illustrator graphics to responsive Svelte" />
     <meta
       property="og:description"
-      content="A newsroom-focused Illustrator extension for shipping responsive, text-selectable, interactive graphics."
+      content="An Illustrator extension from Reuters Graphics that turns artwork into responsive, text-selectable, interactive Svelte components."
     />
     <meta property="og:image" content="https://reuters-graphics.github.io/ai2svelte/images/og.png" />
     <meta property="og:image:width" content="1200" />
@@ -175,12 +175,17 @@ const repo = "https://github.com/reuters-graphics/ai2svelte/";
         <img class="hero-orb" src={`${base}/images/home/hero-orb.png`} alt="" aria-hidden="true" />
 
         <div class="hero-card">
-          <p class="hero-eyebrow">BRING INTERACTIVITY TO ILLUSTRATOR</p>
+          <p class="hero-eyebrow">FROM ILLUSTRATOR TO SVELTE</p>
           <h1>Illustrator graphics to responsive Svelte.</h1>
           <p class="hero-copy">
-            ai2svelte is a newsroom-focused Illustrator extension for shipping
-            responsive, text-selectable, interactive graphics without redrawing
-            them by hand in code.
+            Design in Illustrator and export a responsive Svelte component,
+            without redrawing anything in code. ai2svelte keeps your text live
+            and selectable, adapts across breakpoints, and lets you drop
+            interactive components straight into the artwork.
+          </p>
+          <p class="hero-credit">
+            Built by Reuters Graphics on <a href="http://ai2html.org/">ai2html</a>,
+            originally created at The New York Times.
           </p>
           <div class="hero-actions">
             <a class="btn btn-primary" href={releases}>DOWNLOAD EXTENSION</a>
@@ -505,6 +510,17 @@ const repo = "https://github.com/reuters-graphics/ai2svelte/";
     line-height: 20px;
   }
 
+  .hero-credit {
+    margin: 0;
+    color: var(--muted);
+    font-size: 12px;
+    line-height: 16px;
+  }
+
+  .hero-credit a {
+    text-decoration: underline;
+  }
+
   .hero-actions {
     display: flex;
     gap: 12px;
@@ -750,6 +766,11 @@ const repo = "https://github.com/reuters-graphics/ai2svelte/";
     overflow-x: auto;
     scrollbar-width: none;
     overscroll-behavior-x: contain;
+  }
+
+  .example-rail.is-dragging {
+    cursor: grabbing;
+    user-select: none;
   }
 
   .example-rail:focus-visible {
@@ -1129,6 +1150,55 @@ const repo = "https://github.com/reuters-graphics/ai2svelte/";
 
     track.addEventListener("pointerup", endDrag);
     track.addEventListener("pointercancel", endDrag);
+
+    /* ---- drag the rail itself (mouse only; touch already pans natively) ---- */
+    let railStart = null;
+    let railDragged = false;
+
+    rail.addEventListener("pointerdown", (event) => {
+      if (event.pointerType !== "mouse" || event.button !== 0) return;
+      if (maxScroll < 1) return;
+      railStart = { x: event.clientX, left: rail.scrollLeft };
+      railDragged = false;
+    });
+
+    rail.addEventListener("pointermove", (event) => {
+      if (!railStart) return;
+      const dx = event.clientX - railStart.x;
+      if (!railDragged && Math.abs(dx) < 5) return;
+      if (!railDragged) {
+        railDragged = true;
+        rail.setPointerCapture(event.pointerId);
+        rail.classList.add("is-dragging");
+      }
+      rail.scrollLeft = railStart.left - dx;
+    });
+
+    const endRailDrag = (event) => {
+      if (!railStart) return;
+      railStart = null;
+      if (rail.hasPointerCapture(event.pointerId))
+        rail.releasePointerCapture(event.pointerId);
+      rail.classList.remove("is-dragging");
+    };
+
+    rail.addEventListener("pointerup", endRailDrag);
+    rail.addEventListener("pointercancel", endRailDrag);
+
+    /* A drag that ends over a card shouldn't open it. */
+    rail.addEventListener(
+      "click",
+      (event) => {
+        if (!railDragged) return;
+        railDragged = false;
+        event.preventDefault();
+        event.stopPropagation();
+      },
+      true,
+    );
+
+    /* Stop the browser's native link/image drag from hijacking the gesture. */
+    rail.addEventListener("dragstart", (event) => event.preventDefault());
 
     /* ---- keyboard ---- */
     track.addEventListener("keydown", (event) => {
