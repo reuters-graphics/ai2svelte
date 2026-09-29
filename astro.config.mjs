@@ -56,6 +56,20 @@ export default defineConfig({
             sizes: "32x32",
           },
         },
+        {
+          tag: "meta",
+          attrs: {
+            property: "og:image",
+            content: "https://reuters-graphics.github.io/ai2svelte/images/og.png",
+          },
+        },
+        {
+          tag: "meta",
+          attrs: {
+            name: "twitter:image",
+            content: "https://reuters-graphics.github.io/ai2svelte/images/og.png",
+          },
+        },
       ],
       social: [
         {
