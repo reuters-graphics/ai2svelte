@@ -1,4 +1,5 @@
 ---
+import { Font } from "astro:assets";
 import FluidBackdrop from "../components/fluid/FluidBackdrop.svelte";
 
 // The logotype is Geist Mono 550 with the pairs hand-kerned tight. These
@@ -120,12 +121,8 @@ const repo = "https://github.com/reuters-graphics/ai2svelte/";
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="generator" content={Astro.generator} />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@300..600&family=Inter:wght@400;500&display=swap"
-      rel="stylesheet"
-    />
+    <Font cssVariable="--font-geist-mono" preload />
+    <Font cssVariable="--font-inter" preload />
     <title>ai2svelte — Illustrator graphics to responsive Svelte</title>
     <meta
       name="description"
@@ -270,8 +267,8 @@ const repo = "https://github.com/reuters-graphics/ai2svelte/";
     --muted: #828282;
     --copy: #b9b9b9;
     --orange: #dc4300;
-    --mono: "Geist Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
-    --sans: "Inter", system-ui, -apple-system, Segoe UI, sans-serif;
+    --mono: var(--font-geist-mono);
+    --sans: var(--font-inter);
     --shell: 1180px;
     --pad: 31px;
   }

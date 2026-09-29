@@ -1,5 +1,5 @@
 // @ts-check
-import { defineConfig } from "astro/config";
+import { defineConfig, fontProviders } from "astro/config";
 import starlight from "@astrojs/starlight";
 import svelte from "@astrojs/svelte";
 import preprocess from "svelte-preprocess";
@@ -13,6 +13,26 @@ export default defineConfig({
   base: "ai2svelte",
   outDir: "./docs",
   trailingSlash: "always",
+  // Self-hosted at build time so the homepage can preload the woff2 files
+  // instead of waiting on a Google Fonts stylesheet round-trip.
+  fonts: [
+    {
+      provider: fontProviders.google(),
+      name: "Geist Mono",
+      cssVariable: "--font-geist-mono",
+      weights: ["300 600"],
+      subsets: ["latin"],
+      fallbacks: ["ui-monospace", "SFMono-Regular", "Menlo", "monospace"],
+    },
+    {
+      provider: fontProviders.google(),
+      name: "Inter",
+      cssVariable: "--font-inter",
+      weights: [400, 500],
+      subsets: ["latin"],
+      fallbacks: ["system-ui", "-apple-system", "Segoe UI", "sans-serif"],
+    },
+  ],
   integrations: [
     exampleExportPaths(),
     svelte({
