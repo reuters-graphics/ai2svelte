@@ -122,9 +122,10 @@ const repo = "https://github.com/reuters-graphics/ai2svelte/";
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="generator" content={Astro.generator} />
     <script is:inline>
-      // Runs before paint so a saved light theme never flashes dark.
+      // Runs before paint so a saved light theme never flashes dark. Shares
+      // Starlight's key, so the homepage and docs stay on the same theme.
       try {
-        const saved = localStorage.getItem("theme");
+        const saved = localStorage.getItem("starlight-theme");
         const light = saved ? saved === "light" : matchMedia("(prefers-color-scheme: light)").matches;
         if (light) document.documentElement.dataset.theme = "light";
       } catch {}
@@ -1031,7 +1032,7 @@ const repo = "https://github.com/reuters-graphics/ai2svelte/";
     if (light) root.dataset.theme = "light";
     else delete root.dataset.theme;
     try {
-      localStorage.setItem("theme", light ? "light" : "dark");
+      localStorage.setItem("starlight-theme", light ? "light" : "dark");
     } catch {}
   });
 
