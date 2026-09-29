@@ -1,25 +1,29 @@
 # Design Spec: Mono / Hairline / Dither
 
-A portable spec for the visual language of the ai2svelte homepage. Values under
-**Reference** are the ones ai2svelte ships. Token names are generic so the system can be
-re-skinned. Swap the accent and the fonts for a new brand and keep the rules.
+A portable visual language: base styles, primitives and rules. It is not a page template. It
+says what things look like and how they behave, not where they go. Any layout built from these
+parts should feel like it belongs to the same family.
+
+The values given are the reference implementation (the ai2svelte site). Token names are generic:
+swap the accent and the typefaces for another brand and keep the rules.
 
 ---
 
-## 1. Character
+## 1. Principles
 
-- **Dark-first, technical, editorial.** It should read like a well-made instrument panel, not a
+- **Dark-first, technical, editorial.** It should read like a well-made instrument, not a
   marketing page.
-- **Monospace-led.** Mono carries every piece of structure (headlines, labels, buttons, the
-  logotype). A humanist sans carries only running prose.
-- **Hairline-ruled.** Structure comes from 1px lines, not from filled cards, gaps or shadows.
-- **Square.** No border-radius anywhere, including the indicator dot.
-- **Near-monochrome plus one hot accent.** Grays do the work. The accent is scarce, and it
-  mostly appears as a response to the user (hover, focus, scroll).
-- **1-bit texture.** Ordered/dithered pixel texture is the signature: dithered imagery, dithered
-  fluid, and headings that "dither in" from ASCII noise.
-- **Restraint at rest, life on interaction.** The page is quiet until touched. Then dots glow,
-  titles resolve, buttons reveal, and the dye moves.
+- **Monospace carries structure.** Everything that labels, titles or acts is set in mono. A
+  humanist sans is used only for running prose.
+- **Hairlines, not boxes.** Structure comes from 1px rules. Surfaces are flat. Separation
+  comes from lines rather than gaps, fills or shadows.
+- **Square.** No border-radius, anywhere.
+- **Near-monochrome plus one hot accent.** Grays do the work. The accent is scarce and mostly
+  appears as a response to the user.
+- **1-bit texture.** Ordered/dithered pixel texture is the signature, in imagery, in generative
+  backgrounds and in how text resolves.
+- **Quiet at rest, alive on interaction.** Nothing moves by itself. Hover, focus, scroll and drag
+  bring things to life.
 
 ---
 
@@ -29,54 +33,49 @@ re-skinned. Swap the accent and the fonts for a new brand and keep the rules.
 
 | Token | Role | Dark (default) | Light |
 |---|---|---|---|
-| `--bg` | Page, card, panel surface | `#050505` | `#fafafa` |
-| `--surface-deep` | Hero field behind imagery | `#000000` | `#ffffff` |
-| `--line` | All hairlines, outline buttons, idle logotype | `#2b2b2b` | `#dcdcdc` |
+| `--bg` | Base surface | `#050505` | `#fafafa` |
+| `--surface-deep` | Deepest field, behind imagery | `#000000` | `#ffffff` |
+| `--line` | Hairlines, outline controls | `#2b2b2b` | `#dcdcdc` |
 | `--line-hover` | Hairline under hover | `#4a4a4a` | `#b5b5b5` |
-| `--text` | Primary text, button labels | `#f3f3f3` | `#111111` |
-| `--heading` | Section titles at full strength, lit logotype | `#ffffff` | `#000000` |
+| `--text` | Primary text, control labels | `#f3f3f3` | `#111111` |
+| `--heading` | Titles at full strength | `#ffffff` | `#000000` |
 | `--copy` | Body prose | `#b9b9b9` | `#4a4a4a` |
-| `--muted` | Credits, meta, resting dot | `#828282` | `#707070` |
-| `--accent` | Brand fill: primary button, lit dot, knob, focus ring | `#dc4300` | `#dc4300` |
-| `--accent-strong` | Primary hover; accent-colored text on light surfaces | `#c23b00` | `#c23b00` |
+| `--muted` | Meta, fine print, inactive indicators | `#828282` | `#707070` |
+| `--accent` | Brand fill: primary action, active indicator, focus | `#dc4300` | `#dc4300` |
+| `--accent-strong` | Accent hover; accent-colored text on light surfaces | `#c23b00` | `#c23b00` |
 | `--on-accent` | Text on accent fills | `#ffffff` | `#ffffff` |
-| `--hover-bg` | Tint behind hovered outline buttons | `rgba(255,255,255,.04)` | `rgba(0,0,0,.04)` |
-| `--track` | Scrubber track | `rgba(255,255,255,.2)` | `rgba(0,0,0,.15)` |
-| `--scrim` | Ground for outline buttons over busy art | `rgba(5,5,5,.72)` | `rgba(250,250,250,.72)` |
-| `--shadow` | Floating-card drop shadow | `rgba(0,0,0,.4)` | `rgba(0,0,0,.1)` |
+| `--hover-bg` | Tint behind hovered neutral controls | `rgba(255,255,255,.04)` | `rgba(0,0,0,.04)` |
+| `--track` | Inactive track of sliders/scrubbers | `rgba(255,255,255,.2)` | `rgba(0,0,0,.15)` |
+| `--scrim` | Ground for controls placed over busy art | `rgba(5,5,5,.72)` | `rgba(250,250,250,.72)` |
+| `--shadow` | The single elevation shadow | `rgba(0,0,0,.4)` | `rgba(0,0,0,.1)` |
 
 ### Rules
 
-1. **One hue.** The accent is the only chromatic color in the UI. Everything else is neutral
-   gray. Extra hues are allowed only inside generative art (see the fluid dye in §9).
-2. **The accent is for:** the primary CTA, the eyebrow line, lit indicator dots, the scrubber
-   knob, and focus rings. It is never used for body text, borders at rest, or backgrounds of
-   whole sections.
-3. **Accent text:** use `--accent` on dark surfaces and `--accent-strong` on light ones, so small
-   accent text always clears 4.5:1.
-4. **Hover darkens accents** (`--accent` → `--accent-strong`) and brightens neutrals (`--line` →
+1. **One hue.** The accent is the only chromatic color in the interface. Extra hues are allowed
+   only inside generative art (§8).
+2. **The accent marks what is active or primary.** Use it for the primary action, active
+   indicators, progress/position, focus rings and small eyebrow text. Never use it for body text,
+   resting borders or large background areas.
+3. **Accent text** uses `--accent` on dark surfaces and `--accent-strong` on light ones.
+4. **Hover:** accents darken (`--accent` → `--accent-strong`), and neutrals brighten (`--line` →
    `--line-hover`, plus `--hover-bg`).
-5. **No gradients in UI chrome.** Flat fills and 1px lines only. Glow (box-shadow in the accent)
-   is the only soft effect, and it is reserved for the lit dot.
-6. **Two text strengths for headings.** Titles sit at 50% opacity at rest and go to 100% when their
-   block is active.
-7. **Contrast floor:** every text token must clear 4.5:1 on `--bg` and `--surface-deep` in both
-   themes.
+5. **No gradients in the interface.** Use flat fills and 1px lines. The only soft effect is the
+   accent glow on an active indicator.
+6. **Titles have two strengths:** subdued (50% opacity) at rest, full when their block is
+   active.
+7. **Contrast floor:** every text token clears 4.5:1 on `--bg` and `--surface-deep` in both themes.
 
 ---
 
 ## 3. Theming
 
-- Dark is the default. Light is enabled by `data-theme="light"` on `<html>`, and `color-scheme` is
+- Dark is the default. Light is enabled by `data-theme="light"` on the root, and `color-scheme` is
   set to match.
-- **No flash:** an inline, render-blocking script in `<head>` reads the saved theme from
-  `localStorage` and falls back to `prefers-color-scheme`. It sets the attribute before first paint.
-  Share the storage key with any sibling site (e.g. the docs) so the theme carries across.
-- The toggle is a plain text button that names the mode you would switch **to** (`LIGHT` / `DARK`).
-  It is not an icon.
-- **Artwork:** monochrome white-on-black art (logotype, dithered imagery) is inverted with
-  `filter: invert(1)` in light mode rather than re-exported. **Product screenshots stay dark** in
-  both themes, because they depict a real dark UI.
+- **No flash:** a render-blocking inline script applies the saved theme (falling back to
+  `prefers-color-scheme`) before first paint. Share the storage key across related sites.
+- The theme toggle is a text control that names the mode it switches **to**.
+- Monochrome white-on-black art is inverted with `filter: invert(1)` for light mode, not
+  re-exported. Screenshots of real dark UIs stay dark in both themes.
 
 ---
 
@@ -84,359 +83,242 @@ re-skinned. Swap the accent and the fonts for a new brand and keep the rules.
 
 ### Families
 
-| Token | Family (reference) | Weights | Use |
+| Token | Reference face | Weights | Use |
 |---|---|---|---|
-| `--mono` | Geist Mono | 300–600 (variable) | Display, headings, labels, buttons, logotype |
-| `--sans` | Inter | 400, 500 | Prose, card meta |
+| `--mono` | Geist Mono | 300–600 | Display, titles, labels, controls, wordmarks |
+| `--sans` | Inter | 400, 500 | Prose, meta |
 
-Fallbacks: `ui-monospace, SFMono-Regular, Menlo, monospace` / `system-ui, -apple-system,
-"Segoe UI", sans-serif`. Self-host both and **preload** the woff2 files. Do not load from a
-third-party stylesheet at runtime. Apply `-webkit-font-smoothing: antialiased` to the body.
+Self-host and preload the fonts. Use `-webkit-font-smoothing: antialiased`.
 
-### Scale
+### Roles
 
-| Role | Family | Size / line-height | Weight | Tracking | Case | Color |
-|---|---|---|---|---|---|---|
-| Display (H1) | mono | 48 / 53 (≤900: 40/44, ≤640: 34/38) | 300 | −0.08em | Sentence | `--text` |
-| Section / card title | mono | 16 / 1, trimmed to cap height | 500 | +0.1em | UPPER | `--heading` |
-| Eyebrow | mono | 12 / 15 | 500 | +0.1em | UPPER | accent text |
-| Button / label | mono | 12 / 15 | 400 | +0.04em | UPPER | `--text` |
-| Body | sans | 14 / 20 | 400 | 0 | Sentence | `--copy` |
-| Card title (media) | sans | 16 / 19 | 500 | 0 | Sentence | `--text` |
-| Card meta (media) | sans | 14 / 17 | 400 | 0 | Sentence | `--copy` |
-| Credit / fine print | sans | 12 / 16 | 400 | 0 | Sentence | `--muted`, links underlined |
+| Role | Family | Size / line-height | Weight | Tracking | Case |
+|---|---|---|---|---|---|
+| Display | mono | 48/53 → 40/44 → 34/38 as width shrinks | 300 | −0.08em | Sentence |
+| Title | mono | 16 / 1, cap-trimmed | 500 | +0.1em | UPPER |
+| Eyebrow | mono | 12 / 15 | 500 | +0.1em | UPPER, accent |
+| Label / control | mono | 12 / 15 | 400 | +0.5px | UPPER |
+| Body | sans | 14 / 20 | 400 | 0 | Sentence |
+| Item title | sans | 16 / 19 | 500 | 0 | Sentence |
+| Item meta | sans | 14 / 17 | 400 | 0 | Sentence |
+| Fine print | sans | 12 / 16 | 400 | 0 | Sentence, `--muted` |
 
 ### Rules
 
-1. **Light display, heavy labels.** The biggest type is the thinnest (300, tight negative
-   tracking). The smallest type is the widest-tracked and in caps.
-2. **Cap-height trim on titles.** Titles sit optically flush with the 12px dot beside them. Use
-   `text-box: trim-both cap alphabetic`, and in engines without it apply equivalent negative
-   top/bottom margins measured for the font.
-3. **Mono glyphs never shift layout.** Rely on this: animated text (§8) can swap characters
-   without reflow.
-4. **Links in prose** are the only underlined text. Elsewhere `text-decoration: none` and
-   `color: inherit`.
+1. **Light display, heavy labels.** The largest type is the thinnest, with tight negative tracking.
+   The smallest type is the widest-tracked and set in caps.
+2. **Cap-height trim** on titles so they sit optically flush with adjacent marks (the indicator).
+   Use `text-box: trim-both cap alphabetic`, with measured negative margins as a fallback.
+3. **Mono never reflows.** Text can be animated glyph by glyph without layout shift (§8).
+4. **Only prose links are underlined.** Other links inherit color and have no decoration.
+5. **Casing:** mono UI text is ALL CAPS; sentences are sentence case. Action labels are short
+   imperatives (two or three words).
 
-### Logotype
+### Wordmarks
 
-- Set as **live text** in mono at weight 550, not as an image, so it stays crisp and themable.
-- **Hand-kerned:** each letter is its own `inline-block` with a per-pair negative `margin-left`
-  in **em** (reference kerns, a→e: `0, −.077, −.039, −.064, −.071, −.093, −.083, −.219, −.090`),
-  so it scales as one piece.
-- Sized by **container query**: the section is `container-type: inline-size` and the mark uses
-  `font-size: min(<max>px, <k>cqw)`, where `k = 100 / (mark advance width in em)`. The mark then
-  fills a fixed share of the container and never overflows.
-- Trim the half-leading with negative em margins so the box hugs the letterforms.
-- `user-select: none`, `pointer-events: none`, `aria-hidden` (decorative).
-- A small inline SVG version of the same mark (120px wide) is used in the topbar.
+Set wordmarks as live mono text rather than images. Hand-kern pairs with per-letter em margins so
+the mark scales as one piece. Size it with a container query (`font-size: min(<cap>, <k>cqw)`, where
+`k` ≈ 100 ÷ the mark's width in em), so it fills its container and never overflows. Trim the
+half-leading with negative em margins. Decorative instances are `aria-hidden` and
+non-interactive.
 
 ---
 
-## 5. Copy patterns
+## 5. Space, shape, structure
 
-- **Mono UI text is ALL CAPS:** titles, eyebrows, buttons, toggles (`READ DOCS`, `READ MORE`).
-- **Prose is sentence case**, short and concrete. It names the user's action and outcome and avoids
-  adjectives about the product.
-- **Headline:** one declarative sentence ending in a full stop that states the transformation.
-- **Eyebrow:** a short `FROM X TO Y` style framing line above the headline.
-- **CTAs:** imperative, two to three words. Offer **one primary and at most one secondary** per
-  group, primary first.
-- **Feature titles:** the feature's noun name in caps (two words max). The body is one or two
-  sentences.
-- **Credit line:** small, muted, one sentence of provenance with links.
+- **8px base unit.** Steps: 8, 12, 16, 24, 32, 40, 56, 64, 80, 120. Use tight steps inside
+  components and the large steps (80/120) only between major blocks.
+- **A ruled column:** content sits in a max-width column (reference 1180px) bounded by 1px
+  vertical rules, and blocks stack edge to edge, divided by 1px horizontal rules
+  (`box-shadow: 0 1px 0 var(--line)`) rather than margins.
+- **Radius:** 0.
+- **Elevation: one level only.** An element that genuinely floats above others gets a 1px `--line`
+  outline and `drop-shadow(0 32px 32px var(--shadow))`. Everything else is flat.
 
 ---
 
-## 6. Layout
-
-### Shell
-
-- A centered column with max width **1180px** (`width: min(1180px, 100%)`) and **1px `--line`
-  rules on the left and right**, running the full page height. The page reads as a ruled sheet.
-- Sections stack edge to edge inside the shell. **Separate sections with a 1px bottom hairline**
-  (`box-shadow: 0 1px 0 var(--line)`), never with margins.
-- End the shell with an empty 64px tail so the side rules finish below the last section.
-
-### Grid
-
-- **Feature grids are ruled tables, not card galleries.** Use no gaps and no card fills. Adjacent
-  cells share a single 1px border (`border-left` on every cell except the first in a row; `border-top`
-  on every row after the first).
-- The reference rhythm is a **2-up lead row** (hero features), then a **3-up row** followed by a
-  row with one **span-2 cell** + one single cell. Varying cell widths keeps the ruled grid from
-  feeling like a spreadsheet.
-- Cells use `flex-direction: column; justify-content: space-between`: the title at the top, the
-  body at the bottom, and generous empty space between them (min heights ~280–320px desktop).
-
-### Spacing
-
-8px base. The steps in use: **8, 12, 16, 24, 32, 40, 56, 64, 80, 120**.
-
-| Context | Value |
-|---|---|
-| Button padding | 8 × 12 |
-| Gap between buttons | 8 (nav), 12–16 (CTA groups) |
-| Floating card padding / internal gap | 16 / 16 |
-| Grid cell padding | 32 |
-| Section side padding | 32 (20 on mobile) |
-| Media-card meta padding | 16 × 12 |
-| Rail gap | 16 |
-| Showcase section vertical padding / head-to-rail | 120 / 120 (mobile 64–72 / 56) |
-| Outro padding / gap | 80 × 32 / 40 |
-
-### Shape and depth
-
-- **`border-radius: 0` everywhere.**
-- Depth is used once: the floating hero card gets `filter: drop-shadow(0 32px 32px var(--shadow))`
-  and a 1px `outline` in `--line`. Nothing else floats.
-
----
-
-## 7. Components
+## 6. Primitives
 
 ### Button
 
-- `inline-flex`, padding 8 × 12, 1px border, mono 12/15, weight 400, +0.04em, caps, `nowrap`.
+- Padding 8 × 12, 1px border, label type (mono 12/15, caps, +0.5px), `nowrap`.
 - **Outline (default):** transparent fill, `--line` border, `--text` label. Hover: `--line-hover`
-  border and `--hover-bg` fill.
+  plus `--hover-bg`.
 - **Primary:** `--accent` fill and border, `--on-accent` label. Hover: `--accent-strong`.
-- Transition `background-color, border-color, color` at **160ms ease**.
-- **Over busy art** (dye, imagery), outline buttons get a `--scrim` fill so they stay legible.
+- At most one primary per group, listed first.
+- Over imagery or generative art, outline buttons take a `--scrim` fill.
+- Transition color, border and background at 160ms ease.
 
-### Topbar
+### Indicator + title
 
-- **Sticky**, 80px tall, `--bg` fill, bottom hairline, `z-index` above content.
-- Logotype SVG at the left. A button row at the right (docs, repo, theme toggle), all outline
-  buttons with an 8px gap.
-- ≤640px: height auto, 20px padding.
+The system's one heading pattern: a **12×12 square indicator**, an 8px gap, then a **title**
+cap-trimmed to the indicator's height. Use it for any block heading.
 
-### Hero
-
-- A full-bleed field (800px tall on desktop) in `--surface-deep`, bottom hairline, `overflow: hidden`.
-- **Background art:** a large dithered image covering the field (`object-fit: cover`, anchored
-  top-left), decorative and `aria-hidden`.
-- **Floating card**, overlapping the art on the left (~⅓ down, 32px from the edge, ~640px wide).
-  It holds the eyebrow → H1 → body → credit → CTA row (16px gap; the CTA row adds 16px top padding).
-  It has a `--bg` fill, 1px outline and the drop shadow.
-- **Product visual** on the right: an image of the real product UI (~464px wide), right-aligned
-  about 24px from the edge.
-- ≤900px: everything stacks in flow (card, then product visual centered), the art dims to 55% opacity
-  and is anchored top-center, and the card gets 20px side margins.
-
-### Section title (dot + title)
-
-- A row of **dot (12×12 square) + 8px gap + title**. The title is cap-trimmed to the dot's height.
-- Used for grid cells and section heads alike. It is the system's one heading pattern.
-
-### Feature cell
-
-- Section title at the top. Body copy at the bottom, followed by a **hidden `READ MORE` outline
-  button**.
-- **At rest:** title at 50% opacity, dot muted, button collapsed.
-- **Active** (hover / focus-within): title at 100% (220ms), dot lit (§8), title dithers in, and
-  the button **reveals** by animating `grid-template-rows: 0fr → 1fr` together with `opacity 0 → 1`
-  (240ms ease; the inner wrapper has `overflow: hidden; min-height: 0`). The height animates
-  with no JS measurement.
-- ≤640px (touch): the button is always shown and the title is at full opacity.
-
-### Section head with scrubber
-
-- Section title on the left. A **scrubber rule** on the right (280px wide, full width ≤640 under the
-  title).
-- See §10 for behavior.
-
-### Media rail
-
-- A horizontal `overflow-x: auto` flex row with a 16px gap and 32px side padding, the **scrollbar hidden**
-  (`scrollbar-width: none` + `::-webkit-scrollbar { display: none }`) and
-  `overscroll-behavior-x: contain`. The scrubber replaces the scrollbar.
-- **Media card:** fixed 322px wide, 1px `--line` border, `--bg` fill. The image is **3:2** (`object-fit:
-  cover`) with a hairline under it. Meta below it: sans title 16/19 w500 plus copy 14/17.
-
-### Outro
-
-- A centered column: **giant logotype** above a CTA row (primary + outline), 40px gap, 80 × 32
-  padding.
-- A generative fluid backdrop (§9) fills the section behind (`position: absolute; inset: 0`, z-index 0).
-  Content sits at z-index 1. The section uses `overflow: hidden; isolation: isolate` so the canvas
-  can't escape into the sticky topbar's layer.
-- The logotype rests in **`--line`** (barely visible, like an embossed mark) and **warms to
-  `--heading` over 420ms** while the pointer is anywhere in the section.
-- ≤640px: CTA rows stack vertically.
-
----
-
-## 8. The indicator dot and the dither-in
-
-The dot is the system's signature micro-interaction. It turns each section heading into a
-status light.
-
-### Dot states
-
-| State | Fill | Glow |
+| State | Indicator | Title |
 |---|---|---|
-| Rest | `--muted` | none |
-| Lit | `--accent` | `box-shadow: 0 0 40px 0 var(--accent), 0 0 12px 0 var(--accent)` |
+| Rest | `--muted` | `--heading` at 50% |
+| Active | `--accent` + glow `0 0 40px var(--accent), 0 0 12px var(--accent)` | 100%, dithers in (§8) |
 
-Transition: `background, box-shadow` at 220ms ease.
+### Ruled grid
 
-### What lights it
+- Cells share single 1px borders (a left border between columns, a top border between rows). There
+  are no gaps and no cell fills.
+- Cell padding is 32. Content is spaced top to bottom (`justify-content: space-between`) so cells
+  breathe.
+- Mixing cell spans (e.g. a span-2 cell beside a single cell) keeps a ruled grid from reading as a
+  spreadsheet.
 
-- **Hover-capable devices** (`@media (hover: hover)`): the dot lights while its block is
-  `:hover` or `:focus-within`. This is pure CSS.
-- **Touch devices** (`@media (hover: none)`): the dot lights by **scroll position**. It turns on
-  when it rises above a line at 25% of the viewport height from the top, and stays lit above it.
-  Implement this with an `IntersectionObserver` using `rootMargin: "100000px 0px -75% 0px"`; the huge
-  top margin makes the region unbounded upward, so a fast scroll can't skip it.
+### Panel
 
-### Dither-in (title reveal)
+A `--bg` surface with a 1px outline and 16px padding and gap. It may use the single elevation level
+when it overlaps imagery.
 
-When a dot lights (on pointer-enter, or on scroll-in for touch), its title **condenses out of ASCII
-noise, left to right**:
+### Media item
 
-- **Density ramp**, sparse → dense, punctuation only so nothing mid-flight reads as a word:
-  `` .,:;-~=+*!#%&@$ ``
-- Each character becomes a cell that churns through the ramp in step with its own progress
-  (±1.5 steps of random jitter, so neighbours differ). It **locks to the real glyph** at its
-  finish time.
-- **Timing per cell:** 170ms base + 25ms × index (the left-to-right stagger) + random 0–230ms
-  (so cells don't finish in lockstep). Each cell re-rolls its glyph every ~19–57ms (38ms × 0.5–1.5).
-- Drive it by **elapsed time, not frame count**, so it looks the same at 60Hz and 120Hz.
-- **Spaces are never scrambled**, so word shapes stay readable.
-- Don't restart a title that is already running.
-- **Accessibility:** set the heading's `aria-label` to the real text up front so screen readers
-  never read the noise. Skip entirely under `prefers-reduced-motion: reduce`.
-- It works only because the title is monospaced (§4 rule 3).
+A 1px `--line` border on `--bg`. The image is 3:2 (`object-fit: cover`) with a hairline beneath it.
+Below that sits meta at 16 × 12 padding (item title + item meta).
+
+### Horizontal rail
+
+A scrolling row of fixed-width items with a 16px gap. The native scrollbar is hidden
+(`scrollbar-width: none`) and `overscroll-behavior-x: contain` is set. It is paired with a scrubber
+(below), never left without a visible position cue.
+
+### Scrubber
+
+- **Track:** 2px, `--track`. **Knob:** 64px `--accent` bar moved by `transform`.
+- **Hit area:** extend it about 14px above and below with a pseudo-element. The visual stays 2px.
+- **Pointer:** drag the knob (keeping the grab offset), or press the track to jump and drag. Use
+  pointer capture, with `grab`/`grabbing` cursors.
+- **Keyboard:** arrows step one item, PageUp/PageDown step one view, Home/End jump to the ends.
+- **Idle** (nothing to scroll): the knob fills the track, and the control is removed from the tab
+  order and marked `aria-disabled`.
+- **ARIA:** `role="scrollbar"`, `aria-controls`, `aria-orientation`, and `aria-valuenow` 0–100.
+
+### Reveal
+
+Secondary actions can be hidden until their block is active. Animate
+`grid-template-rows: 0fr → 1fr` together with `opacity` (240ms). The inner wrapper has
+`overflow: hidden; min-height: 0`. On touch/narrow screens, show them always.
 
 ---
 
-## 9. Texture and imagery
+## 7. Interaction model
+
+- **Every hover has a touch equivalent.** Gate hover effects with `@media (hover: hover)`. Under
+  `(hover: none)`, activate indicators by scroll position instead: active once the element rises
+  above ~25% from the top of the viewport, and it stays active above that line. (Use an
+  `IntersectionObserver` with `rootMargin: "100000px 0px -75% 0px"` so fast scrolls can't skip it.)
+- **Activation is block-level.** Hovering or focusing anywhere in a block (`:hover`,
+  `:focus-within`) activates its indicator, title and reveals.
+- **Focus:** `:focus-visible` gets a 1px `--accent` outline, offset on thin controls and inset on
+  large scroll regions.
+- **Drag-to-scroll** on mouse only, after a 5px threshold. A drag must not trigger a click on the
+  item underneath.
+
+---
+
+## 8. Signature effects
+
+### Dither-in text
+
+When a title becomes active, it condenses out of ASCII noise, left to right.
+
+- **Ramp** (sparse → dense, punctuation only, so nothing mid-flight reads as a word):
+  `` .,:;-~=+*!#%&@$ ``
+- Each character churns along the ramp in step with its progress (with ±1.5 steps of jitter so
+  neighbours differ), then locks to its real glyph.
+- **Per-cell finish:** 170ms + 25ms × index + random 0–230ms. The glyph re-rolls every ~20–60ms.
+- Drive it by elapsed time, not frames. Leave spaces untouched. Don't restart a title that is
+  already running.
+- Pin the real text as `aria-label`. Skip it under reduced motion. It needs a monospaced face.
 
 ### Dithered imagery
 
-- Hero and social art are **1-bit ordered-dither renderings** of a photographic subject (the
-  reference is a half-moon, lit from below, cropped by the top edge): white pixels on pure black
-  with a visible pixel grid.
-- Keep it monochrome so it inverts cleanly for the light theme.
-- **Social / OG card (1200×630):** the same dithered subject, full-bleed on black, with the logotype
-  centered in white on top.
+Photographic or illustrative subjects rendered as **1-bit ordered dither**: white pixels on pure
+black with a visible pixel grid. Keep them monochrome so they invert for light mode. They work as
+large, low-key backgrounds behind content. Dim them (e.g. 55%) where content overlaps on small
+screens.
 
-### Fluid backdrop (generative)
+### Dithered generative backdrop
 
-A WebGL fluid simulation rendered through the same dither aesthetic.
+An optional WebGL fluid (or similar) field rendered through the same dither aesthetic.
 
-- **Pointer-driven only.** It is still until the cursor moves across it, with no autoplay. Decorative
-  content above it is `pointer-events: none` so the fluid keeps responding under it.
-- **Dye ramp** (fresh → aged): `--accent` `#dc4300` → magenta `#9c0c81` → violet `#4e0bac` →
-  deep red `#6f0000`, eased with `cubic-bezier(0.03, 0.6, 0.48, 1)`. This gives an iridescent,
-  ember-like decay. It is the only place other hues appear.
-- **Dither:** an 8×8 Bayer ordered dither with **2 levels per channel** and **4px cells** (the physical
-  pixels per matrix cell). It samples once per cell, so the fluid's silhouette itself is blocky.
-- **Bloom** on the bright dithered pixels: threshold 0.3, intensity 1, radius 0.2.
-- **Feel:** dye dissipation 0.95, velocity dissipation 0.985, 16 pressure iterations, splat size 0.0125.
-- Transparent canvas (`alpha: true`, clear to 0), rendered at the device pixel ratio.
-- **Performance and accessibility:** mount lazily when the section enters view, halve the sim
-  resolution at ≤640px (the canvas size is unchanged), and **don't render at all** under
-  `prefers-reduced-motion`. The container element is always present so lazy hydration can observe it.
+- **Pointer-driven only**, with no autoplay. Content above it is `pointer-events: none` where it
+  is decorative.
+- **Color:** the dye starts at `--accent` and decays through adjacent hues (reference: magenta
+  `#9c0c81` → violet `#4e0bac` → deep red `#6f0000`, eased `cubic-bezier(.03,.6,.48,1)`). This is
+  the only place the palette widens.
+- **Dither:** 8×8 Bayer, 2 levels per channel, 4px cells, sampled per cell so the silhouette is
+  blocky. Add a light bloom on bright pixels.
+- Use a transparent canvas. Mount it lazily when in view, halve the resolution on phones, and
+  don't render it under reduced motion.
+- Its container clips it (`overflow: hidden; isolation: isolate`) so it can't bleed into sticky
+  layers.
 
----
+### Warm-up
 
-## 10. Interaction patterns
-
-### Scrubber (replacement scrollbar)
-
-- **Track:** 2px tall in `--track`. **Knob:** a 64px-wide `--accent` bar moved with `transform`
-  (`will-change: transform`).
-- **Hit area:** a `::before` pseudo-element extends the target 14px above and below, so the target
-  is usable without changing the visual.
-- **Pointer:** drag the knob (keeps the grab offset), or press anywhere on the track to jump and
-  drag (centers the knob). Use pointer capture. Cursors are `grab` / `grabbing`.
-- **Keyboard:** ←/→ step one card (card width + gap), PageUp/PageDown step one viewport, and Home/End
-  jump to the ends. Smooth scrolling unless reduced motion is on.
-- **Idle** (content fits, nothing to scroll): the knob fills the whole track, the cursor is
-  `default`, it is removed from the tab order, and `aria-disabled="true"`.
-- **ARIA:** `role="scrollbar"`, `aria-controls` → rail, `aria-orientation="horizontal"`, and
-  `aria-valuenow` 0–100 updated only when the integer changes.
-- Re-measure with a `ResizeObserver`. Sync on the rail's passive `scroll` event.
-
-### Rail drag
-
-- **Mouse only**, since touch already pans natively. Start the drag after a **5px** threshold, then
-  capture the pointer.
-- A drag that ends over a card **must not open it**: suppress the click in the capture phase.
-  Block native image/link `dragstart`.
-
-### Focus
-
-- `:focus-visible` gets a **1px `--accent` outline**. It is offset 6px on thin controls (the scrubber)
-  and inset (−1px) on large scroll regions (the rail).
+Large decorative marks can rest at `--line` (barely visible, like an embossed mark) and warm to
+`--heading` while the pointer is in their block (420ms).
 
 ---
 
-## 11. Motion summary
+## 9. Motion
 
 | What | Duration | Easing |
 |---|---|---|
-| Button color / border | 160ms | ease |
-| Dot glow, title opacity | 220ms | ease |
-| Reveal (grid rows + opacity) | 240ms | ease |
-| Logotype warm-up | 420ms | ease |
-| Dither-in | ~0.2–0.6s per title | time-based, per cell |
+| Control color/border | 160ms | ease |
+| Indicator glow, title strength | 220ms | ease |
+| Reveal | 240ms | ease |
+| Large decorative color shifts | 420ms | ease |
 
-Only `ease` is used, with no bounces or springs. Motion is **responsive, never ambient**: nothing
-moves unless the user hovers, scrolls or drags. Under `prefers-reduced-motion`, skip the dither-in and
-the fluid, and use instant scrolling.
+Use only `ease`, with no bounces or springs. Motion is **responsive, never ambient**. Under
+`prefers-reduced-motion`, drop the dither-in and the generative backdrops, and use instant scrolling.
 
 ---
 
-## 12. Responsive
+## 10. Responsive
 
-| Breakpoint | Changes |
-|---|---|
-| ≤1180px | The hero product visual pins to the right edge (24px). The floating card narrows to leave room. |
-| ≤900px | The hero stacks in flow, and the art dims to 55% and centers. H1 is 40/44. The 3-up grid becomes 2-up and span-2 cells collapse to single. Borders are re-drawn for the new rows. Showcase spacing shrinks. |
-| ≤640px | All grids are 1-up with top borders between cells. Reveals are always open and titles are at full opacity. H1 is 34/38. CTA groups stack. The section head stacks with a full-width scrubber. The topbar compacts. |
-
-**Hover vs touch is a separate axis** from width: gate hover effects with `(hover: hover)` and use
-scroll-lit dots under `(hover: none)`.
+- Step the display type down (48 → 40 → 34) as width shrinks. Other roles stay fixed.
+- Ruled grids drop columns rather than shrinking cells, and borders are redrawn for the new rows.
+- Overlapping compositions un-overlap into normal flow on narrow screens.
+- Action groups stack vertically on phones.
+- Treat hover capability as a separate axis from width (§7).
 
 ---
 
-## 13. Accessibility rules
+## 11. Accessibility
 
-- The contrast floor is 4.5:1 for all text tokens in both themes (see §2 rule 7).
-- Decorative art (backgrounds, logotype, dots, fluid) is `aria-hidden` with empty `alt`.
-  Meaningful images (the product UI) get descriptive `alt`.
-- Any text that animates keeps its real content as its accessible name.
-- Respect `prefers-reduced-motion` everywhere motion is added.
-- Tiny visual controls get enlarged invisible hit areas.
-- Custom controls get full keyboard support and ARIA roles and values.
-- Visible focus uses the accent.
+- Every text token meets 4.5:1 in both themes.
+- Decorative art, indicators, wordmarks and backdrops are `aria-hidden` with empty `alt`.
+  Informative images get real `alt`.
+- Animated text keeps its real accessible name.
+- Honor `prefers-reduced-motion` wherever motion is added.
+- Small visual controls get enlarged invisible hit areas.
+- Custom controls get full keyboard support and ARIA.
 
 ---
 
-## 14. Do / Don't
+## 12. Do / Don't
 
 **Do**
-- Structure with 1px hairlines and shared cell borders.
-- Use mono caps for anything that labels, and the sans only for sentences.
-- Keep the accent scarce and tie it to interaction.
-- Use dithered, monochrome art that inverts cleanly.
-- Keep one primary CTA per group.
-- Make every hover effect have a touch equivalent.
+- Build structure from 1px rules.
+- Use mono caps for anything that labels or acts, and the sans for sentences.
+- Keep the accent scarce and tied to state.
+- Use monochrome dithered art that inverts cleanly.
+- Give every hover a touch counterpart.
 
 **Don't**
-- Round corners, add card backgrounds, or use gaps in grids.
-- Introduce a second UI hue or a gradient.
-- Add drop shadows beyond the single floating hero card.
-- Autoplay motion or animate on page load.
-- Use proportional fonts for animated text.
+- Round corners, fill cards, or put gaps in ruled grids.
+- Add a second interface hue or a gradient.
+- Stack elevation or scatter shadows.
+- Animate anything that the user didn't trigger.
+- Animate proportional type.
 - Put accent text on light surfaces without `--accent-strong`.
 
 ---
 
-## 15. Token block
+## 13. Tokens
 
 ```css
 :root {
@@ -459,12 +341,13 @@ scroll-lit dots under `(hover: none)`.
 
   --mono: "Geist Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
   --sans: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
-  --shell: 1180px;
+  --column: 1180px;
+  --unit: 8px;
 
-  --dur-fast: 160ms;   /* buttons */
-  --dur-base: 220ms;   /* dot, title */
-  --dur-reveal: 240ms; /* grid-rows reveal */
-  --dur-slow: 420ms;   /* logotype */
+  --dur-fast: 160ms;
+  --dur-base: 220ms;
+  --dur-reveal: 240ms;
+  --dur-slow: 420ms;
 }
 
 :root[data-theme="light"] {
@@ -482,8 +365,4 @@ scroll-lit dots under `(hover: none)`.
   --scrim: rgba(250, 250, 250, 0.72);
   --shadow: rgba(0, 0, 0, 0.1);
 }
-
-/* Accent-colored text: --accent on dark, --accent-strong on light. */
-.eyebrow { color: var(--accent); }
-:root[data-theme="light"] .eyebrow { color: var(--accent-strong); }
 ```
