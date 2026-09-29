@@ -1,6 +1,6 @@
 ---
 title: Custom styles
-description: Set up custom styles for your ai2svelte elements.
+description: Add your own shadows and animations to ai2svelte.
 slug: users/custom-styles
 sidebar:
   order: 104
@@ -8,22 +8,20 @@ sidebar:
 
 import { Aside } from "@astrojs/starlight/components";
 
-You can further customize styling data by adding user-defined shadows and animations directly to the plugin database. This lets you extend the plugin's preset styles and give your components a more personalized appearance.
+You can add your own shadows and animations alongside the presets by editing the plugin's style data files.
 
 <Aside type="note">
-  Follow the structure used by the preset styles when adding custom styles.
+  Copy the structure of an existing preset when you add a new one.
 </Aside>
 
-Style data is created the first time you run the plugin and is stored in `JSON5` format at:
+The plugin creates its style data the first time it runs and stores it as `JSON5` files in:
 
 ```plaintext
 /Library/Application Support/com.reuters-graphics.ai2svelte/
 ```
 
 <Aside type="caution">
-  If working in teams, ensure that all members use the same custom styles by
-  sharing the modified JSON5 files. The style definitions are not embedded in
-  the Adobe Illustrator document. Only the names of the applied styles are saved
-  in the document. The style definitions are sourced from the local plugin data
-  files.
+  Illustrator documents only store the names of the styles you applied. The
+  style definitions come from the local data files. If you work in a team,
+  share your edited JSON5 files so everyone's exports match.
 </Aside>

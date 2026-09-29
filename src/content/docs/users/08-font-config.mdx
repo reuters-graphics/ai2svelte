@@ -1,6 +1,6 @@
 ---
 title: Font configuration
-description: Configure custom font mappings for your ai2svelte exports.
+description: Map Illustrator fonts to CSS font stacks for your ai2svelte exports.
 slug: users/font-config
 sidebar:
   order: 108
@@ -11,33 +11,30 @@ import { Image } from "astro:assets";
 import Missing_Font_Message from "../../../../public/images/missing_font_message.png";
 import Custom_Fonts from "../../../../public/images/custom_fonts.png";
 
-Due to differences in how Adobe Illustrator handles fonts versus how CSS expects them, ai2svelte includes a font configuration system to ensure proper font rendering in your exported Svelte components. You'll need to map Adobe typeface names to CSS font stacks for any custom fonts used in your designs.
+Illustrator and CSS name fonts differently, so ai2svelte needs to know which CSS font stack to use for each custom font in your design. You set this up once in the font configuration.
 
 ---
 
 ### Getting started
 
-When you first run ai2svelte on a document with custom fonts, the extension will:
+The first time you export a document that uses custom fonts, ai2svelte:
 
-- Notify you about any missing font mappings
-- Display a list of all fonts detected in your document
-- Prompt you to configure the necessary mappings
+- Tells you which fonts have no mapping
+- Lists every font it found in the document
+- Asks you to add the missing mappings
 
 <Image
   src={Missing_Font_Message}
-  alt="Screenshot showing success message post ai2svelte export"
+  alt="Screenshot showing the missing font mappings message after an ai2svelte export"
 />
 
 ### Adding font mappings
 
-To configure your fonts:
-
 {/* prettier-ignore */}
 <Steps>
-  1. Navigate to the `Settings` tab in the ai2svelte panel. 
-  2. Locate the `Font Configuration` section. 
-  3. Add your custom font mappings using the format
-  shown below:
+  1. Open the `Settings` tab in the ai2svelte panel.
+  2. Find the `Font Configuration` section.
+  3. Add one mapping per line, in this format:
 </Steps>
 
 ```yaml
@@ -51,14 +48,14 @@ AdobeFontName: 'CSS Font Name', fallback1, fallback2
   alt="Screenshot showing custom font configuration panel"
 />
 
-### Key features
+### How it works
 
-- **Persistent Configuration**: Font mappings are saved and automatically applied to future sessions
-- **Flexible Fallbacks**: Define multiple fallback fonts for better cross-platform compatibility
-- **Easy Updates**: Modify font configurations at any time as your design requirements change
+- **Saved between sessions**: mappings are stored and applied to every future export
+- **Fallbacks**: list as many fallback fonts as you need
+- **Editable**: change a mapping at any time
 
 ### Best practices
 
-- Always include web-safe fallback fonts (Arial, Helvetica, sans-serif, etc.)
-- Use quotes around font names that contain spaces
-- Test your font stacks across different browsers and operating systems
+- Always end with web-safe fallbacks (Arial, Helvetica, sans-serif and so on)
+- Put quotes around font names that contain spaces
+- Check your font stacks in different browsers and operating systems

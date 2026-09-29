@@ -1,20 +1,20 @@
 ---
 title: Introduction
-description: Intro on how to contribute to the project.
+description: How to contribute to ai2svelte.
 slug: contributors/intro
 sidebar:
   order: 200
 ---
 
-ai2svelte began as a fork of ai2html v0.123.1, with all New York Times-specific code removed to make the project fully generic and open for the community.
+ai2svelte started as a fork of ai2html v0.123.1. All New York Times-specific code was removed.
 
-You can find the project repository on GitHub: [ai2svelte](https://github.com/reuters-graphics/ai2svelte/).
+The code is on GitHub: [ai2svelte](https://github.com/reuters-graphics/ai2svelte/).
 
-We welcome contributions of all kinds! You can help by:
+Contributions of every kind are welcome. You can:
 
-- Reporting bugs or issues
-- Suggesting new features or improvements
-- Submitting pull requests for code, documentation, or tests
-- Reviewing and discussing open issues
+- Report bugs
+- Suggest features or improvements
+- Open pull requests for code, docs or tests
+- Review and discuss open issues
 
-Check out the [issues page](https://github.com/reuters-graphics/ai2svelte/issues) to find something to work on, or to propose new ideas. Every contribution, big or small, helps make ai2svelte better for everyone.
+Browse the [issues page](https://github.com/reuters-graphics/ai2svelte/issues) to find something to work on or to propose an idea.
