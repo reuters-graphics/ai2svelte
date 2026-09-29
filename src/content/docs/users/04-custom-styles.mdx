@@ -14,14 +14,28 @@ You can add your own shadows and animations alongside the presets by editing the
   Copy the structure of an existing preset when you add a new one.
 </Aside>
 
-The plugin creates its style data the first time it runs and stores it as `JSON5` files in:
+The plugin creates these files the first time it runs, filled with the presets:
+
+- `user-shadows.json`: shadows
+- `user-animations.json`: animations
+
+They're in the plugin's user data folder:
 
 ```plaintext
-/Library/Application Support/com.reuters-graphics.ai2svelte/
+macOS:   ~/Library/Application Support/com.reuters-graphics.ai2svelte/
+Windows: %APPDATA%\com.reuters-graphics.ai2svelte\
 ```
+
+Restart Illustrator after editing them to load your changes.
+
+<Aside type="caution">
+  Back up a file before you edit it. If it can't be parsed, the plugin replaces
+  it with the presets and your changes are lost. The plugin can also rewrite
+  these files itself, so any comments you add won't be kept.
+</Aside>
 
 <Aside type="caution">
   Illustrator documents only store the names of the styles you applied. The
   style definitions come from the local data files. If you work in a team,
-  share your edited JSON5 files so everyone's exports match.
+  share your edited files so everyone's exports match.
 </Aside>
