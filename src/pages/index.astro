@@ -160,7 +160,7 @@ const repo = "https://github.com/reuters-graphics/ai2svelte/";
     <div class="shell">
       <header class="topbar">
         <a class="brand" href={`${base}/`} aria-label="ai2svelte home">
-          <img src={`${base}/images/home/wordmark.svg`} alt="ai2svelte" width="120" height="19.543" />
+          <img src={`${base}/images/home/wordmark.svg`} alt="ai2svelte" width="120" height="20" />
         </a>
         <nav class="topnav" aria-label="Primary">
           <a class="btn" href={`${base}/users/intro/`}>READ DOCS</a>
@@ -370,10 +370,10 @@ const repo = "https://github.com/reuters-graphics/ai2svelte/";
     background: transparent;
     color: var(--text);
     font-family: var(--mono);
-    font-size: 12.16px;
+    font-size: 12px;
     font-weight: 400;
     line-height: 15px;
-    letter-spacing: 0.4864px;
+    letter-spacing: 0.5px;
     white-space: nowrap;
     transition:
       background-color 160ms ease,
@@ -404,7 +404,7 @@ const repo = "https://github.com/reuters-graphics/ai2svelte/";
     align-items: center;
     justify-content: space-between;
     height: 80px;
-    padding: 0 21.6px;
+    padding: 0 24px;
     box-shadow: 0 1px 0 var(--line);
     position: sticky;
     top: 0px;
@@ -420,7 +420,7 @@ const repo = "https://github.com/reuters-graphics/ai2svelte/";
   .brand img {
     display: block;
     width: 120px;
-    height: 19.543px;
+    height: auto;
   }
 
   .topnav {
@@ -473,7 +473,7 @@ const repo = "https://github.com/reuters-graphics/ai2svelte/";
     position: absolute;
     top: 255px;
     left: 32px;
-    width: 638px;
+    width: 640px;
     padding: 16px;
     display: flex;
     flex-direction: column;
@@ -490,7 +490,7 @@ const repo = "https://github.com/reuters-graphics/ai2svelte/";
     font-size: 12px;
     font-weight: 500;
     line-height: 15px;
-    letter-spacing: 1.2px;
+    letter-spacing: 0.1em;
   }
 
   h1 {
@@ -499,7 +499,7 @@ const repo = "https://github.com/reuters-graphics/ai2svelte/";
     font-size: 48px;
     font-weight: 300;
     line-height: 53px;
-    letter-spacing: -0.0833333em;
+    letter-spacing: -0.08em;
     color: var(--text);
   }
 
@@ -529,8 +529,8 @@ const repo = "https://github.com/reuters-graphics/ai2svelte/";
 
   .hero-panel {
     position: absolute;
-    top: 69.46px;
-    left: 671.907px;
+    top: 70px;
+    left: 672px;
     width: 464px;
     height: 725px;
     display: block;
@@ -597,7 +597,7 @@ const repo = "https://github.com/reuters-graphics/ai2svelte/";
     font-size: 16px;
     font-weight: 500;
     line-height: 1;
-    letter-spacing: 1.6px;
+    letter-spacing: 0.1em;
   }
 
   .card h2 {
@@ -613,9 +613,9 @@ const repo = "https://github.com/reuters-graphics/ai2svelte/";
     display: block;
     color: var(--heading);
     /* Design trims the title box to cap-height. Geist Mono 500 at 16px/1 puts
-       the baseline 13.5px and the cap top 2.14px below the box top, so these
-       margins reproduce the trim in engines without `text-box`. */
-    margin: -2.14px 0 -2.5px;
+       the cap top about 2px below the box top, so these margins reproduce the
+       trim in engines without `text-box`, leaving a 12px box to match the dot. */
+    margin: -2px 0 -2px;
     transition: opacity 220ms ease;
   }
 
@@ -748,7 +748,7 @@ const repo = "https://github.com/reuters-graphics/ai2svelte/";
     position: absolute;
     top: 0;
     left: 0;
-    width: 63px;
+    width: 64px;
     height: 100%;
     background: var(--orange);
     will-change: transform;
@@ -852,15 +852,15 @@ const repo = "https://github.com/reuters-graphics/ai2svelte/";
     display: block;
     font-family: var(--mono);
     font-weight: 550;
-    /* 175.26px draws the mark at the 798.832px the artwork used to occupy;
-       below that the container query shrinks it to fit. The divisor is the
-       mark's advance width in ems, measured against the original. */
-    font-size: min(175.26px, 21.4445cqw);
+    /* 175px draws the mark at roughly the 800px the artwork used to occupy;
+       below that the container query shrinks it to fit. 21cqw sits just under
+       100 / the mark's advance width in ems, so it never overflows. */
+    font-size: min(175px, 21cqw);
     line-height: 1;
     white-space: nowrap;
     /* Trims the half-leading above and below so the box hugs the letterforms,
        the way the artwork's own bounds did, and the section's gaps stay put. */
-    margin: -0.1438em 0 -0.1343em;
+    margin: -0.14em 0 -0.13em;
     user-select: none;
     /* Sits at the same value the flat artwork was drawn in, and warms to
        white while the cursor is anywhere in the section. */
@@ -904,7 +904,7 @@ const repo = "https://github.com/reuters-graphics/ai2svelte/";
     }
 
     .hero-card {
-      width: min(639px, calc(100% - 340px));
+      width: min(640px, calc(100% - 340px));
     }
   }
 
