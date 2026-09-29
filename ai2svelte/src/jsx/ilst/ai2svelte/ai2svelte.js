@@ -4982,6 +4982,10 @@ export function main(settingsArg) {
 
     // CSS
     css = '<style lang="scss">\r';
+    // @use must precede every other rule, so hoist it for shadow mixins
+    if (content.css.indexOf("color.alpha(") > -1) {
+      css += '@use "sass:color";\r';
+    }
 
     css +=
       generatePageCss(containerId, group, settings) +

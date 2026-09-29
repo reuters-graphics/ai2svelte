@@ -1,246 +1,246 @@
 <script lang="ts">
-	import { untrack } from "svelte";
-	import type { Attachment } from "svelte/attachments";
-	import {
-		Mesh,
-		Program,
-		RenderTarget,
-		Renderer,
-		Triangle,
-		Vec2,
-		Vec3,
-		Vec4,
-	} from "ogl";
-	import { type ColorRepresentation, toLinearRgb, toRgb } from "./color";
-	import { updateFluidPointerState } from "./fluid-pointer";
+  import { untrack } from "svelte";
+  import type { Attachment } from "svelte/attachments";
+  import {
+    Mesh,
+    Program,
+    RenderTarget,
+    Renderer,
+    Triangle,
+    Vec2,
+    Vec3,
+    Vec4,
+  } from "ogl";
+  import { type ColorRepresentation, toLinearRgb, toRgb } from "./color";
+  import { updateFluidPointerState } from "./fluid-pointer";
 
-	interface Props {
-		/**
-		 * Dissipation factor for the fluid.
-		 * @default 0.95
-		 */
-		dissipation?: number;
-		/**
-		 * Radius of the pointer influence.
-		 * @default 0.0025
-		 */
-		pointerSize?: number;
-		/**
-		 * Color of freshly injected (high-density) dye.
-		 * @default "#dc3e00"
-		 */
-		startColor?: ColorRepresentation;
-		/**
-		 * Color dye fades toward as its density decays to zero.
-		 * @default "#6f0000"
-		 */
-		endColor?: ColorRepresentation;
-		/**
-		 * First intermediate color the dye passes through as it decays from
-		 * startColor toward endColor, giving the fade an iridescent sheen
-		 * instead of a flat two-color blend.
-		 * @default "#9c0c81"
-		 */
-		midColor1?: ColorRepresentation;
-		/**
-		 * Second intermediate color the dye passes through, closer to endColor.
-		 * @default "#4e0bac"
-		 */
-		midColor2?: ColorRepresentation;
-		/**
-		 * Cubic bezier control points `[x1, y1, x2, y2]` (same shape as CSS
-		 * `cubic-bezier()`) that pace the color stop lerp: x is normalized
-		 * density (1 = fresh, 0 = about to disappear), y is how far along
-		 * the start→mid1→mid2→end sequence the dye is. Linear `[0,0,1,1]`
-		 * spends equal density on each stop; bowing the curve spends more
-		 * density lingering on some stops and less on others.
-		 * @default [0.03, 0.6, 0.48, 1]
-		 */
-		colorEase?: readonly [number, number, number, number];
-		/**
-		 * Fluid velocity dissipation.
-		 * @default 0.98
-		 */
-		velocityDissipation?: number;
-		/**
-		 * Pressure iterations. More iterations = more accurate but slower.
-		 * @default 24
-		 */
-		pressureIterations?: number;
-		/**
-		 * Output color levels per channel for the 8x8 Bayer ordered dither.
-		 * Low values (e.g. 4) make the dither pattern clearly visible; high
-		 * values (e.g. 32+) make it act as subtle anti-banding instead.
-		 * @default 2
-		 */
-		ditherLevels?: number;
-		/**
-		 * Size in physical pixels of one dither matrix cell. Larger values
-		 * produce chunkier, more visible dithering (like a lower-res retro
-		 * dither); 1 is a fine, per-pixel pattern.
-		 * @default 4
-		 */
-		ditherPixelSize?: number;
-		/**
-		 * Debug: keep the sim running its own idle wandering-pointer preview
-		 * forever, ignoring real pointer/touch input. Useful for tuning
-		 * config values against a repeatable motion instead of the mouse.
-		 * @default false
-		 */
-		debugAutoPlay?: boolean;
-		/**
-		 * Enable the bloom post-process glow around bright dithered pixels.
-		 * @default true
-		 */
-		bloomEnabled?: boolean;
-		/**
-		 * Brightness above which a pixel starts contributing to the bloom glow.
-		 * @default 0.6
-		 */
-		bloomThreshold?: number;
-		/**
-		 * Strength of the bloom glow added on top of the base image.
-		 * @default 1
-		 */
-		bloomIntensity?: number;
-		/**
-		 * Spread of the bloom glow, in blur-sample texel multiples.
-		 * @default 0.2
-		 */
-		bloomRadius?: number;
-		/**
-		 * Multiplier on the simulation's internal resolution (independent of
-		 * the canvas's rendered/CSS size). Lower this on constrained devices
-		 * (e.g. mobile) to cut GPU/battery cost without shrinking the canvas
-		 * itself.
-		 * @default 1
-		 */
-		resolutionScale?: number;
-	}
+  interface Props {
+    /**
+     * Dissipation factor for the fluid.
+     * @default 0.95
+     */
+    dissipation?: number;
+    /**
+     * Radius of the pointer influence.
+     * @default 0.0025
+     */
+    pointerSize?: number;
+    /**
+     * Color of freshly injected (high-density) dye.
+     * @default "#dc3e00"
+     */
+    startColor?: ColorRepresentation;
+    /**
+     * Color dye fades toward as its density decays to zero.
+     * @default "#6f0000"
+     */
+    endColor?: ColorRepresentation;
+    /**
+     * First intermediate color the dye passes through as it decays from
+     * startColor toward endColor, giving the fade an iridescent sheen
+     * instead of a flat two-color blend.
+     * @default "#9c0c81"
+     */
+    midColor1?: ColorRepresentation;
+    /**
+     * Second intermediate color the dye passes through, closer to endColor.
+     * @default "#4e0bac"
+     */
+    midColor2?: ColorRepresentation;
+    /**
+     * Cubic bezier control points `[x1, y1, x2, y2]` (same shape as CSS
+     * `cubic-bezier()`) that pace the color stop lerp: x is normalized
+     * density (1 = fresh, 0 = about to disappear), y is how far along
+     * the start→mid1→mid2→end sequence the dye is. Linear `[0,0,1,1]`
+     * spends equal density on each stop; bowing the curve spends more
+     * density lingering on some stops and less on others.
+     * @default [0.03, 0.6, 0.48, 1]
+     */
+    colorEase?: readonly [number, number, number, number];
+    /**
+     * Fluid velocity dissipation.
+     * @default 0.98
+     */
+    velocityDissipation?: number;
+    /**
+     * Pressure iterations. More iterations = more accurate but slower.
+     * @default 24
+     */
+    pressureIterations?: number;
+    /**
+     * Output color levels per channel for the 8x8 Bayer ordered dither.
+     * Low values (e.g. 4) make the dither pattern clearly visible; high
+     * values (e.g. 32+) make it act as subtle anti-banding instead.
+     * @default 2
+     */
+    ditherLevels?: number;
+    /**
+     * Size in physical pixels of one dither matrix cell. Larger values
+     * produce chunkier, more visible dithering (like a lower-res retro
+     * dither); 1 is a fine, per-pixel pattern.
+     * @default 4
+     */
+    ditherPixelSize?: number;
+    /**
+     * Debug: keep the sim running its own idle wandering-pointer preview
+     * forever, ignoring real pointer/touch input. Useful for tuning
+     * config values against a repeatable motion instead of the mouse.
+     * @default false
+     */
+    debugAutoPlay?: boolean;
+    /**
+     * Enable the bloom post-process glow around bright dithered pixels.
+     * @default true
+     */
+    bloomEnabled?: boolean;
+    /**
+     * Brightness above which a pixel starts contributing to the bloom glow.
+     * @default 0.6
+     */
+    bloomThreshold?: number;
+    /**
+     * Strength of the bloom glow added on top of the base image.
+     * @default 1
+     */
+    bloomIntensity?: number;
+    /**
+     * Spread of the bloom glow, in blur-sample texel multiples.
+     * @default 0.2
+     */
+    bloomRadius?: number;
+    /**
+     * Multiplier on the simulation's internal resolution (independent of
+     * the canvas's rendered/CSS size). Lower this on constrained devices
+     * (e.g. mobile) to cut GPU/battery cost without shrinking the canvas
+     * itself.
+     * @default 1
+     */
+    resolutionScale?: number;
+  }
 
-	type PointerState = {
-		x: number;
-		y: number;
-		dx: number;
-		dy: number;
-		moved: boolean;
-		initialized: boolean;
-	};
+  type PointerState = {
+    x: number;
+    y: number;
+    dx: number;
+    dy: number;
+    moved: boolean;
+    initialized: boolean;
+  };
 
-	type PreviewState = {
-		enabled: boolean;
-		timeMs: number;
-	};
+  type PreviewState = {
+    enabled: boolean;
+    timeMs: number;
+  };
 
-	type CanvasMetrics = {
-		width: number;
-		height: number;
-	};
+  type CanvasMetrics = {
+    width: number;
+    height: number;
+  };
 
-	type DoubleFBO = {
-		read: RenderTarget;
-		write: RenderTarget;
-		swap: () => void;
-	};
+  type DoubleFBO = {
+    read: RenderTarget;
+    write: RenderTarget;
+    swap: () => void;
+  };
 
-	let {
-		dissipation = 0.95,
-		pointerSize = 0.0025,
-		startColor = "#dc3e00",
-		endColor = "#6f0000",
-		midColor1 = "#9c0c81",
-		midColor2 = "#4e0bac",
-		colorEase = [0.03, 0.6, 0.48, 1],
-		velocityDissipation = 0.98,
-		pressureIterations = 24,
-		ditherLevels = 2,
-		ditherPixelSize = 4,
-		debugAutoPlay = false,
-		bloomEnabled = true,
-		bloomThreshold = 0.6,
-		bloomIntensity = 1,
-		bloomRadius = 0.2,
-		resolutionScale = 1,
-	}: Props = $props();
+  let {
+    dissipation = 0.95,
+    pointerSize = 0.0025,
+    startColor = "#dc3e00",
+    endColor = "#6f0000",
+    midColor1 = "#9c0c81",
+    midColor2 = "#4e0bac",
+    colorEase = [0.03, 0.6, 0.48, 1],
+    velocityDissipation = 0.98,
+    pressureIterations = 24,
+    ditherLevels = 2,
+    ditherPixelSize = 4,
+    debugAutoPlay = false,
+    bloomEnabled = true,
+    bloomThreshold = 0.6,
+    bloomIntensity = 1,
+    bloomRadius = 0.2,
+    resolutionScale = 1,
+  }: Props = $props();
 
-	const pointerState = $state<PointerState>({
-		x: 0,
-		y: 0,
-		dx: 0,
-		dy: 0,
-		moved: false,
-		initialized: false,
-	});
-	const previewState = $state<PreviewState>({
-		enabled: false,
-		timeMs: 0,
-	});
-	const canvasMetrics = $state<CanvasMetrics>({
-		width: 1,
-		height: 1,
-	});
+  const pointerState = $state<PointerState>({
+    x: 0,
+    y: 0,
+    dx: 0,
+    dy: 0,
+    moved: false,
+    initialized: false,
+  });
+  const previewState = $state<PreviewState>({
+    enabled: false,
+    timeMs: 0,
+  });
+  const canvasMetrics = $state<CanvasMetrics>({
+    width: 1,
+    height: 1,
+  });
 
-	const pointerUv = new Vec2();
-	const splatColor = new Vec3();
-	const startDitherColor = new Vec3();
-	const endDitherColor = new Vec3();
-	const midDitherColor1 = new Vec3();
-	const midDitherColor2 = new Vec3();
-	const colorEaseValue = new Vec4();
+  const pointerUv = new Vec2();
+  const splatColor = new Vec3();
+  const startDitherColor = new Vec3();
+  const endDitherColor = new Vec3();
+  const midDitherColor1 = new Vec3();
+  const midDitherColor2 = new Vec3();
+  const colorEaseValue = new Vec4();
 
-	const pointerForceClamp = 450;
-	const pointerForceInitialLerp = 0.2;
-	const pointerForceLerp = 0.55;
+  const pointerForceClamp = 450;
+  const pointerForceInitialLerp = 0.2;
+  const pointerForceLerp = 0.55;
 
-	$effect(() => {
-		const [r, g, b] = toLinearRgb(startColor, [1, 105 / 255, 0]);
-		splatColor.set(r, g, b);
-	});
+  $effect(() => {
+    const [r, g, b] = toLinearRgb(startColor, [1, 105 / 255, 0]);
+    splatColor.set(r, g, b);
+  });
 
-	$effect(() => {
-		const [r, g, b] = toRgb(startColor, [1, 105 / 255, 0]);
-		startDitherColor.set(r, g, b);
-	});
+  $effect(() => {
+    const [r, g, b] = toRgb(startColor, [1, 105 / 255, 0]);
+    startDitherColor.set(r, g, b);
+  });
 
-	$effect(() => {
-		const [r, g, b] = toRgb(endColor, [0.18, 0.04, 0.36]);
-		endDitherColor.set(r, g, b);
-	});
+  $effect(() => {
+    const [r, g, b] = toRgb(endColor, [0.18, 0.04, 0.36]);
+    endDitherColor.set(r, g, b);
+  });
 
-	$effect(() => {
-		const [r, g, b] = toRgb(midColor1, [1, 0.18, 0.61]);
-		midDitherColor1.set(r, g, b);
-	});
+  $effect(() => {
+    const [r, g, b] = toRgb(midColor1, [1, 0.18, 0.61]);
+    midDitherColor1.set(r, g, b);
+  });
 
-	$effect(() => {
-		const [r, g, b] = toRgb(midColor2, [0.2, 0.84, 1]);
-		midDitherColor2.set(r, g, b);
-	});
+  $effect(() => {
+    const [r, g, b] = toRgb(midColor2, [0.2, 0.84, 1]);
+    midDitherColor2.set(r, g, b);
+  });
 
-	$effect(() => {
-		colorEaseValue.set(...colorEase);
-	});
+  $effect(() => {
+    colorEaseValue.set(...colorEase);
+  });
 
-	const updatePointerPosition = (
-		px: number,
-		py: number,
-		width: number,
-		height: number,
-	) => {
-		updateFluidPointerState({
-			state: pointerState,
-			uv: pointerUv,
-			x: px,
-			y: py,
-			width,
-			height,
-			forceClamp: pointerForceClamp,
-			initialLerp: pointerForceInitialLerp,
-			lerp: pointerForceLerp,
-		});
-	};
+  const updatePointerPosition = (
+    px: number,
+    py: number,
+    width: number,
+    height: number,
+  ) => {
+    updateFluidPointerState({
+      state: pointerState,
+      uv: pointerUv,
+      x: px,
+      y: py,
+      width,
+      height,
+      forceClamp: pointerForceClamp,
+      initialLerp: pointerForceInitialLerp,
+      lerp: pointerForceLerp,
+    });
+  };
 
-	const vertexShader = `
+  const vertexShader = `
 		attribute vec2 uv;
 		attribute vec2 position;
 		varying vec2 vUv;
@@ -260,7 +260,7 @@
 		}
 	`;
 
-	const advectionShader = `
+  const advectionShader = `
 		precision highp float;
 		varying vec2 vUv;
 		uniform sampler2D uVelocity;
@@ -287,7 +287,7 @@
 		}
 	`;
 
-	const divergenceShader = `
+  const divergenceShader = `
 		precision highp float;
 		varying vec2 vL;
 		varying vec2 vR;
@@ -305,7 +305,7 @@
 		}
 	`;
 
-	const pressureShader = `
+  const pressureShader = `
 		precision highp float;
 		varying vec2 vUv;
 		varying vec2 vL;
@@ -326,7 +326,7 @@
 		}
 	`;
 
-	const gradientSubtractShader = `
+  const gradientSubtractShader = `
 		precision highp float;
 		varying vec2 vUv;
 		varying vec2 vL;
@@ -347,7 +347,7 @@
 		}
 	`;
 
-	const splatShader = `
+  const splatShader = `
 		precision highp float;
 		varying vec2 vUv;
 		uniform sampler2D uInput;
@@ -365,7 +365,7 @@
 		}
 	`;
 
-	const outputVertexShader = `
+  const outputVertexShader = `
 		attribute vec2 uv;
 		attribute vec2 position;
 		varying vec2 vUv;
@@ -375,7 +375,7 @@
 		}
 	`;
 
-	const outputShader = `
+  const outputShader = `
 		precision highp float;
 		varying vec2 vUv;
 		uniform sampler2D uTexture;
@@ -487,7 +487,7 @@
 		}
 	`;
 
-	const bloomShader = `
+  const bloomShader = `
 		precision highp float;
 		varying vec2 vUv;
 		uniform sampler2D uTexture;
@@ -512,7 +512,7 @@
 		}
 	`;
 
-	const compositeShader = `
+  const compositeShader = `
 		precision highp float;
 		varying vec2 vUv;
 		uniform sampler2D uScene;
@@ -527,445 +527,445 @@
 		}
 	`;
 
-	const setupScene = (targetCanvas: HTMLCanvasElement) => {
-		const renderer = new Renderer({
-			canvas: targetCanvas,
-			alpha: true,
-			dpr: typeof window !== "undefined" ? window.devicePixelRatio : 1,
-		});
-		const gl = renderer.gl;
-		gl.clearColor(0, 0, 0, 0);
+  const setupScene = (targetCanvas: HTMLCanvasElement) => {
+    const renderer = new Renderer({
+      canvas: targetCanvas,
+      alpha: true,
+      dpr: typeof window !== "undefined" ? window.devicePixelRatio : 1,
+    });
+    const gl = renderer.gl;
+    gl.clearColor(0, 0, 0, 0);
 
-		targetCanvas.style.width = "100%";
-		targetCanvas.style.height = "100%";
+    targetCanvas.style.width = "100%";
+    targetCanvas.style.height = "100%";
 
-		const halfFloatExt = gl.renderer.extensions["OES_texture_half_float"] as
-			| { HALF_FLOAT_OES: number }
-			| undefined;
-		const textureType = gl.renderer.isWebgl2
-			? (gl as WebGL2RenderingContext).HALF_FLOAT
-			: (halfFloatExt?.HALF_FLOAT_OES ?? gl.FLOAT);
-		const internalFormat = gl.renderer.isWebgl2
-			? textureType === gl.FLOAT
-				? (gl as WebGL2RenderingContext).RGBA32F
-				: (gl as WebGL2RenderingContext).RGBA16F
-			: gl.RGBA;
+    const halfFloatExt = gl.renderer.extensions["OES_texture_half_float"] as
+      | { HALF_FLOAT_OES: number }
+      | undefined;
+    const textureType = gl.renderer.isWebgl2
+      ? (gl as WebGL2RenderingContext).HALF_FLOAT
+      : (halfFloatExt?.HALF_FLOAT_OES ?? gl.FLOAT);
+    const internalFormat = gl.renderer.isWebgl2
+      ? textureType === gl.FLOAT
+        ? (gl as WebGL2RenderingContext).RGBA32F
+        : (gl as WebGL2RenderingContext).RGBA16F
+      : gl.RGBA;
 
-		const createFBO = (w: number, h: number) =>
-			new RenderTarget(gl, {
-				width: w,
-				height: h,
-				type: textureType,
-				format: gl.RGBA,
-				internalFormat,
-				minFilter: gl.NEAREST,
-				magFilter: gl.NEAREST,
-				depth: false,
-				stencil: false,
-			});
+    const createFBO = (w: number, h: number) =>
+      new RenderTarget(gl, {
+        width: w,
+        height: h,
+        type: textureType,
+        format: gl.RGBA,
+        internalFormat,
+        minFilter: gl.NEAREST,
+        magFilter: gl.NEAREST,
+        depth: false,
+        stencil: false,
+      });
 
-		const createDoubleFBO = (w: number, h: number): DoubleFBO => {
-			const doubleFBO: DoubleFBO = {
-				read: createFBO(w, h),
-				write: createFBO(w, h),
-				swap: () => {
-					const temp = doubleFBO.read;
-					doubleFBO.read = doubleFBO.write;
-					doubleFBO.write = temp;
-				},
-			};
-			return doubleFBO;
-		};
+    const createDoubleFBO = (w: number, h: number): DoubleFBO => {
+      const doubleFBO: DoubleFBO = {
+        read: createFBO(w, h),
+        write: createFBO(w, h),
+        swap: () => {
+          const temp = doubleFBO.read;
+          doubleFBO.read = doubleFBO.write;
+          doubleFBO.write = temp;
+        },
+      };
+      return doubleFBO;
+    };
 
-		const density = createDoubleFBO(128, 128);
-		const velocity = createDoubleFBO(128, 128);
-		const pressure = createDoubleFBO(128, 128);
-		const divergence = createFBO(128, 128);
+    const density = createDoubleFBO(128, 128);
+    const velocity = createDoubleFBO(128, 128);
+    const pressure = createDoubleFBO(128, 128);
+    const divergence = createFBO(128, 128);
 
-		const texel = new Vec2(1 / 128, 1 / 128);
-		const advectionUniforms = {
-			uVelocity: { value: velocity.read.texture },
-			uInput: { value: velocity.read.texture },
-			uTexel: { value: texel },
-			uDt: { value: 1 / 60 },
-			uDissipation: { value: velocityDissipation },
-		};
-		const divergenceUniforms = {
-			uVelocity: { value: velocity.read.texture },
-			uTexel: { value: texel },
-		};
-		const pressureUniforms = {
-			uPressure: { value: pressure.read.texture },
-			uDivergence: { value: divergence.texture },
-			uTexel: { value: texel },
-		};
-		const gradientSubtractUniforms = {
-			uPressure: { value: pressure.read.texture },
-			uVelocity: { value: velocity.read.texture },
-			uTexel: { value: texel },
-		};
-		const splatUniforms = {
-			uInput: { value: velocity.read.texture },
-			uRatio: { value: 1 },
-			uPointValue: { value: new Vec3() },
-			uPoint: { value: pointerUv },
-			uPointSize: { value: pointerSize },
-			uTexel: { value: texel },
-		};
-		const outputUniforms = {
-			uTexture: { value: density.read.texture },
-			uStartColor: { value: startDitherColor },
-			uEndColor: { value: endDitherColor },
-			uMidColor1: { value: midDitherColor1 },
-			uMidColor2: { value: midDitherColor2 },
-			uColorEase: { value: colorEaseValue },
-			uDitherLevels: { value: ditherLevels },
-			uDitherPixelSize: { value: ditherPixelSize },
-			uResolution: { value: new Vec2(1, 1) },
-		};
+    const texel = new Vec2(1 / 128, 1 / 128);
+    const advectionUniforms = {
+      uVelocity: { value: velocity.read.texture },
+      uInput: { value: velocity.read.texture },
+      uTexel: { value: texel },
+      uDt: { value: 1 / 60 },
+      uDissipation: { value: velocityDissipation },
+    };
+    const divergenceUniforms = {
+      uVelocity: { value: velocity.read.texture },
+      uTexel: { value: texel },
+    };
+    const pressureUniforms = {
+      uPressure: { value: pressure.read.texture },
+      uDivergence: { value: divergence.texture },
+      uTexel: { value: texel },
+    };
+    const gradientSubtractUniforms = {
+      uPressure: { value: pressure.read.texture },
+      uVelocity: { value: velocity.read.texture },
+      uTexel: { value: texel },
+    };
+    const splatUniforms = {
+      uInput: { value: velocity.read.texture },
+      uRatio: { value: 1 },
+      uPointValue: { value: new Vec3() },
+      uPoint: { value: pointerUv },
+      uPointSize: { value: pointerSize },
+      uTexel: { value: texel },
+    };
+    const outputUniforms = {
+      uTexture: { value: density.read.texture },
+      uStartColor: { value: startDitherColor },
+      uEndColor: { value: endDitherColor },
+      uMidColor1: { value: midDitherColor1 },
+      uMidColor2: { value: midDitherColor2 },
+      uColorEase: { value: colorEaseValue },
+      uDitherLevels: { value: ditherLevels },
+      uDitherPixelSize: { value: ditherPixelSize },
+      uResolution: { value: new Vec2(1, 1) },
+    };
 
-		const createPostFBO = (w: number, h: number) =>
-			new RenderTarget(gl, {
-				width: w,
-				height: h,
-				depth: false,
-				stencil: false,
-				minFilter: gl.LINEAR,
-				magFilter: gl.LINEAR,
-			});
+    const createPostFBO = (w: number, h: number) =>
+      new RenderTarget(gl, {
+        width: w,
+        height: h,
+        depth: false,
+        stencil: false,
+        minFilter: gl.LINEAR,
+        magFilter: gl.LINEAR,
+      });
 
-		const sceneTarget = createPostFBO(1, 1);
-		const bloomTarget = createPostFBO(1, 1);
+    const sceneTarget = createPostFBO(1, 1);
+    const bloomTarget = createPostFBO(1, 1);
 
-		const bloomUniforms = {
-			uTexture: { value: sceneTarget.texture },
-			uTexel: { value: new Vec2(1, 1) },
-			uBloomThreshold: { value: bloomThreshold },
-			uBloomRadius: { value: bloomRadius },
-		};
-		const compositeUniforms = {
-			uScene: { value: sceneTarget.texture },
-			uBloom: { value: bloomTarget.texture },
-			uBloomIntensity: { value: bloomEnabled ? bloomIntensity : 0 },
-		};
+    const bloomUniforms = {
+      uTexture: { value: sceneTarget.texture },
+      uTexel: { value: new Vec2(1, 1) },
+      uBloomThreshold: { value: bloomThreshold },
+      uBloomRadius: { value: bloomRadius },
+    };
+    const compositeUniforms = {
+      uScene: { value: sceneTarget.texture },
+      uBloom: { value: bloomTarget.texture },
+      uBloomIntensity: { value: bloomEnabled ? bloomIntensity : 0 },
+    };
 
-		const advectionProgram = new Program(gl, {
-			vertex: vertexShader,
-			fragment: advectionShader,
-			uniforms: advectionUniforms,
-			depthTest: false,
-			depthWrite: false,
-		});
-		const divergenceProgram = new Program(gl, {
-			vertex: vertexShader,
-			fragment: divergenceShader,
-			uniforms: divergenceUniforms,
-			depthTest: false,
-			depthWrite: false,
-		});
-		const pressureProgram = new Program(gl, {
-			vertex: vertexShader,
-			fragment: pressureShader,
-			uniforms: pressureUniforms,
-			depthTest: false,
-			depthWrite: false,
-		});
-		const gradientSubtractProgram = new Program(gl, {
-			vertex: vertexShader,
-			fragment: gradientSubtractShader,
-			uniforms: gradientSubtractUniforms,
-			depthTest: false,
-			depthWrite: false,
-		});
-		const splatProgram = new Program(gl, {
-			vertex: vertexShader,
-			fragment: splatShader,
-			uniforms: splatUniforms,
-			depthTest: false,
-			depthWrite: false,
-		});
-		const outputProgram = new Program(gl, {
-			vertex: outputVertexShader,
-			fragment: outputShader,
-			uniforms: outputUniforms,
-			depthTest: false,
-			depthWrite: false,
-			transparent: true,
-		});
-		const bloomProgram = new Program(gl, {
-			vertex: outputVertexShader,
-			fragment: bloomShader,
-			uniforms: bloomUniforms,
-			depthTest: false,
-			depthWrite: false,
-		});
-		const compositeProgram = new Program(gl, {
-			vertex: outputVertexShader,
-			fragment: compositeShader,
-			uniforms: compositeUniforms,
-			depthTest: false,
-			depthWrite: false,
-			transparent: true,
-		});
+    const advectionProgram = new Program(gl, {
+      vertex: vertexShader,
+      fragment: advectionShader,
+      uniforms: advectionUniforms,
+      depthTest: false,
+      depthWrite: false,
+    });
+    const divergenceProgram = new Program(gl, {
+      vertex: vertexShader,
+      fragment: divergenceShader,
+      uniforms: divergenceUniforms,
+      depthTest: false,
+      depthWrite: false,
+    });
+    const pressureProgram = new Program(gl, {
+      vertex: vertexShader,
+      fragment: pressureShader,
+      uniforms: pressureUniforms,
+      depthTest: false,
+      depthWrite: false,
+    });
+    const gradientSubtractProgram = new Program(gl, {
+      vertex: vertexShader,
+      fragment: gradientSubtractShader,
+      uniforms: gradientSubtractUniforms,
+      depthTest: false,
+      depthWrite: false,
+    });
+    const splatProgram = new Program(gl, {
+      vertex: vertexShader,
+      fragment: splatShader,
+      uniforms: splatUniforms,
+      depthTest: false,
+      depthWrite: false,
+    });
+    const outputProgram = new Program(gl, {
+      vertex: outputVertexShader,
+      fragment: outputShader,
+      uniforms: outputUniforms,
+      depthTest: false,
+      depthWrite: false,
+      transparent: true,
+    });
+    const bloomProgram = new Program(gl, {
+      vertex: outputVertexShader,
+      fragment: bloomShader,
+      uniforms: bloomUniforms,
+      depthTest: false,
+      depthWrite: false,
+    });
+    const compositeProgram = new Program(gl, {
+      vertex: outputVertexShader,
+      fragment: compositeShader,
+      uniforms: compositeUniforms,
+      depthTest: false,
+      depthWrite: false,
+      transparent: true,
+    });
 
-		const triangle = new Triangle(gl);
-		const simMesh = new Mesh(gl, {
-			geometry: triangle,
-			program: advectionProgram,
-		});
+    const triangle = new Triangle(gl);
+    const simMesh = new Mesh(gl, {
+      geometry: triangle,
+      program: advectionProgram,
+    });
 
-		const renderPass = (program: Program, target?: RenderTarget) => {
-			simMesh.program = program;
-			renderer.render({ scene: simMesh, target, clear: true });
-		};
+    const renderPass = (program: Program, target?: RenderTarget) => {
+      simMesh.program = program;
+      renderer.render({ scene: simMesh, target, clear: true });
+    };
 
-		const handlePointerMove = (e: PointerEvent) => {
-			if (debugAutoPlay) return;
-			const rect = targetCanvas.getBoundingClientRect();
-			const x = e.clientX - rect.left;
-			const y = e.clientY - rect.top;
+    const handlePointerMove = (e: PointerEvent) => {
+      if (debugAutoPlay) return;
+      const rect = targetCanvas.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
 
-			const wasPreview = previewState.enabled;
-			previewState.enabled = false;
-			if (wasPreview) {
-				pointerState.initialized = false;
-				pointerState.dx = 0;
-				pointerState.dy = 0;
-			}
-			updatePointerPosition(x, y, rect.width, rect.height);
-		};
+      const wasPreview = previewState.enabled;
+      previewState.enabled = false;
+      if (wasPreview) {
+        pointerState.initialized = false;
+        pointerState.dx = 0;
+        pointerState.dy = 0;
+      }
+      updatePointerPosition(x, y, rect.width, rect.height);
+    };
 
-		const handleTouchMove = (e: TouchEvent) => {
-			if (debugAutoPlay) return;
-			e.preventDefault();
-			const touch = e.touches[0];
-			if (!touch) return;
-			const rect = targetCanvas.getBoundingClientRect();
-			const x = touch.clientX - rect.left;
-			const y = touch.clientY - rect.top;
+    const handleTouchMove = (e: TouchEvent) => {
+      if (debugAutoPlay) return;
+      e.preventDefault();
+      const touch = e.touches[0];
+      if (!touch) return;
+      const rect = targetCanvas.getBoundingClientRect();
+      const x = touch.clientX - rect.left;
+      const y = touch.clientY - rect.top;
 
-			const wasPreview = previewState.enabled;
-			previewState.enabled = false;
-			if (wasPreview) {
-				pointerState.initialized = false;
-				pointerState.dx = 0;
-				pointerState.dy = 0;
-			}
-			updatePointerPosition(x, y, rect.width, rect.height);
-		};
+      const wasPreview = previewState.enabled;
+      previewState.enabled = false;
+      if (wasPreview) {
+        pointerState.initialized = false;
+        pointerState.dx = 0;
+        pointerState.dy = 0;
+      }
+      updatePointerPosition(x, y, rect.width, rect.height);
+    };
 
-		targetCanvas.addEventListener("pointermove", handlePointerMove);
-		targetCanvas.addEventListener("touchmove", handleTouchMove, {
-			passive: false,
-		});
+    targetCanvas.addEventListener("pointermove", handlePointerMove);
+    targetCanvas.addEventListener("touchmove", handleTouchMove, {
+      passive: false,
+    });
 
-		const resizeSimulation = (w: number, h: number) => {
-			const simResX = Math.max(1, Math.floor(w * 0.5 * resolutionScale));
-			const simResY = Math.max(1, Math.floor(h * 0.5 * resolutionScale));
+    const resizeSimulation = (w: number, h: number) => {
+      const simResX = Math.max(1, Math.floor(w * 0.5 * resolutionScale));
+      const simResY = Math.max(1, Math.floor(h * 0.5 * resolutionScale));
 
-			if (simResX > density.read.width || simResY > density.read.height) {
-				density.read.setSize(simResX, simResY);
-				density.write.setSize(simResX, simResY);
-				velocity.read.setSize(simResX, simResY);
-				velocity.write.setSize(simResX, simResY);
-				pressure.read.setSize(simResX, simResY);
-				pressure.write.setSize(simResX, simResY);
-				divergence.setSize(simResX, simResY);
-			}
+      if (simResX > density.read.width || simResY > density.read.height) {
+        density.read.setSize(simResX, simResY);
+        density.write.setSize(simResX, simResY);
+        velocity.read.setSize(simResX, simResY);
+        velocity.write.setSize(simResX, simResY);
+        pressure.read.setSize(simResX, simResY);
+        pressure.write.setSize(simResX, simResY);
+        divergence.setSize(simResX, simResY);
+      }
 
-			const fboW = density.read.width;
-			const fboH = density.read.height;
-			texel.set(1 / fboW, 1 / fboH);
+      const fboW = density.read.width;
+      const fboH = density.read.height;
+      texel.set(1 / fboW, 1 / fboH);
 
-			if (w > 0 && h > 0) {
-				pointerUv.set(pointerState.x / w, 1 - pointerState.y / h);
-			}
-		};
+      if (w > 0 && h > 0) {
+        pointerUv.set(pointerState.x / w, 1 - pointerState.y / h);
+      }
+    };
 
-		const disposeTarget = (target: RenderTarget) => {
-			target.textures.forEach((texture) => {
-				if (texture.texture) gl.deleteTexture(texture.texture);
-			});
-			if (target.depthTexture?.texture)
-				gl.deleteTexture(target.depthTexture.texture);
-			if (target.depthBuffer) gl.deleteRenderbuffer(target.depthBuffer);
-			if (target.stencilBuffer) gl.deleteRenderbuffer(target.stencilBuffer);
-			if (target.depthStencilBuffer)
-				gl.deleteRenderbuffer(target.depthStencilBuffer);
-			if (target.buffer) gl.deleteFramebuffer(target.buffer);
-		};
+    const disposeTarget = (target: RenderTarget) => {
+      target.textures.forEach((texture) => {
+        if (texture.texture) gl.deleteTexture(texture.texture);
+      });
+      if (target.depthTexture?.texture)
+        gl.deleteTexture(target.depthTexture.texture);
+      if (target.depthBuffer) gl.deleteRenderbuffer(target.depthBuffer);
+      if (target.stencilBuffer) gl.deleteRenderbuffer(target.stencilBuffer);
+      if (target.depthStencilBuffer)
+        gl.deleteRenderbuffer(target.depthStencilBuffer);
+      if (target.buffer) gl.deleteFramebuffer(target.buffer);
+    };
 
-		let raf = 0;
-		let previous = 0;
-		let pendingSimW = 0;
-		let pendingSimH = 0;
-		let resizeTimer = 0;
-		const tick = (now: number) => {
-			const w = Math.max(1, targetCanvas.clientWidth);
-			const h = Math.max(1, targetCanvas.clientHeight);
-			const bufW = Math.round(w * renderer.dpr);
-			const bufH = Math.round(h * renderer.dpr);
-			if (targetCanvas.width !== bufW || targetCanvas.height !== bufH) {
-				targetCanvas.width = bufW;
-				targetCanvas.height = bufH;
-				renderer.width = w;
-				renderer.height = h;
-				renderer.state.viewport = { x: 0, y: 0, width: null, height: null };
-				canvasMetrics.width = w;
-				canvasMetrics.height = h;
-				outputUniforms.uResolution.value.set(bufW, bufH);
-				sceneTarget.setSize(bufW, bufH);
-				bloomTarget.setSize(bufW, bufH);
-				bloomUniforms.uTexel.value.set(1 / bufW, 1 / bufH);
-				pendingSimW = w;
-				pendingSimH = h;
-				clearTimeout(resizeTimer);
-				resizeTimer = window.setTimeout(
-					() => resizeSimulation(pendingSimW, pendingSimH),
-					150,
-				);
-			}
-			const delta = previous ? (now - previous) / 1000 : 0;
-			previous = now;
-			const dt = 1 / 60;
-			const width = canvasMetrics.width || targetCanvas.clientWidth || 1;
-			const height = canvasMetrics.height || targetCanvas.clientHeight || 1;
-			const aspect = height > 0 ? width / height : 1;
+    let raf = 0;
+    let previous = 0;
+    let pendingSimW = 0;
+    let pendingSimH = 0;
+    let resizeTimer = 0;
+    const tick = (now: number) => {
+      const w = Math.max(1, targetCanvas.clientWidth);
+      const h = Math.max(1, targetCanvas.clientHeight);
+      const bufW = Math.round(w * renderer.dpr);
+      const bufH = Math.round(h * renderer.dpr);
+      if (targetCanvas.width !== bufW || targetCanvas.height !== bufH) {
+        targetCanvas.width = bufW;
+        targetCanvas.height = bufH;
+        renderer.width = w;
+        renderer.height = h;
+        renderer.state.viewport = { x: 0, y: 0, width: null, height: null };
+        canvasMetrics.width = w;
+        canvasMetrics.height = h;
+        outputUniforms.uResolution.value.set(bufW, bufH);
+        sceneTarget.setSize(bufW, bufH);
+        bloomTarget.setSize(bufW, bufH);
+        bloomUniforms.uTexel.value.set(1 / bufW, 1 / bufH);
+        pendingSimW = w;
+        pendingSimH = h;
+        clearTimeout(resizeTimer);
+        resizeTimer = window.setTimeout(
+          () => resizeSimulation(pendingSimW, pendingSimH),
+          150,
+        );
+      }
+      const delta = previous ? (now - previous) / 1000 : 0;
+      previous = now;
+      const dt = 1 / 60;
+      const width = canvasMetrics.width || targetCanvas.clientWidth || 1;
+      const height = canvasMetrics.height || targetCanvas.clientHeight || 1;
+      const aspect = height > 0 ? width / height : 1;
 
-			if (previewState.enabled && width > 0 && height > 0) {
-				previewState.timeMs += delta * 1000;
-				const previewX =
-					(0.5 - 0.45 * Math.sin(0.003 * previewState.timeMs - 2)) * width;
-				const previewY =
-					(0.5 +
-						0.1 * Math.sin(0.0025 * previewState.timeMs) +
-						0.1 * Math.cos(0.002 * previewState.timeMs)) *
-					height;
-				updatePointerPosition(previewX, previewY, width, height);
-			}
+      if (previewState.enabled && width > 0 && height > 0) {
+        previewState.timeMs += delta * 1000;
+        const previewX =
+          (0.5 - 0.45 * Math.sin(0.003 * previewState.timeMs - 2)) * width;
+        const previewY =
+          (0.5 +
+            0.1 * Math.sin(0.0025 * previewState.timeMs) +
+            0.1 * Math.cos(0.002 * previewState.timeMs)) *
+          height;
+        updatePointerPosition(previewX, previewY, width, height);
+      }
 
-			if (pointerState.moved) {
-				splatUniforms.uInput.value = velocity.read.texture;
-				splatUniforms.uRatio.value = aspect;
-				splatUniforms.uPoint.value.set(pointerUv.x, pointerUv.y);
-				splatUniforms.uPointValue.value.set(
-					pointerState.dx,
-					-pointerState.dy,
-					1,
-				);
-				splatUniforms.uPointSize.value = pointerSize;
-				renderPass(splatProgram, velocity.write);
-				velocity.swap();
+      if (pointerState.moved) {
+        splatUniforms.uInput.value = velocity.read.texture;
+        splatUniforms.uRatio.value = aspect;
+        splatUniforms.uPoint.value.set(pointerUv.x, pointerUv.y);
+        splatUniforms.uPointValue.value.set(
+          pointerState.dx,
+          -pointerState.dy,
+          1,
+        );
+        splatUniforms.uPointSize.value = pointerSize;
+        renderPass(splatProgram, velocity.write);
+        velocity.swap();
 
-				splatUniforms.uInput.value = density.read.texture;
-				splatUniforms.uPointValue.value.set(
-					splatColor.x,
-					splatColor.y,
-					splatColor.z,
-				);
-				renderPass(splatProgram, density.write);
-				density.swap();
+        splatUniforms.uInput.value = density.read.texture;
+        splatUniforms.uPointValue.value.set(
+          splatColor.x,
+          splatColor.y,
+          splatColor.z,
+        );
+        renderPass(splatProgram, density.write);
+        density.swap();
 
-				if (!previewState.enabled) {
-					pointerState.moved = false;
-				}
-			}
+        if (!previewState.enabled) {
+          pointerState.moved = false;
+        }
+      }
 
-			divergenceUniforms.uVelocity.value = velocity.read.texture;
-			renderPass(divergenceProgram, divergence);
+      divergenceUniforms.uVelocity.value = velocity.read.texture;
+      renderPass(divergenceProgram, divergence);
 
-			pressureUniforms.uDivergence.value = divergence.texture;
-			const iterations = Math.max(0, Math.floor(pressureIterations));
-			for (let i = 0; i < iterations; i++) {
-				pressureUniforms.uPressure.value = pressure.read.texture;
-				renderPass(pressureProgram, pressure.write);
-				pressure.swap();
-			}
+      pressureUniforms.uDivergence.value = divergence.texture;
+      const iterations = Math.max(0, Math.floor(pressureIterations));
+      for (let i = 0; i < iterations; i++) {
+        pressureUniforms.uPressure.value = pressure.read.texture;
+        renderPass(pressureProgram, pressure.write);
+        pressure.swap();
+      }
 
-			gradientSubtractUniforms.uPressure.value = pressure.read.texture;
-			gradientSubtractUniforms.uVelocity.value = velocity.read.texture;
-			renderPass(gradientSubtractProgram, velocity.write);
-			velocity.swap();
+      gradientSubtractUniforms.uPressure.value = pressure.read.texture;
+      gradientSubtractUniforms.uVelocity.value = velocity.read.texture;
+      renderPass(gradientSubtractProgram, velocity.write);
+      velocity.swap();
 
-			advectionUniforms.uDt.value = dt;
-			advectionUniforms.uVelocity.value = velocity.read.texture;
-			advectionUniforms.uInput.value = velocity.read.texture;
-			advectionUniforms.uDissipation.value = velocityDissipation;
-			renderPass(advectionProgram, velocity.write);
-			velocity.swap();
+      advectionUniforms.uDt.value = dt;
+      advectionUniforms.uVelocity.value = velocity.read.texture;
+      advectionUniforms.uInput.value = velocity.read.texture;
+      advectionUniforms.uDissipation.value = velocityDissipation;
+      renderPass(advectionProgram, velocity.write);
+      velocity.swap();
 
-			advectionUniforms.uVelocity.value = velocity.read.texture;
-			advectionUniforms.uInput.value = density.read.texture;
-			advectionUniforms.uDissipation.value = dissipation;
-			renderPass(advectionProgram, density.write);
-			density.swap();
+      advectionUniforms.uVelocity.value = velocity.read.texture;
+      advectionUniforms.uInput.value = density.read.texture;
+      advectionUniforms.uDissipation.value = dissipation;
+      renderPass(advectionProgram, density.write);
+      density.swap();
 
-			outputUniforms.uTexture.value = density.read.texture;
-			outputUniforms.uDitherLevels.value = ditherLevels;
-			outputUniforms.uDitherPixelSize.value = ditherPixelSize;
-			renderPass(outputProgram, sceneTarget);
+      outputUniforms.uTexture.value = density.read.texture;
+      outputUniforms.uDitherLevels.value = ditherLevels;
+      outputUniforms.uDitherPixelSize.value = ditherPixelSize;
+      renderPass(outputProgram, sceneTarget);
 
-			if (bloomEnabled) {
-				bloomUniforms.uBloomThreshold.value = bloomThreshold;
-				bloomUniforms.uBloomRadius.value = bloomRadius;
-				renderPass(bloomProgram, bloomTarget);
-			}
-			compositeUniforms.uBloomIntensity.value = bloomEnabled
-				? bloomIntensity
-				: 0;
-			renderPass(compositeProgram);
+      if (bloomEnabled) {
+        bloomUniforms.uBloomThreshold.value = bloomThreshold;
+        bloomUniforms.uBloomRadius.value = bloomRadius;
+        renderPass(bloomProgram, bloomTarget);
+      }
+      compositeUniforms.uBloomIntensity.value = bloomEnabled
+        ? bloomIntensity
+        : 0;
+      renderPass(compositeProgram);
 
-			raf = window.requestAnimationFrame(tick);
-		};
+      raf = window.requestAnimationFrame(tick);
+    };
 
-		raf = window.requestAnimationFrame(tick);
+    raf = window.requestAnimationFrame(tick);
 
-		return () => {
-			window.cancelAnimationFrame(raf);
-			clearTimeout(resizeTimer);
-			targetCanvas.removeEventListener("pointermove", handlePointerMove);
-			targetCanvas.removeEventListener("touchmove", handleTouchMove);
+    return () => {
+      window.cancelAnimationFrame(raf);
+      clearTimeout(resizeTimer);
+      targetCanvas.removeEventListener("pointermove", handlePointerMove);
+      targetCanvas.removeEventListener("touchmove", handleTouchMove);
 
-			disposeTarget(density.read);
-			disposeTarget(density.write);
-			disposeTarget(velocity.read);
-			disposeTarget(velocity.write);
-			disposeTarget(pressure.read);
-			disposeTarget(pressure.write);
-			disposeTarget(divergence);
-			disposeTarget(sceneTarget);
-			disposeTarget(bloomTarget);
+      disposeTarget(density.read);
+      disposeTarget(density.write);
+      disposeTarget(velocity.read);
+      disposeTarget(velocity.write);
+      disposeTarget(pressure.read);
+      disposeTarget(pressure.write);
+      disposeTarget(divergence);
+      disposeTarget(sceneTarget);
+      disposeTarget(bloomTarget);
 
-			advectionProgram.remove();
-			divergenceProgram.remove();
-			pressureProgram.remove();
-			gradientSubtractProgram.remove();
-			splatProgram.remove();
-			outputProgram.remove();
-			bloomProgram.remove();
-			compositeProgram.remove();
-			triangle.remove();
-		};
-	};
+      advectionProgram.remove();
+      divergenceProgram.remove();
+      pressureProgram.remove();
+      gradientSubtractProgram.remove();
+      splatProgram.remove();
+      outputProgram.remove();
+      bloomProgram.remove();
+      compositeProgram.remove();
+      triangle.remove();
+    };
+  };
 
-	const mountScene: Attachment<HTMLCanvasElement> = (targetCanvas) =>
-		untrack(() => setupScene(targetCanvas));
+  const mountScene: Attachment<HTMLCanvasElement> = (targetCanvas) =>
+    untrack(() => setupScene(targetCanvas));
 </script>
 
 <canvas {@attach mountScene} class="fluid-canvas" aria-hidden="true"></canvas>
 
 <style>
-	.fluid-canvas {
-		position: absolute;
-		inset: 0;
-		display: block;
-		width: 100%;
-		height: 100%;
-		/* The backing buffer is rendered at devicePixelRatio, so the browser
+  .fluid-canvas {
+    position: absolute;
+    inset: 0;
+    display: block;
+    width: 100%;
+    height: 100%;
+    /* The backing buffer is rendered at devicePixelRatio, so the browser
 		   downscales it to the CSS size for display. Without this, that
 		   downscale blends across dither cell edges (soft "half pixel"
 		   colors between black and the foreground) instead of keeping the
 		   dither's hard-edged squares crisp. */
-		image-rendering: pixelated;
-	}
+    image-rendering: pixelated;
+  }
 </style>

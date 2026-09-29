@@ -95,7 +95,10 @@ export function createShadowMixinFromCSS(shadow: ShadowCardItem) {
   if (shadow.id === undefined) return "";
   const name = "shadow-" + toCamelCase(shadow.id);
   let str = `@mixin ${name}($clr){\n`;
-  str += `$alpha: if(alpha($clr) != 1, alpha($clr), ${getShadowAlpha(shadow)});\n`;
+  // color.alpha needs `@use "sass:color"`, which ai2svelte.js hoists to the
+  // top of the <style> block (the global alpha()/if() forms are deprecated).
+  str += `$alpha: ${getShadowAlpha(shadow)};\n`;
+  str += `@if color.alpha($clr) != 1 { $alpha: color.alpha($clr); }\n`;
   str += shadow.shadow.replaceAll(
     /rgba\(0,\s*0,\s*0,\s*[\d.]+\)/g,
     "rgba($clr, $alpha)",

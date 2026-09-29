@@ -1,1 +1,7 @@
-./src/
+ai2svelte/
+legacy/
+docs/
+.astro/
+public/
+pnpm-lock.yaml
+memory/

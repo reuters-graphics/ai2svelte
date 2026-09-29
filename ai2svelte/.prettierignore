@@ -1,0 +1,4 @@
+# vendored Adobe CEP libs
+src/js/lib/cep/
+# @include-d raw into the ES3 bundle, bypasses Babel
+src/jsx/lib/

@@ -59,6 +59,8 @@ pnpm bake-shadows  # Regen shadowsBaked.json from shadows.json raw data
 pnpm test       # Run the Vitest suite once
 pnpm test:watch # Vitest in watch mode
 pnpm test:ui    # Vitest UI
+pnpm lint       # ESLint over src/
+pnpm format     # Prettier --write over src/ (format:check to verify only)
 
 pnpm test:visual  # Visual regression test — see Visual Regression Testing below
 ```
@@ -67,6 +69,8 @@ Docs site (root):
 ```bash
 pnpm dev        # Astro dev server
 pnpm build      # Build static docs to /docs/
+pnpm lint       # ESLint over the docs site (skips ai2svelte/, legacy/, docs/)
+pnpm format     # Prettier --write (format:check to verify only)
 ```
 
 ## Tests

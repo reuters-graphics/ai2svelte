@@ -6,6 +6,7 @@ import ts from 'typescript-eslint';
 // import svelteConfig from './svelte.config.js';
 
 export default ts.config(
+  { ignores: ['src/js/lib/cep/'] }, // vendored Adobe CEP libs
   js.configs.recommended,
   ...ts.configs.recommended,
   ...svelte.configs.recommended,

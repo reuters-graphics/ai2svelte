@@ -1,5 +1,5 @@
 // @ts-check
-import { defineConfig } from "astro/config";
+import { defineConfig, fontProviders } from "astro/config";
 import starlight from "@astrojs/starlight";
 import svelte from "@astrojs/svelte";
 import preprocess from "svelte-preprocess";
@@ -13,6 +13,26 @@ export default defineConfig({
   base: "ai2svelte",
   outDir: "./docs",
   trailingSlash: "always",
+  // Self-hosted at build time so the homepage can preload the woff2 files
+  // instead of waiting on a Google Fonts stylesheet round-trip.
+  fonts: [
+    {
+      provider: fontProviders.google(),
+      name: "Geist Mono",
+      cssVariable: "--font-geist-mono",
+      weights: ["300 600"],
+      subsets: ["latin"],
+      fallbacks: ["ui-monospace", "SFMono-Regular", "Menlo", "monospace"],
+    },
+    {
+      provider: fontProviders.google(),
+      name: "Inter",
+      cssVariable: "--font-inter",
+      weights: [400, 500],
+      subsets: ["latin"],
+      fallbacks: ["system-ui", "-apple-system", "Segoe UI", "sans-serif"],
+    },
+  ],
   integrations: [
     exampleExportPaths(),
     svelte({
@@ -70,9 +90,10 @@ export default defineConfig({
     assetsInclude: ["**/*.glb"],
     // model-viewer is imported dynamically in component3, so Vite only
     // discovers it on first use and re-optimizes mid-session (504 Outdated
-    // Optimize Dep). Pre-bundling it at startup avoids that.
+    // Optimize Dep). Pre-bundling it at startup avoids that. Same for ogl,
+    // which only the lazily-hydrated fluid simulation imports.
     optimizeDeps: {
-      include: ["@google/model-viewer"],
+      include: ["@google/model-viewer", "ogl"],
       // graphics-components' TileMap imports a maplibre-gl worker with a
       // ?worker&url query, which the dep optimizer can't resolve. It crashes
       // the optimizer outright, which hangs every module request in dev. The
