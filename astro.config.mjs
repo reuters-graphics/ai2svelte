@@ -90,9 +90,10 @@ export default defineConfig({
     assetsInclude: ["**/*.glb"],
     // model-viewer is imported dynamically in component3, so Vite only
     // discovers it on first use and re-optimizes mid-session (504 Outdated
-    // Optimize Dep). Pre-bundling it at startup avoids that.
+    // Optimize Dep). Pre-bundling it at startup avoids that. Same for ogl,
+    // which only the lazily-hydrated fluid simulation imports.
     optimizeDeps: {
-      include: ["@google/model-viewer"],
+      include: ["@google/model-viewer", "ogl"],
       // graphics-components' TileMap imports a maplibre-gl worker with a
       // ?worker&url query, which the dep optimizer can't resolve. It crashes
       // the optimizer outright, which hangs every module request in dev. The
