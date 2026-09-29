@@ -1,6 +1,6 @@
 ---
 title: Styles
-description: Apply styles to your ai2svelte elements.
+description: Add preset shadows and animations to your artwork from the ai2svelte panel.
 slug: users/styles
 sidebar:
   order: 103
@@ -15,17 +15,17 @@ import Image_Animations_UI from "../../../../public/images/animations_ui.png";
 import Image_Shadows_Code from "../../../../public/images/shadows_code.png";
 import Image_Animations_Code from "../../../../public/images/animations_code.png";
 
-Custom CSS styles can be applied directly from the plugin. This allows you to tailor the appearance of your components without needing to modify the underlying code.
+You can style your artwork from the `Styles` tab of the panel, without editing the generated component by hand.
 
-The plugin comes loaded with a set of unique CSS shadows and animations that can be applied to any element with a single click.
+The tab comes with a set of preset CSS shadows and animations that you can apply to any element in one click.
 
 ---
 
 ### Shadows
 
-The ai2svelte plugin includes a variety of pre-defined shadow styles (sourced from Luis Sevillano's [cheesy-shadow-picker](https://luissevillano.net/cheesy-shadow-picker/)) that can be easily applied to your components.
+The preset shadows come from Luis Sevillano's [cheesy-shadow-picker](https://luissevillano.net/cheesy-shadow-picker/).
 
-To apply a shadow, enter an appropriate CSS selector in the identifier textbox or [setup AiHostAdapter](../auto-detect/) to auto detect selector and select any of the shadow styles from the cards provided below. The CSS code associated with the selected shadow will be automatically added to the generated output file.
+To apply one, type a CSS selector into the `Identifier` field, then click a shadow card. If you [set up AiHostAdapter](../auto-detect/), the selector fills in automatically when you select an object in Illustrator. The shadow's CSS is added to the exported file.
 
 <Image
   class="plugin-image"
@@ -33,7 +33,7 @@ To apply a shadow, enter an appropriate CSS selector in the identifier textbox o
   alt="Screenshot showing UI for shadow selection"
 />
 
-The floating toolbar at the bottom provides few tools like changing the backdrop in the cards to check how the shadows look against different backdrops, changing the type specimen along with its weight, text fill color and changing the shadow color.
+The floating toolbar at the bottom lets you change the preview: swap the backdrop behind the cards, pick a different typeface and weight, and change the text fill and shadow colors.
 
 <Image
   class="plugin-image"
@@ -41,19 +41,19 @@ The floating toolbar at the bottom provides few tools like changing the backdrop
   alt="Screenshot showing extra shadow options"
 />
 
-The plugin also provides an option to capture screen and set it as a backdrop to test the shadows. Click on the 'Capture backdrop' button and click-drag across the screen to capture the desired area.
+You can also use part of your screen as the backdrop. Click `Capture backdrop`, then drag across the area you want to capture.
 
 :::note
-You’ll need to grant the necessary permissions for the plugin to access screen recording features. On macOS, this typically involves going to System Preferences > Privacy & Security > Screen & System Audio Recording, and ensuring that Adobe Illustrator is toggled on.
+Screen capture needs permission. On macOS, open **System Settings > Privacy & Security > Screen & System Audio Recording** and turn on Adobe Illustrator.
 
-This feature is not yet available on Windows. We welcome contributions from the community to help test and improve Windows compatibility.
+Screen capture isn't available on Windows yet. Contributions to improve Windows support are welcome.
 :::
 
-The backdrop, text and text fill color do not affect the generated CSS and are only for preview purposes.
+The backdrop, typeface and text fill color are for previewing only. They don't change the exported CSS.
 
 ### Animations
 
-The ai2svelte plugin also supports a variety of animations that can be applied to your components.
+The `Styles` tab also has preset animations that you apply the same way.
 
 <Image
   class="plugin-image"
@@ -62,14 +62,13 @@ The ai2svelte plugin also supports a variety of animations that can be applied t
 />
 
 <Aside type="tip">
-  You can add more than one shadow or animation to a single selector. If more
-  than one animation/s are applied and they conflict, the last one defined will
-  take precedence.
+  You can apply several shadows or animations to one selector. If two
+  animations conflict, the one defined last wins.
 </Aside>
 
 ### Advanced styling
 
-Changing the view format to `Code` allows users to directly write SCSS code for more advanced styling options.
+Switch the view from `UI` to `Code` to write SCSS directly.
 
 <Image
   class="plugin-image"
@@ -77,7 +76,7 @@ Changing the view format to `Code` allows users to directly write SCSS code for 
   alt="Screenshot showing code editor for advanced styling"
 />
 
-Shadow mixins are defined with a color as an argument. Similarly, animation mixins are also defined with associated arguments and can be customized further.
+Each shadow is a mixin that takes a color argument. Animation mixins take their own arguments, which you can change to customize the animation.
 
 <Image
   class="plugin-image"

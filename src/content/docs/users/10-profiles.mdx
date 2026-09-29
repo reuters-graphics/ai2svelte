@@ -1,6 +1,6 @@
 ---
 title: Profiles
-description: Save and load different export settings for various projects or workflows.
+description: Save, load and share sets of ai2svelte export settings.
 slug: users/profiles
 sidebar:
   order: 110
@@ -10,7 +10,7 @@ import { Aside } from "@astrojs/starlight/components";
 import { Image } from "astro:assets";
 import Image_Profiles from "../../../../public/images/profiles.png";
 
-You can now export your ai2svelte settings as Profiles, allowing you to save and load different configurations for various projects or workflows. This feature is particularly useful when working on multiple projects with distinct requirements, as it enables you to quickly switch between settings without manually adjusting each option.
+A profile is a saved set of ai2svelte settings. If your projects need different settings, save a profile for each and switch between them instead of changing options one by one.
 
 <Image
   class="plugin-image"
@@ -20,14 +20,16 @@ You can now export your ai2svelte settings as Profiles, allowing you to save and
 
 ---
 
-### Share profiles
+### Sharing profiles
 
-Furthermore, Profiles can be shared with team members or across different machines, ensuring consistency in export settings and streamlining collaboration. To share your local Profiles with others, open up `Settings` tab, click on `Save Profile` and select `Export my profiles`. This will generate `profiles.json` file that you can share with others.
+You can share profiles with teammates or move them to another machine, so everyone exports with the same settings.
 
-To load Profiles shared by others, open up `Settings` tab and click on `Load Profile` button and select `Import from file` option. This saves all the external profiles in your local storage for future use. You can now select `Load Profile` dropdown to load any of the saved profiles.
+To export your profiles, open the `Settings` tab, click `Save Profile` and choose `Export my profiles`. This creates a `profiles.json` file you can send to others.
+
+To import profiles someone sent you, open the `Settings` tab, click `Load Profile` and choose `Import from file`. The imported profiles are saved locally, and you can pick any of them from the `Load Profile` dropdown.
 
 ### Default profile
 
-The extension comes loaded with a default profile named `default` that contains the recommended settings for most use-cases. To modify your default profile, simply load it from the `Load Profile` dropdown, make your desired changes in the settings, and then save it back using the `Save Profile` button.
+The plugin comes with a profile named `default` that holds the recommended settings. To change it, load `default` from the `Load Profile` dropdown, edit the settings, then save it again with `Save Profile`.
 
-Any subsequent calls to `Reset Config` will now reset the settings to those defined in your `default` profile, rather than the factory settings. This allows you to maintain your preferred default configuration while still having the option to revert to it easily.
+From then on, `Reset Config` restores your `default` profile instead of the factory settings.

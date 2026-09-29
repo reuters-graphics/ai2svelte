@@ -1,6 +1,6 @@
 ---
 title: ai2svelte settings
-description: Configure ai2svelte to match your design workflow and output preferences.
+description: Change ai2svelte's export settings to suit your project.
 slug: users/ai2svelte-settings
 sidebar:
   order: 102
@@ -10,9 +10,9 @@ import { Image } from "astro:assets";
 import { Steps } from "@astrojs/starlight/components";
 import Image_Autocomplete from "../../../../public/images/autocomplete.png";
 
-The ai2svelte plugin comes with sensible default settings optimized for most workflows. However, you can easily customize these settings through the plugin's **Home** tab to better suit your specific needs and project requirements.
+ai2svelte ships with default settings that work for most projects. You can change any of them in the `Settings` tab of the ai2svelte panel.
 
-Check out the [ai2svelte settings reference](../ai2svelte-settings-reference/) for detailed explanations of each available setting.
+The [ai2svelte settings reference](../ai2svelte-settings-reference/) explains what each setting does.
 
 ```yaml
 namespace: g-
@@ -46,16 +46,16 @@ allow_overflow: false
 
 ---
 
-### Adding/Removing properties
+### Adding and removing settings
 
 <Steps>
   1. Open the `Settings` tab in the ai2svelte panel. {/* prettier-ignore */}
   2. Switch from `UI` to `Code` format view. {/* prettier-ignore */}
-  3. Add your new property as a key-value pair in YAML format.
+  3. Add or delete settings as YAML key-value pairs.
   {/* prettier-ignore */}
 </Steps>
 
-The code editor provides helpful features to streamline property management, including syntax highlighting and intelligent value suggestions to ensure proper configuration.
+The code editor highlights syntax and suggests valid values as you type.
 
 <Image
   class="plugin-image"
@@ -65,8 +65,8 @@ The code editor provides helpful features to streamline property management, inc
 
 ### Saving custom defaults
 
-To save your current settings as the new default configuration, navigate to the bottom of the `Settings` tab and click the `Save Profile` button. Input `default` when prompted for the profile name and click `OK`. This action will store your current settings in the `default` profile, which will be used as the baseline for all future projects unless changed again.
+To make your current settings the new default, scroll to the bottom of the `Settings` tab and click `Save Profile`. Enter `default` as the profile name and click `OK`. Your settings are saved to the `default` profile, which every new project then starts from.
 
 ### Restoring default settings
 
-To restore all ai2svelte settings to their factory defaults, navigate to the bottom of the `Settings` tab and click the `Reset Config` button. This will revert all custom configurations back to the settings stored in the `default` profile. If the `default` profile has been modified, the settings will revert to these custom values instead of the original factory defaults.
+To undo your changes, scroll to the bottom of the `Settings` tab and click `Reset Config`. This restores the settings stored in the `default` profile. If you've saved your own `default` profile, you get those settings back, not the factory defaults.

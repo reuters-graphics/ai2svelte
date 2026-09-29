@@ -1,6 +1,6 @@
 ---
 title: Auto-detect selectors
-description: Configure auto-detection for your ai2svelte elements.
+description: Fill in CSS selectors automatically when you select objects in Illustrator.
 slug: users/auto-detect
 sidebar:
   order: 105
@@ -9,9 +9,9 @@ sidebar:
 import { Steps } from "@astrojs/starlight/components";
 import { LinkCard } from "@astrojs/starlight/components";
 
-You can style any Illustrator object with a CSS selector using ai2svelte. Objects with custom names become CSS IDs automatically; default names (like `<Rectangle>`) need manual styling.
+ai2svelte lets you style any Illustrator object with a CSS selector. Objects you've named become CSS IDs automatically. Objects with default names (like `<Rectangle>`) have to be targeted by hand.
 
-ai2svelte can auto-detect selectors for your elements if you install AiHostAdapter (an Adobe plugin for CEP extensions). AiHostAdapter connects the plugin to Illustrator’s event system, enabling automatic selector detection.
+If you install AiHostAdapter, Adobe's helper plugin for CEP extensions, ai2svelte can detect selectors for you. AiHostAdapter passes Illustrator's selection events to the panel.
 
 ### Installing AiHostAdapter
 
@@ -20,15 +20,13 @@ ai2svelte can auto-detect selectors for your elements if you install AiHostAdapt
   href="https://github.com/Adobe-CEP/CEP-Resources/tree/master/CEP_11.x/AIHostAdapter"
 />
 
+{/* prettier-ignore */}
 <Steps>
-  1. Download the latest version of AiHostAdapter from Adobe's GitHub
-  repository. {/* prettier-ignore */}
-  2. Copy the `.aip` file to your Adobe Illustrator plugins directory. {/* prettier-ignore */}
-  3. For Windows users, ``` C:\Program Files\Adobe\Adobe Illustrator
-  2022\Plug-ins\Extensions ``` For MacOS users, ``` /Applications/Adobe
-  Illustrator 2024/Plug-ins.localized/ ``` {/* prettier-ignore */}
-  4. Restart Adobe Illustrator to activate the AiHostAdapter plugin.
-  {/* prettier-ignore */}
+  1. Download the latest AiHostAdapter from Adobe's GitHub repository.
+  2. Copy the `.aip` file into Illustrator's plug-ins folder:
+     - Windows: `C:\Program Files\Adobe\Adobe Illustrator <version>\Plug-ins\Extensions`
+     - macOS: `/Applications/Adobe Illustrator <version>/Plug-ins.localized/`
+  3. Restart Illustrator.
 </Steps>
 
-Once AiHostAdapter is successfully installed, the ai2svelte plugin will automatically detect selectors for your elements. To verify this functionality, open the `CSS` tab in the plugin and select any named element in your Illustrator document—the corresponding selector should automatically appear in the `Identifier` field.
+To check that it works, open the `Styles` tab and select a named object in your document. Its selector should appear in the `Identifier` field.

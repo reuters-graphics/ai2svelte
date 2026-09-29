@@ -1,6 +1,6 @@
 ---
 title: Tagged layers
-description: Learn about tagged layers in ai2svelte.
+description: Change how a layer is exported by adding a tag to its name.
 slug: users/tagged-layers
 sidebar:
   order: 106
@@ -8,68 +8,67 @@ sidebar:
 
 import { Aside } from "@astrojs/starlight/components";
 
-ai2svelte allows users to create tagged layers in their Illustrator documents. Tagged layers are special layers that ai2svelte recognizes and processes differently during the export process.
+A tagged layer is a layer that ai2svelte exports differently from the rest of your artwork.
 
-To create a tagged layer, add a specific tag to the end of the layer name in Illustrator. For example, to designate a layer for SVG export, name it `layer_name:svg`.
+To tag a layer, add the tag to the end of its name in Illustrator. For example, name a layer `layer_name:svg` to export it as SVG.
 
 ---
 
 ### :div
 
-Layers with the `:div` suffix will render rectangles and circles as scaling `<div>` elements in the final output. This enables responsive layouts, allowing these shapes to scale with the viewport size.
+Rectangles and circles in a `:div` layer become `<div>` elements that scale with the graphic.
 
 ### :symbol
 
-Layers with the `:symbol` suffix will render rectangles and circles as non-scaling `<div>` elements. These shapes will retain their original size and position, regardless of viewport changes.
+Rectangles and circles in a `:symbol` layer become `<div>` elements that keep their original size and position when the graphic resizes.
 
 ### :png
 
-Layers with the `:png` suffix will have their contents exported as PNG images, which are then included as separate `<img>` tags in the output. Use this tag for rasterized portions of your artwork that require special handling.
+The contents of a `:png` layer are exported as a PNG and placed in the output as a separate `<img>` tag. Use it for parts of your artwork that should stay raster.
 
-You can also use the `:png24` suffix to export higher-quality PNG images with better color depth.
+Use `:png24` instead for higher color depth.
 
 :::note
-It is advised to get the best result for blending modes off `:png`/`:png24` layers, apply blending mode directly to the parent layer since `:png`/`:png24` tagged layers are rasterised together with the child elements.
+A `:png`/`:png24` layer is rasterized together with everything inside it. For predictable blend modes, apply the blend mode to the tagged layer itself rather than to its children.
 :::
 
 ### :svg
 
-Layers with the `:svg` suffix will have their contents exported as SVG images and embedded as SVG in the final output. This is ideal for vector graphics that need to remain crisp at any size.
+The contents of an `:svg` layer are exported as SVG, so they stay sharp at any size.
 
 <Aside type="note">
-By default, SVG content is rendered using an `<img>` tag. To embed the SVG code directly in your HTML, enable the `inline_svg` option in your ai2svelte configuration.
+By default, the SVG is loaded through an `<img>` tag. To put the SVG markup directly in the component, enable the `inline_svg` setting.
 </Aside>
 
 :::note
-Stacking multiple blend modes between parent and child in `:svg` tagged layers are inconsistent in how Adobe Illustrator and Web implements it.
+Illustrator and browsers handle blend modes stacked between a parent and its children differently, so results in `:svg` layers can differ.
 
-For safe result, let the parent layer be blended as NORMAL and apply blending modes to child elements.
+For consistent results, leave the parent layer on Normal and apply blend modes to the child elements.
 :::
 
 ### :text
 
-`:text` tagged layers allow users to input the text content programmatically by using the `taggedText` prop. The `taggedText` prop is an object with keys `text` and `htext` with each containing keys as the layer names (without the `:text` suffix) and housing key value pairs for each text object in the layer.
+`:text` layers let you set their text from code through the `taggedText` prop. `taggedText` is an object with two keys, `text` and `htext`. Under each, add a key for every tagged layer (its name without the tag), and inside that, one key-value pair per text object in the layer.
 
 ### :htext
 
-`:htext` tagged layers function similarly to `:text` layers but render the text as HTML content wrapped inside the svelte's `@html` directive. This allows for more complex formatting and styling options.
+`:htext` layers work like `:text` layers, but the text is rendered as HTML through Svelte's `{@html}` tag, so it can include markup and formatting.
 
 <Aside type="note">
-  Set `override_text: true` in ai2svelte settings to ensure that text content
-  from `:text` and `:htext` layers is always sourced from the `taggedText` prop,
-  regardless of the existing text in the Illustrator document.
+  Set `override_text: true` to always take the text of `:text` and `:htext`
+  layers from the `taggedText` prop, ignoring the text in the Illustrator
+  document.
 </Aside>
 
 <Aside type="tip">
-  A rough definition of the `taggedText` prop customised to your layers can be
-  found as a comment at the bottom of the generated Svelte file for easy
-  reference.
+  The generated Svelte file ends with a comment showing a rough `taggedText`
+  object for your layers. Use it as a starting point.
 </Aside>
 
 ### Artboard tags
 
-In addition to layer tags, you can apply special directives to artboard names to control export behavior.
+You can also add directives to artboard names to control how each artboard is exported.
 
-For example, naming an artboard `Artboard1:600,fixed` sets its responsiveness to `fixed` and displays it only when the viewport width is at least 600 pixels.
+For example, naming an artboard `Artboard1:600,fixed` makes it `fixed`-width and shows it only when the viewport is at least 600 pixels wide.
 
-Naming an artboard `Artboard2:image_only` exports only the image content, omitting any text or other elements.
+Naming an artboard `Artboard2:image_only` exports only its images, leaving out text and other elements.

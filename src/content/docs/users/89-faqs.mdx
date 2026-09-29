@@ -1,6 +1,6 @@
 ---
 title: FAQs
-description: Get quick answers to the most common ai2svelte questions and troubleshooting tips
+description: Answers to common ai2svelte questions, and fixes for common problems.
 slug: users/faqs
 sidebar:
   order: 890
@@ -9,96 +9,94 @@ sidebar:
 ## Troubleshooting
 
 <details>
-<summary>Why isn't the Identifier field updating when I select elements?</summary>
+<summary>Why doesn't the Identifier field update when I select objects?</summary>
 
-If the Identifier field in the ai2svelte panel doesn't change when you select different elements in your Illustrator document, the issue is likely with the AiHostAdapter plugin installation.
+If the `Identifier` field in the ai2svelte panel doesn't change when you select objects in Illustrator, AiHostAdapter probably isn't installed correctly.
 
-**Solution:** Verify that you've correctly installed the AiHostAdapter.aip file in the proper location. Check our [Auto-detect selectors guide](../auto-detect/) for detailed installation instructions and troubleshooting steps.
-
-</details>
-
-<details>
-<summary>Why does the Identifier only show the parent layer instead of child elements?</summary>
-
-This is a limitation of how Illustrator handles single-element layers. When a layer contains only one element, Illustrator treats the element and its parent layer as the same object.
-
-**Solution:**
-To correctly identify child elements, ensure you have more than one element within the layer. Illustrator can't distinguish between a single element and its parent layer. Always rename the elements that you want to stylise to identify them correctly.
+**Solution:** Check that `AiHostAdapter.aip` is in the right folder. See the [Auto-detect selectors guide](../auto-detect/) for installation steps.
 
 </details>
 
 <details>
-<summary>How to export artboard wider than breakpoint?</summary>
+<summary>Why does the Identifier show the parent layer instead of the object I selected?</summary>
 
-With the conventional approach, ai2svelte exports artboards based on their defined dimensions in Illustrator.
+When a layer contains only one object, Illustrator treats the object and its layer as the same thing.
 
 **Solution:**
-To export artboards wider than the breakpoint, you can use [artboard tags](../tagged-layers/#artboard-tags) to specify custom breakpoint width. For example, you can have your artboard with a width of 2000px but tag it with `:1200` to set it's visibility breakpoint at 1200px. Make sure to use `allow_overflow: true` and `include_resizer_css: false` in your ai2svelte settings to prevent clipping and to rely on svelte screen bindings (instead of container queries).
+Put more than one object in the layer so Illustrator can tell them apart. Give every object you want to style its own name.
 
 </details>
 
 <details>
-<summary>Why does the backdrop capture feature not work on my system?</summary>
+<summary>How do I export an artboard that's wider than its breakpoint?</summary>
 
-The backdrop capture feature is currently only supported on macOS due to the specific APIs it utilizes for screen capturing.
+By default, ai2svelte uses each artboard's width in Illustrator as its breakpoint.
 
 **Solution:**
-However, you'll need to grant the necessary permissions for the plugin to access screen recording features. On macOS, this typically involves going to **System Preferences > Privacy & Security > Screen & System Audio Recording**, and ensuring that Adobe Illustrator is toggled on.
+Use an [artboard tag](../tagged-layers/#artboard-tags) to set the breakpoint yourself. For example, a 2000px-wide artboard tagged `:1200` becomes visible at 1200px. Also set `allow_overflow: true` so the artwork isn't clipped, and `include_resizer_css: false` so Svelte's window size bindings pick the artboard instead of container queries.
+
+</details>
+
+<details>
+<summary>Why doesn't backdrop capture work on my computer?</summary>
+
+Backdrop capture only works on macOS, because it relies on macOS screen capture APIs.
+
+**Solution:**
+On macOS, give Illustrator permission to record the screen: open **System Settings > Privacy & Security > Screen & System Audio Recording** and turn on Adobe Illustrator.
 
 </details>
 
 <details>
 <summary>Which platforms are supported?</summary>
 
-Although ai2svelte is supported on both Windows and macOS, it is not tested yet on Windows. We welcome contributions from the community to help test and improve Windows compatibility.
+ai2svelte runs on Windows and macOS, but it hasn't been tested on Windows yet. Contributions to improve Windows support are welcome.
 
 </details>
 
 ## Layer organization
 
 <details>
-<summary>Why can't I style elements in non-tagged layers?</summary>
+<summary>Why can't I style objects in untagged layers?</summary>
 
-ai2svelte only exports and makes available elements that are within tagged layers. Elements in non-tagged layers are treated as background content and aren't individually accessible for styling.
+ai2svelte only exposes objects in tagged layers for styling. Everything in untagged layers is flattened into the background image, so you can't target individual objects.
 
-**Solution:** Move any elements you want to style into a properly tagged layer:
+**Solution:** Move the objects you want to style into a tagged layer:
 
-- **`:svg`** for vector graphics that need to scale and be styled with CSS
-- **`:png`** or **`:png24`** for raster images and complex graphics that should remain as images
-
-This tagging system ensures optimal performance and gives you precise control over which elements can be customized.
+- **`:svg`** for vector artwork you want to scale and style with CSS
+- **`:png`** or **`:png24`** for raster images and complex artwork that should stay an image
 
 </details>
 
 <details>
-<summary>Do I need separate tagged layers for each artboard?</summary>
+<summary>Do I need a separate tagged layer for each artboard?</summary>
 
-**No!** ai2svelte is smart enough to handle multiple artboards within a single tagged layer, which can significantly simplify your workflow.
+**No.** One tagged layer can span several artboards, which keeps your document simpler.
 
 **Best practices:**
 
-- Use one tagged layer that spans across all artboards you want to export
-- Organize elements logically within the layer structure for easier identification
-- This approach reduces complexity while maintaining full styling control
+- Use one tagged layer that covers every artboard you export
+- Arrange objects inside the layer so they're easy to find
+- Name the objects you want to style
 
 </details>
 
-## Performance optimization
+## Performance
 
 <details>
-<summary>How can I optimize loading speed for above-the-fold hero graphics?</summary>
+<summary>How do I make an above-the-fold graphic load faster?</summary>
 
-For critical graphics that users see immediately (like hero images), you can prioritize their loading to improve perceived performance.
+You can tell the browser to load the graphic's images before other resources.
 
-**Solution:** Add `priority_fetch: true` to your ai2svelte configuration:
+**Solution:** Add `priority_fetch: true` to your ai2svelte settings:
 
 ```yaml
-// ... other settings
+# ... other settings
 priority_fetch: true
 ```
 
-**⚠️ Important:** Only use `priority_fetch` for truly critical, above-the-fold content. Overusing this setting can actually slow down your overall page performance by competing for bandwidth with other essential resources.
+**⚠️ Important:** Only use `priority_fetch` for graphics readers see straight away. If you use it too often, those images compete with other important resources and the page can load more slowly overall.
 
-**Best for:** Hero images, key visual elements, essential UI components visible on initial page load.
+**Best for:** hero images and key visuals that are on screen when the page loads.
 
 </details>

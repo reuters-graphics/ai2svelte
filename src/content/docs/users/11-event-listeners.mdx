@@ -1,16 +1,16 @@
 ---
 title: Event Listeners
-description: Handle component lifecycle and state changes with ai2svelte's powerful event system
+description: Run your own code when an ai2svelte component mounts or switches artboards.
 slug: users/event-listeners
 sidebar:
   order: 111
 ---
 
-ai2svelte provides an event system that lets you respond to component lifecycle events and state changes. Use these events to create dynamic, interactive experiences that react to user interactions and component updates.
+ai2svelte components fire events you can listen to, so you can run your own code when the component mounts or its active artboard changes.
 
 ### onAiMounted
 
-Fired when your ai2svelte component has fully loaded and is ready for interaction. This event is perfect for initializing additional functionality, setting up third-party integrations, or performing actions that require the component to be completely rendered.
+Fires once the component has fully rendered. Use it to start anything that needs the graphic to be on the page, such as third-party integrations or extra interactivity.
 
 ```svelte
 <script>
@@ -19,12 +19,12 @@ Fired when your ai2svelte component has fully loaded and is ready for interactio
 	}
 </script>
 
-<MyComponent assetsPath={assets || '/'} onAiMounted="{handleAiMounted}" />
+<MyComponent assetsPath={assets || '/'} onAiMounted={handleAiMounted} />
 ```
 
 ### onArtboardChange
 
-Triggers whenever the active artboard changes. Since ai2svelte uses container queries, all the artboards are added to the DOM on initial load. `onArtboardChange` can be useful when you want to target elements with same CSS selector across multiple artboards.
+Fires whenever the active artboard changes. ai2svelte uses container queries, so every artboard is in the DOM from the start. Use this event when you need to find elements in the artboard that's currently showing, for example when the same selector appears in every artboard.
 
 ```svelte
 <script>
@@ -32,10 +32,10 @@ Triggers whenever the active artboard changes. Since ai2svelte uses container qu
 	  // artboard is the newly active artboard element
 	  console.log("Active artboard has changed:", artboard);
 
-	  // perform object fetching or other actions based on the new artboard
+	  // find elements inside the active artboard
 	  const POIs = artboard.querySelector(".PointOfInterest");
 	}
 </script>
 
-<MyComponent assetsPath={assets || '/'} onArtboardChange="{handleArtboardChange}" />
+<MyComponent assetsPath={assets || '/'} onArtboardChange={handleArtboardChange} />
 ```
