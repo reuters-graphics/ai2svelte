@@ -6,6 +6,7 @@
     ai2svelteInProgress,
     triggerConfetti,
     updateInProgress,
+    alertObject,
   } from "../../stores";
   import { evalTS } from "../../../lib/utils/bolt";
   import { mount } from "svelte";
@@ -14,6 +15,7 @@
   import { saveSettings, tooltipSettings, writeFile } from "../../utils/utils";
   import Toast from "../../Components/Toast.svelte";
   import { logEvent, withSnapshot } from "../../utils/debugLog";
+  import { findMissingStyles } from "../../utils/cssUtils";
 
   import { version } from "../../../../shared/shared";
   import { tooltip } from "svooltip";
@@ -29,6 +31,18 @@
     await delay(500);
 
     if (window.cep) {
+      // Warn once about styles missing from the local library; a second run
+      // with the same missing styles exports them as empty styles.
+      const missingStyles = findMissingStyles($styles);
+      if (missingStyles.length > 0) {
+        const message = `Missing styles in your local library: ${missingStyles.join(", ")}. They'll export as empty styles. Run again to export anyway.`;
+        if (!($alertObject.flag && $alertObject.message === message)) {
+          $alertObject = { flag: true, message };
+          return;
+        }
+      }
+      $alertObject = { flag: false, message: "" };
+
       let missingFontFamilies = [];
       $ai2svelteInProgress = true;
 

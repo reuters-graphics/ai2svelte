@@ -13,6 +13,7 @@
     userSpecimens,
     userShadowsBaked,
     unsavedChanges,
+    alertObject,
     forcePreview,
     docName,
     cache,
@@ -274,6 +275,9 @@
 
   {#if $unsavedChanges.flag}
     <Alert message={$unsavedChanges.message} />
+  {/if}
+  {#if $alertObject.flag}
+    <Alert message={$alertObject.message} />
   {/if}
   <TabBar bind:activeLabel={activeTab} {inspectMode} />
 

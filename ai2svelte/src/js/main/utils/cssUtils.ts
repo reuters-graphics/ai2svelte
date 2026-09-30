@@ -195,72 +195,77 @@ export function styleObjectToString(stylesObject: Style) {
 }
 
 /**
- * Generates all unique CSS mixins for shadow styles used in the current styles.
+ * Collects the unique shadow/animation names used via @include in the styles
+ * and looks each up in the local style library. Unknown names resolve to
+ * undefined.
+ */
+function resolveUsedStyles(stylesObject: Result<Root> | undefined) {
+  const mixinShadowRegex = new RegExp(/shadow-(.*)\((#[0-9a-fA-F]+)\)/);
+  const mixinAnimationRegex = new RegExp(/animation-(.*)\((.*)\)/);
+
+  const shadowNames: Set<string> = new Set();
+  const animationNames: Set<string> = new Set();
+
+  stylesObject?.root?.walkAtRules((rule) => {
+    const shadowMatch = rule.params.match(mixinShadowRegex);
+    if (shadowMatch) shadowNames.add(shadowMatch[1]);
+
+    const animationMatch = rule.params.match(mixinAnimationRegex);
+    if (animationMatch) animationNames.add(animationMatch[1]);
+  });
+
+  return {
+    shadows: Array.from(shadowNames).map((name) => ({
+      name,
+      spec: shadows.find(
+        (s) => s.id.toLowerCase().replace(" ", "") == name.toLowerCase(),
+      ),
+    })),
+    animations: Array.from(animationNames).map((name) => ({
+      name,
+      spec: animations.find((s) => s.name.toLowerCase() == name.toLowerCase()),
+    })),
+  };
+}
+
+/**
+ * Returns the used styles that aren't in the local style library, formatted
+ * as they appear in CSS (e.g. "shadow-foo", "animation-bar").
+ */
+export function findMissingStyles(stylesObject: Result<Root> | undefined) {
+  const used = resolveUsedStyles(stylesObject);
+  return [
+    ...used.shadows.filter((s) => !s.spec).map((s) => "shadow-" + s.name),
+    ...used.animations.filter((a) => !a.spec).map((a) => "animation-" + a.name),
+  ];
+}
+
+/**
+ * Generates all unique CSS mixins for shadow and animation styles used in the
+ * current styles. Styles missing from the local library get an empty mixin so
+ * their @include still compiles; the export path warns via findMissingStyles.
  *
  * @returns {string} A string containing all generated mixin code, joined by newlines.
  */
 export function generateAllMixins(stylesObject: Result<Root> | undefined) {
-  const mixinShadowRegex = new RegExp(/shadow-(.*)\((#[0-9a-fA-F]+)\)/);
-  const mixinAnimationRegex = new RegExp(/animation-(.*)\((.*)\)/);
+  if (!stylesObject?.root) return "";
 
-  if (stylesObject?.root) {
-    const allShadows: Array<string> = [];
+  const used = resolveUsedStyles(stylesObject);
+  const emptyMixin = (name: string) => `@mixin ${name}($args...) {}`;
 
-    stylesObject.root.walkAtRules((rule) => {
-      if (mixinShadowRegex.test(rule.params)) {
-        const match = rule.params.match(mixinShadowRegex);
-        if (match) {
-          allShadows.push(match[1]);
-        }
-      }
-    });
+  const allShadowMixins = used.shadows.map((s) =>
+    s.spec
+      ? createShadowMixinFromCSS({ ...s.spec, active: false } as ShadowCardItem)
+      : emptyMixin("shadow-" + s.name),
+  );
 
-    // get all unique shadow styles
-    const allShadowStyles: Set<string> = new Set(allShadows);
+  const allAnimationMixins = used.animations.map((a) =>
+    a.spec
+      ? createAnimationMixinFromCSS(a.spec)
+      : emptyMixin("animation-" + a.name),
+  );
 
-    const allAnimations: Array<string> = [];
-
-    stylesObject.root.walkAtRules((rule) => {
-      if (mixinAnimationRegex.test(rule.params)) {
-        const match = rule.params.match(mixinAnimationRegex);
-        if (match) {
-          allAnimations.push(match[1]);
-        }
-      }
-    });
-
-    // get all unique animation styles
-    const allAnimationStyles: Set<string> = new Set(allAnimations);
-
-    // get all shadows CSS
-    const allShadowStylesCSS = Array.from(allShadowStyles).map((x) =>
-      shadows.find(
-        (s) => s.id.toLowerCase().replace(" ", "") == x.toLowerCase(),
-      ),
-    );
-
-    // get all animations CSS
-    const allAnimationStylesCSS = Array.from(allAnimationStyles).map((x) =>
-      animations.find((s) => s.name.toLowerCase() == x.toLowerCase()),
-    );
-
-    // generate all shadow mixins
-    const allShadowMixins = allShadowStylesCSS.map((shadow) =>
-      createShadowMixinFromCSS({ ...shadow, active: false } as ShadowCardItem),
-    );
-
-    // generate all animation mixins
-    const allAnimationMixins = allAnimationStylesCSS.map((animation) =>
-      createAnimationMixinFromCSS(animation as AnimationItem),
-    );
-
-    let allMixins = [...allShadowMixins, ...allAnimationMixins].join("\n\n");
-
-
-    return allMixins;
-  } else {
-    return "";
-  }
+  return [...allShadowMixins, ...allAnimationMixins].join("\n\n");
 }
 
 export async function parseCSS(css: string) {
