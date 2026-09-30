@@ -37,6 +37,12 @@ export function storeHiddenData(key: string, value: unknown) {
     xmpFile.putXMP(xmpMeta);
     xmpFile.closeFile(XMPConst!.CLOSE_UPDATE_SAFELY);
 
+    // Illustrator keeps the XMP it read at open time and writes it back on
+    // the next save, wiping what we just wrote to disk. Mirror it in memory.
+    var readBack = new XMPFile(filePath, XMPConst!.UNKNOWN, XMPConst!.OPEN_FOR_READ);
+    doc.XMPString = readBack.getXMP().serialize();
+    readBack.closeFile();
+
     return true;
   } catch (e) {
     $.writeln("Error storing data: " + (e as Error).description);
