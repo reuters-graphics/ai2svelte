@@ -54,6 +54,31 @@ export const runAi2Svelte = (settings: any) => {
   }
 };
 
+// Runs before each export (panel debug log). Saves unsaved edits first --
+// ai2svelte already saves after a successful export, this just moves it
+// earlier so a failed export still leaves an exact copy -- then copies the
+// file to pathPrefix + doc name. Same save options as main()'s save.
+export const saveAndSnapshotDocument = (pathPrefix: string) => {
+  if (app) {
+    const doc = app.activeDocument;
+    const hadUnsavedEdits = !doc.saved;
+    if (hadUnsavedEdits && String(doc.path)) {
+      const saveOptions = new IllustratorSaveOptions();
+      saveOptions.pdfCompatible = false;
+      doc.saveAs(new File(doc.path + "/" + doc.name), saveOptions);
+    }
+    const dest = pathPrefix + doc.name;
+    const copied = doc.fullName.copy(dest);
+    return {
+      path: copied ? dest : "",
+      saved: doc.saved, // false only if the save above didn't happen
+      hadUnsavedEdits: hadUnsavedEdits,
+      name: doc.name,
+      source: doc.fullName.fsName,
+    };
+  }
+};
+
 export const runPreview = (settings: any, path: string) => {
   if (app) {
     // rename existing preview folder to preview_old and delete it

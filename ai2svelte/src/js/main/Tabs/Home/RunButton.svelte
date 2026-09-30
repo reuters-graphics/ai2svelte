@@ -13,6 +13,7 @@
   import { userData } from "../../state.svelte";
   import { saveSettings, tooltipSettings, writeFile } from "../../utils/utils";
   import Toast from "../../Components/Toast.svelte";
+  import { logEvent, withSnapshot } from "../../utils/debugLog";
 
   import { version } from "../../../../shared/shared";
   import { tooltip } from "svooltip";
@@ -34,15 +35,24 @@
       // set show_completion_dialog_box
       // unless set by user
       try {
-        // ai2svelte returns a list of missing font families, if any
-        missingFontFamilies =
-          (await evalTS("runAi2Svelte", {
+        // ai2svelte returns missing font families plus the errors and
+        // warnings it already showed the user in its completion alert
+        const result = await withSnapshot(() =>
+          evalTS("runAi2Svelte", {
             settings: {
               show_completion_dialog_box: true,
               ...$settingsObject,
             },
             code: { css: $stylesString, fontsConfig: userData.fontsConfig },
-          })) ?? [];
+          }),
+        );
+        missingFontFamilies = result?.missingFontFamilies ?? [];
+        if (result?.errors?.length) {
+          logEvent("engine-error", {
+            errors: result.errors,
+            warnings: result.warnings,
+          });
+        }
       } catch (error) {
         console.error("[ai2svelte] runAi2Svelte failed:", error);
         mount(Toast, {

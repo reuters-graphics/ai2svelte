@@ -1,11 +1,9 @@
 import { getHiddenData } from "./dataOperations";
 
+// Filesystem path of the active document -- the same form the debug log's
+// snapshots record as `source`.
 export function getDocPath() {
-  let doc = app.activeDocument;
-  let docPath = doc.path + "/";
-  let docName = doc.name;
-  let filePath = docPath + docName;
-  return filePath;
+  return app.activeDocument.fullName.fsName;
 }
 
 export function createFolder(folderPath: string) {

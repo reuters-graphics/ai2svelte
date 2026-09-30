@@ -9,9 +9,10 @@
   import defaultProfile from "../data/default-profile.json";
   import Toast from "../../Components/Toast.svelte";
   import { tooltip } from "svooltip";
-  import { selectFolder } from "../../../lib/utils/bolt";
+  import { evalTS, selectFolder } from "../../../lib/utils/bolt";
   import { fs } from "../../../lib/cep/node";
   import type { UserProfiles } from "../types";
+  import { exportDebugReport, findDebugData } from "../../utils/debugLog";
 
   let profileNameDialog: HTMLDialogElement;
   let profileListDialog: HTMLDialogElement;
@@ -139,6 +140,36 @@
       } finally {
         // Always reset the input so the same file can be re-selected after an error
         input.value = "";
+      }
+    });
+  }
+
+  async function exportDebugReportToFolder(): Promise<void> {
+    const toast = (message: string) =>
+      mount(Toast, {
+        target: document.body,
+        props: { message, duration: 4000 },
+      });
+    let docPath: string;
+    try {
+      docPath = await evalTS("getFilePath");
+    } catch {
+      toast("Open the file you want a debug report for, then try again.");
+      return;
+    }
+    const data = findDebugData(docPath);
+    if (!data) {
+      toast("There's no debug log for this file yet. Export it once, then try again.");
+      return;
+    }
+    selectFolder("", "Save debug report at", (folderPath: string) => {
+      try {
+        toast(
+          `Debug report saved at ${exportDebugReport(folderPath, data)}. It includes a copy of this .ai file.`,
+        );
+      } catch (err: unknown) {
+        console.error("[ai2svelte] Debug report export failed:", err);
+        toast(`Error saving debug report: ${err}.`);
       }
     });
   }
@@ -274,6 +305,13 @@
         ...tooltipSettings,
         content: "Reset UI Theme",
       }}>Reset Theme</button
+    >
+    <button
+      onclick={exportDebugReportToFolder}
+      use:tooltip={{
+        ...tooltipSettings,
+        content: "Save this file's logs and snapshot to send for debugging",
+      }}>Debug Report</button
     >
   </div>
 </div>

@@ -2,6 +2,7 @@ import CSInterface, { CSEvent } from "../cep/csinterface";
 import Vulcan, { VulcanMessage } from "../cep/vulcan";
 import { ns } from "../../../shared/shared";
 import { fs } from "../cep/node";
+import { logEvent } from "../../main/utils/debugLog";
 
 export const csi = new CSInterface();
 export const vulcan = new Vulcan();
@@ -68,6 +69,8 @@ type ReturnType<F extends Function> = F extends (...args: infer A) => infer B
  *
  */
 
+let evalTSCallId = 0;
+
 export const evalTS = <
   Key extends string & keyof Scripts,
   Func extends Function & Scripts[Key],
@@ -76,11 +79,11 @@ export const evalTS = <
   ...args: ArgTypes<Func>
 ): Promise<ReturnType<Func>> => {
   return new Promise(function (resolve, reject) {
+    const id = ++evalTSCallId;
+    const start = Date.now();
+    logEvent("call", { id, fn: functionName, args });
     const formattedArgs = args
-      .map((arg) => {
-        console.log(JSON.stringify(arg));
-        return `${JSON.stringify(arg)}`;
-      })
+      .map((arg) => `${JSON.stringify(arg)}`)
       .join(",");
     csi.evalScript(
       `try{
@@ -93,19 +96,30 @@ export const evalTS = <
         }`,
       (res: string) => {
         try {
-          //@ts-ignore
-          if (res === "undefined") return resolve();
+          if (res === "undefined") {
+            logEvent("result", { id, ms: Date.now() - start });
+            //@ts-ignore
+            return resolve();
+          }
           const parsed = JSON.parse(res);
           if (
             typeof parsed.name === "string" &&
             (<string>parsed.name).toLowerCase().includes("error")
           ) {
             console.error(parsed.message);
+            // drop `source`: ExtendScript fills it with the whole compiled script (~180 KB)
+            logEvent("error", {
+              id,
+              ms: Date.now() - start,
+              error: { ...parsed, source: undefined },
+            });
             reject(parsed);
           } else {
+            logEvent("result", { id, ms: Date.now() - start });
             resolve(parsed);
           }
         } catch (error) {
+          logEvent("error", { id, ms: Date.now() - start, error: res });
           reject(res);
         }
       },

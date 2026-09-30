@@ -55,7 +55,7 @@ describe('RunButton', () => {
 
     beforeEach(() => {
       stubCep();
-      evalTS.mockResolvedValue([]);
+      evalTS.mockResolvedValue({ missingFontFamilies: [], errors: [], warnings: [] });
       vi.useFakeTimers();
       user = userEvent.setup({ delay: null });
     });

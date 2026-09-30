@@ -288,7 +288,11 @@ export function main(settingsArg) {
   }
 
   doc.selection = null;
-  return missingFontFamilies;
+  return {
+    missingFontFamilies: missingFontFamilies,
+    errors: errors,
+    warnings: warnings,
+  };
 
   // =================================
   // ai2svelte render function

@@ -4,9 +4,11 @@ import "./polyfills";
 
 import App from "./main.svelte";
 import { initBolt } from "../lib/utils/bolt";
+import { initDebugLog } from "./utils/debugLog";
 import { mount } from "svelte";
 
 initBolt();
+initDebugLog();
 
 mount(App, {
   target: document.getElementById("app")!,

@@ -22,6 +22,7 @@
     "format:check": "prettier --check src",
     "test": "vitest run",
     "test:visual:generate": "node scripts/visual-test/generate.mjs",
+    "replay": "node scripts/replay/replay.mjs",
     "test:visual": "pnpm test:visual:generate && playwright test && vitest run src/js/main/__tests__/ai2svelte-output.test.ts",
     "test:watch": "vitest",
     "test:ui": "vitest --ui"
