@@ -501,7 +501,76 @@ export function main(settingsArg) {
     msg = "RuntimeError";
     if (e.line) msg += " on line " + e.line;
     if (e.message) msg += ": " + e.message;
+    if (lastOp) {
+      msg +=
+        " (last tracked: " +
+        lastOp.action +
+        " " +
+        describeItem(lastOp.item) +
+        ")";
+    }
     return msg;
+  }
+
+  // MRAP/PARM errors don't say which object failed, so the DOM calls known to
+  // throw them call track() first. Only a reference is stored; the object is
+  // described when an error is formatted.
+  var lastOp; // no initializer: this line sits after main's return
+  function track(action, item) {
+    lastOp = { action: action, item: item };
+  }
+
+  // e.g. GroupItem "Group 12" in layer "map:svg" (blend mode: BlendModes.MULTIPLY)
+  // Each read is guarded: touching the object that just threw MRAP can throw again.
+  function describeItem(item) {
+    var desc = "",
+      notes = [];
+    function read(fn) {
+      try {
+        return fn();
+      } catch (e) {
+        return undefined;
+      }
+    }
+    desc +=
+      read(function () {
+        return item.typename;
+      }) || "object";
+    var name = read(function () {
+      return item.name;
+    });
+    desc += name ? ' "' + name + '"' : " (unnamed)";
+    var layers = read(function () {
+      var path = [];
+      var lyr = item.typename == "Layer" ? item.parent : item.layer;
+      while (lyr && lyr.typename == "Layer") {
+        path.unshift(lyr.name);
+        lyr = lyr.parent;
+      }
+      return path.join(" > ");
+    });
+    if (layers) desc += ' in layer "' + layers + '"';
+    var blend = read(function () {
+      return item.blendingMode;
+    });
+    if (blend && blend != BlendModes.NORMAL) notes.push("blend mode: " + blend);
+    var opacity = read(function () {
+      return item.opacity;
+    });
+    if (opacity !== undefined && opacity < 100)
+      notes.push("opacity: " + opacity);
+    if (
+      read(function () {
+        return item.clipped;
+      })
+    ) {
+      notes.push("clipping group");
+    }
+    var kind = read(function () {
+      return item.kind;
+    });
+    if (kind) notes.push("kind: " + kind);
+    return desc + (notes.length ? " (" + notes.join(", ") + ")" : "");
   }
 
   // display debugging message in completion alert box
@@ -1362,6 +1431,7 @@ export function main(settingsArg) {
       // The following line used to throw an MRAP error if the document
       // contained a raster opacity mask... please file a GitHub issue if the
       // problem recurs.
+      track("reading parent of", obj);
       obj = obj.parent;
     }
     return hidden;
@@ -1905,6 +1975,7 @@ export function main(settingsArg) {
         tf.kind == TextType.POINTTEXT &&
         (textRegex.test(tf.layer.name) || htextRegex.test(tf.layer.name))
       ) {
+        track("converting point text to area text", tf);
         var tfWidth = tf.width;
         var group = tf.parent.groupItems.add();
         group.move(tf, ElementPlacement.PLACEBEFORE);
@@ -2489,6 +2560,7 @@ export function main(settingsArg) {
   }
 
   function getUntransformedTextBounds(textFrame) {
+    track("measuring text bounds of", textFrame);
     var copy = textFrame.duplicate(
       textFrame.parent,
       ElementPlacement.PLACEATEND,
@@ -3984,6 +4056,7 @@ export function main(settingsArg) {
     var origRect;
     if (cropRect) {
       origRect = ab.artboardRect;
+      track("cropping artboard for image export", ab);
       ab.artboardRect = cropRect;
     }
     app.activeDocument.exportFile(new File(imgPath), fileType, exportOptions);
@@ -4005,6 +4078,7 @@ export function main(settingsArg) {
     doc2.rulerOrigin = doc.rulerOrigin;
     // The following caused MRAP
     // doc2.artboards[0].artboardRect = ab.artboardRect;
+    track("sizing temp document artboard from", ab);
     doc2.artboards[0].artboardRect = artboardBounds;
     return doc2;
   }
@@ -4041,6 +4115,7 @@ export function main(settingsArg) {
       // the reported position of the original group changes after duplication
       groupPos = destGroup.position;
       doc2 = makeTmpDocument(doc, ab);
+      track("copying to temp document", destGroup);
       group2 = destGroup.duplicate(doc2.layers[0], ElementPlacement.PLACEATEND);
       group2.position = groupPos;
     }
@@ -4050,6 +4125,7 @@ export function main(settingsArg) {
     // error for certain groups (e.g. ones with a transparency/opacity
     // mask or blend mode), even though the parent layer's cascading
     // removal of the same group does not.
+    track("removing temp layer", destLayer);
     destLayer.remove();
     return doc2 ? { doc: doc2, itemCount: itemCount } : null;
 
@@ -4073,6 +4149,7 @@ export function main(settingsArg) {
     }
 
     function removeItemIfHidden(item) {
+      track("removing hidden text from copy", item);
       if (item.hidden) item.remove();
     }
 
@@ -4102,6 +4179,7 @@ export function main(settingsArg) {
       if (newGroup.pageItems.length > 0) {
         // newMask = duplicateItem(mask.mask, destGroup);
         // TODO: refactor
+        track("duplicating layer mask", mask.mask);
         newMask = mask.mask.duplicate(destGroup, ElementPlacement.PLACEATEND);
         newMask.moveToBeginning(newGroup);
         newGroup.clipped = true;
@@ -4167,6 +4245,7 @@ export function main(settingsArg) {
       // right after duplicating one) -- catch it here so one bad item
       // doesn't crash the whole export.
       try {
+        track("duplicating for image export", item);
         copy = item.duplicate(dest, ElementPlacement.PLACEATEND); //  duplicateItem(item, dest);
         handleEffects(copy);
         itemCount++;
@@ -4175,11 +4254,9 @@ export function main(settingsArg) {
         }
       } catch (e) {
         warn(
-          "Skipped a " +
-            item.typename +
-            " (" +
-            (item.name || "unnamed") +
-            ") that could not be copied for image export -- " +
+          "Skipped " +
+            describeItem(item) +
+            ", which could not be copied for image export -- " +
             e.message,
         );
       }
