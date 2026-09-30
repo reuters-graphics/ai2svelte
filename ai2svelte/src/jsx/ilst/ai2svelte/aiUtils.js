@@ -35,18 +35,60 @@ function deleteFile(path) {
   }
 }
 
+// Note: ExtendScript's regex engine mishandles alternation inside a repeated
+// group, e.g. /(?:a|b)+/ matches one character at a time, so quotes are
+// handled with plain string checks here instead of regexes.
 function parseKeyValueString(str, o) {
-  var dqRxp = /^"(?:[^"\\]|\\.)*"$/;
   var parts = str.split(":");
   var k, v;
   if (parts.length > 1) {
     k = trim(parts.shift());
     v = trim(parts.join(":"));
-    if (dqRxp.test(v)) {
-      v = JSON.parse(v); // use JSON library to parse quoted strings
+    if (v.length > 1 && v.charAt(0) == '"' && v.charAt(v.length - 1) == '"') {
+      try {
+        v = JSON.parse(v); // use JSON library to parse quoted strings
+      } catch (e) {
+        v = v.slice(1, -1); // e.g. invalid escape: keep the text, drop the quotes
+      }
     }
     o[k] = v;
   }
+}
+
+// Extract key: value pairs from the contents of a note attribute.
+// Pairs are separated by newlines, ";" or ","; separators inside
+// double quotes are kept, e.g. tags: "a, b"
+function parseDataAttributes(note) {
+  var o = {};
+  var parts = [];
+  var part = "";
+  var quoteStart = -1; // index in note of the open quote, if inside one
+  var c;
+  note = note || "";
+  for (var i = 0; i < note.length; i++) {
+    c = note.charAt(i);
+    if (quoteStart > -1 && c == "\\") {
+      part += c + note.charAt(++i); // keep escaped char, e.g. \"
+    } else if (c == '"') {
+      quoteStart = quoteStart > -1 ? -1 : i;
+      part += c;
+    } else if (quoteStart == -1 && /[\r\n;,]/.test(c)) {
+      parts.push(part);
+      part = "";
+    } else {
+      part += c;
+    }
+  }
+  if (quoteStart > -1) {
+    // unclosed quote: split the rest as if it were plain text
+    parts = parts.concat(part.split(/[\r\n;,]/));
+  } else {
+    parts.push(part);
+  }
+  for (var j = 0; j < parts.length; j++) {
+    parseKeyValueString(parts[j], o);
+  }
+  return o;
 }
 
 function readFile(fpath, enc) {
@@ -71,7 +113,7 @@ function readFile(fpath, enc) {
           file.fsName +
           " (reported size: " +
           file.length +
-          " bytes)"
+          " bytes)",
       );
     }
   } else {
@@ -103,6 +145,7 @@ export {
   fileExists,
   deleteFile,
   parseKeyValueString,
+  parseDataAttributes,
   readFile,
   readTextFile,
   saveTextFile,

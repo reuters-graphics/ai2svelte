@@ -48,7 +48,7 @@ import {
   clearMatrixShift,
   folderExists,
   deleteFile,
-  parseKeyValueString,
+  parseDataAttributes,
   readFile,
   saveTextFile,
 } from "./aiUtils";
@@ -1981,6 +1981,7 @@ export function main(settingsArg) {
           '\t\t<div id="' +
           divId +
           '" ' +
+          getNoteDataAttributes(frame.note) +
           positionCss +
           ">" +
           html +
@@ -2437,17 +2438,50 @@ export function main(settingsArg) {
     return selected;
   }
 
-  // Extract key: value pairs from the contents of a note attribute
-  function parseDataAttributes(note) {
-    var o = {};
-    var parts;
-    if (note) {
-      parts = note.split(/[\r\n;,]+/);
-      for (var i = 0; i < parts.length; i++) {
-        parseKeyValueString(parts[i], o);
-      }
+  // Convert a note from Illustrator's Attributes panel (e.g. "foo: bar")
+  // into data-* attributes (e.g. 'data-foo="bar" ') for the output markup
+  function getNoteDataAttributes(note) {
+    var o = parseDataAttributes(note);
+    var html = "";
+    for (var k in o) {
+      if (!o.hasOwnProperty(k)) continue;
+      var name = makeKeyword(k.toLowerCase().replace(/^data-/, ""));
+      if (!name) continue;
+      // braces would be parsed as expressions by Svelte
+      var val = encodeHtmlEntities(String(o[k]))
+        .replace(/\{/g, "&#123;")
+        .replace(/\}/g, "&#125;");
+      html += "data-" + name + '="' + val + '" ';
     }
-    return o;
+    return html;
+  }
+
+  // Calls cb for each visible object with a note inside a layer or group, at
+  // any depth (<Layer>.pageItems only lists direct children). Groups are
+  // passed to cb too when includeGroups is set.
+  function forEachNotedItem(container, includeGroups, cb) {
+    forEach(container.pageItems, function (item) {
+      if (item.hidden) return;
+      if (item.typename == "GroupItem") {
+        if (includeGroups && item.note) cb(item);
+        forEachNotedItem(item, includeGroups, cb);
+      } else if (item.note) {
+        cb(item);
+      }
+    });
+    forEach(container.layers || [], function (sublayer) {
+      if (sublayer.visible) forEachNotedItem(sublayer, includeGroups, cb);
+    });
+  }
+
+  // Layers have no note, so a layer's note is the notes of every object and
+  // group in it, joined (a later object wins on a shared key)
+  function getLayerNote(lyr) {
+    var notes = [];
+    forEachNotedItem(lyr, true, function (item) {
+      notes.push(item.note);
+    });
+    return notes.join("\r");
   }
 
   function formatCssPct(part, whole) {
@@ -2788,6 +2822,7 @@ export function main(settingsArg) {
         '" ' +
         divId +
         properties +
+        getNoteDataAttributes(item.note) +
         getBasicSymbolCss(geom, style, abBox, opts) +
         ">\r" +
         innerBlock +
@@ -3282,6 +3317,7 @@ export function main(settingsArg) {
       var opts = extend({}, settings, {
         png_transparent: true,
         tagPrefix: tagName,
+        noteAttributes: getNoteDataAttributes(getLayerNote(lyr)),
       });
 
       var name = /(.*):(.*)/.exec(lyr.name)[1];
@@ -3477,7 +3513,18 @@ export function main(settingsArg) {
       }
 
       var originalAbName = ab.name; // use raw name for getByName() lookup
-      svgOutput = exportSVG(outputPath, ab, masks, svgLayersArg, settings);
+      var renamed = [];
+      var svgNotes =
+        settings.tagPrefix == "svg" && layer
+          ? getSvgNotes(layer, renamed)
+          : null;
+      try {
+        svgOutput = exportSVG(outputPath, ab, masks, svgLayersArg, settings);
+      } finally {
+        forEach(renamed, function (item) {
+          item.name = ""; // back to unnamed
+        });
+      }
 
       // exportSVG switches doc to temporary document containing the exported SVG,
       // so need to switch back to original artboard state before continuing
@@ -3491,7 +3538,7 @@ export function main(settingsArg) {
       if (!svgOutput) {
         return ""; // no image was created
       }
-      rewriteSVGFile(outputPath, imgId, settings, pageName);
+      rewriteSVGFile(outputPath, imgId, settings, pageName, svgNotes);
 
       if (inlineSvg) {
         // Illustrator's SVG export always trims to the artwork's bounding
@@ -3794,8 +3841,9 @@ export function main(settingsArg) {
       imgClass +
       '" alt="' +
       imgAlt +
-      '"';
-    html += ' style="';
+      '" ' +
+      (settings.noteAttributes || "") +
+      'style="';
 
     if (imgStyle) {
       html += imgStyle + ";";
@@ -4231,12 +4279,13 @@ export function main(settingsArg) {
   //     saveTextFile(path, newSVG);
   //   }
 
-  function rewriteSVGFile(path, id, settings, pageName) {
+  function rewriteSVGFile(path, id, settings, pageName, svgNotes) {
     var svg = readFile(path);
     var selector;
     if (!svg) return;
     // replace id created by Illustrator (relevant for inline SVG)
     svg = svg.replace(/id="[^"]*"/, 'id="' + id + '"');
+    if (svgNotes) svg = addNoteAttributesInSVG(svg, svgNotes);
     // reapply opacity and multiply effects
     svg = reapplyEffectsInSVG(svg);
     // prevent SVG strokes from scaling
@@ -4260,6 +4309,48 @@ export function main(settingsArg) {
       svg = checkForImagesInSVG(svg, pageName);
     }
     saveTextFile(path, svg);
+  }
+
+  // Add data-* attributes from item notes to the SVG elements made from them.
+  // Illustrator builds ids from item names: spaces become "_", other
+  // characters "_xHH_", and repeated names get a "_123_" suffix
+  // Notes of the objects (not groups) in an :svg layer, keyed by item name
+  // with spaces as "_". Illustrator only gives named objects an SVG id, so
+  // unnamed objects with a note get a temporary name, pushed to `renamed` so
+  // the caller can clear it after the export.
+  // a function, not a var, so it's hoisted: getSvgNotes runs before this
+  // part of main() would have assigned a var
+  function isTmpSvgName(name) {
+    return /^ai2snote-[0-9]+$/.test(name);
+  }
+
+  function getSvgNotes(layer, renamed) {
+    var notes = {};
+    forEachNotedItem(layer, false, function (item) {
+      var attrs = getNoteDataAttributes(item.note);
+      if (!attrs) return;
+      if (!item.name) {
+        item.name = "ai2snote-" + renamed.length;
+        renamed.push(item);
+      }
+      notes[item.name.replace(/ /g, "_")] = " " + attrs.replace(/ $/, "");
+    });
+    return notes;
+  }
+
+  function addNoteAttributesInSVG(svg, svgNotes) {
+    return svg.replace(/ id="([^"]+)"/g, function (str, id) {
+      var name = id
+        .replace(/_[0-9]+_$/, "")
+        .replace(/_x([0-9A-F]{2})_/g, function (s, hex) {
+          return String.fromCharCode(parseInt(hex, 16));
+        })
+        .replace(/ /g, "_");
+      if (isTmpSvgName(name) && svgNotes[name]) {
+        return svgNotes[name]; // drop the temporary id
+      }
+      return str + (svgNotes[name] || "");
+    });
   }
 
   function reapplyEffectsInSVG(svg) {

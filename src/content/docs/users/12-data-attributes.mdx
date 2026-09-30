@@ -1,0 +1,102 @@
+---
+title: Data attributes
+description: Add data-* attributes to exported elements from Illustrator's Attributes panel.
+slug: users/data-attributes
+sidebar:
+  order: 112
+---
+
+import { Steps } from "@astrojs/starlight/components";
+
+You can attach your own `data-*` attributes to exported elements by writing a note on the object in Illustrator. Use them to find elements from your code, style them with CSS, or pass extra information to your page, such as an ID or a category.
+
+---
+
+### Adding a note
+
+{/* prettier-ignore */}
+<Steps>
+  1. Select the object in Illustrator.
+  2. Open `Window → Attributes`. If you don't see the note field, choose `Show Options` from the panel menu.
+  3. Type one `key: value` pair per line in the note field.
+  4. Export with ai2svelte.
+</Steps>
+
+import { Image } from "astro:assets";
+import Attributes_Panel from "../../../../public/images/attributes.png";
+
+<Image
+  src={Attributes_Panel}
+  alt="Screenshot of Illustrator's Attributes panel with key: value pairs in the note field"
+/>
+
+This note:
+
+```yaml
+color: orange
+category: road
+```
+
+turns into these attributes on the exported element:
+
+```html
+<div id="..." data-color="orange" data-category="road" style="...">
+```
+
+### Writing pairs
+
+- Put a colon between the key and the value: `key: value`.
+- Separate pairs with a new line, a `;` or a `,`.
+- If a value contains a comma or semicolon, wrap it in double quotes: `tags: "road, bridge"` becomes `data-tags="road, bridge"`. Otherwise, you don't need quotes.
+- To use a double quote inside a quoted value, put a backslash before it: `label: "say \"hi\""` gives `data-label` the value `say "hi"`.
+- Keys become lowercase, and any character other than letters, numbers, `-` or `_` becomes `_`. `Road Type: A` becomes `data-road_type="A"`.
+- You can leave out the `data-` prefix. `data-category: road` and `category: road` give the same result.
+
+### Where notes work
+
+| Object | Where the attributes go |
+| --- | --- |
+| Text, in any layer | The text's own `<div>` |
+| Rectangles and circles in `:div` or `:symbol` layers | The object's own `<div>` |
+| The rectangle in a `:snippet` layer | The snippet's `<div>`, which holds the snippet's content |
+| Objects in `:svg` layers | The object's own element inside the SVG. Groups and the layer's `<svg>` element don't get attributes |
+| Objects in `:png`/`:png24` layers | The layer's image element, with the notes of every object and group in the layer combined |
+| Other objects in untagged layers | Nowhere, their notes are ignored |
+| Artboards | Nowhere, Illustrator doesn't let you add notes to them |
+
+Hidden objects and hidden sublayers are skipped.
+
+#### Objects in `:svg` layers
+
+Named and unnamed objects both work. A named object keeps its name as its `id` in the SVG, next to the attributes. Objects in the same layer that share a name also share one note, so give named objects unique names.
+
+Notes on groups are ignored. Put the note on the objects inside the group.
+
+#### `:png` and `:png24` layers
+
+A `:png` or `:png24` layer becomes a single image, so the notes of every object in it, including objects inside groups and sublayers, are combined onto that image. If two objects use the same key, the one lower in the Layers panel wins.
+
+### Using the attributes
+
+Select elements by attribute in your page's code:
+
+```svelte
+<script>
+	function handleAiMounted() {
+	  const roads = document.querySelectorAll('[data-category="road"]');
+	  roads.forEach((road) => road.classList.add('highlight'));
+	}
+</script>
+
+<MyComponent assetsPath={assets || '/'} onAiMounted={handleAiMounted} />
+```
+
+Or style them with CSS:
+
+```css
+[data-category='road'] {
+  stroke: orange;
+}
+```
+
+Every artboard is in the DOM at the same time, so a selector like the one above matches the element in each artboard. To only target the artboard that's showing, use [`onArtboardChange`](../event-listeners/#onartboardchange).

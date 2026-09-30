@@ -81,6 +81,19 @@ ai2svelte only exposes objects in tagged layers for styling. Everything in untag
 
 </details>
 
+<details>
+<summary>How do I add data attributes to an object?</summary>
+
+Select the object, open `Window → Attributes`, and type `key: value` pairs in the note field, one per line. ai2svelte turns each pair into a `data-*` attribute, so `category: road` becomes `data-category="road"`.
+
+Commas and semicolons also separate pairs, so wrap a value in double quotes when it needs one: `tags: "road, bridge"` becomes `data-tags="road, bridge"`. Quotes are optional otherwise.
+
+Notes work on text, objects in `:div`, `:symbol`, `:snippet`, `:svg` and `:png`/`:png24` layers.
+
+See [Data attributes](../data-attributes/) for more.
+
+</details>
+
 ## Performance
 
 <details>
