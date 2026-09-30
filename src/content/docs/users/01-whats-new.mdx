@@ -6,6 +6,14 @@ sidebar:
   order: 101
 ---
 
+### v1.0.10
+
+- Fixes wildcard exports exporting the wrong layers when numbered layers had a tag, e.g. `map1:png`
+- Adds a local debug log. The plugin records its actions and errors, and keeps a copy of your `.ai` file from just before each export. It's all stored on your machine only
+- Adds a `Debug Report` button in `Settings` that saves the open file's log and its latest copy to a folder you choose, to send with a bug report
+- Saves your file at the start of an export if it has unsaved changes, instead of only after a successful export, so a failed export also saves your file
+- Turns notes from Illustrator's `Attributes` panel into `data-*` attributes, e.g. `category: road` becomes `data-category="road"`
+
 ### v1.0.9
 
 - Shows a notice on the `Home` tab when a newer version of the plugin is available
