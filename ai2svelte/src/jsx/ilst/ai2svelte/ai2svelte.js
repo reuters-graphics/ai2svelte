@@ -230,8 +230,10 @@ export function main(settingsArg) {
         // hide layers ending with other numbers
         // unhide layer ending with current number
         forEach(doc.layers, function (layer) {
-          if (layer.name.match(numberCheck)) {
-            var layerNumber = parseInt(layer.name.match(numberCheck)[1]);
+          // strip tags (e.g. "test1:png" -> "test1") before reading the number
+          var layerMatch = getLayerName(layer).match(numberCheck);
+          if (layerMatch) {
+            var layerNumber = parseInt(layerMatch[1]);
             if (layerNumber == i) {
               layer.visible = true;
             } else if (layerNumber >= start && layerNumber <= end) {
