@@ -60,11 +60,19 @@ export function getSelectedItems() {
     // ignore multiple selections
   }
 
-  if (doc.selection[0] == undefined) {
+  // text-editing selections (TextRange) have no layer; reading it throws
+  // "No such element", so treat them like empty selections
+  let objectLayer;
+  try {
+    objectLayer = doc.selection[0] && doc.selection[0].layer;
+  } catch (e) {
+    objectLayer = undefined;
+  }
+
+  if (!objectLayer) {
     // ignore empty selections
   } else {
-    let objectLayer = doc.selection[0].layer;
-    let objectLayerName = doc.selection[0].layer.name;
+    let objectLayerName = objectLayer.name;
     let tag = (/:(.*)/.exec(objectLayerName) || [])[1] || "";
     let object = doc.selection[0];
     let objectName = doc.selection[0].name;
