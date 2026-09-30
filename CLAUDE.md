@@ -63,6 +63,7 @@ pnpm lint       # ESLint over src/
 pnpm format     # Prettier --write over src/ (format:check to verify only)
 
 pnpm test:visual  # Visual regression test — see Visual Regression Testing below
+pnpm test:persistence  # Styles/settings survive close+reopen — see Persistence Testing below
 ```
 
 Docs site (root):
@@ -113,6 +114,23 @@ breakpoints' CSS isn't exercised. Deliberate for now: one width keeps the
 baseline count low; add a viewport per breakpoint to `visual.spec.ts` if
 breakpoint-specific regressions become a real risk.
 
+### Persistence Testing
+
+`pnpm test:persistence` (in `ai2svelte/`) checks that styles (shadow,
+animation, custom CSS) and settings saved by an export survive closing and
+reopening the document. **Local-only**, needs Illustrator and a prior
+`pnpm build`; refuses to run if any document is open, and quits/relaunches
+Illustrator for its quit cases (`--skip-quit` to skip; pass a substring to run
+matching cases only, e.g. `pnpm test:persistence SAVECHANGES`).
+
+`scripts/persistence-test.mjs` builds temp `.ai` files, replays the panel's
+export flow (`saveAndSnapshotDocument`, `runAi2Svelte`, `setVariable` ×4),
+then crosses 13 close mechanisms (plain/save/menu/AppleScript closes, edit +
+Cmd+S, Save As…) with 3 open mechanisms, plus a stale-revert case and quit +
+relaunch. Guards the bug where `setVariable` wrote XMP to disk only and the
+next Illustrator save wrote the open-time XMP back over it (fixed in
+`dataOperations.ts` by mirroring into `doc.XMPString`).
+
 ## Architecture: Two Runtimes
 
 The extension has two distinct execution environments that must be kept in mind at all times:
@@ -159,8 +177,9 @@ Requires:
 
 1. Bump version in `ai2svelte/package.json` (drives `cep.config.ts` via import)
 2. Update root `CHANGELOG.md`
-3. Tag release on `main` — `.github/workflows/release.yml` drafts a GitHub release for the tag (no build; see below)
-4. Run `pnpm zxp` **on macOS** to build the signed `.zxp`, then attach it to the draft release (`gh release upload <tag> dist/zxp/*.zxp` or via the GitHub UI)
+3. On macOS with Illustrator: `pnpm build && pnpm test:visual && pnpm test:persistence` — all must pass
+4. Tag release on `main` — `.github/workflows/release.yml` drafts a GitHub release for the tag (no build; see below)
+5. Run `pnpm zxp` **on macOS** to build the signed `.zxp`, then attach it to the draft release (`gh release upload <tag> dist/zxp/*.zxp` or via the GitHub UI)
 
 `pnpm zxp`/`pnpm zip` both shell out to Adobe's `ZXPSignCmd` (bundled in `vite-cep-plugin`), which only ships macOS and Windows binaries — it cannot run on `ubuntu-latest`, so the release workflow no longer builds or signs the package itself.
 
