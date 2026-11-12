@@ -1,0 +1,178 @@
+---
+title: Chunked images
+description: Split very wide or very long images into tiles, so browsers decode small pieces instead of one huge image.
+slug: users/chunked-images
+sidebar:
+  order: 113
+  badge:
+    text: New
+---
+
+import { Aside, LinkCard, Steps } from "@astrojs/starlight/components";
+import { Image } from "astro:assets";
+import Chunk_Settings from "../../../../public/images/chunked/chunk-settings.png";
+
+Some graphics are much bigger than the screen. Examples are a panorama that scrolls sideways with parallax layers, or a long illustration that scrolls down the page. ai2svelte normally exports each image as one file, and a browser has to decode an image in full before it can draw any part of it. A 20,000-pixel-wide image takes up close to 100 MB of memory once decoded. Phones run out of memory, and some show the image blank or blurry.
+
+Chunked export splits these images into a grid of smaller tiles as they're exported. The graphic looks the same, but the browser works with small images instead of one huge one.
+
+---
+
+### An example
+
+The opener of a Reuters story on Indonesia's haze is one artboard, 9,750 × 620 points. It fills the screen's height and pans sideways as you scroll. Most of the artwork is in `:png24` layers that move at different speeds.
+
+{/* A plain <img>: astro:assets would turn the GIF into a still image. */}
+
+<img
+  src="../../images/chunked/opener-pan.gif"
+  width="640"
+  height="360"
+  alt="Animation panning across the full width of the Indonesia haze opener: a silhouetted rainforest at dusk, then peat swamp, burning peatland and a smoky, cleared landscape"
+/>
+
+<LinkCard
+  title="Example 8"
+  href="../../example8/"
+  description="Scroll through this opener, exported with chunking on at 1x to keep the download small, and download its Illustrator file."
+/>
+
+With 2x images, the artboard and its widest layers export at **19,500 × 1,240 pixels**. That's 24 million pixels each, about 97 MB per image once decoded. The whole artboard is over 11,000 pixels wide on a laptop screen, and the first screen shows only the left ninth of it.
+
+---
+
+### Turning it on
+
+{/* prettier-ignore */}
+<Steps>
+  1. Open the `Settings` tab in the ai2svelte panel.
+  2. Switch to the `Code` view and add `image_chunk_width` and `image_chunk_height`.
+  3. Set both to the largest tile size you want, in pixels. `4096` is a good default.
+  4. Run ai2svelte.
+</Steps>
+
+<Image
+  src={Chunk_Settings}
+  alt="Screenshot of the ai2svelte Settings tab with image_chunk_width and image_chunk_height both set to 4096"
+/>
+
+```yaml
+image_chunk_width: 4096
+image_chunk_height: 4096
+```
+
+Only images wider than `image_chunk_width` or taller than `image_chunk_height` are split; everything else exports as before. Chunking applies to the artboard image and to `:png`, `:png24` and `:webp` layers. SVG is never split.
+
+Both settings are off (`0`) by default. Set one to `0` to split in one direction only. For example, set only `image_chunk_height` for a long scrolling illustration.
+
+<Aside>
+  The limits are in exported pixels, not artboard points. With `use_2x_images_if_possible` on, a 2,000-point-wide artboard exports at 4,000 pixels, so a `4096` limit leaves it whole.
+</Aside>
+
+---
+
+### What you get
+
+Each image is cut into equal columns that fit the limit. Take `fg:png24`, the opener's foreground, a `:png24` tagged layer that runs the full 19,500 pixels. With both limits at `4096` it becomes five tiles of about 3,900 pixels each:
+
+{/* A plain <img>: astro:assets would turn the GIF into a still image. */}
+
+<img
+  src="../../images/chunked/opener-tile-grid.gif"
+  width="1200"
+  height="500"
+  alt="Animation of the fg:png24 layer: the whole 19,500-pixel panorama on one line, dashed lines cutting it into five tiles, the tiles stacking into a pile, then laid out in two rows with labels r0c0 to r0c4."
+/>
+
+Every image is split on its own. The artboard image and each tagged layer get their own tiles, and the browser stacks them back up in order:
+
+{/* A plain <img>: astro:assets would turn the GIF into a still image. */}
+
+<img
+  src="../../images/chunked/opener-layers.gif"
+  width="720"
+  height="405"
+  alt="Animation building one screen of the opener layer by layer: the artboard image (a jpg in five tiles), then bg3:png24, bg2:png24 and fg:png24 on top, each with a dashed line marking where two of its tiles meet."
+/>
+
+In the opener, the artboard image and `fg` become five tiles each, `bg2` four and `bg3` three.
+
+| | One image per layer | Chunked at 4096 |
+| --- | --- | --- |
+| Largest image | 19,500 × 1,240 px (24 MP) | 3,906 × 1,240 px (4.8 MP) |
+| Memory to decode it | ~97 MB | ~19 MB |
+| Image files | 18 | 31 |
+| Total download | 61.5 MB | 60.7 MB |
+
+The download stays about the same size: there are more files, but no extra pixels. The gain is that the browser never has to hold a 97 MB image at once.
+
+#### Output files
+
+Tiles are saved to a `chunks` folder next to where the image would have gone, named by row and column:
+
+```
+images/graphics/
+├── chunks/
+│   ├── opener-xl-r0c0.jpg
+│   ├── opener-xl-r0c1.jpg
+│   └── …
+└── tagged/opener/chunks/
+    ├── layer-fg-xl-r0c0.png
+    ├── layer-fg-xl-r0c1.png
+    └── …
+```
+
+In the component, the image's `<div>` keeps its `id`, classes and position, and holds one `<div class="g-aiTile">` per tile. Styles, animations and parallax that target the layer's `id` keep working without changes.
+
+Each export deletes the previous export's tiles. If you change the limits, or turn chunking off, you won't be left with stale files, and turning it off brings back the single image.
+
+---
+
+### How tiles load
+
+Tiles load the same way ai2svelte's regular images do: through CSS, per breakpoint. Only the tiles of the artboard on screen are downloaded, and artboards for other screen sizes never load theirs. All of the current artboard's tiles download when the page loads.
+
+Because each tile is a separate, smaller image, the browser can decode the tiles near the screen first. It never needs a single texture the size of the whole panorama.
+
+---
+
+### Empty tiles
+
+With a transparent format (`png` or `png24` with `png_transparent`, or `webp`), tiles with no artwork aren't exported at all, and no element is added for them. This helps layers where the artwork is spread out, for example scattered clouds on a wide sky.
+
+ai2svelte works out which tiles are empty from the bounds of the objects in Illustrator, not from the pixels. A single large object that spans several tiles, such as one big transparent cloud shape, still exports every tile it covers.
+
+JPG tiles are never skipped, because empty areas in a JPG show the artboard's background colour.
+
+---
+
+### Seams
+
+Tiles are placed so they meet exactly, and the joins don't show. Here is the spot where the opener's artboard image and its `fg:png24` layer are both cut, from tile `r0c0` to `r0c1`:
+
+<img
+  src="../../images/chunked/opener-seam.gif"
+  width="736"
+  height="880"
+  alt="Looping animation in three stages, on a close-up of the opener's forest floor. 1: the view from a single image. 2: the view splits at the cut and the halves slide apart into tiles r0c0 and r0c1. 3: the tiles slide back together and look identical to the single image; a dotted line marks where the seam is, since it isn't visible on the page."
+/>
+
+ai2svelte handles this in a few ways:
+
+- Tiles in a row share the same top and bottom edges, and tiles in a column the same left and right. This keeps straight edges in the artwork from stepping by a pixel where they cross a join.
+- Opaque tiles (JPG, or PNG without transparency) overlap the next tile by about one pixel, which hides the join when the layer is moved or scaled.
+- Transparent tiles meet edge to edge instead. Overlapping them would draw the semi-transparent pixels along the join twice, which shows as a darker line.
+
+<Aside type="caution">
+  If you move a transparent chunked layer by a fraction of a pixel, for example
+  with a parallax `transform`, a faint line can appear where its tiles meet. In
+  Chrome, adding `will-change: transform` to the element you move removes it.
+</Aside>
+
+---
+
+### When to use it
+
+Use chunked images when a single exported image is much bigger than any screen it will be shown on, typically more than about 4,000 pixels in either direction. Panoramas and long scrolling illustrations are the main cases.
+
+For graphics that fit on a screen, leave chunking off. Splitting a small image only adds files.

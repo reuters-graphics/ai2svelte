@@ -17,6 +17,7 @@ sidebar:
 - Renames `jpg_quality` to `image_quality`, which now also sets WebP quality.
 - Trims whitespace from `:png`/`:png24`/`:webp` layers that contain groups or clipping masks, and crops masked artwork to the mask, so these images no longer export at full artboard size
 - Fixes tagged image layers not showing on artboards with spaces in their names
+- Adds `image_chunk_width` and `image_chunk_height`, which split very wide or long images into tiles that are faster for browsers to decode. Empty tiles are skipped for transparent formats. See [Chunked images](../chunked-images/)
 
 ### v1.0.9
 

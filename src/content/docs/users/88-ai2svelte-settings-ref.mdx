@@ -62,6 +62,20 @@ Sets the alt text for the images in the exported component. To describe the whol
 
 Default: _(blank)_
 
+### image_chunk_width / image_chunk_height :badge[New]
+
+Splits very wide or very long images into a grid of smaller tiles. Use these for wide parallax artwork or long scrolling artwork, where one huge image is slow for browsers to decode and can show up blank on phones. An image is split only when it is wider than `image_chunk_width` or taller than `image_chunk_height`. This applies to the artboard image and to `:png`/`:png24`/`:webp` layers. SVG images are never split.
+
+The limits are in exported pixels, so with `use_2x_images_if_possible` on, a 2000px-wide artboard exports at 4000px. `4096` is a good starting point for both.
+
+Tiles are saved to a `chunks` folder next to where the image would go, as `<name>-r<row>c<col>.<ext>`. Each export deletes the previous export's tiles, so turning chunking off brings back the single image. With a transparent format (`png`/`png24` with `png_transparent`, or `webp`), tiles with no artwork are skipped. Tiles load like the regular images: only the current breakpoint's tiles are downloaded.
+
+Tiles line up without visible seams. One exception: if you move a transparent chunked layer by a fraction of a pixel, for example with a parallax `transform`, a faint seam can show. In Chrome, adding `will-change: transform` to the element you move removes it.
+
+Default: `0` (off). Set one of them to `0` to only split in the other direction.
+
+See [Chunked images](../chunked-images/) for a worked example.
+
 ### image_format
 
 The format of images exported from Illustrator. Pick one based on the quality and file size you need.
