@@ -125,29 +125,5 @@
     "vite": "^6.4.3",
     "vite-cep-plugin": "^2.1.1",
     "vitest": "^4.1.9"
-  },
-  "pnpm": {
-    "overrides": {
-      "@isaacs/brace-expansion": "^5.0.1",
-      "ajv": "^8.20.0",
-      "eslint>ajv": "^6.14.0",
-      "@eslint/eslintrc>ajv": "^6.14.0",
-      "body-parser": "^2.3.0",
-      "fast-uri": "^3.1.7",
-      "flatted": "^3.4.4",
-      "immutable": "^5.1.9",
-      "js-yaml": "^4.3.2",
-      "minimatch": "^10.2.3",
-      "nanoid": "^3.3.18",
-      "picomatch": "^4.0.7",
-      "qs": "^6.15.3"
-    },
-    "onlyBuiltDependencies": [
-      "@parcel/watcher",
-      "core-js",
-      "esbuild",
-      "jsxbin",
-      "svelte-preprocess"
-    ]
   }
 }
