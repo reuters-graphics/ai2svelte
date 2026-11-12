@@ -1,6 +1,6 @@
 export let defaultSettings = {
   namespace: "g-",
-  image_format: ["auto"], // Options: auto, png, png24, jpg, svg
+  image_format: ["auto"], // Options: auto, png, png24, jpg, webp, svg
   write_image_files: true,
   responsiveness: "dynamic", // Options: fixed, dynamic
   text_responsiveness: "dynamic", // Options: fixed, dynamic
@@ -13,7 +13,7 @@ export let defaultSettings = {
   image_alt_text: "", // Generally, use alt_text instead
   png_transparent: true,
   png_number_of_colors: 256, // Number of colors in 8-bit PNG image (1-256)
-  jpg_quality: 90,
+  image_quality: 90,
   center_html_output: true,
   use_2x_images_if_possible: true,
   use_lazy_loader: false,
@@ -43,7 +43,7 @@ export let placeholderSettings = {
   image_source_path: "images/graphics/",
   png_transparent: "yes",
   png_number_of_colors: 256,
-  jpg_quality: 90,
+  image_quality: 90,
   inline_svg: "true",
   max_width: null,
 };

@@ -10,5 +10,8 @@
   },
   "1.0.9": {
     "removedHtmlOutputExtension": false
+  },
+  "1.0.10": {
+    "renamedJpgQuality": false
   }
 }

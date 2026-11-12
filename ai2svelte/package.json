@@ -42,6 +42,7 @@
     "@eslint/css": "^0.13.0",
     "@floating-ui/dom": "^1.7.2",
     "@fsegurai/codemirror-theme-bundle": "^6.2.0",
+    "@jsquash/webp": "^1.5.0",
     "@reuters-graphics/svelte-markdown": "^0.0.3",
     "@reuters-graphics/vite-plugin-purge-styles": "^0.0.3",
     "@tsparticles/confetti": "^3.9.1",

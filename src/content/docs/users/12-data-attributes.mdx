@@ -60,7 +60,7 @@ turns into these attributes on the exported element:
 | Rectangles and circles in `:div` or `:symbol` layers | The object's own `<div>` |
 | The rectangle in a `:snippet` layer | The snippet's `<div>`, which holds the snippet's content |
 | Objects in `:svg` layers | The object's own element inside the SVG. Groups and the layer's `<svg>` element don't get attributes |
-| Objects in `:png`/`:png24` layers | The layer's image element, with the notes of every object and group in the layer combined |
+| Objects in `:png`/`:png24`/`:webp` layers | The layer's image element, with the notes of every object and group in the layer combined |
 | Other objects in untagged layers | Nowhere, their notes are ignored |
 | Artboards | Nowhere, Illustrator doesn't let you add notes to them |
 
@@ -72,9 +72,9 @@ Named and unnamed objects both work. A named object keeps its name as its `id` i
 
 Notes on groups are ignored. Put the note on the objects inside the group.
 
-#### `:png` and `:png24` layers
+#### `:png`, `:png24` and `:webp` layers
 
-A `:png` or `:png24` layer becomes a single image, so the notes of every object in it, including objects inside groups and sublayers, are combined onto that image. If two objects use the same key, the one lower in the Layers panel wins.
+A `:png`, `:png24` or `:webp` layer becomes a single image, so the notes of every object in it, including objects inside groups and sublayers, are combined onto that image. If two objects use the same key, the one lower in the Layers panel wins.
 
 ### Using the attributes
 

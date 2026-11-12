@@ -16,6 +16,7 @@
   import Toast from "../../Components/Toast.svelte";
   import { logEvent, withSnapshot } from "../../utils/debugLog";
   import { findMissingStyles } from "../../utils/cssUtils";
+  import { convertWebpJobs } from "../../utils/webp";
 
   import { version } from "../../../../shared/shared";
   import { tooltip } from "svooltip";
@@ -61,6 +62,16 @@
           }),
         );
         missingFontFamilies = result?.missingFontFamilies ?? [];
+        const webpFailed = await convertWebpJobs(result?.webpJobs ?? []);
+        if (webpFailed.length) {
+          mount(Toast, {
+            target: document.body,
+            props: {
+              message: `WebP conversion failed for ${webpFailed.length} image(s); the PNG source was kept next to it.`,
+              duration: 6000,
+            },
+          });
+        }
         if (result?.errors?.length) {
           logEvent("engine-error", {
             errors: result.errors,

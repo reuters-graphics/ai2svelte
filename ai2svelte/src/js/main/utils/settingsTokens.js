@@ -9,10 +9,10 @@ export let aiSettingsTokens = [
   {
     label: "image_format",
     type: "variable",
-    info: "Options: auto, png, png24, jpg, svg",
+    info: "Options: auto, png, png24, jpg, webp, svg",
     default: "jpg",
     inputType: "select",
-    options: ["auto", "png", "png24", "jpg", "svg"],
+    options: ["auto", "png", "png24", "jpg", "webp", "svg"],
   },
   {
     label: "write_image_files",
@@ -120,9 +120,9 @@ export let aiSettingsTokens = [
     end: 256,
   },
   {
-    label: "jpg_quality",
+    label: "image_quality",
     type: "variable",
-    info: "JPG image quality in range 0-100",
+    info: "Image quality (jpg and webp) in range 0-100",
     default: "90",
     inputType: "range",
     start: 1,

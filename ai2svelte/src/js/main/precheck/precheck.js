@@ -142,12 +142,42 @@ async function checkVersion() {
     if (userFlags["1.0.9"] == undefined) {
       userFlags["1.0.9"] = {};
 
-      if (usersProfile && usersProfile.default && "html_output_extension" in usersProfile.default) {
+      if (
+        usersProfile &&
+        usersProfile.default &&
+        "html_output_extension" in usersProfile.default
+      ) {
         delete usersProfile.default.html_output_extension;
         writeFile("user-profiles.json", usersProfile);
       }
 
       userFlags["1.0.9"].removedHtmlOutputExtension = true;
+      writeFile(".flags.json", userFlags);
+    }
+  }
+
+  // renames jpg_quality to image_quality in saved profiles (it now also drives webp)
+  if (compareVersions(pluginVersion, "1.0.10") >= 0 && userFlags) {
+    if (userFlags["1.0.10"] == undefined) {
+      userFlags["1.0.10"] = {};
+
+      if (usersProfile) {
+        let changed = false;
+        Object.values(usersProfile).forEach((profile) => {
+          if (
+            profile &&
+            typeof profile === "object" &&
+            "jpg_quality" in profile
+          ) {
+            profile.image_quality ??= profile.jpg_quality;
+            delete profile.jpg_quality;
+            changed = true;
+          }
+        });
+        if (changed) writeFile("user-profiles.json", usersProfile);
+      }
+
+      userFlags["1.0.10"].renamedJpgQuality = true;
       writeFile(".flags.json", userFlags);
     }
   }

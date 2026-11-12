@@ -7,7 +7,7 @@
   "image_source_path": "images/graphics/",
   "png_transparent": "no",
   "png_number_of_colors": "256",
-  "jpg_quality": "80",
+  "image_quality": "80",
   "graphicskit": "yes",
   "inline_svg": "true"
 }

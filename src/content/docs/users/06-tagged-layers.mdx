@@ -28,8 +28,14 @@ The contents of a `:png` layer are exported as a PNG and placed in the output as
 
 Use `:png24` instead for higher color depth.
 
+### :webp
+
+The contents of a `:webp` layer are exported as a WebP and placed in the output as a separate `<img>` tag, with the same trimming and positioning as `:png`. WebP files are usually much smaller than PNG or JPG. Quality follows `image_quality`.
+
+The PNG is converted to WebP by the panel, so `:webp` layers only export when you run from the panel.
+
 :::note
-A `:png`/`:png24` layer is rasterized together with everything inside it. For predictable blend modes, apply the blend mode to the tagged layer itself rather than to its children.
+A `:png`/`:png24`/`:webp` layer is rasterized together with everything inside it. For predictable blend modes, apply the blend mode to the tagged layer itself rather than to its children.
 :::
 
 ### :svg

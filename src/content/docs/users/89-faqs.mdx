@@ -64,7 +64,7 @@ ai2svelte only exposes objects in tagged layers for styling. Everything in untag
 **Solution:** Move the objects you want to style into a tagged layer:
 
 - **`:svg`** for vector artwork you want to scale and style with CSS
-- **`:png`** or **`:png24`** for raster images and complex artwork that should stay an image
+- **`:png`**, **`:png24`** or **`:webp`** for raster images and complex artwork that should stay an image
 
 </details>
 
@@ -88,7 +88,7 @@ Select the object, open `Window → Attributes`, and type `key: value` pairs in 
 
 Commas and semicolons also separate pairs, so wrap a value in double quotes when it needs one: `tags: "road, bridge"` becomes `data-tags="road, bridge"`. Quotes are optional otherwise.
 
-Notes work on text, objects in `:div`, `:symbol`, `:snippet`, `:svg` and `:png`/`:png24` layers.
+Notes work on text, objects in `:div`, `:symbol`, `:snippet`, `:svg` and `:png`/`:png24`/`:webp` layers.
 
 See [Data attributes](../data-attributes/) for more.
 

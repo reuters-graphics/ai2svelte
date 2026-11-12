@@ -72,7 +72,7 @@ function main() {
     local_preview_template: "",
     png_transparent: false,
     png_number_of_colors: 128, // Number of colors in 8-bit PNG image (1-256)
-    jpg_quality: 60,
+    image_quality: 60,
     center_html_output: true,
     use_2x_images_if_possible: true,
     use_lazy_loader: false,
@@ -100,7 +100,7 @@ function main() {
       "image_output_path",
       "local_preview_template",
       "png_number_of_colors",
-      "jpg_quality",
+      "image_quality",
     ],
   };
 
@@ -3991,7 +3991,7 @@ function main() {
       }
       fileType = ExportType.JPEG;
       exportOptions = new ExportOptionsJPEG();
-      exportOptions.qualitySetting = settings.jpg_quality;
+      exportOptions.qualitySetting = settings.image_quality;
     } else {
       warn("Unsupported image format: " + format);
       return;

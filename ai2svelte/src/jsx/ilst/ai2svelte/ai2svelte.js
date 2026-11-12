@@ -127,6 +127,7 @@ export function main(settingsArg) {
   let JSON;
   let fontsConfig;
   let missingFontFamilies = [];
+  let webpJobs = []; // PNGs the panel converts to .webp (ExtendScript can't export WebP)
   let priorityFetches = [];
   let taggedTextLayers = {
     text: {},
@@ -290,6 +291,7 @@ export function main(settingsArg) {
   doc.selection = null;
   return {
     missingFontFamilies: missingFontFamilies,
+    webpJobs: webpJobs,
     errors: errors,
     warnings: warnings,
   };
@@ -785,6 +787,15 @@ export function main(settingsArg) {
     });
   }
 
+  // jpg_quality was renamed image_quality (it also drives webp). Old names still
+  // work; the new name wins if both are set.
+  function renameLegacySettings(obj) {
+    if (obj && "jpg_quality" in obj) {
+      if (!("image_quality" in obj)) obj.image_quality = obj.jpg_quality;
+      delete obj.jpg_quality;
+    }
+  }
+
   function initSettings(settingsObj) {
     // if for any reasons, settingsArg is empty,
     // pass default settings
@@ -795,6 +806,8 @@ export function main(settingsArg) {
         code: settingsObj.code || {},
       };
     }
+
+    renameLegacySettings(settingsObj.settings);
 
     // convert image_format arg to array
     if (settingsObj.settings["image_format"]) {
@@ -812,6 +825,7 @@ export function main(settingsArg) {
     // merge settings from text block
     // TODO: consider parsing strings to booleans when relevant, (e.g. "false" -> false)
     if (textBlockSettings) {
+      renameLegacySettings(textBlockSettings);
       for (var key in textBlockSettings) {
         if (key in settings === false) {
           warn("Settings block contains an unused parameter: " + key);
@@ -2939,14 +2953,41 @@ export function main(settingsArg) {
   }
 
   // Union of a layer's visible page-item bounds (recursing into sublayers),
-  // clipped to the artboard. Used to trim tagged :png/:png24 exports to their
+  // clipped to the artboard. Used to trim tagged :png/:png24/:webp exports to their
   // content instead of exporting the whole (possibly huge) artboard. See #90.
-  // a clipped group can report unclipped child bounds, so this may
-  // slightly over-estimate; result is always clamped to the artboard, so the
-  // worst case is the old full-artboard behavior (never crops content).
+  // Illustrator reports a clipped group's bounds (and any group containing
+  // one) as the masked-off content, so a clipped group is measured by its
+  // clipping path, and groups are only walked into when they contain one.
+  // Other groups use their own visibleBounds, which include group-level
+  // effects (e.g. a drop shadow on the group) that their children's bounds
+  // miss. Returns null when the layer has no visible content on the artboard.
+  // ponytail: an effect on a clipped group itself (e.g. a shadow on a masked
+  // image) isn't in any reported bounds, so it can be cropped at the mask edge;
+  // layer-level clipping masks aren't special-cased (over-estimates, never crops).
+  function getClippingPath(group) {
+    return find(toArray(group.pageItems), function (child) {
+      // plain ifs on purpose: Babel drops the parens in a || (b && c) and
+      // ExtendScript then evaluates c even when a is true (crashes on
+      // child.pathItems of a PathItem)
+      if (child.clipping) return true;
+      if (child.typename != "CompoundPathItem") return false;
+      return child.pathItems.length > 0 && child.pathItems[0].clipping;
+    });
+  }
+
+  function containsClippedGroup(group) {
+    return some(toArray(group.pageItems), function (child) {
+      return (
+        child.typename == "GroupItem" &&
+        (child.clipped || containsClippedGroup(child))
+      );
+    });
+  }
+
   function getLayerContentBounds(lyr, abRect) {
     var b = null;
     function grow(bnds) {
+      if (!testBoundsIntersection(bnds, abRect)) return;
       if (!b) {
         b = [bnds[0], bnds[1], bnds[2], bnds[3]];
         return;
@@ -2956,19 +2997,28 @@ export function main(settingsArg) {
       if (bnds[2] > b[2]) b[2] = bnds[2];
       if (bnds[3] < b[3]) b[3] = bnds[3];
     }
-    function walk(container) {
-      forEach(container.pageItems, function (item) {
-        if (item.hidden || item.guides || item.typename == "GroupItem") return;
-        if (testBoundsIntersection(item.visibleBounds, abRect)) {
+    function walkItems(items) {
+      forEach(items, function (item) {
+        if (item.hidden || item.guides) return;
+        if (item.typename == "GroupItem") {
+          var clip = item.clipped ? getClippingPath(item) : null;
+          // a mask path has no visible stroke/fill, so geometric bounds are exact
+          if (clip) grow(clip.geometricBounds);
+          else if (containsClippedGroup(item)) walkItems(item.pageItems);
+          else grow(item.visibleBounds);
+        } else {
           grow(item.visibleBounds);
         }
       });
-      forEach(container.layers, function (sub) {
+    }
+    function walk(layer) {
+      walkItems(layer.pageItems);
+      forEach(layer.layers, function (sub) {
         if (!objectIsHidden(sub)) walk(sub);
       });
     }
     walk(lyr);
-    if (!b) return abRect;
+    if (!b) return null;
     // clip to artboard (AI bounds: [left, top, right, bottom], top > bottom)
     return [
       Math.max(b[0], abRect[0]),
@@ -3387,8 +3437,8 @@ export function main(settingsArg) {
 
     // Embed images tagged :png as separate images
     // Inside this function, layers are hidden and unhidden as needed
-    forEachImageLayer(["png", "png24"], function (lyr) {
-      var tagName = /.*:(png24|png)/.exec(lyr.name)[1] || "png";
+    forEachImageLayer(["png", "png24", "webp"], function (lyr) {
+      var tagName = /.*:(png24|png|webp)/.exec(lyr.name)[1] || "png";
 
       var opts = extend({}, settings, {
         png_transparent: true,
@@ -3403,7 +3453,10 @@ export function main(settingsArg) {
       var lyrZ = lyr.zOrderPosition;
       // This test prevents empty images, but is expensive when a layer contains many art objects...
       // consider only testing if an option is set by the user.
-      if (testLayerArtboardIntersection(lyr, activeArtboard)) {
+      if (
+        testLayerArtboardIntersection(lyr, activeArtboard) &&
+        getLayerContentBounds(lyr, activeArtboard.artboardRect)
+      ) {
         // var grps = `${imgName}-${activeArtboard.name}`.match(/(.*)-(.*)-(.*)/);
         // var importName = `${grps[1]}${grps[2].charAt(0).toUpperCase() + grps[2].slice(1)}${grps[3].toString().toUpperCase()}`;
 
@@ -3500,9 +3553,14 @@ export function main(settingsArg) {
     return pathJoin(docPath, settings.image_output_path);
   }
 
+  // tag names (:png, :png24, :webp) whose layers export as separate raster images
+  function isTaggedRasterPrefix(prefix) {
+    return prefix == "png" || prefix == "png24" || prefix == "webp";
+  }
+
   function getImageFileName(name, fmt) {
     // for file extension, convert png24 -> png; other format names are same as extension
-    return name + "." + fmt.substring(0, 3);
+    return name + "." + (fmt == "webp" ? "webp" : fmt.substring(0, 3));
   }
 
   function getLayerOpacityCSS(layer) {
@@ -3514,15 +3572,14 @@ export function main(settingsArg) {
   //
   function exportImage(imgName, format, ab, masks, layer, settings, group) {
     var imgFile = getImageFileName(imgName, format);
-    if (settings.tagPrefix == "png" || settings.tagPrefix == "png24") {
+    if (isTaggedRasterPrefix(settings.tagPrefix)) {
       imgFile = getImageFileName(imgName + "-" + getArtboardName(ab), format);
     }
 
     var outputPath;
 
     if (
-      settings.tagPrefix == "png" ||
-      settings.tagPrefix == "png24" ||
+      isTaggedRasterPrefix(settings.tagPrefix) ||
       settings.tagPrefix == "svg"
     ) {
       // get project name
@@ -3562,7 +3619,7 @@ export function main(settingsArg) {
     }
 
     // separate id convention for tagged png layers
-    if (settings.tagPrefix == "png" || settings.tagPrefix == "png24") {
+    if (isTaggedRasterPrefix(settings.tagPrefix)) {
       imgId = nameSpace + settings.tagPrefix + "-" + imgName;
       imgClass = nameSpace + settings.tagPrefix;
     }
@@ -3683,14 +3740,12 @@ export function main(settingsArg) {
 
       var pngInlineStyle = "";
 
-      if (
-        layer &&
-        (settings.tagPrefix == "png" || settings.tagPrefix == "png24")
-      ) {
+      if (layer && isTaggedRasterPrefix(settings.tagPrefix)) {
         var lyrOpacity = layer.opacity;
 
         // trim the export to the layer's content instead of the whole artboard (#90)
-        var cropRect = getLayerContentBounds(layer, ab.artboardRect);
+        var cropRect =
+          getLayerContentBounds(layer, ab.artboardRect) || ab.artboardRect;
 
         // export layer at opacity 100%
         layer.opacity = 100;
@@ -3895,8 +3950,7 @@ export function main(settingsArg) {
 
     // if tagged layer image, adjust path to include 'tagged' folder and project name
     if (
-      settings.tagPrefix == "png" ||
-      settings.tagPrefix == "png24" ||
+      isTaggedRasterPrefix(settings.tagPrefix) ||
       settings.tagPrefix == "svg"
     ) {
       // get project name
@@ -4000,7 +4054,7 @@ export function main(settingsArg) {
   // Exports contents of active artboard as an image (without text, unless in test mode)
   // imgPath: full path of output file
   // ab: assumed to be active artboard
-  // format: png, png24, jpg
+  // format: png, png24, jpg, webp
   //
   // cropRect: optional AI bounds to crop the export to (e.g. a tagged layer's
   //   content bounds). Scale is still derived from the full artboard so pixel
@@ -4034,6 +4088,18 @@ export function main(settingsArg) {
       fileType = ExportType.PNG24;
       exportOptions = new ExportOptionsPNG24();
       exportOptions.transparency = isTrue(settings.png_transparent);
+    } else if (format == "webp") {
+      // no WebP ExportType: export a PNG24 beside the target; the panel encodes it
+      fileType = ExportType.PNG24;
+      exportOptions = new ExportOptionsPNG24();
+      exportOptions.transparency = true;
+      // fsName: absolute OS path -- Node fs in the panel can't expand ~ or ..
+      webpJobs.push({
+        src: new File(imgPath + ".png").fsName,
+        dest: new File(imgPath).fsName,
+        quality: Number(settings.image_quality) || 80,
+      });
+      imgPath = imgPath + ".png";
     } else if (format == "jpg") {
       if (imageScale > MAX_JPG_SCALE) {
         imageScale = MAX_JPG_SCALE;
@@ -4045,7 +4111,7 @@ export function main(settingsArg) {
       }
       fileType = ExportType.JPEG;
       exportOptions = new ExportOptionsJPEG();
-      exportOptions.qualitySetting = settings.jpg_quality;
+      exportOptions.qualitySetting = settings.image_quality;
     } else {
       warn("Unsupported image format: " + format);
       return;

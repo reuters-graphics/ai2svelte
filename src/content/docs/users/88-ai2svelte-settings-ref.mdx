@@ -66,7 +66,7 @@ Default: _(blank)_
 
 The format of images exported from Illustrator. Pick one based on the quality and file size you need.
 
-Options: `auto`, `png`, `png24`, `jpg`, `svg`
+Options: `auto`, `png`, `png24`, `jpg`, `webp`, `svg`. `webp` is encoded by the panel after export (quality follows `image_quality`), so it only works when you run from the panel.
 
 ### image_output_path
 
@@ -102,9 +102,9 @@ Options: `true`, `false`
 Blend modes are lost when `inline_svg` is `true`. Use it only for simple graphics.
 :::
 
-### jpg_quality
+### image_quality
 
-The quality of exported JPG images.
+The quality of exported JPG and WebP images. Documents that still use the old name `jpg_quality` keep working.
 
 Options: any integer from 0 to 100
 
