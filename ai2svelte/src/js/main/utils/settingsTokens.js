@@ -145,6 +145,20 @@ export let aiSettingsTokens = [
     options: ["true", "false"],
   },
   {
+    label: "image_chunk_width",
+    type: "variable",
+    info: "Split images wider than this many pixels (after 2x) into tiles. 0 = off",
+    default: "0",
+    inputType: "text",
+  },
+  {
+    label: "image_chunk_height",
+    type: "variable",
+    info: "Split images taller than this many pixels (after 2x) into tiles. 0 = off",
+    default: "0",
+    inputType: "text",
+  },
+  {
     label: "use_lazy_loader",
     type: "variable",
     info: "Lazy load the artboard images? Options: true, false",

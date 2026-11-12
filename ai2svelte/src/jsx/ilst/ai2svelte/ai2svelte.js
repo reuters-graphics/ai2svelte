@@ -134,6 +134,7 @@ export function main(settingsArg) {
     htext: {},
   };
   let imgVars = {};
+  let hasChunkedImages = false; // emit the tile CSS rule only when needed
 
   initJSON();
 
@@ -2985,9 +2986,15 @@ export function main(settingsArg) {
   }
 
   function getLayerContentBounds(lyr, abRect) {
+    return unionBoundsInRect(collectContentBounds(lyr, [], false), abRect);
+  }
+
+  // Union of the bounds in list that intersect rect, clipped to rect; null if none.
+  // (AI bounds: [left, top, right, bottom], top > bottom)
+  function unionBoundsInRect(list, rect) {
     var b = null;
-    function grow(bnds) {
-      if (!testBoundsIntersection(bnds, abRect)) return;
+    forEach(list, function (bnds) {
+      if (!testBoundsIntersection(bnds, rect)) return;
       if (!b) {
         b = [bnds[0], bnds[1], bnds[2], bnds[3]];
         return;
@@ -2996,36 +3003,64 @@ export function main(settingsArg) {
       if (bnds[1] > b[1]) b[1] = bnds[1];
       if (bnds[2] > b[2]) b[2] = bnds[2];
       if (bnds[3] < b[3]) b[3] = bnds[3];
-    }
-    function walkItems(items) {
+    });
+    if (!b) return null;
+    return [
+      Math.max(b[0], rect[0]),
+      Math.min(b[1], rect[1]),
+      Math.min(b[2], rect[2]),
+      Math.max(b[3], rect[3]),
+    ];
+  }
+
+  // Visible bounds of a layer's content (see comment above getClippingPath),
+  // appended to list. Walked once so chunked exports can clip it per tile.
+  // deep: also walk into plain groups (chunked exports), so tiles in the gaps
+  // of one big group can be skipped -- unless the group's own bounds reach past
+  // its children's, i.e. a group-level effect such as a drop shadow.
+  function collectContentBounds(lyr, list, deep) {
+    function walkItems(items, out) {
       forEach(items, function (item) {
         if (item.hidden || item.guides) return;
-        if (item.typename == "GroupItem") {
-          var clip = item.clipped ? getClippingPath(item) : null;
-          // a mask path has no visible stroke/fill, so geometric bounds are exact
-          if (clip) grow(clip.geometricBounds);
-          else if (containsClippedGroup(item)) walkItems(item.pageItems);
-          else grow(item.visibleBounds);
+        if (item.typename != "GroupItem") {
+          out.push(item.visibleBounds);
+          return;
+        }
+        var clip = item.clipped ? getClippingPath(item) : null;
+        // a mask path has no visible stroke/fill, so geometric bounds are exact
+        if (clip) {
+          out.push(clip.geometricBounds);
+        } else if (containsClippedGroup(item)) {
+          walkItems(item.pageItems, out);
+        } else if (deep) {
+          var inner = walkItems(item.pageItems, []);
+          var g = item.visibleBounds;
+          var u = unionBoundsInRect(inner, g);
+          if (!u) return;
+          var effect =
+            g[0] < u[0] - 0.5 ||
+            g[1] > u[1] + 0.5 ||
+            g[2] > u[2] + 0.5 ||
+            g[3] < u[3] - 0.5;
+          if (effect) out.push(g);
+          else
+            forEach(inner, function (b) {
+              out.push(b);
+            });
         } else {
-          grow(item.visibleBounds);
+          out.push(item.visibleBounds);
         }
       });
+      return out;
     }
     function walk(layer) {
-      walkItems(layer.pageItems);
+      walkItems(layer.pageItems, list);
       forEach(layer.layers, function (sub) {
         if (!objectIsHidden(sub)) walk(sub);
       });
     }
     walk(lyr);
-    if (!b) return null;
-    // clip to artboard (AI bounds: [left, top, right, bottom], top > bottom)
-    return [
-      Math.max(b[0], abRect[0]),
-      Math.min(b[1], abRect[1]),
-      Math.min(b[2], abRect[2]),
-      Math.max(b[3], abRect[3]),
-    ];
+    return list;
   }
 
   // Convert paths representing simple shapes to HTML and hide them
@@ -3739,6 +3774,9 @@ export function main(settingsArg) {
       // export raster image & generate link
 
       var pngInlineStyle = "";
+      var tilesHtml; // set when the image is exported as chunks
+
+      removeChunkFiles(outputPath, imgFile);
 
       if (layer && isTaggedRasterPrefix(settings.tagPrefix)) {
         var lyrOpacity = layer.opacity;
@@ -3749,7 +3787,20 @@ export function main(settingsArg) {
 
         // export layer at opacity 100%
         layer.opacity = 100;
-        exportRasterImage(outputPath, ab, format, settings, cropRect);
+        tilesHtml = exportChunkedRaster(
+          outputPath,
+          imgFile,
+          imgId,
+          ab,
+          format,
+          settings,
+          group,
+          cropRect,
+          layer,
+        );
+        if (tilesHtml === null) {
+          exportRasterImage(outputPath, ab, format, settings, cropRect);
+        }
 
         // position the (now trimmed) image within the artboard
         var abBox = convertAiBounds(ab.artboardRect);
@@ -3775,7 +3826,20 @@ export function main(settingsArg) {
           pngInlineStyle += "mix-blend-mode: " + layerBlendMode + ";";
         }
       } else {
-        exportRasterImage(outputPath, ab, format, settings);
+        tilesHtml = exportChunkedRaster(
+          outputPath,
+          imgFile,
+          imgId,
+          ab,
+          format,
+          settings,
+          group,
+          ab.artboardRect,
+          null,
+        );
+        if (tilesHtml === null) {
+          exportRasterImage(outputPath, ab, format, settings);
+        }
       }
 
       html = generateImageHtml(
@@ -3786,6 +3850,7 @@ export function main(settingsArg) {
         ab,
         settings,
         group,
+        tilesHtml === null ? undefined : tilesHtml,
       );
     }
 
@@ -3934,7 +3999,9 @@ export function main(settingsArg) {
     return imgHtml;
   }
 
-  // Create an <img> tag for the artboard image
+  // Create the image div for the artboard image.
+  // innerHtml: optional tile divs of a chunked image; the div then wraps them
+  // and loads no image of its own.
   function generateImageHtml(
     imgFile,
     imgId,
@@ -3943,6 +4010,7 @@ export function main(settingsArg) {
     ab,
     settings,
     group,
+    innerHtml,
   ) {
     var imgDir;
 
@@ -3977,6 +4045,10 @@ export function main(settingsArg) {
 
     if (imgStyle) {
       html += imgStyle + ";";
+    }
+
+    if (innerHtml !== undefined) {
+      return html + '">\r' + innerHtml + "\t\t</div>";
     }
 
     if (isFalse(settings.include_resizer_css)) {
@@ -4051,19 +4123,12 @@ export function main(settingsArg) {
     return k;
   }
 
-  // Exports contents of active artboard as an image (without text, unless in test mode)
-  // imgPath: full path of output file
-  // ab: assumed to be active artboard
-  // format: png, png24, jpg, webp
-  //
-  // cropRect: optional AI bounds to crop the export to (e.g. a tagged layer's
-  //   content bounds). Scale is still derived from the full artboard so pixel
-  //   density is unchanged; the artboard is temporarily shrunk for the export.
-  function exportRasterImage(imgPath, ab, format, settings, cropRect) {
+  // Export scale in percent (100 = 1 output px per point), as used by exportFile
+  function getImageScale(ab, format, settings, imgPath) {
     // This constant is specified in the Illustrator Scripting Reference under ExportOptionsJPEG.
     var MAX_JPG_SCALE = 776.19;
     var abPos = convertAiBounds(ab.artboardRect);
-    var imageScale, exportOptions, fileType;
+    var imageScale;
 
     if (settings.image_width) {
       // fixed width (used for promo image output)
@@ -4078,6 +4143,201 @@ export function main(settingsArg) {
           settings.use_2x_images_if_possible,
         );
     }
+
+    if (format == "jpg" && imageScale > MAX_JPG_SCALE) {
+      imageScale = MAX_JPG_SCALE;
+      warn(
+        (imgPath || "").split("/").pop() +
+          " was output at a smaller size than desired because of a limit on jpg exports in Illustrator." +
+          " If the file needs to be larger, change the image format to png which does not appear to have limits.",
+      );
+    }
+    return imageScale;
+  }
+
+  // Tiles of a chunked image live in chunks/<name>-r<row>c<col>.<ext> next to
+  // where the unchunked image would go
+  function getChunkPath(outputPath, imgFile, r, c) {
+    var dot = imgFile.lastIndexOf(".");
+    var file =
+      "chunks/" +
+      imgFile.substring(0, dot) +
+      "-r" +
+      r +
+      "c" +
+      c +
+      imgFile.substring(dot);
+    return outputPath.substring(0, outputPath.lastIndexOf("/") + 1) + file;
+  }
+
+  // Delete tiles left by an earlier export, so a re-export with fewer tiles (or
+  // with chunking turned off) doesn't leave stale files behind. Only this
+  // format's extension, so a second image_format doesn't delete the first's.
+  function removeChunkFiles(outputPath, imgFile) {
+    var chunkPath = getChunkPath(outputPath, imgFile, "*", "*");
+    var slash = chunkPath.lastIndexOf("/");
+    var folder = new Folder(chunkPath.substring(0, slash));
+    if (!folder.exists) return;
+    forEach(folder.getFiles(chunkPath.substring(slash + 1)), function (f) {
+      f.remove();
+    });
+  }
+
+  // Exports a raster image as a grid of tiles no bigger than
+  // image_chunk_width x image_chunk_height output px (#103), so browsers decode
+  // tiles instead of one huge texture. Returns the tile divs' html, or null
+  // when chunking is off or the image fits (the caller then exports it whole).
+  // Tiles are background-image divs made by generateImageHtml, so each gets
+  // the usual container-query CSS var and only the active breakpoint loads.
+  // rect: AI bounds of the image (artboard, or a tagged layer's content).
+  // layer: the tagged layer being exported; null = the artboard image.
+  // ponytail: empty tiles are found from item bounds, not pixels, so a sparse
+  // item spanning many tiles still exports transparent tiles; an alpha scan
+  // in the panel could drop those if it matters.
+  function exportChunkedRaster(
+    outputPath,
+    imgFile,
+    imgId,
+    ab,
+    format,
+    settings,
+    group,
+    rect,
+    layer,
+  ) {
+    var maxW = Number(settings.image_chunk_width) || 0;
+    var maxH = Number(settings.image_chunk_height) || 0;
+    if (maxW > 0 && maxW < 64) maxW = 64;
+    if (maxH > 0 && maxH < 64) maxH = 64;
+    var s = getImageScale(ab, format, settings, outputPath) / 100; // px per point
+    var wPx = Math.round((rect[2] - rect[0]) * s);
+    var hPx = Math.round((rect[1] - rect[3]) * s);
+    // only skip empty areas when they'd be transparent anyway; a jpg (or
+    // opaque png) shows the artboard background there
+    var transparent =
+      format == "webp" || (format != "jpg" && isTrue(settings.png_transparent));
+
+    // Seams (measured in Chromium and WebKit, see #103):
+    // - Tiles sit on one shared grid, never trimmed per tile: the browser
+    //   rounds each tile box to the pixel grid separately, so tiles in a row
+    //   must share their top/bottom (a column its left/right) or a straight
+    //   edge steps by 1px where it crosses a seam.
+    // - Positions are insets (left/top/right/bottom), so both sides of a seam
+    //   come from the same number and round to the same pixel.
+    // - Opaque tiles overlap the next tile by ~1 CSS px, which hides the
+    //   anti-aliased edge a transform (parallax) gives a seam. Transparent
+    //   tiles meet edge to edge: an overlap draws soft pixels twice, a dark
+    //   line along each seam and a dot where seams cross.
+    // - Tile edges sit on the 16px JPEG block grid, so each tile compresses
+    //   like the same area of the whole image would.
+    // ponytail: transparent tiles under a sub-pixel translate can still show a
+    // faint seam; will-change: transform on the animated element fixes it in
+    // Chromium, nothing CSS-only does in WebKit.
+    var SNAP = 16;
+    var bleed = transparent ? 0 : Math.ceil(s);
+    var cols = maxW && wPx > maxW ? Math.ceil(wPx / (maxW - bleed - SNAP)) : 1;
+    var rows = maxH && hPx > maxH ? Math.ceil(hPx / (maxH - bleed - SNAP)) : 1;
+    if (cols * rows < 2) return null;
+    function edge(i, n, total) {
+      return i >= n ? total : Math.round((i * total) / n / SNAP) * SNAP;
+    }
+    // finer than formatCssPct: seams on a 4000px-wide graphic need < 0.01px
+    function pct(part, whole) {
+      return roundTo((part / whole) * 100, 6) + "%";
+    }
+    var boundsList = [];
+    if (transparent) {
+      // artboard image: everything still visible (text, symbols and tagged
+      // layers are hidden by now)
+      forEach(layer ? [layer] : doc.layers, function (lyr) {
+        if (!objectIsHidden(lyr)) collectContentBounds(lyr, boundsList, true);
+      });
+    }
+
+    var firstTile = getChunkPath(outputPath, imgFile, 0, 0);
+    var chunkFolder = new Folder(
+      firstTile.substring(0, firstTile.lastIndexOf("/")),
+    );
+    if (!chunkFolder.exists) chunkFolder.create();
+    deleteFile(outputPath); // stale unchunked image
+
+    var L = rect[0],
+      T = rect[1];
+    var isBase = !isTaggedRasterPrefix(settings.tagPrefix);
+    var html = "";
+    var count = 0;
+    for (var r = 0; r < rows; r++) {
+      for (var c = 0; c < cols; c++) {
+        var x0 = edge(c, cols, wPx);
+        var x1 = Math.min(wPx, edge(c + 1, cols, wPx) + bleed);
+        var y0 = edge(r, rows, hPx);
+        var y1 = Math.min(hPx, edge(r + 1, rows, hPx) + bleed);
+        if (transparent) {
+          var b = unionBoundsInRect(boundsList, [
+            L + x0 / s,
+            T - y0 / s,
+            L + x1 / s,
+            T - y1 / s,
+          ]);
+          // nothing here: no file, no element. A sliver touching the cell's
+          // edge (zero area) is nothing too. Plain ifs: ExtendScript evaluates
+          // the right side of a || (b && c) even when a is true.
+          if (!b) continue;
+          if (b[2] <= b[0]) continue;
+          if (b[1] <= b[3]) continue;
+        }
+        var tilePath = getChunkPath(outputPath, imgFile, r, c);
+        exportRasterImage(tilePath, ab, format, settings, [
+          L + x0 / s,
+          T - y0 / s,
+          L + x1 / s,
+          T - y1 / s,
+        ]);
+        count++;
+        hasChunkedImages = true;
+        html +=
+          "\t" +
+          generateImageHtml(
+            getChunkPath("", imgFile, r, c),
+            imgId + "-r" + r + "c" + c,
+            nameSpace + "aiTile",
+            "left:" +
+              pct(x0, wPx) +
+              ";top:" +
+              pct(y0, hPx) +
+              ";right:" +
+              pct(wPx - x1, wPx) +
+              ";bottom:" +
+              pct(hPx - y1, hPx),
+            ab,
+            extend({}, settings, {
+              noteAttributes: "",
+              image_alt_text: "",
+              // preload only the top row of the artboard image
+              priority_fetch: isBase && r == 0 && settings.priority_fetch,
+            }),
+            group,
+          ) +
+          "\r";
+      }
+    }
+    message(
+      imgFile + ": exported as " + count + " tiles (" + cols + "x" + rows + ")",
+    );
+    return html;
+  }
+
+  // Exports contents of active artboard as an image (without text, unless in test mode)
+  // imgPath: full path of output file
+  // ab: assumed to be active artboard
+  // format: png, png24, jpg, webp
+  //
+  // cropRect: optional AI bounds to crop the export to (e.g. a tagged layer's
+  //   content bounds). Scale is still derived from the full artboard so pixel
+  //   density is unchanged; the artboard is temporarily shrunk for the export.
+  function exportRasterImage(imgPath, ab, format, settings, cropRect) {
+    var imageScale = getImageScale(ab, format, settings, imgPath);
+    var exportOptions, fileType;
 
     if (format == "png") {
       fileType = ExportType.PNG8;
@@ -4101,14 +4361,6 @@ export function main(settingsArg) {
       });
       imgPath = imgPath + ".png";
     } else if (format == "jpg") {
-      if (imageScale > MAX_JPG_SCALE) {
-        imageScale = MAX_JPG_SCALE;
-        warn(
-          imgPath.split("/").pop() +
-            " was output at a smaller size than desired because of a limit on jpg exports in Illustrator." +
-            " If the file needs to be larger, change the image format to png which does not appear to have limits.",
-        );
-      }
       fileType = ExportType.JPEG;
       exportOptions = new ExportOptionsJPEG();
       exportOptions.qualitySetting = settings.image_quality;
@@ -4812,6 +5064,17 @@ export function main(settingsArg) {
       "background-size": "contain",
       "background-repeat": "no-repeat",
     });
+
+    // tiles of a chunked image (exportChunkedRaster); 100% 100% rather than
+    // contain so overlapping seam pixels line up exactly
+    if (hasChunkedImages) {
+      css += formatCssRule(blockStart + " ." + nameSpace + "aiTile", {
+        position: "absolute",
+        display: "block",
+        "background-size": "100% 100%",
+        "background-repeat": "no-repeat",
+      });
+    }
 
     css += formatCssRule(blockStart + " ." + getSymbolClass(), {
       position: "absolute",

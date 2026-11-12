@@ -4,5 +4,11 @@
     "name": "preview-dev-svg",
     "aiPath": "src/js/main/example/preview-dev.ai",
     "settings": { "image_format": "svg" }
+  },
+  {
+    "name": "preview-dev-chunked",
+    "aiPath": "src/js/main/example/preview-dev.ai",
+    "settings": { "image_chunk_width": 512, "image_chunk_height": 512 },
+    "baseline": "preview-dev"
   }
 ]

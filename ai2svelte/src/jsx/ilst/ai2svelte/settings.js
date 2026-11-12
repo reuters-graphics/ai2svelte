@@ -16,6 +16,8 @@ export let defaultSettings = {
   image_quality: 90,
   center_html_output: true,
   use_2x_images_if_possible: true,
+  image_chunk_width: 0, // split images wider than this many output px into tiles; 0 = off
+  image_chunk_height: 0, // split images taller than this many output px into tiles; 0 = off
   use_lazy_loader: false,
   include_resizer_widths: true,
   include_resizer_css: true, // container-query resizing

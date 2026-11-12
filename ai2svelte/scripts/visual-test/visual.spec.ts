@@ -5,9 +5,39 @@ import fixtures from "./fixtures.json" with { type: "json" };
 for (const fixture of fixtures) {
   test(`visual: ${fixture.name}`, async ({ page }) => {
     const outputDir = `${path.dirname(fixture.aiPath)}/visual-test-output-${fixture.name}`;
+    const chunkRequests: string[] = [];
+    page.on("request", (req) => {
+      if (req.url().includes("/chunks/")) chunkRequests.push(req.url());
+    });
     await page.goto(
       `/scripts/visual-test/harness.html?bundle=/${outputDir}/bundle.js&assetsPath=/${outputDir}`,
     );
-    await expect(page.locator("#frameContent")).toHaveScreenshot(`${fixture.name}.png`);
+    // "baseline": render must match another fixture's screenshot (e.g. chunked
+    // output must look identical to the unchunked export)
+    // A borrowed baseline gets a small tolerance: the tiles reassemble to the
+    // whole image within JPEG noise, but Chrome composites a mix-blend-mode
+    // layer over 9 tile layers slightly differently than over 1 (1px shifts on
+    // the blended edge, ~0.1% of pixels).
+    const borrowed = "baseline" in fixture;
+    const baseline = borrowed ? fixture.baseline : fixture.name;
+    await expect(page.locator("#frameContent")).toHaveScreenshot(
+      `${baseline}.png`,
+      borrowed ? { maxDiffPixelRatio: 0.003 } : {},
+    );
+
+    if (fixture.name.includes("chunked")) {
+      // only the visible breakpoint's tiles may load (#81): every requested tile
+      // must be the background of a tile that's actually displayed
+      const shown = await page.evaluate(() =>
+        [...document.querySelectorAll(".g-aiTile")]
+          .filter((el) => (el as HTMLElement).offsetParent)
+          .map((el) =>
+            getComputedStyle(el).backgroundImage.replace(/^url\("?|"?\)$/g, ""),
+          ),
+      );
+      expect(shown.length).toBeGreaterThan(1);
+      expect(chunkRequests.length).toBeGreaterThan(0);
+      for (const url of chunkRequests) expect(shown).toContain(url);
+    }
   });
 }
