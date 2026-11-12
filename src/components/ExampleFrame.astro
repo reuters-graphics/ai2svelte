@@ -42,7 +42,9 @@ import ExampleActions from "./ExampleActions.astro";
   .ex-stage {
     /* The frame is laid out at the artboard's real width and only scaled
        visually, so it can overhang this box. */
-    overflow: hidden;
+    /* clip, not hidden: hidden makes this a scroll container, which stops
+       position: sticky inside an example (example 8) from sticking. */
+    overflow: clip;
     display: flex;
     justify-content: center;
     /* Not stretch: the stage gets an explicit height when the frame is scaled,

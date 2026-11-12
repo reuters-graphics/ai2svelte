@@ -1,0 +1,25 @@
+---
+import Component from '../components/component8.svelte'
+import ExampleFrame from '../components/ExampleFrame.astro'
+---
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="generator" content={Astro.generator} />
+    <title>ai2svelte Example 8</title>
+  </head>
+  <body>
+    <ExampleFrame file="chunkedPanorama.ai" component="component8.svelte">
+        <Component client:load/>
+    </ExampleFrame>
+  </body>
+  <style>
+    body {
+      font-family: system-ui, sans-serif;
+      margin: 0;
+    }
+  </style>
+</html>
