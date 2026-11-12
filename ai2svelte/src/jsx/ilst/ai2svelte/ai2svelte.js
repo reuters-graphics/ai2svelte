@@ -3985,7 +3985,7 @@ export function main(settingsArg) {
       html += '"';
       var artboardId = nameSpace + getArtboardUniqueName(ab, settings);
       if (settings.tagPrefix) {
-        imgVars[imgId + "-" + ab.name] = {
+        imgVars[imgId + "-" + getArtboardName(ab)] = {
           artboardId: artboardId,
           src: src,
           id: imgId,

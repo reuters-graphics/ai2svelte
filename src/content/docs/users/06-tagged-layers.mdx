@@ -26,13 +26,15 @@ Rectangles and circles in a `:symbol` layer become `<div>` elements that keep th
 
 The contents of a `:png` layer are exported as a PNG and placed in the output as a separate `<img>` tag. Use it for parts of your artwork that should stay raster.
 
+The image is trimmed to the visible artwork, so it isn't exported at full artboard size. Artwork inside a clipping mask is cropped to the mask, and a layer with nothing visible on an artboard is skipped for that artboard.
+
 Use `:png24` instead for higher color depth.
 
 ### :webp
 
 The contents of a `:webp` layer are exported as a WebP and placed in the output as a separate `<img>` tag, with the same trimming and positioning as `:png`. WebP files are usually much smaller than PNG or JPG. Quality follows `image_quality`.
 
-The PNG is converted to WebP by the panel, so `:webp` layers only export when you run from the panel.
+The PNG is converted to WebP by the extension, so `:webp` layers only export when you run from the panel.
 
 :::note
 A `:png`/`:png24`/`:webp` layer is rasterized together with everything inside it. For predictable blend modes, apply the blend mode to the tagged layer itself rather than to its children.

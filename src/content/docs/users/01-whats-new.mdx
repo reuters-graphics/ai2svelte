@@ -13,6 +13,10 @@ sidebar:
 - Adds a `Debug Report` button in `Settings` that saves the open file's log and its latest copy to a folder you choose, to send with a bug report
 - Saves your file at the start of an export if it has unsaved changes, instead of only after a successful export, so a failed export also saves your file
 - Turns notes from Illustrator's `Attributes` panel into `data-*` attributes, e.g. `category: road` becomes `data-category="road"`
+- Adds WebP support, via `image_format: webp` or the new `:webp` tagged layers. WebP files are usually much smaller than PNG or JPG
+- Renames `jpg_quality` to `image_quality`, which now also sets WebP quality.
+- Trims whitespace from `:png`/`:png24`/`:webp` layers that contain groups or clipping masks, and crops masked artwork to the mask, so these images no longer export at full artboard size
+- Fixes tagged image layers not showing on artboards with spaces in their names
 
 ### v1.0.9
 
