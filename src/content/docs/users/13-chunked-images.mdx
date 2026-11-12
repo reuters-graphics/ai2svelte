@@ -71,6 +71,23 @@ Both settings are off (`0`) by default. Set one to `0` to split in one direction
 
 ---
 
+### Very wide artboards
+
+Chunking only changes how images are cut up. A very wide artboard needs a few more settings so that it shows up and isn't clipped.
+
+**Set the breakpoint in the artboard name.** By default, ai2svelte uses each artboard's width as its breakpoint. A 9,750-point artboard would only appear on screens at least 9,750 pixels wide, which means almost never. Add an [artboard tag](../tagged-layers/#artboard-tags) to the artboard name to set the breakpoint yourself. For example, naming the artboard `xl:1200` shows it from 1,200 pixels up.
+
+**Change these settings** from their defaults:
+
+```yaml
+allow_overflow: true        # let the artwork spill past the container instead of clipping it
+include_resizer_css: false  # pick the artboard by window size, not by container width
+```
+
+If the graphic should fill the screen's height and pan sideways, as the above example does, also set `fit_mode: height` and give its parent element a set width and height. See the [settings reference](../ai2svelte-settings-reference/#fit_mode).
+
+---
+
 ### What you get
 
 Each image is cut into equal columns that fit the limit. Take `fg:png24`, the opener's foreground, a `:png24` tagged layer that runs the full 19,500 pixels. With both limits at `4096` it becomes five tiles of about 3,900 pixels each:
