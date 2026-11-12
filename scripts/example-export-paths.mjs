@@ -24,24 +24,41 @@ const SETTINGS_ATTRS = ["ai-settings", "msg"];
 const PACKET_START = "<?xpacket begin";
 const PACKET_END = '<?xpacket end="w"?>';
 
-/** Values sit inside a double-quoted XML attribute, so every JSON quote is `&quot;`. */
-const setPaths = (escapedJson) =>
+/**
+ * q is how a JSON quote is written: `&quot;` inside a double-quoted XML
+ * attribute, a plain `"` in element text.
+ */
+const setPaths = (json, q) =>
   Object.entries(DOWNLOAD_PATHS).reduce(
-    (json, [key, value]) =>
-      json.replace(
-        new RegExp(`(&quot;${key}&quot;:&quot;)[^&]*(&quot;)`, "g"),
+    (out, [key, value]) =>
+      out.replace(
+        new RegExp(`(${q}${key}${q}:${q})[^&"]*(${q})`, "g"),
         `$1${value}$2`,
       ),
-    escapedJson,
+    json,
   );
 
+/**
+ * Illustrator writes the properties either as attributes on rdf:Description
+ * (older files) or as child elements (files saved since the panel started
+ * mirroring XMP into doc.XMPString), so rewrite both forms.
+ */
 const rewritePacket = (packet) =>
   SETTINGS_ATTRS.reduce(
     (xmp, attr) =>
-      xmp.replace(
-        new RegExp(`(ai2svelte-companion:${attr}=")([^"]*)(")`),
-        (_match, head, value, tail) => head + setPaths(value) + tail,
-      ),
+      xmp
+        .replace(
+          new RegExp(`(ai2svelte-companion:${attr}=")([^"]*)(")`),
+          (_match, head, value, tail) =>
+            head + setPaths(value, "&quot;") + tail,
+        )
+        .replace(
+          new RegExp(
+            `(<ai2svelte-companion:${attr}>)([^<]*)(</ai2svelte-companion:${attr}>)`,
+          ),
+          (_match, head, value, tail) =>
+            head + setPaths(setPaths(value, '"'), "&quot;") + tail,
+        ),
     packet,
   );
 
