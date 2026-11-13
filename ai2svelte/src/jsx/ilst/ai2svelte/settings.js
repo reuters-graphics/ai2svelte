@@ -32,6 +32,7 @@ export let defaultSettings = {
   priority_fetch: false, // for prioritized fetching of images above the fold
   override_text: false, // whether to override text by default
   allow_overflow: false, // whether to allow root div overflow
+  artboard_background: "none", // CSS color behind each artboard so blend modes over transparent images match Illustrator, e.g. "#ffffff"
   fit_mode: "width",
 };
 

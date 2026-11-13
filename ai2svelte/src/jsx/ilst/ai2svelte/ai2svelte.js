@@ -4548,6 +4548,32 @@ export function main(settingsArg) {
       }
     }
 
+    // Removes a copied group's children (recursively) that lie fully outside
+    // the artboard. Clipping paths are kept so masks stay intact.
+    function pruneOutsideArtboard(group) {
+      var children = toArray(group.pageItems);
+      for (var i = children.length - 1; i >= 0; i--) {
+        var child = children[i];
+        if (child.parent != group || child.clipping) continue;
+        if (!testBoundsIntersection(child.geometricBounds, artboardBounds)) {
+          try {
+            track("pruning off-artboard item from copy", child);
+            child.remove();
+          } catch (e) {
+            // an unremovable child just stays in the export (bigger file, still clipped by CSS)
+            warn(
+              "Kept off-artboard " +
+                describeItem(child) +
+                " in the SVG export -- " +
+                e.message,
+            );
+          }
+        } else if (child.typename == "GroupItem") {
+          pruneOutsideArtboard(child);
+        }
+      }
+    }
+
     function findLayerMask(lyr) {
       return find(layerMasks, function (o) {
         return o.layer == lyr;
@@ -4569,6 +4595,12 @@ export function main(settingsArg) {
       try {
         track("duplicating for image export", item);
         copy = item.duplicate(dest, ElementPlacement.PLACEATEND); //  duplicateItem(item, dest);
+        if (copy.typename == "GroupItem") {
+          // A group spanning several artboards passes the bounds test above
+          // as a whole -- drop its descendants that miss this artboard, or
+          // the SVG export carries every artboard's artwork.
+          pruneOutsideArtboard(copy);
+        }
         handleEffects(copy);
         itemCount++;
         if (copy.typename == "GroupItem") {
@@ -5054,6 +5086,16 @@ export function main(settingsArg) {
     css += formatCssRule(blockStart + " ." + nameSpace + "aiAbs", {
       position: "absolute",
     });
+
+    // The box's container-type makes it a stacking context, so mix-blend-mode
+    // inside it can't see the page. Paint the artboard (like Illustrator's
+    // white artboard) so blends over transparent SVG/PNG areas match a JPG.
+    var abBackground = trim(String(settings.artboard_background || ""));
+    if (abBackground && abBackground != "none") {
+      css += formatCssRule(blockStart + " ." + nameSpace + "artboard", {
+        "background-color": abBackground,
+      });
+    }
 
     css += formatCssRule(blockStart + " ." + nameSpace + "aiImg", {
       position: "absolute",

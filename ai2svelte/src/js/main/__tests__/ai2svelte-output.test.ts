@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { existsSync, readdirSync, readFileSync } from "node:fs";
+import { createHash } from "node:crypto";
 import path from "node:path";
 import fixtures from "../../../../scripts/visual-test/fixtures.json";
 
@@ -24,7 +25,15 @@ describe("ai2svelte generated output (visual-test)", () => {
       const content = readFileSync(path.join(outputDir, svelteFile as string), "utf8");
       // ai2svelte stamps a generation timestamp in comments — strip it so this
       // snapshot only fails on actual output changes, not on wall-clock time.
-      const normalized = content.replace(/\d{4}-\d{2}-\d{2} \d{2}:\d{2}/g, "<timestamp>");
+      // Embedded raster data (svg_embed_images) is MBs of base64 that the
+      // screenshot test already covers -- keep only a short hash of it.
+      const normalized = content
+        .replace(/\d{4}-\d{2}-\d{2} \d{2}:\d{2}/g, "<timestamp>")
+        .replace(
+          /data:image\/(\w+);base64,[A-Za-z0-9+/=\s]+/g,
+          (m, type) =>
+            `data:image/${type};base64,<${createHash("sha1").update(m).digest("hex").slice(0, 12)}>`,
+        );
       expect(normalized).toMatchSnapshot();
     });
   }

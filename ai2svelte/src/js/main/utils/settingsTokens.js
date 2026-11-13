@@ -276,4 +276,11 @@ export let aiSettingsTokens = [
     inputType: "select",
     options: ["true", "false"],
   },
+  {
+    label: "artboard_background",
+    type: "variable",
+    info: "Background color behind each artboard, so blend modes over transparent SVG/PNG areas blend like Illustrator's white artboard. \n Any CSS color, or none for a see-through graphic",
+    default: "none",
+    inputType: "text",
+  },
 ];

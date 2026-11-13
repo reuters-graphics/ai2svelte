@@ -28,6 +28,12 @@ Sets the ARIA `role` of the ai2svelte container, which tells assistive technolog
 
 Default: _(blank)_
 
+### artboard_background :badge[New]
+
+Background color painted behind each artboard. Blend modes such as Screen or Difference only blend with what's inside the graphic, so without a background they blend against nothing wherever an SVG or transparent PNG background is empty. Set it to `#ffffff` to match Illustrator's white artboard; leave it as `none` to keep the graphic see-through on a colored page.
+
+Default: `none`. Accepts any CSS color, or `none`
+
 ### center_html_output
 
 If `true`, centers the ai2svelte div inside its container.

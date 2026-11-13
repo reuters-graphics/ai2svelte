@@ -18,6 +18,7 @@ sidebar:
 - Trims whitespace from `:png`/`:png24`/`:webp` layers that contain groups or clipping masks, and crops masked artwork to the mask, so these images no longer export at full artboard size
 - Fixes tagged image layers not showing on artboards with spaces in their names
 - Adds `image_chunk_width` and `image_chunk_height`, which split very wide or long images into tiles that are faster for browsers to decode. Empty tiles are skipped for transparent formats. See [Chunked images](../chunked-images/)
+- Adds `artboard_background`, which paints a color behind each artboard. Set it to `#ffffff` so blend modes over transparent SVG or PNG areas look the same as on Illustrator's white artboard. See [Settings reference](../ai2svelte-settings-reference/#artboard_background)
 
 ### v1.0.9
 
