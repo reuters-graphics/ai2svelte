@@ -4217,6 +4217,19 @@ export function main(settingsArg) {
     var s = getImageScale(ab, format, settings, outputPath) / 100; // px per point
     var wPx = Math.round((rect[2] - rect[0]) * s);
     var hPx = Math.round((rect[1] - rect[3]) * s);
+    // chunking is opt-in, so point people at it when an image is big enough to
+    // benefit (the chunked images guide's ~4,000 px rule of thumb)
+    if (!maxW && !maxH && Math.max(wPx, hPx) > 4096) {
+      warnOnce(
+        imgFile +
+          " exports at " +
+          wPx +
+          " x " +
+          hPx +
+          ' px. Images this large are slow for browsers to decode; set image_chunk_width / image_chunk_height (e.g. 4096) to split them into tiles. See "Chunked images" in the ai2svelte docs.',
+        "chunk-hint",
+      );
+    }
     // only skip empty areas when they'd be transparent anyway; a jpg (or
     // opaque png) shows the artboard background there
     var transparent =
