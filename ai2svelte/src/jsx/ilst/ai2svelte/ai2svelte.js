@@ -790,10 +790,19 @@ export function main(settingsArg) {
 
   // jpg_quality was renamed image_quality (it also drives webp). Old names still
   // work; the new name wins if both are set.
+  // Removed no-op settings are dropped silently so old documents don't warn
+  // "unused parameter" on every export. Keep in sync with CLAUDE.md "Removed Settings".
+  // The list lives inside the function: main() calls this before a sibling
+  // top-level var would be assigned.
   function renameLegacySettings(obj) {
-    if (obj && "jpg_quality" in obj) {
+    var REMOVED_SETTINGS = ["use_lazy_loader", "html_output_extension"];
+    if (!obj) return;
+    if ("jpg_quality" in obj) {
       if (!("image_quality" in obj)) obj.image_quality = obj.jpg_quality;
       delete obj.jpg_quality;
+    }
+    for (var i = 0; i < REMOVED_SETTINGS.length; i++) {
+      delete obj[REMOVED_SETTINGS[i]];
     }
   }
 
@@ -4071,12 +4080,6 @@ export function main(settingsArg) {
           id: imgId,
         };
       }
-    }
-
-    if (isTrue(settings.use_lazy_loader)) {
-      // native lazy loading seems to work well -- images aren't loaded when
-      // hidden or far from the viewport.
-      html += ' loading="lazy"';
     }
 
     html += "></div>";

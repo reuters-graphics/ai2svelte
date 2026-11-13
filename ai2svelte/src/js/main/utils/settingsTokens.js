@@ -159,14 +159,6 @@ export let aiSettingsTokens = [
     inputType: "text",
   },
   {
-    label: "use_lazy_loader",
-    type: "variable",
-    info: "Lazy load the artboard images? Options: true, false",
-    default: "true",
-    inputType: "select",
-    options: ["true", "false"],
-  },
-  {
     label: "include_resizer_widths",
     type: "variable",
     info: "Add data-min/max-width to the artboard containers. Options: true, false",

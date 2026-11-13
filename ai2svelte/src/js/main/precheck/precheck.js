@@ -156,7 +156,8 @@ async function checkVersion() {
     }
   }
 
-  // renames jpg_quality to image_quality in saved profiles (it now also drives webp)
+  // renames jpg_quality to image_quality in saved profiles (it now also drives webp),
+  // and drops use_lazy_loader (images are divs, so loading="lazy" never did anything)
   if (compareVersions(pluginVersion, "1.0.10") >= 0 && userFlags) {
     if (userFlags["1.0.10"] == undefined) {
       userFlags["1.0.10"] = {};
@@ -164,13 +165,14 @@ async function checkVersion() {
       if (usersProfile) {
         let changed = false;
         Object.values(usersProfile).forEach((profile) => {
-          if (
-            profile &&
-            typeof profile === "object" &&
-            "jpg_quality" in profile
-          ) {
+          if (!profile || typeof profile !== "object") return;
+          if ("jpg_quality" in profile) {
             profile.image_quality ??= profile.jpg_quality;
             delete profile.jpg_quality;
+            changed = true;
+          }
+          if ("use_lazy_loader" in profile) {
+            delete profile.use_lazy_loader;
             changed = true;
           }
         });

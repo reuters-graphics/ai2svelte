@@ -18,7 +18,6 @@ export let defaultSettings = {
   use_2x_images_if_possible: true,
   image_chunk_width: 0, // split images wider than this many output px into tiles; 0 = off
   image_chunk_height: 0, // split images taller than this many output px into tiles; 0 = off
-  use_lazy_loader: false,
   include_resizer_widths: true,
   include_resizer_css: true, // container-query resizing
   inline_svg: false, // Embed background image SVG in HTML instead of loading a file

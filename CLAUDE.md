@@ -165,6 +165,17 @@ export const ai2svelte = (layers: Layer[], settings: Settings) => { ... };
 - Errors in ExtendScript are caught by `evalTS()` and surfaced as rejected promises in the panel.
 - `dataOperations.ts` stores extension state as hidden JSON in the Illustrator document's custom data — this is how settings persist across sessions without writing files.
 
+## Removed Settings
+
+Keep this list current when a setting is dropped or renamed, so stale keys in old docs/profiles are recognisable. Strip removed keys from saved profiles in `src/js/main/precheck/precheck.js` (versioned `.flags.json` migrations). Settings saved in a document's XMP are not migrated: the engine warns "unused parameter" for unknown keys, so add no-op removals to `REMOVED_SETTINGS` in `ai2svelte.js` (`renameLegacySettings`) to drop them silently. Leave a key out of that list (e.g. `respect_height`) when the warning is useful because the user should switch to the replacement.
+
+| Setting | Version | Why / replacement |
+|---|---|---|
+| `use_lazy_loader` | 1.0.10 | No-op: images are `<div>`s with background images, so `loading="lazy"` never applied |
+| `jpg_quality` | 1.0.10 | Renamed `image_quality` (also drives WebP); old name still read by the engine |
+| `html_output_extension` | 1.0.9 | `.svelte` is the only output |
+| `respect_height` | 1.0.5 | Replaced by `fit_mode` (`width` / `height` / `cover`) |
+
 ## Dormant: Preview
 
 The Preview tab (in-panel render of the exported component) was removed from the UI in v1.0.4 but kept on purpose for a likely CEP → UXP migration — don't delete it. Pieces: `src/js/main/Tabs/Preview/` (not imported anywhere, so not bundled), `Components/PreviewFrame.svelte`, `src/jsx/ilst/previewWrapper.ts`, the commented-out `runPreview` + `wrapper` import in `src/jsx/ilst/ilst.ts`, and the `isPreview` branches in `ai2svelte.js`. To revive: uncomment in `ilst.ts`, import `Preview.svelte` into the tab bar.
