@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg id="g-svg-stars" xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="0 0 573.26 781.11">
+  <!-- Generator: Adobe Illustrator 31.0.0, SVG Export Plug-In . SVG Version: 2.1.5 Build 84)  -->
+  <circle data-star="Sirius" data-designation="Alpha Canis Majoris" data-constellation="canis-major" data-asterism="winter-hexagon" data-mag="-1.46" data-ly="8.6" data-class="A1V" data-fact="The brightest star in the night sky, and one of the closest" cx="137.8" cy="639.97" r="5.93" fill="#f4f6ff"/>
+  <circle data-star="Procyon" data-designation="Alpha Canis Minoris" data-constellation="canis-minor" data-asterism="winter-hexagon" data-mag="0.34" data-ly="11.5" data-class="F5IV" data-fact="Has a faint white dwarf companion, Procyon B" cx="4.17" cy="414.34" r="4.17" fill="#fff1d6"/>
+  <circle data-star="Pollux" data-designation="Beta Geminorum" data-constellation="gemini" data-asterism="winter-hexagon" data-mag="1.14" data-ly="34" data-class="K0III" data-fact="An orange giant with a planet of its own, Thestias" cx="12.3" cy="180.03" r="3.38" fill="#ffcf96"/>
+  <circle data-star="Castor" data-designation="Alpha Geminorum" data-constellation="gemini" data-asterism="winter-hexagon" data-mag="1.58" data-ly="51" data-class="A1V" data-fact="Looks like one star but is six, in three pairs" cx="42.02" cy="143.42" r="2.95" fill="#f4f6ff"/>
+  <circle data-star="Capella" data-designation="Alpha Aurigae" data-constellation="auriga" data-asterism="winter-hexagon" data-mag="0.08" data-ly="43" data-class="G3III" data-fact="Two yellow giants orbiting each other every 104 days" cx="327.46" cy="4.42" r="4.42" fill="#fff1d6"/>
+  <circle data-star="Aldebaran" data-designation="Alpha Tauri" data-constellation="taurus" data-asterism="winter-hexagon" data-mag="0.86" data-ly="65" data-class="K5III" data-fact="The bull's eye. It sits in front of the Hyades cluster, not in it" cx="448.65" cy="300.44" r="3.66" fill="#ffcf96"/>
+  <circle data-star="Rigel" data-designation="Beta Orionis" data-constellation="orion" data-asterism="winter-hexagon" data-mag="0.13" data-ly="860" data-class="B8Ia" data-fact="A blue supergiant, tens of thousands of times as luminous as the Sun" cx="362.6" cy="552.88" r="4.37" fill="#a9bfff"/>
+  <circle data-star="Betelgeuse" data-designation="Alpha Orionis" data-constellation="orion" data-mag="0.5" data-ly="550" data-class="M1Ia" data-fact="A red supergiant. In the Sun's place, it would reach past Mars" cx="260.87" cy="399.01" r="4.01" fill="#ff9f6b"/>
+  <circle data-star="Bellatrix" data-designation="Gamma Orionis" data-constellation="orion" data-mag="1.64" data-ly="250" data-class="B2III" cx="334.09" cy="408.21" r="2.89" fill="#a9bfff"/>
+  <circle data-star="Alnilam" data-designation="Epsilon Orionis" data-constellation="orion" data-mag="1.69" data-ly="2000" data-class="B0Ia" data-fact="The middle star of Orion's belt" cx="307.98" cy="483.2" r="2.84" fill="#a9bfff"/>
+  <circle data-star="Alnitak" data-designation="Zeta Orionis" data-constellation="orion" data-mag="1.77" data-ly="1260" data-class="O9.5Ib" cx="296.91" cy="490.63" r="2.77" fill="#a9bfff"/>
+  <circle data-star="Mintaka" data-designation="Delta Orionis" data-constellation="orion" data-mag="2.23" data-ly="1200" data-class="O9.5II" cx="318.43" cy="474.15" r="2.31" fill="#a9bfff"/>
+  <circle data-star="Saiph" data-designation="Kappa Orionis" data-constellation="orion" data-mag="2.09" data-ly="650" data-class="B0.5Ia" cx="279.75" cy="567.77" r="2.45" fill="#a9bfff"/>
+  <circle data-star="Meissa" data-designation="Lambda Orionis" data-constellation="orion" data-mag="3.39" cx="309.02" cy="373.55" r="1.18" fill="#a9bfff"/>
+  <circle data-star="Elnath" data-designation="Beta Tauri" data-constellation="taurus" data-mag="1.65" data-ly="134" data-class="B7III" cx="322.31" cy="187.61" r="2.88" fill="#d4defd"/>
+  <circle data-star="Tianguan" data-designation="Zeta Tauri" data-constellation="taurus" data-mag="3" cx="299.96" cy="263.37" r="1.56" fill="#d4defd"/>
+  <circle data-star="Prima Hyadum" data-designation="Gamma Tauri" data-constellation="taurus" data-mag="3.65" cx="489.07" cy="305.61" r="1.15" fill="#ffcf96"/>
+  <circle data-star="Secunda Hyadum" data-designation="Delta Tauri" data-constellation="taurus" data-mag="3.76" cx="479.33" cy="286.77" r="1.15" fill="#ffcf96"/>
+  <circle data-star="Ain" data-designation="Epsilon Tauri" data-constellation="taurus" data-mag="3.53" cx="463.7" cy="271.52" r="1.15" fill="#ffcf96"/>
+  <circle data-star="Theta Tauri" data-constellation="taurus" data-mag="3.4" cx="466.97" cy="305.29" r="1.17" fill="#f4f6ff"/>
+  <circle data-star="Lambda Tauri" data-constellation="taurus" data-mag="3.47" cx="540.57" cy="333.03" r="1.15" fill="#d4defd"/>
+  <circle data-star="Alhena" data-designation="Gamma Geminorum" data-constellation="gemini" data-mag="1.93" data-ly="109" data-class="A1IV" cx="159.77" cy="309.96" r="2.61" fill="#f4f6ff"/>
+  <circle data-star="Mebsuta" data-designation="Epsilon Geminorum" data-constellation="gemini" data-mag="2.98" cx="148.93" cy="222.78" r="1.58" fill="#fff1d6"/>
+  <circle data-star="Tejat" data-designation="Mu Geminorum" data-constellation="gemini" data-mag="2.87" cx="195.7" cy="250.49" r="1.69" fill="#ff9f6b"/>
+  <circle data-star="Propus" data-designation="Eta Geminorum" data-constellation="gemini" data-mag="3.28" cx="214.23" cy="250.85" r="1.29" fill="#ff9f6b"/>
+  <circle data-star="Wasat" data-designation="Delta Geminorum" data-constellation="gemini" data-mag="3.53" cx="63.48" cy="248.54" r="1.15" fill="#fff1d6"/>
+  <circle data-star="Mekbuda" data-designation="Zeta Geminorum" data-constellation="gemini" data-mag="3.9" cx="99.71" cy="265.62" r="1.15" fill="#fff1d6"/>
+  <circle data-star="Tau Geminorum" data-constellation="gemini" data-mag="4.41" cx="91.77" cy="166.58" r="1.15" fill="#ffcf96"/>
+  <circle data-star="Mirzam" data-designation="Beta Canis Majoris" data-constellation="canis-major" data-mag="1.98" data-ly="490" data-class="B1II" cx="193.44" cy="652.36" r="2.56" fill="#a9bfff"/>
+  <circle data-star="Adhara" data-designation="Epsilon Canis Majoris" data-constellation="canis-major" data-mag="1.5" data-ly="430" data-class="B2II" cx="107.86" cy="772.07" r="3.03" fill="#a9bfff"/>
+  <circle data-star="Wezen" data-designation="Delta Canis Majoris" data-constellation="canis-major" data-mag="1.83" data-ly="1600" data-class="F8Ia" cx="82.76" cy="744.6" r="2.71" fill="#fff1d6"/>
+  <circle data-star="Aludra" data-designation="Eta Canis Majoris" data-constellation="canis-major" data-mag="2.45" cx="45.79" cy="779.01" r="2.1" fill="#a9bfff"/>
+  <circle data-star="Gomeisa" data-designation="Beta Canis Minoris" data-constellation="canis-minor" data-mag="2.89" cx="36.3" cy="384.99" r="1.67" fill="#d4defd"/>
+  <circle data-star="Menkalinan" data-designation="Beta Aurigae" data-constellation="auriga" data-mag="1.9" data-ly="81" data-class="A1IV" cx="246.89" cy="20.6" r="2.64" fill="#f4f6ff"/>
+  <circle data-star="Mahasim" data-designation="Theta Aurigae" data-constellation="auriga" data-mag="2.62" cx="247.55" cy="102.3" r="1.93" fill="#f4f6ff"/>
+  <circle data-star="Hassaleh" data-designation="Iota Aurigae" data-constellation="auriga" data-mag="2.69" cx="382.52" cy="135.64" r="1.86" fill="#ffcf96"/>
+  <circle data-star="Almaaz" data-designation="Epsilon Aurigae" data-constellation="auriga" data-mag="2.99" cx="358.44" cy="24.59" r="1.57" fill="#fff1d6"/>
+  <circle data-star="Haedus" data-designation="Eta Aurigae" data-constellation="auriga" data-mag="3.17" cx="352.9" cy="53.42" r="1.39" fill="#d4defd"/>
+  <circle data-star="Pleiades" data-designation="M45" data-constellation="taurus" data-mag="1.6" data-ly="444" data-class="open cluster" data-fact="A young cluster of hot blue stars, also called the Seven Sisters" cx="555.89" cy="205.91" r="1.77" fill="#d4defd"/>
+  <circle data-star="Pleiades" data-designation="M45" data-constellation="taurus" data-mag="1.6" data-ly="444" data-class="open cluster" data-fact="A young cluster of hot blue stars, also called the Seven Sisters" cx="545.96" cy="209.12" r="1.39" fill="#d4defd"/>
+  <circle data-star="Pleiades" data-designation="M45" data-constellation="taurus" data-mag="1.6" data-ly="444" data-class="open cluster" data-fact="A young cluster of hot blue stars, also called the Seven Sisters" cx="571.91" cy="202.68" r="1.35" fill="#d4defd"/>
+  <circle data-star="Pleiades" data-designation="M45" data-constellation="taurus" data-mag="1.6" data-ly="444" data-class="open cluster" data-fact="A young cluster of hot blue stars, also called the Seven Sisters" cx="564.39" cy="197.06" r="1.27" fill="#d4defd"/>
+  <circle data-star="Pleiades" data-designation="M45" data-constellation="taurus" data-mag="1.6" data-ly="444" data-class="open cluster" data-fact="A young cluster of hot blue stars, also called the Seven Sisters" cx="563.59" cy="208.82" r="1.11" fill="#d4defd"/>
+  <circle data-star="Pleiades" data-designation="M45" data-constellation="taurus" data-mag="1.6" data-ly="444" data-class="open cluster" data-fact="A young cluster of hot blue stars, also called the Seven Sisters" cx="567.51" cy="193.71" r="1.05" fill="#d4defd"/>
+  <circle data-star="Pleiades" data-designation="M45" data-constellation="taurus" data-mag="1.6" data-ly="444" data-class="open cluster" data-fact="A young cluster of hot blue stars, also called the Seven Sisters" cx="545.56" cy="206.9" r=".9" fill="#d4defd"/>
+<style>
+#g-svg-stars rect, #g-svg-stars circle, #g-svg-stars path, #g-svg-stars line, #g-svg-stars polyline, #g-svg-stars polygon { vector-effect: non-scaling-stroke; }
+</style>
+</svg>

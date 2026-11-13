@@ -6,7 +6,7 @@ sidebar:
   order: 112
 ---
 
-import { Steps } from "@astrojs/starlight/components";
+import { LinkCard, Steps } from "@astrojs/starlight/components";
 
 You can attach your own `data-*` attributes to exported elements by writing a note on the object in Illustrator. Use them to find elements from your code, style them with CSS, or pass extra information to your page, such as an ID or a category.
 
@@ -100,3 +100,9 @@ Or style them with CSS:
 ```
 
 Every artboard is in the DOM at the same time, so a selector like the one above matches the element in each artboard. To only target the artboard that's showing, use [`onArtboardChange`](../event-listeners/#onartboardchange).
+
+<LinkCard
+  title="Example 9"
+  href="../../example9/"
+  description="Every star, line and label in this star chart has a note. The page reads the data attributes to build its cards and constellation filters."
+/>

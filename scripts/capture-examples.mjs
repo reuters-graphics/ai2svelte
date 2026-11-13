@@ -18,7 +18,7 @@ import { chromium } from "playwright";
 
 const ASPECT = 3 / 2;
 const OUT_DIR = new URL("../public/images/examples/", import.meta.url);
-const EXAMPLES = [1, 2, 3, 4, 5, 6, 7, 8];
+const EXAMPLES = [1, 2, 3, 4, 5, 6, 7, 8, 9];
 
 /**
  * Capture width per example, for the ones the default width frames badly. The
