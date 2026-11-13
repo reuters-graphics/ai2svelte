@@ -103,8 +103,8 @@ Baselines are "last approved," not immutable — when a change is intentional,
 regenerate and review the diff, then accept:
 ```bash
 pnpm test:visual:generate            # re-run the real Illustrator export
-playwright test --update-snapshots   # accept new screenshots
-vitest run src/js/main/__tests__/ai2svelte-output.test.ts -u  # accept new .svelte snapshot
+pnpm exec playwright test --update-snapshots   # accept new screenshots
+pnpm exec vitest run src/js/main/__tests__/ai2svelte-output.test.ts -u  # accept new .svelte snapshot
 ```
 
 `harness.html` renders fixtures at a fixed 800px width, so only the artboard
