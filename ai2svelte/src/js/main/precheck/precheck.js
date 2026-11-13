@@ -2,7 +2,6 @@ import { evalTS } from "../../lib/utils/bolt";
 import { version as pluginVersion } from "../../../shared/shared";
 import { readFile, writeFile } from "../utils/utils";
 import pluginFlags from "./flags.json?json";
-import defaultShadows from "../Tabs/data/shadows.json?raw";
 import defaultAnimations from "../Tabs/data/animations.json?raw";
 import JSON5 from "json5";
 
@@ -197,6 +196,36 @@ async function checkVersion() {
       }
 
       userFlags["1.0.10"].migratedWebpDefault = true;
+      writeFile(".flags.json", userFlags);
+    }
+
+    // transform animations gained transform-box: fill-box, so they scale and
+    // rotate around an :svg object's own centre. Updates only the presets the
+    // user hasn't edited: their definition is the new one minus transform-box.
+    if (userFlags["1.0.10"].addedTransformBox !== true) {
+      const userAnimations = readFile("user-animations.json");
+      const systemAnimations = JSON5.parse(defaultAnimations);
+      let changed = false;
+
+      if (Array.isArray(userAnimations)) {
+        userAnimations.forEach((animation) => {
+          const system = systemAnimations.find(
+            (a) => a.name === animation.name,
+          );
+          if (
+            system &&
+            system.definition !== animation.definition &&
+            system.definition.replaceAll("transform-box: fill-box;", "") ===
+              animation.definition
+          ) {
+            animation.definition = system.definition;
+            changed = true;
+          }
+        });
+        if (changed) writeFile("user-animations.json", userAnimations);
+      }
+
+      userFlags["1.0.10"].addedTransformBox = true;
       writeFile(".flags.json", userFlags);
     }
   }

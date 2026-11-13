@@ -13,6 +13,7 @@
   },
   "1.0.10": {
     "renamedJpgQuality": false,
-    "migratedWebpDefault": false
+    "migratedWebpDefault": false,
+    "addedTransformBox": false
   }
 }

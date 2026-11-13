@@ -14,6 +14,7 @@ sidebar:
 - Adds a `Debug Report` button in `Settings` that saves the open file's log and its latest copy to a folder you choose, to send with a bug report
 - Saves your file at the start of an export if it has unsaved changes, instead of only after a successful export, so a failed export also saves your file
 - Turns notes from Illustrator's `Attributes` panel into `data-*` attributes, e.g. `category: road` becomes `data-category="road"`
+- Makes transform animations (`pulse`, `rotate`, `zoomFade` and others) scale and rotate objects in `:svg` layers around the object's own centre, instead of drifting off it. Your copies of the presets are updated unless you've edited them
 - Adds WebP support, via `image_format: webp` or the new `:webp` tagged layers. WebP files are usually much smaller than PNG or JPG
 - Makes `webp` the default `image_format` for new documents, instead of `jpg`. Documents with saved settings keep their format. If your default profile is set to `jpg`, the plugin asks once whether to switch it to `webp`
 - Renames `jpg_quality` to `image_quality`, which now also sets WebP quality.
