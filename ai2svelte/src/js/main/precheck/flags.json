@@ -12,6 +12,7 @@
     "removedHtmlOutputExtension": false
   },
   "1.0.10": {
-    "renamedJpgQuality": false
+    "renamedJpgQuality": false,
+    "migratedWebpDefault": false
   }
 }

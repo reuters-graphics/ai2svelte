@@ -180,6 +180,23 @@ async function checkVersion() {
       userFlags["1.0.10"].renamedJpgQuality = true;
       writeFile(".flags.json", userFlags);
     }
+
+    // webp is the new default image_format; offer to switch a default profile still on the old jpg default.
+    // Checks its own key (not the version group) so installs that already ran the 1.0.10 migration above still get it.
+    if (userFlags["1.0.10"].migratedWebpDefault !== true) {
+      if (usersProfile?.default?.image_format === "jpg") {
+        const response = confirm(
+          "webp is now the default image format. It's usually much smaller than jpg. Do you want to switch your default profile's image_format from jpg to webp?",
+        );
+        if (response) {
+          usersProfile.default.image_format = "webp";
+          writeFile("user-profiles.json", usersProfile);
+        }
+      }
+
+      userFlags["1.0.10"].migratedWebpDefault = true;
+      writeFile(".flags.json", userFlags);
+    }
   }
 
   if (comparison < 0) {

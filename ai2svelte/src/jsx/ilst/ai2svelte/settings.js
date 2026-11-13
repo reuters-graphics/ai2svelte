@@ -38,7 +38,7 @@ export let defaultSettings = {
 
 // settings used when no user settings are found
 export let placeholderSettings = {
-  image_format: ["jpg"],
+  image_format: ["webp"],
   responsiveness: "dynamic",
   output: "one-file",
   html_output_path: "../src/lib/ai2svelte/",

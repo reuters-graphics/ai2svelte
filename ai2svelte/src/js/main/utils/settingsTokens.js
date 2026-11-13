@@ -10,7 +10,7 @@ export let aiSettingsTokens = [
     label: "image_format",
     type: "variable",
     info: "Options: auto, png, png24, jpg, webp, svg",
-    default: "jpg",
+    default: "webp",
     inputType: "select",
     options: ["auto", "png", "png24", "jpg", "webp", "svg"],
   },
