@@ -735,7 +735,7 @@ export function main(settingsArg) {
 
   function isTestedIllustratorVersion(version) {
     var majorNum = parseInt(version);
-    return majorNum >= 18 && majorNum <= 30; // Illustrator CC 2014 through 2025
+    return majorNum >= 18 && majorNum <= 31; // Illustrator CC 2014 through 2027
   }
 
   function groupArtboardsForOutput(settings) {
