@@ -4734,9 +4734,10 @@ export function main(settingsArg) {
     if (!svg) return;
     // replace id created by Illustrator (relevant for inline SVG)
     svg = svg.replace(/id="[^"]*"/, 'id="' + id + '"');
-    if (svgNotes) svg = addNoteAttributesInSVG(svg, svgNotes);
-    // reapply opacity and multiply effects
+    // reapply opacity and multiply effects. Runs before the notes, because it
+    // turns the "Z--opacity50--name" ids back into the names they're keyed by
     svg = reapplyEffectsInSVG(svg);
+    if (svgNotes) svg = addNoteAttributesInSVG(svg, svgNotes);
     // prevent SVG strokes from scaling
     // (add element id to selector to prevent inline SVG from affecting other SVG on the page)
     selector = map(
