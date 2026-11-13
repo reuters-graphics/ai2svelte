@@ -165,6 +165,10 @@ export const ai2svelte = (layers: Layer[], settings: Settings) => { ... };
 - Errors in ExtendScript are caught by `evalTS()` and surfaced as rejected promises in the panel.
 - `dataOperations.ts` stores extension state as hidden JSON in the Illustrator document's custom data — this is how settings persist across sessions without writing files.
 
+## Dormant: Preview
+
+The Preview tab (in-panel render of the exported component) was removed from the UI in v1.0.4 but kept on purpose for a likely CEP → UXP migration — don't delete it. Pieces: `src/js/main/Tabs/Preview/` (not imported anywhere, so not bundled), `Components/PreviewFrame.svelte`, `src/jsx/ilst/previewWrapper.ts`, the commented-out `runPreview` + `wrapper` import in `src/jsx/ilst/ilst.ts`, and the `isPreview` branches in `ai2svelte.js`. To revive: uncomment in `ilst.ts`, import `Preview.svelte` into the tab bar.
+
 ## Dev Setup
 
 Requires:

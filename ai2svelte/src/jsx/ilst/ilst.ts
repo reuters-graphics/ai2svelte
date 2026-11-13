@@ -10,7 +10,8 @@ import {
   getSelectedItems,
   deleteFolderRecursive,
 } from "./ilstUtils";
-import { wrapper } from "./previewWrapper";
+// Preview disabled until the UXP migration; see CLAUDE.md "Dormant: Preview".
+// import { wrapper } from "./previewWrapper";
 
 export const updateAiSettings = (settingsObj: string, str: string) => {
   if (app) {
@@ -79,31 +80,31 @@ export const saveAndSnapshotDocument = (pathPrefix: string) => {
   }
 };
 
-export const runPreview = (settings: any, path: string) => {
-  if (app) {
-    // rename existing preview folder to preview_old and delete it
-    // rename to avoid clashes with the creation of new preview folder
-    deleteFolderRecursive(path);
-
-    // create new preview folder
-    createFolder(path);
-    makeFile(path + "previewWrapper.js", wrapper);
-
-    settings.settings.isPreview = "true";
-    settings.settings.html_output_path = path;
-    settings.settings.image_output_path = path;
-    settings.settings.image_source_path = "";
-    // container queries are not supported in Chrmoe 74, so disable for preview
-    settings.settings.include_resizer_css = false;
-    settings.settings.project_name = "Preview";
-    settings.settings.show_completion_dialog_box = false;
-
-    main(settings);
-    return 1;
-  } else {
-    return 0;
-  }
-};
+// export const runPreview = (settings: any, path: string) => {
+//   if (app) {
+//     // rename existing preview folder to preview_old and delete it
+//     // rename to avoid clashes with the creation of new preview folder
+//     deleteFolderRecursive(path);
+//
+//     // create new preview folder
+//     createFolder(path);
+//     makeFile(path + "previewWrapper.js", wrapper);
+//
+//     settings.settings.isPreview = "true";
+//     settings.settings.html_output_path = path;
+//     settings.settings.image_output_path = path;
+//     settings.settings.image_source_path = "";
+//     // container queries are not supported in Chrmoe 74, so disable for preview
+//     settings.settings.include_resizer_css = false;
+//     settings.settings.project_name = "Preview";
+//     settings.settings.show_completion_dialog_box = false;
+//
+//     main(settings);
+//     return 1;
+//   } else {
+//     return 0;
+//   }
+// };
 
 export const getFilePath = () => {
   if (app) {
