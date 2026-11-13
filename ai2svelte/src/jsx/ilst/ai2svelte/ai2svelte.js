@@ -4037,9 +4037,11 @@ export function main(settingsArg) {
       imgId +
       '" class="' +
       imgClass +
-      '" alt="' +
-      imgAlt +
       '" ' +
+      // a div ignores alt, so label it as an image or hide it from screen readers
+      (imgAlt
+        ? 'role="img" aria-label="' + imgAlt + '" '
+        : 'aria-hidden="true" ') +
       (settings.noteAttributes || "") +
       'style="';
 

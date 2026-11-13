@@ -20,6 +20,7 @@ sidebar:
 - Fixes tagged image layers not showing on artboards with spaces in their names
 - Adds `image_chunk_width` and `image_chunk_height`, which split very wide or long images into tiles that are faster for browsers to decode. Empty tiles are skipped for transparent formats. See [Chunked images](../chunked-images/)
 - Adds `artboard_background`, which paints a color behind each artboard. Set it to `#ffffff` so blend modes over transparent SVG or PNG areas look the same as on Illustrator's white artboard. See [Settings reference](../ai2svelte-settings-reference/#artboard_background)
+- Fixes `image_alt_text` not reaching screen readers. Images now get `role="img"` and `aria-label` when it is set, and are hidden from screen readers as decorative when it is blank
 
 ### v1.0.9
 

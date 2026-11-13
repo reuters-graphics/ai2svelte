@@ -431,10 +431,10 @@ style:--g-png24-layer-image-xl={\`url("\${processedPath}/tagged/preview-dev/laye
 style:--g-preview-dev-xl-img={\`url("\${processedPath}/preview-dev-xl.jpg")\`};>
 	<!-- Artboard: xs -->
 	<div id="g-preview-dev-xs" class="g-artboard" style="max-width: 509px;aspect-ratio: 0.53225806451613;" data-aspect-ratio="0.532" data-min-width="0" data-max-width="509">
-		<div id="g-preview-dev-xs-img" class="g-preview-dev-xs-img g-aiImg" alt="" style=""></div>		<div id="g-ai0-1" class="g-artwork g-aiAbs" style="top:43.871%;left:50.2595%;margin-left:-10.6061%;width:21.2121%;">
+		<div id="g-preview-dev-xs-img" class="g-preview-dev-xs-img g-aiImg" aria-hidden="true" style=""></div>		<div id="g-ai0-1" class="g-artwork g-aiAbs" style="top:43.871%;left:50.2595%;margin-left:-10.6061%;width:21.2121%;">
 			<p class="g-pstyle0">XS</p>
 		</div>
-		<div id="g-png24-layer-image" class="g-png24 g-aiImg" alt="" style="position:absolute;left:29.0909%;top:54.8387%;width:41.8182% !important;height:22.2581%;opacity:1;mix-blend-mode: exclusion;;"></div>
+		<div id="g-png24-layer-image" class="g-png24 g-aiImg" aria-hidden="true" style="position:absolute;left:29.0909%;top:54.8387%;width:41.8182% !important;height:22.2581%;opacity:1;mix-blend-mode: exclusion;;"></div>
 <svg class="g-preview-dev-xs-vector-img g-svg" style="position: absolute;width: 39.697%;height: 13.9785%;top: 27.1237%;left: 30.303%;" id="g-svg-vector" xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="0 0 131 86.667">
   <!-- Generator: Adobe Illustrator 31.0.0, SVG Export Plug-In . SVG Version: 2.1.5 Build 84)  -->
   <rect style="mix-blend-mode:screen;" width="86.667" height="86.667" fill="#fbd200"/>
@@ -453,10 +453,10 @@ style:--g-preview-dev-xl-img={\`url("\${processedPath}/preview-dev-xl.jpg")\`};>
 	</div>
 	<!-- Artboard: sm -->
 	<div id="g-preview-dev-sm" class="g-artboard" style="min-width: 510px;max-width: 659px;aspect-ratio: 0.82258064516129;" data-aspect-ratio="0.823" data-min-width="510" data-max-width="659">
-		<div id="g-preview-dev-sm-img" class="g-preview-dev-sm-img g-aiImg" alt="" style=""></div>		<div id="g-ai1-1" class="g-artwork g-aiAbs" style="top:43.871%;left:50.0894%;margin-left:-8.1373%;width:16.2745%;">
+		<div id="g-preview-dev-sm-img" class="g-preview-dev-sm-img g-aiImg" aria-hidden="true" style=""></div>		<div id="g-ai1-1" class="g-artwork g-aiAbs" style="top:43.871%;left:50.0894%;margin-left:-8.1373%;width:16.2745%;">
 			<p class="g-pstyle0">SM</p>
 		</div>
-		<div id="g-png24-layer-image" class="g-png24 g-aiImg" alt="" style="position:absolute;left:60.3922%;top:35.6452%;width:33.7255% !important;height:27.7419%;opacity:1;mix-blend-mode: exclusion;;"></div>
+		<div id="g-png24-layer-image" class="g-png24 g-aiImg" aria-hidden="true" style="position:absolute;left:60.3922%;top:35.6452%;width:33.7255% !important;height:27.7419%;opacity:1;mix-blend-mode: exclusion;;"></div>
 		<div id="g-text1" class="g-plain g-aiAbs" style="top:63.2258%;left:34.6994%;width:28.8235%;">
 			
 <p class="g-pstyle3 g-taggedText g-text"data-tagged-type="TEXT" data-tagged-prop="plain.text1">{taggedText?.text?.plain?.text1 || ''}</p>
@@ -491,10 +491,10 @@ style:--g-preview-dev-xl-img={\`url("\${processedPath}/preview-dev-xl.jpg")\`};>
 	</div>
 	<!-- Artboard: md -->
 	<div id="g-preview-dev-md" class="g-artboard" style="min-width: 660px;max-width: 929px;aspect-ratio: 1.06451612903226;" data-aspect-ratio="1.065" data-min-width="660" data-max-width="929">
-		<div id="g-preview-dev-md-img" class="g-preview-dev-md-img g-aiImg" alt="" style=""></div>		<div id="g-ai2-1" class="g-artwork g-aiAbs" style="top:43.871%;left:50.0766%;margin-left:-6.8182%;width:13.6364%;">
+		<div id="g-preview-dev-md-img" class="g-preview-dev-md-img g-aiImg" aria-hidden="true" style=""></div>		<div id="g-ai2-1" class="g-artwork g-aiAbs" style="top:43.871%;left:50.0766%;margin-left:-6.8182%;width:13.6364%;">
 			<p class="g-pstyle0">MD</p>
 		</div>
-		<div id="g-png24-layer-image" class="g-png24 g-aiImg" alt="" style="position:absolute;left:58.7879%;top:30.9677%;width:34.8485% !important;height:37.0968%;opacity:1;mix-blend-mode: exclusion;;"></div>
+		<div id="g-png24-layer-image" class="g-png24 g-aiImg" aria-hidden="true" style="position:absolute;left:58.7879%;top:30.9677%;width:34.8485% !important;height:37.0968%;opacity:1;mix-blend-mode: exclusion;;"></div>
 		<div id="g-text1" class="g-plain g-aiAbs" style="top:64.6774%;left:37.1162%;width:22.2727%;">
 			
 <p class="g-pstyle3 g-taggedText g-text"data-tagged-type="TEXT" data-tagged-prop="plain.text1">{taggedText?.text?.plain?.text1 || ''}</p>
@@ -529,10 +529,10 @@ style:--g-preview-dev-xl-img={\`url("\${processedPath}/preview-dev-xl.jpg")\`};>
 	</div>
 	<!-- Artboard: lg -->
 	<div id="g-preview-dev-lg" class="g-artboard" style="min-width: 930px;max-width: 1199px;aspect-ratio: 1.5;" data-aspect-ratio="1.5" data-min-width="930" data-max-width="1199">
-		<div id="g-preview-dev-lg-img" class="g-preview-dev-lg-img g-aiImg" alt="" style=""></div>		<div id="g-ai3-1" class="g-artwork g-aiAbs" style="top:43.871%;left:50.0663%;margin-left:-3.7634%;width:7.5269%;">
+		<div id="g-preview-dev-lg-img" class="g-preview-dev-lg-img g-aiImg" aria-hidden="true" style=""></div>		<div id="g-ai3-1" class="g-artwork g-aiAbs" style="top:43.871%;left:50.0663%;margin-left:-3.7634%;width:7.5269%;">
 			<p class="g-pstyle0">LG</p>
 		</div>
-		<div id="g-png24-layer-image" class="g-png24 g-aiImg" alt="" style="position:absolute;left:59.1398%;top:27.7419%;width:29.0323% !important;height:43.5484%;opacity:1;mix-blend-mode: exclusion;;"></div>
+		<div id="g-png24-layer-image" class="g-png24 g-aiImg" aria-hidden="true" style="position:absolute;left:59.1398%;top:27.7419%;width:29.0323% !important;height:43.5484%;opacity:1;mix-blend-mode: exclusion;;"></div>
 		<div id="g-text1" class="g-plain g-aiAbs" style="top:64.6774%;left:35.8029%;width:15.8065%;">
 			
 <p class="g-pstyle3 g-taggedText g-text"data-tagged-type="TEXT" data-tagged-prop="plain.text1">{taggedText?.text?.plain?.text1 || ''}</p>
@@ -567,10 +567,10 @@ style:--g-preview-dev-xl-img={\`url("\${processedPath}/preview-dev-xl.jpg")\`};>
 	</div>
 	<!-- Artboard: xl -->
 	<div id="g-preview-dev-xl" class="g-artboard" style="min-width: 1200px;aspect-ratio: 1.93548387096774;" data-aspect-ratio="1.935" data-min-width="1200">
-		<div id="g-preview-dev-xl-img" class="g-preview-dev-xl-img g-aiImg" alt="" style=""></div>		<div id="g-ai4-1" class="g-artwork g-aiAbs" style="top:43.871%;left:50.0042%;margin-left:-2.7917%;width:5.5833%;">
+		<div id="g-preview-dev-xl-img" class="g-preview-dev-xl-img g-aiImg" aria-hidden="true" style=""></div>		<div id="g-ai4-1" class="g-artwork g-aiAbs" style="top:43.871%;left:50.0042%;margin-left:-2.7917%;width:5.5833%;">
 			<p class="g-pstyle0">XL</p>
 		</div>
-		<div id="g-png24-layer-image" class="g-png24 g-aiImg" alt="" style="position:absolute;left:60.75%;top:27.7419%;width:22.5% !important;height:43.5484%;opacity:1;mix-blend-mode: exclusion;;"></div>
+		<div id="g-png24-layer-image" class="g-png24 g-aiImg" aria-hidden="true" style="position:absolute;left:60.75%;top:27.7419%;width:22.5% !important;height:43.5484%;opacity:1;mix-blend-mode: exclusion;;"></div>
 		<div id="g-text1" class="g-plain g-aiAbs" style="top:64.6774%;left:34.5806%;width:12.25%;">
 			
 <p class="g-pstyle3 g-taggedText g-text"data-tagged-type="TEXT" data-tagged-prop="plain.text1">{taggedText?.text?.plain?.text1 || ''}</p>
@@ -1432,17 +1432,17 @@ style:--g-preview-dev-xl-img-r2c3={\`url("\${processedPath}/chunks/preview-dev-x
 style:--g-preview-dev-xl-img-r2c4={\`url("\${processedPath}/chunks/preview-dev-xl-r2c4.jpg")\`};>
 	<!-- Artboard: xs -->
 	<div id="g-preview-dev-xs" class="g-artboard" style="max-width: 509px;aspect-ratio: 0.53225806451613;" data-aspect-ratio="0.532" data-min-width="0" data-max-width="509">
-		<div id="g-preview-dev-xs-img" class="g-preview-dev-xs-img g-aiImg" alt="" style="">
-			<div id="g-preview-dev-xs-img-r0c0" class="g-aiTile" alt="" style="left:0%;top:0%;right:48.787879%;bottom:66.290323%;"></div>
-			<div id="g-preview-dev-xs-img-r0c1" class="g-aiTile" alt="" style="left:50.909091%;top:0%;right:0%;bottom:66.290323%;"></div>
-			<div id="g-preview-dev-xs-img-r1c0" class="g-aiTile" alt="" style="left:0%;top:33.548387%;right:48.787879%;bottom:32.741935%;"></div>
-			<div id="g-preview-dev-xs-img-r1c1" class="g-aiTile" alt="" style="left:50.909091%;top:33.548387%;right:0%;bottom:32.741935%;"></div>
-			<div id="g-preview-dev-xs-img-r2c0" class="g-aiTile" alt="" style="left:0%;top:67.096774%;right:48.787879%;bottom:0%;"></div>
-			<div id="g-preview-dev-xs-img-r2c1" class="g-aiTile" alt="" style="left:50.909091%;top:67.096774%;right:0%;bottom:0%;"></div>
+		<div id="g-preview-dev-xs-img" class="g-preview-dev-xs-img g-aiImg" aria-hidden="true" style="">
+			<div id="g-preview-dev-xs-img-r0c0" class="g-aiTile" aria-hidden="true" style="left:0%;top:0%;right:48.787879%;bottom:66.290323%;"></div>
+			<div id="g-preview-dev-xs-img-r0c1" class="g-aiTile" aria-hidden="true" style="left:50.909091%;top:0%;right:0%;bottom:66.290323%;"></div>
+			<div id="g-preview-dev-xs-img-r1c0" class="g-aiTile" aria-hidden="true" style="left:0%;top:33.548387%;right:48.787879%;bottom:32.741935%;"></div>
+			<div id="g-preview-dev-xs-img-r1c1" class="g-aiTile" aria-hidden="true" style="left:50.909091%;top:33.548387%;right:0%;bottom:32.741935%;"></div>
+			<div id="g-preview-dev-xs-img-r2c0" class="g-aiTile" aria-hidden="true" style="left:0%;top:67.096774%;right:48.787879%;bottom:0%;"></div>
+			<div id="g-preview-dev-xs-img-r2c1" class="g-aiTile" aria-hidden="true" style="left:50.909091%;top:67.096774%;right:0%;bottom:0%;"></div>
 		</div>		<div id="g-ai0-1" class="g-artwork g-aiAbs" style="top:43.871%;left:50.2595%;margin-left:-10.6061%;width:21.2121%;">
 			<p class="g-pstyle0">XS</p>
 		</div>
-		<div id="g-png24-layer-image" class="g-png24 g-aiImg" alt="" style="position:absolute;left:29.0909%;top:54.8387%;width:41.8182% !important;height:22.2581%;opacity:1;mix-blend-mode: exclusion;;"></div>
+		<div id="g-png24-layer-image" class="g-png24 g-aiImg" aria-hidden="true" style="position:absolute;left:29.0909%;top:54.8387%;width:41.8182% !important;height:22.2581%;opacity:1;mix-blend-mode: exclusion;;"></div>
 <svg class="g-preview-dev-xs-vector-img g-svg" style="position: absolute;width: 39.697%;height: 13.9785%;top: 27.1237%;left: 30.303%;" id="g-svg-vector" xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="0 0 131 86.667">
   <!-- Generator: Adobe Illustrator 31.0.0, SVG Export Plug-In . SVG Version: 2.1.5 Build 84)  -->
   <rect style="mix-blend-mode:screen;" width="86.667" height="86.667" fill="#fbd200"/>
@@ -1461,20 +1461,20 @@ style:--g-preview-dev-xl-img-r2c4={\`url("\${processedPath}/chunks/preview-dev-x
 	</div>
 	<!-- Artboard: sm -->
 	<div id="g-preview-dev-sm" class="g-artboard" style="min-width: 510px;max-width: 659px;aspect-ratio: 0.82258064516129;" data-aspect-ratio="0.823" data-min-width="510" data-max-width="659">
-		<div id="g-preview-dev-sm-img" class="g-preview-dev-sm-img g-aiImg" alt="" style="">
-			<div id="g-preview-dev-sm-img-r0c0" class="g-aiTile" alt="" style="left:0%;top:0%;right:66.862745%;bottom:66.290323%;"></div>
-			<div id="g-preview-dev-sm-img-r0c1" class="g-aiTile" alt="" style="left:32.941176%;top:0%;right:32.352941%;bottom:66.290323%;"></div>
-			<div id="g-preview-dev-sm-img-r0c2" class="g-aiTile" alt="" style="left:67.45098%;top:0%;right:0%;bottom:66.290323%;"></div>
-			<div id="g-preview-dev-sm-img-r1c0" class="g-aiTile" alt="" style="left:0%;top:33.548387%;right:66.862745%;bottom:32.741935%;"></div>
-			<div id="g-preview-dev-sm-img-r1c1" class="g-aiTile" alt="" style="left:32.941176%;top:33.548387%;right:32.352941%;bottom:32.741935%;"></div>
-			<div id="g-preview-dev-sm-img-r1c2" class="g-aiTile" alt="" style="left:67.45098%;top:33.548387%;right:0%;bottom:32.741935%;"></div>
-			<div id="g-preview-dev-sm-img-r2c0" class="g-aiTile" alt="" style="left:0%;top:67.096774%;right:66.862745%;bottom:0%;"></div>
-			<div id="g-preview-dev-sm-img-r2c1" class="g-aiTile" alt="" style="left:32.941176%;top:67.096774%;right:32.352941%;bottom:0%;"></div>
-			<div id="g-preview-dev-sm-img-r2c2" class="g-aiTile" alt="" style="left:67.45098%;top:67.096774%;right:0%;bottom:0%;"></div>
+		<div id="g-preview-dev-sm-img" class="g-preview-dev-sm-img g-aiImg" aria-hidden="true" style="">
+			<div id="g-preview-dev-sm-img-r0c0" class="g-aiTile" aria-hidden="true" style="left:0%;top:0%;right:66.862745%;bottom:66.290323%;"></div>
+			<div id="g-preview-dev-sm-img-r0c1" class="g-aiTile" aria-hidden="true" style="left:32.941176%;top:0%;right:32.352941%;bottom:66.290323%;"></div>
+			<div id="g-preview-dev-sm-img-r0c2" class="g-aiTile" aria-hidden="true" style="left:67.45098%;top:0%;right:0%;bottom:66.290323%;"></div>
+			<div id="g-preview-dev-sm-img-r1c0" class="g-aiTile" aria-hidden="true" style="left:0%;top:33.548387%;right:66.862745%;bottom:32.741935%;"></div>
+			<div id="g-preview-dev-sm-img-r1c1" class="g-aiTile" aria-hidden="true" style="left:32.941176%;top:33.548387%;right:32.352941%;bottom:32.741935%;"></div>
+			<div id="g-preview-dev-sm-img-r1c2" class="g-aiTile" aria-hidden="true" style="left:67.45098%;top:33.548387%;right:0%;bottom:32.741935%;"></div>
+			<div id="g-preview-dev-sm-img-r2c0" class="g-aiTile" aria-hidden="true" style="left:0%;top:67.096774%;right:66.862745%;bottom:0%;"></div>
+			<div id="g-preview-dev-sm-img-r2c1" class="g-aiTile" aria-hidden="true" style="left:32.941176%;top:67.096774%;right:32.352941%;bottom:0%;"></div>
+			<div id="g-preview-dev-sm-img-r2c2" class="g-aiTile" aria-hidden="true" style="left:67.45098%;top:67.096774%;right:0%;bottom:0%;"></div>
 		</div>		<div id="g-ai1-1" class="g-artwork g-aiAbs" style="top:43.871%;left:50.0894%;margin-left:-8.1373%;width:16.2745%;">
 			<p class="g-pstyle0">SM</p>
 		</div>
-		<div id="g-png24-layer-image" class="g-png24 g-aiImg" alt="" style="position:absolute;left:60.3922%;top:35.6452%;width:33.7255% !important;height:27.7419%;opacity:1;mix-blend-mode: exclusion;;"></div>
+		<div id="g-png24-layer-image" class="g-png24 g-aiImg" aria-hidden="true" style="position:absolute;left:60.3922%;top:35.6452%;width:33.7255% !important;height:27.7419%;opacity:1;mix-blend-mode: exclusion;;"></div>
 		<div id="g-text1" class="g-plain g-aiAbs" style="top:63.2258%;left:34.6994%;width:28.8235%;">
 			
 <p class="g-pstyle3 g-taggedText g-text"data-tagged-type="TEXT" data-tagged-prop="plain.text1">{taggedText?.text?.plain?.text1 || ''}</p>
@@ -1509,20 +1509,20 @@ style:--g-preview-dev-xl-img-r2c4={\`url("\${processedPath}/chunks/preview-dev-x
 	</div>
 	<!-- Artboard: md -->
 	<div id="g-preview-dev-md" class="g-artboard" style="min-width: 660px;max-width: 929px;aspect-ratio: 1.06451612903226;" data-aspect-ratio="1.065" data-min-width="660" data-max-width="929">
-		<div id="g-preview-dev-md-img" class="g-preview-dev-md-img g-aiImg" alt="" style="">
-			<div id="g-preview-dev-md-img-r0c0" class="g-aiTile" alt="" style="left:0%;top:0%;right:65.909091%;bottom:66.290323%;"></div>
-			<div id="g-preview-dev-md-img-r0c1" class="g-aiTile" alt="" style="left:33.939394%;top:0%;right:33.181818%;bottom:66.290323%;"></div>
-			<div id="g-preview-dev-md-img-r0c2" class="g-aiTile" alt="" style="left:66.666667%;top:0%;right:0%;bottom:66.290323%;"></div>
-			<div id="g-preview-dev-md-img-r1c0" class="g-aiTile" alt="" style="left:0%;top:33.548387%;right:65.909091%;bottom:32.741935%;"></div>
-			<div id="g-preview-dev-md-img-r1c1" class="g-aiTile" alt="" style="left:33.939394%;top:33.548387%;right:33.181818%;bottom:32.741935%;"></div>
-			<div id="g-preview-dev-md-img-r1c2" class="g-aiTile" alt="" style="left:66.666667%;top:33.548387%;right:0%;bottom:32.741935%;"></div>
-			<div id="g-preview-dev-md-img-r2c0" class="g-aiTile" alt="" style="left:0%;top:67.096774%;right:65.909091%;bottom:0%;"></div>
-			<div id="g-preview-dev-md-img-r2c1" class="g-aiTile" alt="" style="left:33.939394%;top:67.096774%;right:33.181818%;bottom:0%;"></div>
-			<div id="g-preview-dev-md-img-r2c2" class="g-aiTile" alt="" style="left:66.666667%;top:67.096774%;right:0%;bottom:0%;"></div>
+		<div id="g-preview-dev-md-img" class="g-preview-dev-md-img g-aiImg" aria-hidden="true" style="">
+			<div id="g-preview-dev-md-img-r0c0" class="g-aiTile" aria-hidden="true" style="left:0%;top:0%;right:65.909091%;bottom:66.290323%;"></div>
+			<div id="g-preview-dev-md-img-r0c1" class="g-aiTile" aria-hidden="true" style="left:33.939394%;top:0%;right:33.181818%;bottom:66.290323%;"></div>
+			<div id="g-preview-dev-md-img-r0c2" class="g-aiTile" aria-hidden="true" style="left:66.666667%;top:0%;right:0%;bottom:66.290323%;"></div>
+			<div id="g-preview-dev-md-img-r1c0" class="g-aiTile" aria-hidden="true" style="left:0%;top:33.548387%;right:65.909091%;bottom:32.741935%;"></div>
+			<div id="g-preview-dev-md-img-r1c1" class="g-aiTile" aria-hidden="true" style="left:33.939394%;top:33.548387%;right:33.181818%;bottom:32.741935%;"></div>
+			<div id="g-preview-dev-md-img-r1c2" class="g-aiTile" aria-hidden="true" style="left:66.666667%;top:33.548387%;right:0%;bottom:32.741935%;"></div>
+			<div id="g-preview-dev-md-img-r2c0" class="g-aiTile" aria-hidden="true" style="left:0%;top:67.096774%;right:65.909091%;bottom:0%;"></div>
+			<div id="g-preview-dev-md-img-r2c1" class="g-aiTile" aria-hidden="true" style="left:33.939394%;top:67.096774%;right:33.181818%;bottom:0%;"></div>
+			<div id="g-preview-dev-md-img-r2c2" class="g-aiTile" aria-hidden="true" style="left:66.666667%;top:67.096774%;right:0%;bottom:0%;"></div>
 		</div>		<div id="g-ai2-1" class="g-artwork g-aiAbs" style="top:43.871%;left:50.0766%;margin-left:-6.8182%;width:13.6364%;">
 			<p class="g-pstyle0">MD</p>
 		</div>
-		<div id="g-png24-layer-image" class="g-png24 g-aiImg" alt="" style="position:absolute;left:58.7879%;top:30.9677%;width:34.8485% !important;height:37.0968%;opacity:1;mix-blend-mode: exclusion;;"></div>
+		<div id="g-png24-layer-image" class="g-png24 g-aiImg" aria-hidden="true" style="position:absolute;left:58.7879%;top:30.9677%;width:34.8485% !important;height:37.0968%;opacity:1;mix-blend-mode: exclusion;;"></div>
 		<div id="g-text1" class="g-plain g-aiAbs" style="top:64.6774%;left:37.1162%;width:22.2727%;">
 			
 <p class="g-pstyle3 g-taggedText g-text"data-tagged-type="TEXT" data-tagged-prop="plain.text1">{taggedText?.text?.plain?.text1 || ''}</p>
@@ -1557,27 +1557,27 @@ style:--g-preview-dev-xl-img-r2c4={\`url("\${processedPath}/chunks/preview-dev-x
 	</div>
 	<!-- Artboard: lg -->
 	<div id="g-preview-dev-lg" class="g-artboard" style="min-width: 930px;max-width: 1199px;aspect-ratio: 1.5;" data-aspect-ratio="1.5" data-min-width="930" data-max-width="1199">
-		<div id="g-preview-dev-lg-img" class="g-preview-dev-lg-img g-aiImg" alt="" style="">
-			<div id="g-preview-dev-lg-img-r0c0" class="g-aiTile" alt="" style="left:0%;top:0%;right:74.946237%;bottom:66.290323%;"></div>
-			<div id="g-preview-dev-lg-img-r0c1" class="g-aiTile" alt="" style="left:24.946237%;top:0%;right:50%;bottom:66.290323%;"></div>
-			<div id="g-preview-dev-lg-img-r0c2" class="g-aiTile" alt="" style="left:49.892473%;top:0%;right:25.053763%;bottom:66.290323%;"></div>
-			<div id="g-preview-dev-lg-img-r0c3" class="g-aiTile" alt="" style="left:74.83871%;top:0%;right:0%;bottom:66.290323%;"></div>
-			<div id="g-preview-dev-lg-img-r1c0" class="g-aiTile" alt="" style="left:0%;top:33.548387%;right:74.946237%;bottom:32.741935%;"></div>
-			<div id="g-preview-dev-lg-img-r1c1" class="g-aiTile" alt="" style="left:24.946237%;top:33.548387%;right:50%;bottom:32.741935%;"></div>
-			<div id="g-preview-dev-lg-img-r1c2" class="g-aiTile" alt="" style="left:49.892473%;top:33.548387%;right:25.053763%;bottom:32.741935%;"></div>
-			<div id="g-preview-dev-lg-img-r1c3" class="g-aiTile" alt="" style="left:74.83871%;top:33.548387%;right:0%;bottom:32.741935%;"></div>
-			<div id="g-preview-dev-lg-img-r2c0" class="g-aiTile" alt="" style="left:0%;top:67.096774%;right:74.946237%;bottom:0%;"></div>
-			<div id="g-preview-dev-lg-img-r2c1" class="g-aiTile" alt="" style="left:24.946237%;top:67.096774%;right:50%;bottom:0%;"></div>
-			<div id="g-preview-dev-lg-img-r2c2" class="g-aiTile" alt="" style="left:49.892473%;top:67.096774%;right:25.053763%;bottom:0%;"></div>
-			<div id="g-preview-dev-lg-img-r2c3" class="g-aiTile" alt="" style="left:74.83871%;top:67.096774%;right:0%;bottom:0%;"></div>
+		<div id="g-preview-dev-lg-img" class="g-preview-dev-lg-img g-aiImg" aria-hidden="true" style="">
+			<div id="g-preview-dev-lg-img-r0c0" class="g-aiTile" aria-hidden="true" style="left:0%;top:0%;right:74.946237%;bottom:66.290323%;"></div>
+			<div id="g-preview-dev-lg-img-r0c1" class="g-aiTile" aria-hidden="true" style="left:24.946237%;top:0%;right:50%;bottom:66.290323%;"></div>
+			<div id="g-preview-dev-lg-img-r0c2" class="g-aiTile" aria-hidden="true" style="left:49.892473%;top:0%;right:25.053763%;bottom:66.290323%;"></div>
+			<div id="g-preview-dev-lg-img-r0c3" class="g-aiTile" aria-hidden="true" style="left:74.83871%;top:0%;right:0%;bottom:66.290323%;"></div>
+			<div id="g-preview-dev-lg-img-r1c0" class="g-aiTile" aria-hidden="true" style="left:0%;top:33.548387%;right:74.946237%;bottom:32.741935%;"></div>
+			<div id="g-preview-dev-lg-img-r1c1" class="g-aiTile" aria-hidden="true" style="left:24.946237%;top:33.548387%;right:50%;bottom:32.741935%;"></div>
+			<div id="g-preview-dev-lg-img-r1c2" class="g-aiTile" aria-hidden="true" style="left:49.892473%;top:33.548387%;right:25.053763%;bottom:32.741935%;"></div>
+			<div id="g-preview-dev-lg-img-r1c3" class="g-aiTile" aria-hidden="true" style="left:74.83871%;top:33.548387%;right:0%;bottom:32.741935%;"></div>
+			<div id="g-preview-dev-lg-img-r2c0" class="g-aiTile" aria-hidden="true" style="left:0%;top:67.096774%;right:74.946237%;bottom:0%;"></div>
+			<div id="g-preview-dev-lg-img-r2c1" class="g-aiTile" aria-hidden="true" style="left:24.946237%;top:67.096774%;right:50%;bottom:0%;"></div>
+			<div id="g-preview-dev-lg-img-r2c2" class="g-aiTile" aria-hidden="true" style="left:49.892473%;top:67.096774%;right:25.053763%;bottom:0%;"></div>
+			<div id="g-preview-dev-lg-img-r2c3" class="g-aiTile" aria-hidden="true" style="left:74.83871%;top:67.096774%;right:0%;bottom:0%;"></div>
 		</div>		<div id="g-ai3-1" class="g-artwork g-aiAbs" style="top:43.871%;left:50.0663%;margin-left:-3.7634%;width:7.5269%;">
 			<p class="g-pstyle0">LG</p>
 		</div>
-		<div id="g-png24-layer-image" class="g-png24 g-aiImg" alt="" style="position:absolute;left:59.1398%;top:27.7419%;width:29.0323% !important;height:43.5484%;opacity:1;mix-blend-mode: exclusion;;">
-			<div id="g-png24-layer-image-r0c0" class="g-aiTile" alt="" style="left:0%;top:0%;right:49.62963%;bottom:49.62963%;"></div>
-			<div id="g-png24-layer-image-r0c1" class="g-aiTile" alt="" style="left:50.37037%;top:0%;right:0%;bottom:49.62963%;"></div>
-			<div id="g-png24-layer-image-r1c0" class="g-aiTile" alt="" style="left:0%;top:50.37037%;right:49.62963%;bottom:0%;"></div>
-			<div id="g-png24-layer-image-r1c1" class="g-aiTile" alt="" style="left:50.37037%;top:50.37037%;right:0%;bottom:0%;"></div>
+		<div id="g-png24-layer-image" class="g-png24 g-aiImg" aria-hidden="true" style="position:absolute;left:59.1398%;top:27.7419%;width:29.0323% !important;height:43.5484%;opacity:1;mix-blend-mode: exclusion;;">
+			<div id="g-png24-layer-image-r0c0" class="g-aiTile" aria-hidden="true" style="left:0%;top:0%;right:49.62963%;bottom:49.62963%;"></div>
+			<div id="g-png24-layer-image-r0c1" class="g-aiTile" aria-hidden="true" style="left:50.37037%;top:0%;right:0%;bottom:49.62963%;"></div>
+			<div id="g-png24-layer-image-r1c0" class="g-aiTile" aria-hidden="true" style="left:0%;top:50.37037%;right:49.62963%;bottom:0%;"></div>
+			<div id="g-png24-layer-image-r1c1" class="g-aiTile" aria-hidden="true" style="left:50.37037%;top:50.37037%;right:0%;bottom:0%;"></div>
 		</div>
 		<div id="g-text1" class="g-plain g-aiAbs" style="top:64.6774%;left:35.8029%;width:15.8065%;">
 			
@@ -1613,30 +1613,30 @@ style:--g-preview-dev-xl-img-r2c4={\`url("\${processedPath}/chunks/preview-dev-x
 	</div>
 	<!-- Artboard: xl -->
 	<div id="g-preview-dev-xl" class="g-artboard" style="min-width: 1200px;aspect-ratio: 1.93548387096774;" data-aspect-ratio="1.935" data-min-width="1200">
-		<div id="g-preview-dev-xl-img" class="g-preview-dev-xl-img g-aiImg" alt="" style="">
-			<div id="g-preview-dev-xl-img-r0c0" class="g-aiTile" alt="" style="left:0%;top:0%;right:79.916667%;bottom:66.290323%;"></div>
-			<div id="g-preview-dev-xl-img-r0c1" class="g-aiTile" alt="" style="left:20%;top:0%;right:59.916667%;bottom:66.290323%;"></div>
-			<div id="g-preview-dev-xl-img-r0c2" class="g-aiTile" alt="" style="left:40%;top:0%;right:39.916667%;bottom:66.290323%;"></div>
-			<div id="g-preview-dev-xl-img-r0c3" class="g-aiTile" alt="" style="left:60%;top:0%;right:19.916667%;bottom:66.290323%;"></div>
-			<div id="g-preview-dev-xl-img-r0c4" class="g-aiTile" alt="" style="left:80%;top:0%;right:0%;bottom:66.290323%;"></div>
-			<div id="g-preview-dev-xl-img-r1c0" class="g-aiTile" alt="" style="left:0%;top:33.548387%;right:79.916667%;bottom:32.741935%;"></div>
-			<div id="g-preview-dev-xl-img-r1c1" class="g-aiTile" alt="" style="left:20%;top:33.548387%;right:59.916667%;bottom:32.741935%;"></div>
-			<div id="g-preview-dev-xl-img-r1c2" class="g-aiTile" alt="" style="left:40%;top:33.548387%;right:39.916667%;bottom:32.741935%;"></div>
-			<div id="g-preview-dev-xl-img-r1c3" class="g-aiTile" alt="" style="left:60%;top:33.548387%;right:19.916667%;bottom:32.741935%;"></div>
-			<div id="g-preview-dev-xl-img-r1c4" class="g-aiTile" alt="" style="left:80%;top:33.548387%;right:0%;bottom:32.741935%;"></div>
-			<div id="g-preview-dev-xl-img-r2c0" class="g-aiTile" alt="" style="left:0%;top:67.096774%;right:79.916667%;bottom:0%;"></div>
-			<div id="g-preview-dev-xl-img-r2c1" class="g-aiTile" alt="" style="left:20%;top:67.096774%;right:59.916667%;bottom:0%;"></div>
-			<div id="g-preview-dev-xl-img-r2c2" class="g-aiTile" alt="" style="left:40%;top:67.096774%;right:39.916667%;bottom:0%;"></div>
-			<div id="g-preview-dev-xl-img-r2c3" class="g-aiTile" alt="" style="left:60%;top:67.096774%;right:19.916667%;bottom:0%;"></div>
-			<div id="g-preview-dev-xl-img-r2c4" class="g-aiTile" alt="" style="left:80%;top:67.096774%;right:0%;bottom:0%;"></div>
+		<div id="g-preview-dev-xl-img" class="g-preview-dev-xl-img g-aiImg" aria-hidden="true" style="">
+			<div id="g-preview-dev-xl-img-r0c0" class="g-aiTile" aria-hidden="true" style="left:0%;top:0%;right:79.916667%;bottom:66.290323%;"></div>
+			<div id="g-preview-dev-xl-img-r0c1" class="g-aiTile" aria-hidden="true" style="left:20%;top:0%;right:59.916667%;bottom:66.290323%;"></div>
+			<div id="g-preview-dev-xl-img-r0c2" class="g-aiTile" aria-hidden="true" style="left:40%;top:0%;right:39.916667%;bottom:66.290323%;"></div>
+			<div id="g-preview-dev-xl-img-r0c3" class="g-aiTile" aria-hidden="true" style="left:60%;top:0%;right:19.916667%;bottom:66.290323%;"></div>
+			<div id="g-preview-dev-xl-img-r0c4" class="g-aiTile" aria-hidden="true" style="left:80%;top:0%;right:0%;bottom:66.290323%;"></div>
+			<div id="g-preview-dev-xl-img-r1c0" class="g-aiTile" aria-hidden="true" style="left:0%;top:33.548387%;right:79.916667%;bottom:32.741935%;"></div>
+			<div id="g-preview-dev-xl-img-r1c1" class="g-aiTile" aria-hidden="true" style="left:20%;top:33.548387%;right:59.916667%;bottom:32.741935%;"></div>
+			<div id="g-preview-dev-xl-img-r1c2" class="g-aiTile" aria-hidden="true" style="left:40%;top:33.548387%;right:39.916667%;bottom:32.741935%;"></div>
+			<div id="g-preview-dev-xl-img-r1c3" class="g-aiTile" aria-hidden="true" style="left:60%;top:33.548387%;right:19.916667%;bottom:32.741935%;"></div>
+			<div id="g-preview-dev-xl-img-r1c4" class="g-aiTile" aria-hidden="true" style="left:80%;top:33.548387%;right:0%;bottom:32.741935%;"></div>
+			<div id="g-preview-dev-xl-img-r2c0" class="g-aiTile" aria-hidden="true" style="left:0%;top:67.096774%;right:79.916667%;bottom:0%;"></div>
+			<div id="g-preview-dev-xl-img-r2c1" class="g-aiTile" aria-hidden="true" style="left:20%;top:67.096774%;right:59.916667%;bottom:0%;"></div>
+			<div id="g-preview-dev-xl-img-r2c2" class="g-aiTile" aria-hidden="true" style="left:40%;top:67.096774%;right:39.916667%;bottom:0%;"></div>
+			<div id="g-preview-dev-xl-img-r2c3" class="g-aiTile" aria-hidden="true" style="left:60%;top:67.096774%;right:19.916667%;bottom:0%;"></div>
+			<div id="g-preview-dev-xl-img-r2c4" class="g-aiTile" aria-hidden="true" style="left:80%;top:67.096774%;right:0%;bottom:0%;"></div>
 		</div>		<div id="g-ai4-1" class="g-artwork g-aiAbs" style="top:43.871%;left:50.0042%;margin-left:-2.7917%;width:5.5833%;">
 			<p class="g-pstyle0">XL</p>
 		</div>
-		<div id="g-png24-layer-image" class="g-png24 g-aiImg" alt="" style="position:absolute;left:60.75%;top:27.7419%;width:22.5% !important;height:43.5484%;opacity:1;mix-blend-mode: exclusion;;">
-			<div id="g-png24-layer-image-r0c0" class="g-aiTile" alt="" style="left:0%;top:0%;right:49.62963%;bottom:49.62963%;"></div>
-			<div id="g-png24-layer-image-r0c1" class="g-aiTile" alt="" style="left:50.37037%;top:0%;right:0%;bottom:49.62963%;"></div>
-			<div id="g-png24-layer-image-r1c0" class="g-aiTile" alt="" style="left:0%;top:50.37037%;right:49.62963%;bottom:0%;"></div>
-			<div id="g-png24-layer-image-r1c1" class="g-aiTile" alt="" style="left:50.37037%;top:50.37037%;right:0%;bottom:0%;"></div>
+		<div id="g-png24-layer-image" class="g-png24 g-aiImg" aria-hidden="true" style="position:absolute;left:60.75%;top:27.7419%;width:22.5% !important;height:43.5484%;opacity:1;mix-blend-mode: exclusion;;">
+			<div id="g-png24-layer-image-r0c0" class="g-aiTile" aria-hidden="true" style="left:0%;top:0%;right:49.62963%;bottom:49.62963%;"></div>
+			<div id="g-png24-layer-image-r0c1" class="g-aiTile" aria-hidden="true" style="left:50.37037%;top:0%;right:0%;bottom:49.62963%;"></div>
+			<div id="g-png24-layer-image-r1c0" class="g-aiTile" aria-hidden="true" style="left:0%;top:50.37037%;right:49.62963%;bottom:0%;"></div>
+			<div id="g-png24-layer-image-r1c1" class="g-aiTile" aria-hidden="true" style="left:50.37037%;top:50.37037%;right:0%;bottom:0%;"></div>
 		</div>
 		<div id="g-text1" class="g-plain g-aiAbs" style="top:64.6774%;left:34.5806%;width:12.25%;">
 			
@@ -2115,7 +2115,7 @@ style:--g-png24-layer-image-xl={\`url("\${processedPath}/tagged/preview-dev/laye
 		<div id="g-ai0-1" class="g-artwork g-aiAbs" style="top:43.871%;left:50.2595%;margin-left:-10.6061%;width:21.2121%;">
 			<p class="g-pstyle0">XS</p>
 		</div>
-		<div id="g-png24-layer-image" class="g-png24 g-aiImg" alt="" style="position:absolute;left:29.0909%;top:54.8387%;width:41.8182% !important;height:22.2581%;opacity:1;mix-blend-mode: exclusion;;"></div>
+		<div id="g-png24-layer-image" class="g-png24 g-aiImg" aria-hidden="true" style="position:absolute;left:29.0909%;top:54.8387%;width:41.8182% !important;height:22.2581%;opacity:1;mix-blend-mode: exclusion;;"></div>
 <svg class="g-preview-dev-xs-vector-img g-svg" style="position: absolute;width: 39.697%;height: 13.9785%;top: 27.1237%;left: 30.303%;" id="g-svg-vector" xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="0 0 131 86.667">
   <!-- Generator: Adobe Illustrator 31.0.0, SVG Export Plug-In . SVG Version: 2.1.5 Build 84)  -->
   <rect style="mix-blend-mode:screen;" width="86.667" height="86.667" fill="#fbd200"/>
@@ -2152,7 +2152,7 @@ style:--g-png24-layer-image-xl={\`url("\${processedPath}/tagged/preview-dev/laye
 		<div id="g-ai1-1" class="g-artwork g-aiAbs" style="top:43.871%;left:50.0894%;margin-left:-8.1373%;width:16.2745%;">
 			<p class="g-pstyle0">SM</p>
 		</div>
-		<div id="g-png24-layer-image" class="g-png24 g-aiImg" alt="" style="position:absolute;left:60.3922%;top:35.6452%;width:33.7255% !important;height:27.7419%;opacity:1;mix-blend-mode: exclusion;;"></div>
+		<div id="g-png24-layer-image" class="g-png24 g-aiImg" aria-hidden="true" style="position:absolute;left:60.3922%;top:35.6452%;width:33.7255% !important;height:27.7419%;opacity:1;mix-blend-mode: exclusion;;"></div>
 		<div id="g-text1" class="g-plain g-aiAbs" style="top:63.2258%;left:34.6994%;width:28.8235%;">
 			
 <p class="g-pstyle3 g-taggedText g-text"data-tagged-type="TEXT" data-tagged-prop="plain.text1">{taggedText?.text?.plain?.text1 || ''}</p>
@@ -2205,7 +2205,7 @@ style:--g-png24-layer-image-xl={\`url("\${processedPath}/tagged/preview-dev/laye
 		<div id="g-ai2-1" class="g-artwork g-aiAbs" style="top:43.871%;left:50.0766%;margin-left:-6.8182%;width:13.6364%;">
 			<p class="g-pstyle0">MD</p>
 		</div>
-		<div id="g-png24-layer-image" class="g-png24 g-aiImg" alt="" style="position:absolute;left:58.7879%;top:30.9677%;width:34.8485% !important;height:37.0968%;opacity:1;mix-blend-mode: exclusion;;"></div>
+		<div id="g-png24-layer-image" class="g-png24 g-aiImg" aria-hidden="true" style="position:absolute;left:58.7879%;top:30.9677%;width:34.8485% !important;height:37.0968%;opacity:1;mix-blend-mode: exclusion;;"></div>
 		<div id="g-text1" class="g-plain g-aiAbs" style="top:64.6774%;left:37.1162%;width:22.2727%;">
 			
 <p class="g-pstyle3 g-taggedText g-text"data-tagged-type="TEXT" data-tagged-prop="plain.text1">{taggedText?.text?.plain?.text1 || ''}</p>
@@ -2258,7 +2258,7 @@ style:--g-png24-layer-image-xl={\`url("\${processedPath}/tagged/preview-dev/laye
 		<div id="g-ai3-1" class="g-artwork g-aiAbs" style="top:43.871%;left:50.0663%;margin-left:-3.7634%;width:7.5269%;">
 			<p class="g-pstyle0">LG</p>
 		</div>
-		<div id="g-png24-layer-image" class="g-png24 g-aiImg" alt="" style="position:absolute;left:59.1398%;top:27.7419%;width:29.0323% !important;height:43.5484%;opacity:1;mix-blend-mode: exclusion;;"></div>
+		<div id="g-png24-layer-image" class="g-png24 g-aiImg" aria-hidden="true" style="position:absolute;left:59.1398%;top:27.7419%;width:29.0323% !important;height:43.5484%;opacity:1;mix-blend-mode: exclusion;;"></div>
 		<div id="g-text1" class="g-plain g-aiAbs" style="top:64.6774%;left:35.8029%;width:15.8065%;">
 			
 <p class="g-pstyle3 g-taggedText g-text"data-tagged-type="TEXT" data-tagged-prop="plain.text1">{taggedText?.text?.plain?.text1 || ''}</p>
@@ -2311,7 +2311,7 @@ style:--g-png24-layer-image-xl={\`url("\${processedPath}/tagged/preview-dev/laye
 		<div id="g-ai4-1" class="g-artwork g-aiAbs" style="top:43.871%;left:50.0042%;margin-left:-2.7917%;width:5.5833%;">
 			<p class="g-pstyle0">XL</p>
 		</div>
-		<div id="g-png24-layer-image" class="g-png24 g-aiImg" alt="" style="position:absolute;left:60.75%;top:27.7419%;width:22.5% !important;height:43.5484%;opacity:1;mix-blend-mode: exclusion;;"></div>
+		<div id="g-png24-layer-image" class="g-png24 g-aiImg" aria-hidden="true" style="position:absolute;left:60.75%;top:27.7419%;width:22.5% !important;height:43.5484%;opacity:1;mix-blend-mode: exclusion;;"></div>
 		<div id="g-text1" class="g-plain g-aiAbs" style="top:64.6774%;left:34.5806%;width:12.25%;">
 			
 <p class="g-pstyle3 g-taggedText g-text"data-tagged-type="TEXT" data-tagged-prop="plain.text1">{taggedText?.text?.plain?.text1 || ''}</p>
