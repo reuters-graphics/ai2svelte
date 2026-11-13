@@ -37,6 +37,15 @@ export function createFile(filePath: string, fileContent: string) {
   file.close();
 }
 
+// true when every selected item is named `name`, e.g. one "pulse" per artboard
+function selectionSharesName(selection: any, name: string) {
+  if (!name) return false;
+  for (let i = 0; i < selection.length; i++) {
+    if (selection[i].name != name) return false;
+  }
+  return true;
+}
+
 function allItemsSelected(layer: Layer) {
   let flag = true;
 
@@ -97,16 +106,24 @@ export function getSelectedItems() {
       } else if (tag == "div" && (objectName || objectLayerName)) {
         // g-snippet-snippetName
         let imageName = (/(.*):div/.exec(objectLayerName) || [])[1] || "";
-        if (allItemsSelected(objectLayer)) {
-          identifier = `#${namespace}div-${imageName}`;
+        // the layer wrapper has no id, only classes: <div class="g-div-layer g-name">
+        if (
+          allItemsSelected(objectLayer) &&
+          !selectionSharesName(doc.selection, objectName)
+        ) {
+          identifier = `.${namespace}div-layer.${namespace}${imageName}`;
         } else if (objectName) {
           identifier = `#${namespace}div-${imageName}-${objectName}`;
         }
       } else if (tag == "symbol" && (objectName || objectLayerName)) {
         // g-snippet-snippetName
         let imageName = (/(.*):symbol/.exec(objectLayerName) || [])[1] || "";
-        if (allItemsSelected(objectLayer)) {
-          identifier = `#${namespace}symbol-${imageName}`;
+        // the layer wrapper has no id, only classes: <div class="g-symbol-layer g-name">
+        if (
+          allItemsSelected(objectLayer) &&
+          !selectionSharesName(doc.selection, objectName)
+        ) {
+          identifier = `.${namespace}symbol-layer.${namespace}${imageName}`;
         } else if (objectName) {
           identifier = `#${namespace}symbol-${imageName}-${objectName}`;
         }
