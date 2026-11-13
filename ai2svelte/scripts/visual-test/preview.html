@@ -1,0 +1,43 @@
+<!doctype html>
+<html>
+  <head>
+    <title>Visual test preview</title>
+    <style>
+      body { margin: 0; font: 13px system-ui, sans-serif; }
+      header { display: flex; gap: 12px; align-items: center; padding: 8px 12px; border-bottom: 1px solid #ccc; position: sticky; top: 0; background: #fff; }
+      iframe { border: 0; display: block; height: calc(100vh - 42px); }
+      #frame { background: repeating-conic-gradient(#eee 0 25%, #fff 0 50%) 0 0 / 16px 16px; }
+    </style>
+  </head>
+  <body>
+    <header>
+      <select id="fixture"></select>
+      <input id="width" type="range" min="320" max="1600" step="1" value="800" />
+      <output id="widthOut">800px</output>
+      <a id="open" target="_blank">open alone</a>
+    </header>
+    <div id="frame"><iframe id="view"></iframe></div>
+    <script type="module">
+      // Renders the bundles `pnpm test:visual:generate` left in each fixture's
+      // output dir. Drag the width to step through the artboard breakpoints.
+      const fixtures = await (await fetch("./fixtures.json")).json();
+      const params = new URLSearchParams(location.search);
+      fixture.innerHTML = fixtures.map((f) => `<option>${f.name}</option>`).join("");
+      fixture.value = params.get("fixture") || fixtures[0].name;
+      width.value = params.get("width") || 800;
+
+      function render() {
+        const f = fixtures.find((x) => x.name === fixture.value);
+        const dir = `/${f.aiPath.replace(/\/[^/]+$/, "")}/visual-test-output-${f.name}`;
+        const src = `harness.html?bundle=${dir}/bundle.js&assetsPath=${dir}&width=${width.value}`;
+        view.src = open.href = src;
+        view.style.width = +width.value + 16 + "px";
+        widthOut.value = width.value + "px";
+        history.replaceState(null, "", `?fixture=${f.name}&width=${width.value}`);
+      }
+      fixture.onchange = render;
+      width.onchange = render; // reload on release, not every pixel
+      width.oninput = () => (widthOut.value = width.value + "px");
+      render();
+    </script>
+  </body>

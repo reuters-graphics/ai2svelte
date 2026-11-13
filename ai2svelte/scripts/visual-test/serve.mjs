@@ -42,4 +42,8 @@ createServer(async (req, res) => {
     res.writeHead(404);
     res.end("Not found");
   }
-}).listen(port, () => console.log(`visual-test static server on :${port}`));
+}).listen(port, () =>
+  console.log(
+    `visual-test static server on :${port}\npreview: http://localhost:${port}/scripts/visual-test/preview.html`,
+  ),
+);

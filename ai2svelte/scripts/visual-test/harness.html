@@ -6,6 +6,8 @@
       const params = new URLSearchParams(location.search);
       const bundlePath = params.get("bundle");
       const assetsPath = params.get("assetsPath") || "/";
+      // preview.html drives this; tests omit it and keep the fixed 800px
+      if (params.get("width")) frameContent.style.width = params.get("width") + "px";
       const mod = await import(bundlePath);
       const taggedText = {
         text: {
