@@ -4,9 +4,11 @@ interface Props {
   file: string;
   /** Filename in src/components/, e.g. "component1.svelte" */
   component: string;
+  /** Adds a language control. Sends an "example:lang" event with the code. */
+  languages?: { code: string; label: string; name: string }[];
 }
 
-const { file, component } = Astro.props;
+const { file, component, languages } = Astro.props;
 import ExampleActions from "./ExampleActions.astro";
 ---
 
@@ -36,6 +38,29 @@ import ExampleActions from "./ExampleActions.astro";
     />
     <span class="ab-readout"><b class="ab-name"></b> <span class="ab-size"></span></span>
   </div>
+
+  {
+    languages && (
+      <div class="lang" role="group" aria-label="Language">
+        <span class="lang-label">Language</span>
+        <div class="lang-opts">
+          {languages.map((l, i) => (
+            <button
+              type="button"
+              class="lang-btn"
+              data-lang-code={l.code}
+              lang={l.code}
+              title={l.name}
+              aria-label={l.name}
+              aria-pressed={i === 0}
+            >
+              {l.label}
+            </button>
+          ))}
+        </div>
+      </div>
+    )
+  }
 </div>
 
 <style>
@@ -66,12 +91,16 @@ import ExampleActions from "./ExampleActions.astro";
     z-index: 999;
     display: flex;
     flex-direction: column;
-    align-items: flex-end;
+    /* The chrome is as wide as the action buttons, and the panels below
+       stretch to that width. */
+    align-items: stretch;
+    width: fit-content;
     gap: 8px;
     max-width: calc(100vw - 32px);
   }
 
-  .ab {
+  .ab,
+  .lang {
     display: flex;
     align-items: center;
     gap: 10px;
@@ -91,9 +120,44 @@ import ExampleActions from "./ExampleActions.astro";
     display: none;
   }
 
-  .ab-label {
+  .ab-label,
+  .lang-label {
     text-transform: uppercase;
     color: #828282;
+  }
+
+  .lang {
+    justify-content: space-between;
+  }
+
+  .lang-opts {
+    display: flex;
+    gap: 4px;
+  }
+
+  .lang-btn {
+    padding: 2px 7px;
+    border: 1px solid #2b2b2b;
+    background: none;
+    color: #f3f3f3;
+    font: inherit;
+    letter-spacing: inherit;
+    cursor: pointer;
+  }
+
+  .lang-btn:hover {
+    border-color: #4a4a4a;
+  }
+
+  .lang-btn[aria-pressed="true"] {
+    border-color: #dc4300;
+    background: #dc4300;
+    color: #fff;
+  }
+
+  .lang-btn:focus-visible {
+    outline: 2px solid #fff;
+    outline-offset: 2px;
   }
 
   .ab-readout {
@@ -112,7 +176,9 @@ import ExampleActions from "./ExampleActions.astro";
   .ab-range {
     -webkit-appearance: none;
     appearance: none;
-    width: 108px;
+    /* Takes the room the shared width leaves over. */
+    flex: 1;
+    min-width: 108px;
     height: 12px;
     margin: 0;
     background: none;
@@ -177,6 +243,19 @@ import ExampleActions from "./ExampleActions.astro";
 </style>
 
 <script>
+  // Language control: remember the choice for components that hydrate later,
+  // and tell the ones already on the page.
+  const langButtons = document.querySelectorAll<HTMLButtonElement>(".lang-btn");
+  langButtons.forEach((button) =>
+    button.addEventListener("click", () => {
+      const code = button.dataset.langCode ?? "en";
+      (window as Window & { __exampleLang?: string }).__exampleLang = code;
+      document.documentElement.lang = code;
+      langButtons.forEach((b) => b.setAttribute("aria-pressed", String(b === button)));
+      window.dispatchEvent(new CustomEvent("example:lang", { detail: code }));
+    }),
+  );
+
   const stage = document.querySelector<HTMLElement>(".ex-stage");
   const frame = document.querySelector<HTMLElement>(".ex-frame");
   const panel = document.querySelector<HTMLElement>(".ab");
@@ -185,7 +264,13 @@ import ExampleActions from "./ExampleActions.astro";
   const sizeOut = document.querySelector<HTMLElement>(".ab-size");
 
   if (stage && frame && panel && range && nameOut && sizeOut) {
-    type Artboard = { min: number; max: number; label: string };
+    type Artboard = {
+      min: number;
+      max: number;
+      label: string;
+      /** The artboard's width in Illustrator, when the markup lets us tell. */
+      width: number | null;
+    };
 
     let artboards: Artboard[] = [];
     let scale = 1;
@@ -195,15 +280,34 @@ import ExampleActions from "./ExampleActions.astro";
     // Matches the media query that hides the control.
     const phone = matchMedia("(max-width: 30rem)");
 
+    /**
+     * The width the artboard was drawn at. Every artboard but the smallest is
+     * shown from its own width up, so its minimum is that width. The smallest
+     * is shown from 0, so its width is recovered from an inline SVG instead:
+     * the viewBox is the SVG's size in artboard pixels and its CSS width is the
+     * share of the artboard it covers.
+     */
+    const authoredWidth = (el: HTMLElement, min: number): number | null => {
+      if (min > 0) return min;
+      for (const svg of Array.from(el.querySelectorAll<SVGSVGElement>("svg"))) {
+        const share = svg.style.width.endsWith("%") ? parseFloat(svg.style.width) / 100 : 0;
+        const drawn = svg.viewBox.baseVal.width;
+        if (share > 0 && drawn > 0) return Math.round(drawn / share);
+      }
+      return null;
+    };
+
     const readArtboards = (): Artboard[] =>
       Array.from(document.querySelectorAll<HTMLElement>(".g-artboard"))
         .map((el) => {
           const max = parseFloat(el.dataset.maxWidth ?? "");
+          const min = parseFloat(el.dataset.minWidth ?? "") || 0;
           return {
-            min: parseFloat(el.dataset.minWidth ?? "") || 0,
+            min,
             max: Number.isFinite(max) ? max : Infinity,
             // "g-headline-xs" -> "xs"
             label: el.id.split("-").pop() || "",
+            width: authoredWidth(el, min),
           };
         })
         .sort((a, b) => a.min - b.min);
@@ -216,9 +320,9 @@ import ExampleActions from "./ExampleActions.astro";
     /**
      * Width to lay the frame out at. Clamping the available width into the
      * artboard's own range means the naturally-active artboard renders at the
-     * real viewport width — so an untouched page is pixel-identical to before —
-     * while any other artboard gets the nearest width that its container query
-     * actually matches.
+     * real viewport width — so an untouched page is pixel-identical to before.
+     * Once the slider is used the artboard is laid out at the width it was
+     * drawn at, which always falls inside its own range.
      */
     const widthFor = (a: Artboard, available: number) => {
       const ceiling = a.max === Infinity ? Math.max(available, a.min) : a.max;
@@ -240,7 +344,7 @@ import ExampleActions from "./ExampleActions.astro";
       if (phone.matches) pinned = false;
       const index = pinned ? Number(range.value) : indexFor(available);
       const artboard = artboards[index];
-      const width = widthFor(artboard, available);
+      const width = pinned && artboard.width ? artboard.width : widthFor(artboard, available);
       scale = Math.min(1, available / width);
 
       range.value = String(index);
@@ -249,8 +353,10 @@ import ExampleActions from "./ExampleActions.astro";
       syncHeight();
 
       nameOut.textContent = artboard.label;
-      sizeOut.textContent = `${width}px`;
-      range.setAttribute("aria-valuetext", `${artboard.label}, ${width} pixels wide`);
+      // Name the artboard's own size, the one in Illustrator
+      const shown = artboard.width ?? width;
+      sizeOut.textContent = `${shown}px`;
+      range.setAttribute("aria-valuetext", `${artboard.label}, ${shown} pixels wide`);
     };
 
     const start = () => {
