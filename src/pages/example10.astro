@@ -1,0 +1,32 @@
+---
+import Component from '../components/component10.svelte'
+import ExampleFrame from '../components/ExampleFrame.astro'
+
+const languages = [
+  { code: 'en', label: 'EN', name: 'English' },
+  { code: 'es', label: 'ES', name: 'Español' },
+  { code: 'fr', label: 'FR', name: 'Français' },
+  { code: 'ar', label: 'AR', name: 'العربية' },
+]
+---
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="generator" content={Astro.generator} />
+    <title>ai2svelte Example 10</title>
+  </head>
+  <body>
+    <ExampleFrame file="evergiven.ai" component="component10.svelte" languages={languages}>
+        <Component client:load/>
+    </ExampleFrame>
+  </body>
+  <style>
+    body {
+      font-family: system-ui, sans-serif;
+      margin: 0;
+    }
+  </style>
+</html>
