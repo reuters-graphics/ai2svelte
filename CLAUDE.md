@@ -176,7 +176,7 @@ Requires:
 ## Release Process
 
 1. Bump version in `ai2svelte/package.json` (drives `cep.config.ts` via import)
-2. Update root `CHANGELOG.md`
+2. Add release notes to `src/content/docs/users/01-whats-new.mdx` (no CHANGELOG — `ai2svelte/CHANGELOG.md` is the Bolt CEP template's)
 3. On macOS with Illustrator: `pnpm build && pnpm test:visual && pnpm test:persistence` — all must pass
 4. Tag release on `main` — `.github/workflows/release.yml` drafts a GitHub release for the tag (no build; see below)
 5. Run `pnpm zxp` **on macOS** to build the signed `.zxp`, then attach it to the draft release (`gh release upload <tag> dist/zxp/*.zxp` or via the GitHub UI)

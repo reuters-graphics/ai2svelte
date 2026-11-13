@@ -209,7 +209,7 @@ export function main(settingsArg) {
 
     textBlockData = initSettings(settingsArg);
 
-    docSettings = initDocumentSettings(textBlockData.settings); // refer to settings.json for arg
+    docSettings = initDocumentSettings(textBlockData.settings);
     docSlug =
       docSettings.project_name || makeDocumentSlug(getRawDocumentName());
     nameSpace = docSettings.namespace || nameSpace;
