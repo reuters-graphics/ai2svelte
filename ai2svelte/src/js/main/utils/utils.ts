@@ -222,6 +222,16 @@ export async function dropStaleSettings(
   return rest;
 }
 
+// Type-blind: the settings slider turns "90" (saved by the Code editor) into
+// 90 on mount, which isn't a user change. The engine reads both the same.
+export function settingsEqual(a: SettingsObject, b: SettingsObject): boolean {
+  const keys = Object.keys(a);
+  return (
+    keys.length === Object.keys(b).length &&
+    keys.every((k) => k in b && String(a[k]) === String(b[k]))
+  );
+}
+
 export async function fetchSettings(): Promise<void> {
   const userSettings = readFile("user-settings.json") as Record<string, string> | null;
   if (userSettings && Object.keys(userSettings).length !== 0) {

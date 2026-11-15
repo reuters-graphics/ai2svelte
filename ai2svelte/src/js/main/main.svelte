@@ -36,6 +36,7 @@
     fetchSavedSettings,
     readFile,
     saveSettings,
+    settingsEqual,
     writeFile,
   } from "./utils/utils";
   import { bakeShadows } from "./utils/bakeShadows";
@@ -231,8 +232,7 @@
   // Show the unsaved-changes banner whenever settings or styles drift from their saved state
   $effect(() => {
     if ($settingsObject || $styles) {
-      const settingsMatch =
-        JSON.stringify($savedSettings) === JSON.stringify($settingsObject);
+      const settingsMatch = settingsEqual($savedSettings, $settingsObject);
       const savedCSS = $savedStyles?.root?.toString() || "";
       const currentCSS = $styles?.root?.toString() || "";
       const stylesMatch = savedCSS.trim() === currentCSS.trim();
