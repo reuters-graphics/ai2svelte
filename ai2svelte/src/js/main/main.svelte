@@ -277,7 +277,7 @@
     <Alert message={$unsavedChanges.message} />
   {/if}
   {#if $alertObject.flag}
-    <Alert message={$alertObject.message} />
+    <Alert message={$alertObject.message} action={$alertObject.action} />
   {/if}
   <TabBar bind:activeLabel={activeTab} {inspectMode} />
 

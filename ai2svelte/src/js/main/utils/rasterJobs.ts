@@ -327,7 +327,7 @@ export async function processRasterJobs(
   jobs: RasterJob[],
   onProgress?: (done: number, total: number, title: string) => unknown,
 ) {
-  const failed: string[] = [];
+  const failed: RasterJob[] = [];
   let converted = 0;
   let droppedTiles = 0;
   // a tile is dropped only if every density of it is clear (1x can lose art
@@ -373,7 +373,7 @@ export async function processRasterJobs(
         job.src,
         error,
       );
-      failed.push(job.dest);
+      failed.push(job);
     }
   };
   // each lane pulls the next job until none are left
@@ -414,7 +414,7 @@ export async function processRasterJobs(
           job.src,
           error,
         );
-        failed.push(job.dest);
+        failed.push(job);
       }
     }
   }

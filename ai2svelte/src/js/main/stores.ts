@@ -39,7 +39,11 @@ export const userTheme: Writable<string> = writable("dark");
 
 export const currentBackdrop: Writable<number> = writable(2);
 
-export const alertObject: Writable<{ flag: boolean; message: string }> =
+export const alertObject: Writable<{
+  flag: boolean;
+  message: string;
+  action?: { label: string; run: () => unknown };
+}> =
   writable({
     flag: false,
     message: "",

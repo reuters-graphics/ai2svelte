@@ -16,7 +16,7 @@
   import Toast from "../../Components/Toast.svelte";
   import { logEvent, withSnapshot } from "../../utils/debugLog";
   import { findMissingStyles } from "../../utils/cssUtils";
-  import { processRasterJobs } from "../../utils/rasterJobs";
+  import { processRasterJobs, type RasterJob } from "../../utils/rasterJobs";
 
   import { version } from "../../../../shared/shared";
   import { tooltip } from "svooltip";
@@ -25,6 +25,33 @@
 
   function delay(ms: number) {
     return new Promise((resolve) => setTimeout(resolve, ms));
+  }
+
+  // Failed jobs keep their source PNG, so they can be re-run without a
+  // full export. ponytail: retry drops `tile` so a clear tile is encoded
+  // rather than patched out of the .svelte from a partial density set.
+  function showImageRetry(failed: RasterJob[]) {
+    $alertObject = {
+      flag: true,
+      message: `${failed.length} image(s) failed to convert; the exported PNG was kept as is.`,
+      action: {
+        label: "Retry",
+        run: async () => {
+          const { failed: still } = await processRasterJobs(
+            failed.map((job) => ({ ...job, tile: null })),
+          );
+          if (still.length) return showImageRetry(still);
+          $alertObject = { flag: false, message: "" };
+          mount(Toast, {
+            target: document.body,
+            props: {
+              message: `Converted ${failed.length} image(s).`,
+              duration: 3000,
+            },
+          });
+        },
+      },
+    };
   }
 
   async function runAi2Svelte() {
@@ -65,7 +92,7 @@
           }),
         );
         missingFontFamilies = result?.missingFontFamilies ?? [];
-        let images = { failed: [] as string[], converted: 0, dropped: 0 };
+        let images = { failed: [] as RasterJob[], converted: 0, dropped: 0 };
         try {
           images = await processRasterJobs(
             result?.rasterJobs ?? [],
@@ -79,16 +106,7 @@
             failed: images.failed.length,
           });
         }
-        const imagesFailed = images.failed;
-        if (imagesFailed.length) {
-          mount(Toast, {
-            target: document.body,
-            props: {
-              message: `Image post-processing failed for ${imagesFailed.length} image(s); the exported PNG was kept as is.`,
-              duration: 6000,
-            },
-          });
-        }
+        if (images.failed.length) showImageRetry(images.failed);
         if (result?.errors?.length) {
           logEvent("engine-error", {
             errors: result.errors,
