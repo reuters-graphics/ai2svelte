@@ -21,9 +21,15 @@ sidebar:
 - Trims whitespace from `:png`/`:png24`/`:webp` layers that contain groups or clipping masks, and crops masked artwork to the mask, so these images no longer export at full artboard size
 - Fixes tagged image layers not showing on artboards with spaces in their names
 - Adds `image_chunk_width` and `image_chunk_height`, which split very wide or long images into tiles that are faster for browsers to decode. Empty tiles are skipped for transparent formats. See [Chunked images](../chunked-images/)
+- Adds `use_2x_images_if_possible: both`, which exports 1x and 2x images so each screen downloads only the size it needs
+- Brings back `use_lazy_loader`, which now really lazy-loads: images and chunked tiles load only as they come near the screen. It's off by default. It used to do nothing, so values saved by earlier versions are ignored; set it again to turn it on
+- Deletes chunked tiles that come out fully transparent, and removes the alpha channel from fully opaque `png24` and `webp` tiles
+- Fixes image CSS variables not updating after the component first renders, for example when `assetsPath` changes
+- Converts PNGs to WebP several images at a time, one per spare CPU core, which makes the WebP step several times faster on most machines. The progress bar now also shows each tagged layer, tile and WebP conversion, and the completion message waits until the images are done
+- Fixes `:png`, `:png24` and `:webp` layers whose names contain spaces, e.g. ` day haze:webp`. The page pointed at a file that didn't exist; spaces now become `-` in the file name and id
+- Skips the "may cause problems on mobile devices" pixel warning for chunked images, since tiles are decoded one by one
 - Warns when an exported image is over 4,096 pixels in either direction and chunking is off, suggesting `image_chunk_width` / `image_chunk_height`
 - Adds `artboard_background`, which paints a color behind each artboard. Set it to `#ffffff` so blend modes over transparent SVG or PNG areas look the same as on Illustrator's white artboard. See [Settings reference](../ai2svelte-settings-reference/#artboard_background)
-- Removes the `use_lazy_loader` setting. Exported images are `<div>`s with a background image, which the browser can't lazy-load, so the setting never had any effect
 - Fixes `image_alt_text` not reaching screen readers. Images now get `role="img"` and `aria-label` when it is set, and are hidden from screen readers as decorative when it is blank
 
 ### v1.0.9

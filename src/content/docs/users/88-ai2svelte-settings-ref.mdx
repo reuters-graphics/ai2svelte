@@ -244,7 +244,17 @@ Options: `dynamic`, `fixed`
 
 If `yes`, exports images at double resolution when size limits allow.
 
-Options: `yes`, `no`
+`both` exports each raster image at 1x and 2x (`name.webp` and `name@2x.webp`) and lets the browser pick one with `image-set`. Standard screens download only the 1x file and retina screens only the 2x one. SVG images aren't affected.
+
+Options: `yes`, `no`, `both`
+
+### use_lazy_loader :badge[New]
+
+If `true`, each image (and each tile of a [chunked image](../chunked-images/)) loads only when it comes within about half a screen of the viewport. Images load after the page's JavaScript runs, so pair it with `priority_fetch` for graphics at the top of the page.
+
+Before v1.0.10 this setting did nothing, but it was `true` by default. Values saved by those versions are ignored, so set it again to turn lazy loading on.
+
+Options: `false`, `true`
 
 ### write_image_files
 

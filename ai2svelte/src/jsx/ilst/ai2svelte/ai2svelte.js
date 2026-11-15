@@ -89,6 +89,24 @@ import {
   replaceAll,
 } from "./utils";
 
+// An export run from the panel (deferCompletion) returns before its images are
+// post-processed (webp encoding, empty tiles, alpha). It leaves the progress bar
+// open and parks the completion alert here; the panel reports image progress
+// with exportProgress and closes it with finishExport. The panel's ExtendScript
+// engine is persistent, so this survives between evalTS calls.
+var pendingExport = null;
+
+export function exportProgress(done, total, title) {
+  if (pendingExport) pendingExport.progress(done, total, title);
+}
+
+// summary: {converted, dropped, failed} counts from the panel's image pass
+export function finishExport(summary) {
+  var p = pendingExport;
+  pendingExport = null;
+  if (p) p.finish(summary || {});
+}
+
 export function main(settingsArg) {
   // Enclosing scripts in a named function (and not an anonymous, self-executing
   // function) has been recommended as a way to minimise intermittent "MRAP" errors.
@@ -127,7 +145,9 @@ export function main(settingsArg) {
   let JSON;
   let fontsConfig;
   let missingFontFamilies = [];
-  let webpJobs = []; // PNGs the panel converts to .webp (ExtendScript can't export WebP)
+  // raster files the panel post-processes: encodes webp (ExtendScript can't),
+  // drops fully transparent tiles, strips alpha from opaque png24s
+  let rasterJobs = [];
   let priorityFetches = [];
   let taggedTextLayers = {
     text: {},
@@ -135,6 +155,7 @@ export function main(settingsArg) {
   };
   let imgVars = {};
   let hasChunkedImages = false; // emit the tile CSS rule only when needed
+  let hasLazyImages = false; // emit the lazy attachment only when needed
 
   initJSON();
 
@@ -214,6 +235,7 @@ export function main(settingsArg) {
       docSettings.project_name || makeDocumentSlug(getRawDocumentName());
     nameSpace = docSettings.namespace || nameSpace;
 
+    finishExport({}); // an earlier run whose panel step never finished
     progressBar = new ProgressBar({
       name: "ai2svelte progress",
       steps: calcProgressBarSteps(),
@@ -256,7 +278,6 @@ export function main(settingsArg) {
   }
 
   restoreDocumentState();
-  if (progressBar) progressBar.close();
 
   // ==========================================
   // Save the AI document (if needed)
@@ -275,24 +296,32 @@ export function main(settingsArg) {
     message("Your Illustrator file was saved.");
   }
 
+  doc.selection = null;
+
   // =========================================================
   // Show alert box, optionally prompt to generate promo image
   // =========================================================
-  if (errors.length > 0) {
-    showCompletionAlert();
-  } else if (isTrue(docSettings.show_completion_dialog_box)) {
-    message(
-      "Script ran in",
-      ((+new Date() - startTime) / 1000).toFixed(1),
-      "seconds",
-    );
-    showCompletionAlert();
+  var deferred = false;
+  if (settingsArg.deferCompletion) {
+    if (rasterJobs.length > 0) deferred = true;
+  }
+  if (deferred) {
+    if (progressBar) progressBar.setTitle("Processing images...");
+    pendingExport = {
+      progress: function (done, total, title) {
+        if (!progressBar) return;
+        progressBar.setTitle(title);
+        progressBar.setProgress(done / total);
+      },
+      finish: completeExport,
+    };
+  } else {
+    completeExport({});
   }
 
-  doc.selection = null;
   return {
     missingFontFamilies: missingFontFamilies,
-    webpJobs: webpJobs,
+    rasterJobs: rasterJobs,
     errors: errors,
     warnings: warnings,
   };
@@ -487,12 +516,40 @@ export function main(settingsArg) {
     }
   }
 
+  // per artboard: text, base image, and one step per tagged image layer
   function calcProgressBarSteps() {
     var n = 0;
+    var tagged = countTaggedImageLayers();
     forEachUsableArtboard(function () {
-      n += 2;
+      n += 2 + tagged;
     });
     return n;
+  }
+
+  function countTaggedImageLayers() {
+    var n = 0;
+    forEach(["svg", "png", "png24", "webp"], function (tag) {
+      n += findTaggedLayers(tag).length;
+    });
+    return n;
+  }
+
+  // progress title for one tagged layer of the current artboard
+  var taggedLayerIndex = 0;
+  var taggedLayerTotal = 0;
+  function stepTaggedLayer(lyr, ab) {
+    if (taggedLayerIndex === 0) taggedLayerTotal = countTaggedImageLayers();
+    taggedLayerIndex++;
+    progressBar.setTitle(
+      getDocumentArtboardName(ab) +
+        ": Exporting layer " +
+        lyr.name +
+        " (" +
+        taggedLayerIndex +
+        " of " +
+        taggedLayerTotal +
+        ")",
+    );
   }
 
   function restoreAbState(activeArtboard) {
@@ -795,7 +852,7 @@ export function main(settingsArg) {
   // The list lives inside the function: main() calls this before a sibling
   // top-level var would be assigned.
   function renameLegacySettings(obj) {
-    var REMOVED_SETTINGS = ["use_lazy_loader", "html_output_extension"];
+    var REMOVED_SETTINGS = ["html_output_extension"];
     if (!obj) return;
     if ("jpg_quality" in obj) {
       if (!("image_quality" in obj)) obj.image_quality = obj.jpg_quality;
@@ -1116,6 +1173,34 @@ export function main(settingsArg) {
   }
 
   // Show alert or prompt; return true if promo image should be generated
+  // Closes the progress bar and shows the completion alert. summary: counts
+  // from the panel's image pass (empty when there was none)
+  function completeExport(summary) {
+    if (progressBar) progressBar.close();
+    if (summary.converted) {
+      message(summary.converted + " image(s) converted to WebP");
+    }
+    if (summary.dropped) {
+      message(summary.dropped + " fully transparent tile(s) dropped");
+    }
+    if (summary.failed) {
+      warn(
+        summary.failed +
+          " image(s) couldn't be processed; their exported PNGs were kept",
+      );
+    }
+    if (errors.length > 0) {
+      showCompletionAlert();
+    } else if (isTrue(docSettings.show_completion_dialog_box)) {
+      message(
+        "Script ran in",
+        ((+new Date() - startTime) / 1000).toFixed(1),
+        "seconds",
+      );
+      showCompletionAlert();
+    }
+  }
+
   function showCompletionAlert() {
     var rule = "\n================\n";
     var alertText, alertHed;
@@ -1158,6 +1243,8 @@ export function main(settingsArg) {
     opts = opts || {};
     var steps = opts.steps || 0;
     var step = 0;
+    var pctText = "0%";
+    var detail = ""; // e.g. "tile 3 of 7", shown after the percentage
     var win = new Window(
       "palette",
       opts.name || "Progress",
@@ -1165,7 +1252,7 @@ export function main(settingsArg) {
     );
     win.pnl = win.add("panel", [10, 10, 440, 100], "Progress");
     win.pnl.progBar = win.pnl.add("progressbar", [20, 35, 410, 60], 0, 100);
-    win.pnl.progBarLabel = win.pnl.add("statictext", [20, 20, 320, 35], "0%");
+    win.pnl.progBarLabel = win.pnl.add("statictext", [20, 20, 410, 35], "0%");
     win.show();
 
     // function getProgress() {
@@ -1186,13 +1273,21 @@ export function main(settingsArg) {
       // progress is always 0.0 to 1.0
       var pct = progress * max;
       win.pnl.progBar.value = pct;
-      win.pnl.progBarLabel.text = Math.round(pct) + "%";
+      pctText = Math.round(pct) + "%";
+      this.setDetail(detail);
+    };
+
+    this.setDetail = function (text) {
+      detail = text || "";
+      win.pnl.progBarLabel.text = detail
+        ? pctText + "  \u00b7  " + detail
+        : pctText;
       update();
     };
 
     this.setTitle = function (title) {
       win.pnl.text = title;
-      update();
+      this.setDetail("");
     };
 
     this.close = function () {
@@ -1219,6 +1314,14 @@ export function main(settingsArg) {
   }
 
   // Remove any annotations and colon separator from an object name
+  // Name of a tagged :png/:png24/:webp layer as used in its file names and ids.
+  // Illustrator's exportFile writes spaces as "-", so a raw name with spaces
+  // pointed the .svelte file (and the webp step) at a file that didn't exist.
+  // Keep in sync with getSelectorIdentifier in ilstUtils.ts (Styles tab).
+  function getTaggedImageName(rawName) {
+    return trim(rawName).replace(/ +/g, "-");
+  }
+
   function cleanObjectName(name) {
     return makeKeyword(name.replace(/^(.+):.*$/, "$1"));
   }
@@ -3446,7 +3549,9 @@ export function main(settingsArg) {
       hiddenItems = hiddenItems.concat(obj.items);
     });
 
+    taggedLayerIndex = 0;
     forEach(findTaggedLayers("svg"), function (lyr) {
+      stepTaggedLayer(lyr, activeArtboard);
       var opts = extend({}, settings, { tagPrefix: "svg" });
       var uniqName = uniqAssetName(
         getLayerImageName(lyr, activeArtboard, settings),
@@ -3477,11 +3582,13 @@ export function main(settingsArg) {
       }
       lyr.visible = false;
       hiddenLayers.push(lyr);
+      progressBar.step();
     });
 
     // Embed images tagged :png as separate images
     // Inside this function, layers are hidden and unhidden as needed
     forEachImageLayer(["png", "png24", "webp"], function (lyr) {
+      stepTaggedLayer(lyr, activeArtboard);
       var tagName = /.*:(png24|png|webp)/.exec(lyr.name)[1] || "png";
 
       var opts = extend({}, settings, {
@@ -3490,7 +3597,7 @@ export function main(settingsArg) {
         noteAttributes: getNoteDataAttributes(getLayerNote(lyr)),
       });
 
-      var name = /(.*):(.*)/.exec(lyr.name)[1];
+      var name = getTaggedImageName(/(.*):(.*)/.exec(lyr.name)[1]);
       var imgName = "layer-" + name;
 
       var fmt = tagName;
@@ -3513,6 +3620,7 @@ export function main(settingsArg) {
         });
       }
       hiddenLayers.push(lyr); // need to unhide this layer later, after base image is captured
+      progressBar.step();
     });
 
     docSettings.snippetProps = [];
@@ -3538,6 +3646,9 @@ export function main(settingsArg) {
     });
 
     // base artboard image at z = -1
+    progressBar.setTitle(
+      getDocumentArtboardName(activeArtboard) + ": Capturing image...",
+    );
     layerHtml.push({
       z: -1,
       html: captureArtboardImage(
@@ -3808,7 +3919,7 @@ export function main(settingsArg) {
           layer,
         );
         if (tilesHtml === null) {
-          exportRasterImage(outputPath, ab, format, settings, cropRect);
+          exportRasterDensities(outputPath, ab, format, settings, cropRect);
         }
 
         // position the (now trimmed) image within the artboard
@@ -3847,7 +3958,7 @@ export function main(settingsArg) {
           null,
         );
         if (tilesHtml === null) {
-          exportRasterImage(outputPath, ab, format, settings);
+          exportRasterDensities(outputPath, ab, format, settings);
         }
       }
 
@@ -4040,6 +4151,11 @@ export function main(settingsArg) {
       src;
 
     src = pathJoin(imgDir, imgFile);
+    // svgs are resolution independent: no 2x file
+    var src2x = "";
+    if (getImageDensities(settings).length > 1) {
+      if (!/\.svg$/.test(imgFile)) src2x = at2x(src);
+    }
 
     html =
       '\t\t<div id="' +
@@ -4062,24 +4178,38 @@ export function main(settingsArg) {
       return html + '">\r' + innerHtml + "\t\t</div>";
     }
 
+    // priority images load straight away; tiles get priority per row
+    var lazy =
+      isTrue(settings.use_lazy_loader) && !isTrue(settings.priority_fetch);
+    if (lazy) hasLazyImages = true;
+
     if (isFalse(settings.include_resizer_css)) {
-      html += "background-image: url(" + src + ');"';
-    } else {
-      html += '"';
-      var artboardId = nameSpace + getArtboardUniqueName(ab, settings);
-      if (settings.tagPrefix) {
-        imgVars[imgId + "-" + getArtboardName(ab)] = {
-          artboardId: artboardId,
-          src: src,
-          id: imgId,
-        };
+      if (lazy) {
+        // artboards here mount via {#if}; the attachment observes each image as it
+        // mounts and the style directive sets the image once it's near
+        var lazy2x = "";
+        if (src2x) lazy2x = 'url("$' + src2x + '")';
+        html +=
+          '" {@attach lazy} style:background-image={seen["' +
+          imgId +
+          '"] ? `' +
+          cssImageSet('url("$' + src + '")', lazy2x) +
+          "` : null}";
       } else {
-        imgVars[imgId] = {
-          artboardId: artboardId,
-          src: src,
-          id: imgId,
-        };
+        var url2x = "";
+        if (src2x) url2x = "url(" + src2x + ")";
+        html +=
+          "background-image: " + cssImageSet("url(" + src + ")", url2x) + ';"';
       }
+    } else {
+      html += '"' + (lazy ? " {@attach lazy}" : "");
+      imgVars[getImgVarKey(imgId, ab, settings)] = {
+        artboardId: nameSpace + getArtboardUniqueName(ab, settings),
+        src: src,
+        src2x: src2x,
+        id: imgId,
+        lazy: lazy,
+      };
     }
 
     html += "></div>";
@@ -4100,24 +4230,88 @@ export function main(settingsArg) {
         media +
         '" href="' +
         src +
-        '"/>';
+        '"' +
+        (src2x ? ' imagesrcset="' + src + " 1x, " + src2x + ' 2x"' : "") +
+        "/>";
       priorityFetches.push(linkTag);
     }
 
     return html;
   }
 
-  // Returns 1 or 2 (corresponding to standard pixel scale and 'retina' pixel scale)
-  // format: png, png24 or jpg
-  // doubleres: true/false ('always' option has been removed)
-  // NOTE: this function used to force single-res for png images > 3 megapixels,
-  //   because of resource limits on early iphones. This rule has been changed
-  //   to a warning and the limit increased.
-  function getOutputImagePixelRatio(width, height, format, doubleres) {
-    var k = isTrue(doubleres) ? 2 : 1;
+  // Pixel densities to export: use_2x_images_if_possible true -> [2],
+  // false -> [1], both -> [1, 2] (browser picks one via image-set)
+  function getImageDensities(settings) {
+    var v = settings.use_2x_images_if_possible;
+    if (v == "both") return [1, 2];
+    if (isTrue(v)) return [2];
+    return [1];
+  }
+
+  // Density of one export: _density is set per file by exportRasterDensities;
+  // otherwise the highest (the chunk grid is laid out at that density)
+  function getImageDensity(settings) {
+    if (settings._density) return settings._density;
+    var d = getImageDensities(settings);
+    return d[d.length - 1];
+  }
+
+  // name.ext -> name@2x.ext: the 2x file when exporting both densities
+  function at2x(path) {
+    var dot = path.lastIndexOf(".");
+    return path.substring(0, dot) + "@2x" + path.substring(dot);
+  }
+
+  function cssImageSet(url1x, url2x) {
+    // -webkit- form: unprefixed image-set needs Safari 17; Chrome and Firefox
+    // accept both. Inside a CSS var an unsupported value shows no image at all.
+    if (!url2x) return url1x;
+    return "-webkit-image-set(" + url1x + " 1x, " + url2x + " 2x)";
+  }
+
+  // key of an image's CSS var; tagged layers repeat per artboard
+  function getImgVarKey(imgId, ab, settings) {
+    if (settings.tagPrefix) return imgId + "-" + getArtboardName(ab);
+    return imgId;
+  }
+
+  // Exports a raster image once per density (1x as imgPath, 2x as name@2x)
+  // tile: {id, varKey} of a chunk tile, so the panel can drop it if empty
+  function exportRasterDensities(
+    imgPath,
+    ab,
+    format,
+    settings,
+    cropRect,
+    tile,
+  ) {
+    var ds = getImageDensities(settings);
+    if (ds.length == 1) deleteFile(at2x(imgPath)); // stale from a "both" export
+    if (!tile) warnIfLargeImage(ab, format, settings);
+    forEach(ds, function (d) {
+      var path = imgPath;
+      if (ds.length > 1) {
+        if (d == 2) path = at2x(imgPath);
+      }
+      exportRasterImage(
+        path,
+        ab,
+        format,
+        extend({}, settings, { _density: d }),
+        cropRect,
+        tile,
+      );
+    });
+  }
+
+  // Warns about one huge image. Not for tiles: a chunked image is decoded tile
+  // by tile, which is the fix this warning is about.
+  function warnIfLargeImage(ab, format, settings) {
+    var abPos = convertAiBounds(ab.artboardRect);
+    var k = getImageDensity(settings);
     // thresholds may be obsolete
     var warnThreshold = format == "jpg" ? 32 * 1024 * 1024 : 5 * 1024 * 1024; // jpg and png
-    var pixels = width * height * k * k;
+    var pixels = abPos.width * abPos.height * k * k;
     if (pixels > warnThreshold) {
       warn(
         "An output image contains ~" +
@@ -4125,7 +4319,6 @@ export function main(settingsArg) {
           " million pixels -- this may cause problems on mobile devices",
       );
     }
-    return k;
   }
 
   // Export scale in percent (100 = 1 output px per point), as used by exportFile
@@ -4139,14 +4332,7 @@ export function main(settingsArg) {
       // fixed width (used for promo image output)
       imageScale = (100 * settings.image_width) / abPos.width;
     } else {
-      imageScale =
-        100 *
-        getOutputImagePixelRatio(
-          abPos.width,
-          abPos.height,
-          format,
-          settings.use_2x_images_if_possible,
-        );
+      imageScale = 100 * getImageDensity(settings);
     }
 
     if (format == "jpg" && imageScale > MAX_JPG_SCALE) {
@@ -4196,9 +4382,9 @@ export function main(settingsArg) {
   // the usual container-query CSS var and only the active breakpoint loads.
   // rect: AI bounds of the image (artboard, or a tagged layer's content).
   // layer: the tagged layer being exported; null = the artboard image.
-  // ponytail: empty tiles are found from item bounds, not pixels, so a sparse
-  // item spanning many tiles still exports transparent tiles; an alpha scan
-  // in the panel could drop those if it matters.
+  // Empty tiles are skipped here from item bounds; tiles that still come out
+  // fully transparent (a sparse item spanning many tiles) are dropped by the
+  // panel's alpha scan (rasterJobs.ts).
   function exportChunkedRaster(
     outputPath,
     imgFile,
@@ -4278,6 +4464,7 @@ export function main(settingsArg) {
     );
     if (!chunkFolder.exists) chunkFolder.create();
     deleteFile(outputPath); // stale unchunked image
+    deleteFile(at2x(outputPath));
 
     var L = rect[0],
       T = rect[1];
@@ -4305,19 +4492,25 @@ export function main(settingsArg) {
           if (b[1] <= b[3]) continue;
         }
         var tilePath = getChunkPath(outputPath, imgFile, r, c);
-        exportRasterImage(tilePath, ab, format, settings, [
-          L + x0 / s,
-          T - y0 / s,
-          L + x1 / s,
-          T - y1 / s,
-        ]);
+        var tileId = imgId + "-r" + r + "c" + c;
+        progressBar.setDetail(
+          "tile " + (r * cols + c + 1) + " of " + rows * cols,
+        );
+        exportRasterDensities(
+          tilePath,
+          ab,
+          format,
+          settings,
+          [L + x0 / s, T - y0 / s, L + x1 / s, T - y1 / s],
+          { id: tileId, varKey: getImgVarKey(tileId, ab, settings) },
+        );
         count++;
         hasChunkedImages = true;
         html +=
           "\t" +
           generateImageHtml(
             getChunkPath("", imgFile, r, c),
-            imgId + "-r" + r + "c" + c,
+            tileId,
             nameSpace + "aiTile",
             "left:" +
               pct(x0, wPx) +
@@ -4339,6 +4532,7 @@ export function main(settingsArg) {
           "\r";
       }
     }
+    progressBar.setDetail("");
     message(
       imgFile + ": exported as " + count + " tiles (" + cols + "x" + rows + ")",
     );
@@ -4353,9 +4547,10 @@ export function main(settingsArg) {
   // cropRect: optional AI bounds to crop the export to (e.g. a tagged layer's
   //   content bounds). Scale is still derived from the full artboard so pixel
   //   density is unchanged; the artboard is temporarily shrunk for the export.
-  function exportRasterImage(imgPath, ab, format, settings, cropRect) {
+  function exportRasterImage(imgPath, ab, format, settings, cropRect, tile) {
     var imageScale = getImageScale(ab, format, settings, imgPath);
     var exportOptions, fileType;
+    var dest = imgPath;
 
     if (format == "png") {
       fileType = ExportType.PNG8;
@@ -4371,12 +4566,6 @@ export function main(settingsArg) {
       fileType = ExportType.PNG24;
       exportOptions = new ExportOptionsPNG24();
       exportOptions.transparency = true;
-      // fsName: absolute OS path -- Node fs in the panel can't expand ~ or ..
-      webpJobs.push({
-        src: new File(imgPath + ".png").fsName,
-        dest: new File(imgPath).fsName,
-        quality: Number(settings.image_quality) || 80,
-      });
       imgPath = imgPath + ".png";
     } else if (format == "jpg") {
       fileType = ExportType.JPEG;
@@ -4402,6 +4591,24 @@ export function main(settingsArg) {
     app.activeDocument.exportFile(new File(imgPath), fileType, exportOptions);
     if (cropRect) {
       ab.artboardRect = origRect;
+    }
+    // webp: the panel encodes it. png tiles: the panel drops fully transparent
+    // ones and strips alpha from opaque png24s (whole images are skipped: too
+    // big to decode in the panel). fsName: absolute OS path -- Node fs in the
+    // panel can't expand ~ or ..; svelte is filled in once the file is written
+    var queue = format == "webp";
+    if (tile) {
+      if (format != "jpg") queue = true;
+    }
+    if (queue) {
+      rasterJobs.push({
+        src: new File(imgPath).fsName,
+        dest: new File(dest).fsName,
+        format: format,
+        quality: Number(settings.image_quality) || 80,
+        tile: tile || null,
+        svelte: null,
+      });
     }
   }
 
@@ -5342,6 +5549,23 @@ export function main(settingsArg) {
       ? "let allArtboards = $state([]);\n"
       : "";
     script += "let activeArtboard = $state(undefined);\n";
+    // use_lazy_loader: seen holds ids of images that have neared the viewport.
+    // the lazy attachment observes each image while it's mounted, so artboards swapped in
+    // by {#if} are covered; display:none artboards never intersect.
+    if (hasLazyImages) {
+      script +=
+        "let seen = $state({});\n" +
+        "let io;\n" +
+        "function lazy(el) {\n" +
+        "io ??= new IntersectionObserver((entries) => {\n" +
+        "for (const e of entries) {\n" +
+        "if (e.isIntersecting) { seen[e.target.id] = true; io.unobserve(e.target); }\n" +
+        "}\n" +
+        "}, { rootMargin: '50% 50%' });\n" +
+        "io.observe(el);\n" +
+        "return () => io.unobserve(el);\n" +
+        "}\n";
+    }
     script += "onMount(() => {\r";
     if (isTrue(settings.include_resizer_css)) {
       script +=
@@ -5501,9 +5725,16 @@ export function main(settingsArg) {
 
     for (var key in imgVars) {
       if (imgVars.hasOwnProperty(key)) {
-        let varDef =
-          "style:--" + key + '={`url("$' + imgVars[key].src + '")`};';
-        bgVars.push(varDef);
+        var v = imgVars[key];
+        var url2x = "";
+        if (v.src2x) url2x = 'url("$' + v.src2x + '")';
+        var value = "`" + cssImageSet('url("$' + v.src + '")', url2x) + "`";
+        // lazy: set the var only once the image nears the viewport (see the
+        // IntersectionObserver in generateSvelteScript)
+        if (v.lazy) value = 'seen["' + v.id + '"] ? ' + value + " : null";
+        // no ";" after the }: Svelte would make it part of the value, and
+        // style.setProperty rejects it, so the var could never update after mount
+        bgVars.push("style:--" + key + "={" + value + "}");
       }
     }
 
@@ -5584,5 +5815,9 @@ export function main(settingsArg) {
 
     // write file
     saveTextFile(htmlFileDestination, textForFile);
+    var svelteFsName = new File(htmlFileDestination).fsName;
+    forEach(rasterJobs, function (job) {
+      if (!job.svelte) job.svelte = svelteFsName;
+    });
   }
 }

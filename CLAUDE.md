@@ -169,9 +169,10 @@ export const ai2svelte = (layers: Layer[], settings: Settings) => { ... };
 
 Keep this list current when a setting is dropped or renamed, so stale keys in old docs/profiles are recognisable. Strip removed keys from saved profiles in `src/js/main/precheck/precheck.js` (versioned `.flags.json` migrations). Settings saved in a document's XMP are not migrated: the engine warns "unused parameter" for unknown keys, so add no-op removals to `REMOVED_SETTINGS` in `ai2svelte.js` (`renameLegacySettings`) to drop them silently. Leave a key out of that list (e.g. `respect_height`) when the warning is useful because the user should switch to the replacement.
 
+`use_lazy_loader` was removed and then revived in 1.0.10 with real lazy loading. Before 1.0.10 it did nothing but defaulted to `true`, so values saved by older versions are dropped: from profiles by the 1.0.10 precheck migration and from document XMP by `dropStaleSettings` in `utils.ts` (keyed on the saved `version`). The engine has no version info, so it never strips the key itself: its "text-block settings" are the panel's settings.
+
 | Setting | Version | Why / replacement |
 |---|---|---|
-| `use_lazy_loader` | 1.0.10 | No-op: images are `<div>`s with background images, so `loading="lazy"` never applied |
 | `jpg_quality` | 1.0.10 | Renamed `image_quality` (also drives WebP); old name still read by the engine |
 | `html_output_extension` | 1.0.9 | `.svelte` is the only output |
 | `respect_height` | 1.0.5 | Replaced by `fit_mode` (`width` / `height` / `cover`) |

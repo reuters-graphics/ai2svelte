@@ -2,7 +2,7 @@ import { updateSettings, fetchSettings } from "./updateSettings";
 import { fetchSelectors } from "./fetchSelectors";
 import { addSnippet } from "./addSnippet";
 import { storeHiddenData, getHiddenData } from "./dataOperations";
-import { main } from "./ai2svelte/ai2svelte";
+import { main, exportProgress, finishExport } from "./ai2svelte/ai2svelte";
 import {
   getDocPath,
   createFolder,
@@ -53,6 +53,20 @@ export const runAi2Svelte = (settings: any) => {
   if (app) {
     return main(settings);
   }
+};
+
+// Image post-processing progress for a runAi2Svelte({ deferCompletion: true })
+// export, then its progress bar close and completion alert.
+export const updateExportProgress = (done: number, total: number, title: string) => {
+  if (app) exportProgress(done, total, title);
+};
+
+export const finishAi2Svelte = (summary: {
+  converted?: number;
+  dropped?: number;
+  failed?: number;
+}) => {
+  if (app) finishExport(summary);
 };
 
 // Runs before each export (panel debug log). Saves unsaved edits first --

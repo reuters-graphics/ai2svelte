@@ -100,8 +100,12 @@ export function getSelectedItems() {
         identifier = `#${namespace}snippet-${snippetName}`;
       } else if (tag == "png" || tag == "png24" || tag == "webp") {
         // g-png-layer-imageName
-        let imageName =
-          (/(.*):(?:png|webp)/.exec(objectLayerName) || [])[1] || "";
+        // trimmed, spaces as "-": same as getTaggedImageName in ai2svelte.js
+        let imageName = (
+          (/(.*):(?:png|webp)/.exec(objectLayerName) || [])[1] || ""
+        )
+          .replace(/^\s+|\s+$/g, "")
+          .replace(/ +/g, "-");
         identifier = `#${namespace}${tag}-layer-${imageName}`;
       } else if (tag == "div" && (objectName || objectLayerName)) {
         // g-snippet-snippetName

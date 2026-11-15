@@ -16,7 +16,7 @@
   import Toast from "../../Components/Toast.svelte";
   import { logEvent, withSnapshot } from "../../utils/debugLog";
   import { findMissingStyles } from "../../utils/cssUtils";
-  import { convertWebpJobs } from "../../utils/webp";
+  import { processRasterJobs } from "../../utils/rasterJobs";
 
   import { version } from "../../../../shared/shared";
   import { tooltip } from "svooltip";
@@ -51,7 +51,9 @@
       // unless set by user
       try {
         // ai2svelte returns missing font families plus the errors and
-        // warnings it already showed the user in its completion alert
+        // warnings for its completion alert. deferCompletion: it keeps the
+        // progress bar open and holds the alert until finishAi2Svelte, so the
+        // image pass below shows in the same bar and "done" means done.
         const result = await withSnapshot(() =>
           evalTS("runAi2Svelte", {
             settings: {
@@ -59,15 +61,30 @@
               ...$settingsObject,
             },
             code: { css: $stylesString, fontsConfig: userData.fontsConfig },
+            deferCompletion: true,
           }),
         );
         missingFontFamilies = result?.missingFontFamilies ?? [];
-        const webpFailed = await convertWebpJobs(result?.webpJobs ?? []);
-        if (webpFailed.length) {
+        let images = { failed: [] as string[], converted: 0, dropped: 0 };
+        try {
+          images = await processRasterJobs(
+            result?.rasterJobs ?? [],
+            (done, total, title) =>
+              evalTS("updateExportProgress", done, total, title),
+          );
+        } finally {
+          await evalTS("finishAi2Svelte", {
+            converted: images.converted,
+            dropped: images.dropped,
+            failed: images.failed.length,
+          });
+        }
+        const imagesFailed = images.failed;
+        if (imagesFailed.length) {
           mount(Toast, {
             target: document.body,
             props: {
-              message: `WebP conversion failed for ${webpFailed.length} image(s); the PNG source was kept next to it.`,
+              message: `Image post-processing failed for ${imagesFailed.length} image(s); the exported PNG was kept as is.`,
               duration: 6000,
             },
           });

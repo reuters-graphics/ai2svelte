@@ -1,28 +1,11 @@
 import { evalTS } from "../../lib/utils/bolt";
 import { version as pluginVersion } from "../../../shared/shared";
-import { readFile, writeFile } from "../utils/utils";
+import { compareVersions, readFile, writeFile } from "../utils/utils";
 import pluginFlags from "./flags.json?json";
 import defaultAnimations from "../Tabs/data/animations.json?raw";
 import JSON5 from "json5";
 
 let userFlags = {};
-
-function compareVersions(v1, v2) {
-  const parts1 = v1.split(".").map(Number);
-  const parts2 = v2.split(".").map(Number);
-
-  const length = Math.max(parts1.length, parts2.length);
-
-  for (let i = 0; i < length; i++) {
-    const num1 = parts1[i] || 0;
-    const num2 = parts2[i] || 0;
-
-    if (num1 > num2) return 1; // v1 is newer
-    if (num1 < num2) return -1; // v2 is newer
-  }
-
-  return 0; // versions are equal
-}
 
 function checkFlagsFile() {
   userFlags = readFile(".flags.json");
@@ -156,7 +139,8 @@ async function checkVersion() {
   }
 
   // renames jpg_quality to image_quality in saved profiles (it now also drives webp),
-  // and drops use_lazy_loader (images are divs, so loading="lazy" never did anything)
+  // and drops use_lazy_loader: before 1.0.10 it did nothing but defaulted to true,
+  // so saved values are leftovers, not choices (it now really lazy-loads)
   if (compareVersions(pluginVersion, "1.0.10") >= 0 && userFlags) {
     if (userFlags["1.0.10"] == undefined) {
       userFlags["1.0.10"] = {};

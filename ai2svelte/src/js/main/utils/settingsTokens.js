@@ -139,10 +139,10 @@ export let aiSettingsTokens = [
   {
     label: "use_2x_images_if_possible",
     type: "variable",
-    info: "Output images at double the resolution if possible. Options: true, false",
+    info: "Output images at double the resolution if possible. 'both' exports 1x and 2x files; each screen downloads only the one it needs. Options: true, false, both",
     default: "true",
     inputType: "select",
-    options: ["true", "false"],
+    options: ["true", "false", "both"],
   },
   {
     label: "image_chunk_width",
@@ -240,6 +240,14 @@ export let aiSettingsTokens = [
     label: "priority_fetch",
     type: "variable",
     info: "Whether to prioritize fetching of images \n ⚠️ To be used only for hero graphics. \n Options: true, false",
+    default: "false",
+    inputType: "select",
+    options: ["true", "false"],
+  },
+  {
+    label: "use_lazy_loader",
+    type: "variable",
+    info: "Load images only as they near the viewport (with chunking, tile by tile). Images load after the page's JavaScript runs, so pair with priority_fetch for above-the-fold graphics. Options: true, false",
     default: "false",
     inputType: "select",
     options: ["true", "false"],

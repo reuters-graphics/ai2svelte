@@ -15,7 +15,7 @@ export let defaultSettings = {
   png_number_of_colors: 256, // Number of colors in 8-bit PNG image (1-256)
   image_quality: 90,
   center_html_output: true,
-  use_2x_images_if_possible: true,
+  use_2x_images_if_possible: true, // Options: true, false, both (1x + 2x files; browsers pick via image-set)
   image_chunk_width: 0, // split images wider than this many output px into tiles; 0 = off
   image_chunk_height: 0, // split images taller than this many output px into tiles; 0 = off
   include_resizer_widths: true,
@@ -29,6 +29,7 @@ export let defaultSettings = {
   show_completion_dialog_box: true,
   clickable_link: "", // Add a URL to make the entire graphic a clickable link
   priority_fetch: false, // for prioritized fetching of images above the fold
+  use_lazy_loader: false, // load background images only as they near the viewport
   override_text: false, // whether to override text by default
   allow_overflow: false, // whether to allow root div overflow
   artboard_background: "none", // CSS color behind each artboard so blend modes over transparent images match Illustrator, e.g. "#ffffff"

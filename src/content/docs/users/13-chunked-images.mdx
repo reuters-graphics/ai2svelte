@@ -147,7 +147,11 @@ Each export deletes the previous export's tiles. If you change the limits, or tu
 
 ### How tiles load
 
-Tiles load the same way ai2svelte's regular images do: through CSS, per breakpoint. Only the tiles of the artboard on screen are downloaded, and artboards for other screen sizes never load theirs. All of the current artboard's tiles download when the page loads.
+Tiles load the same way ai2svelte's regular images do: through CSS, per breakpoint. Only the tiles of the artboard on screen are downloaded, and artboards for other screen sizes never load theirs. By default, all of the current artboard's tiles download when the page loads.
+
+Set `use_lazy_loader: true` to load each tile only as it comes near the screen, which is usually half a screen ahead. On a wide panorama, readers then download only the part they actually scroll to. Images load after the page's JavaScript runs, so for an opener at the top of the page also set `priority_fetch: true`. Its top row of tiles then loads straight away.
+
+With `use_2x_images_if_possible: both`, every tile is exported at 1x and at 2x (`opener-xl-r0c0.jpg` and `opener-xl-r0c0@2x.jpg`). Each screen downloads only the size it needs: standard screens get the 1x tiles, and retina screens get the 2x ones.
 
 Because each tile is a separate, smaller image, the browser can decode the tiles near the screen first. It never needs a single texture the size of the whole panorama.
 
@@ -157,7 +161,9 @@ Because each tile is a separate, smaller image, the browser can decode the tiles
 
 With a transparent format (`png` or `png24` with `png_transparent`, or `webp`), tiles with no artwork aren't exported at all, and no element is added for them. This helps layers where the artwork is spread out, for example scattered clouds on a wide sky.
 
-ai2svelte works out which tiles are empty from the bounds of the objects in Illustrator, not from the pixels. A single large object that spans several tiles, such as one big transparent cloud shape, still exports every tile it covers.
+ai2svelte first skips tiles that no object's bounds reach. Then, after the export, it checks each tile's pixels and deletes any tile that came out fully transparent, along with its element. That catches the tiles a single large object covers without drawing on them, for example a long diagonal line or one big transparent cloud shape.
+
+Tiles whose pixels are all opaque don't need an alpha channel, so it's removed: `png24` tiles are rewritten as RGB PNGs, and `webp` tiles are encoded without alpha. 8-bit `png` tiles are left as they are.
 
 JPG tiles are never skipped, because empty areas in a JPG show the artboard's background colour.
 

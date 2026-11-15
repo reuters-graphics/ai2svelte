@@ -419,16 +419,16 @@ onArtboardChange(activeArtboard);
 
 </script>
 <div id="g-preview-dev-box" class="ai2svelte" bind:this={aiBox} bind:clientWidth={aiBoxWidth} style:--debug-tagged-text={debugTaggedText ? 'visible' : 'hidden'}
-style:--debug-stroke={debugTaggedText ? '2px' : '0px'} style:--g-png24-layer-image-xs={\`url("\${processedPath}/tagged/preview-dev/layer-image-xs.png")\`};
-style:--g-preview-dev-xs-img={\`url("\${processedPath}/preview-dev-xs.jpg")\`};
-style:--g-png24-layer-image-sm={\`url("\${processedPath}/tagged/preview-dev/layer-image-sm.png")\`};
-style:--g-preview-dev-sm-img={\`url("\${processedPath}/preview-dev-sm.jpg")\`};
-style:--g-png24-layer-image-md={\`url("\${processedPath}/tagged/preview-dev/layer-image-md.png")\`};
-style:--g-preview-dev-md-img={\`url("\${processedPath}/preview-dev-md.jpg")\`};
-style:--g-png24-layer-image-lg={\`url("\${processedPath}/tagged/preview-dev/layer-image-lg.png")\`};
-style:--g-preview-dev-lg-img={\`url("\${processedPath}/preview-dev-lg.jpg")\`};
-style:--g-png24-layer-image-xl={\`url("\${processedPath}/tagged/preview-dev/layer-image-xl.png")\`};
-style:--g-preview-dev-xl-img={\`url("\${processedPath}/preview-dev-xl.jpg")\`};>
+style:--debug-stroke={debugTaggedText ? '2px' : '0px'} style:--g-png24-layer-image-xs={\`url("\${processedPath}/tagged/preview-dev/layer-image-xs.png")\`}
+style:--g-preview-dev-xs-img={\`url("\${processedPath}/preview-dev-xs.jpg")\`}
+style:--g-png24-layer-image-sm={\`url("\${processedPath}/tagged/preview-dev/layer-image-sm.png")\`}
+style:--g-preview-dev-sm-img={\`url("\${processedPath}/preview-dev-sm.jpg")\`}
+style:--g-png24-layer-image-md={\`url("\${processedPath}/tagged/preview-dev/layer-image-md.png")\`}
+style:--g-preview-dev-md-img={\`url("\${processedPath}/preview-dev-md.jpg")\`}
+style:--g-png24-layer-image-lg={\`url("\${processedPath}/tagged/preview-dev/layer-image-lg.png")\`}
+style:--g-preview-dev-lg-img={\`url("\${processedPath}/preview-dev-lg.jpg")\`}
+style:--g-png24-layer-image-xl={\`url("\${processedPath}/tagged/preview-dev/layer-image-xl.png")\`}
+style:--g-preview-dev-xl-img={\`url("\${processedPath}/preview-dev-xl.jpg")\`}>
 	<!-- Artboard: xs -->
 	<div id="g-preview-dev-xs" class="g-artboard" style="max-width: 509px;aspect-ratio: 0.53225806451613;" data-aspect-ratio="0.532" data-min-width="0" data-max-width="509">
 		<div id="g-preview-dev-xs-img" class="g-preview-dev-xs-img g-aiImg" aria-hidden="true" style=""></div>		<div id="g-ai0-1" class="g-artwork g-aiAbs" style="top:43.871%;left:50.2595%;margin-left:-10.6061%;width:21.2121%;">
@@ -1368,68 +1368,68 @@ onArtboardChange(activeArtboard);
 
 </script>
 <div id="g-preview-dev-box" class="ai2svelte" bind:this={aiBox} bind:clientWidth={aiBoxWidth} style:--debug-tagged-text={debugTaggedText ? 'visible' : 'hidden'}
-style:--debug-stroke={debugTaggedText ? '2px' : '0px'} style:--g-png24-layer-image-xs={\`url("\${processedPath}/tagged/preview-dev/layer-image-xs.png")\`};
-style:--g-preview-dev-xs-img-r0c0={\`url("\${processedPath}/chunks/preview-dev-xs-r0c0.jpg")\`};
-style:--g-preview-dev-xs-img-r0c1={\`url("\${processedPath}/chunks/preview-dev-xs-r0c1.jpg")\`};
-style:--g-preview-dev-xs-img-r1c0={\`url("\${processedPath}/chunks/preview-dev-xs-r1c0.jpg")\`};
-style:--g-preview-dev-xs-img-r1c1={\`url("\${processedPath}/chunks/preview-dev-xs-r1c1.jpg")\`};
-style:--g-preview-dev-xs-img-r2c0={\`url("\${processedPath}/chunks/preview-dev-xs-r2c0.jpg")\`};
-style:--g-preview-dev-xs-img-r2c1={\`url("\${processedPath}/chunks/preview-dev-xs-r2c1.jpg")\`};
-style:--g-png24-layer-image-sm={\`url("\${processedPath}/tagged/preview-dev/layer-image-sm.png")\`};
-style:--g-preview-dev-sm-img-r0c0={\`url("\${processedPath}/chunks/preview-dev-sm-r0c0.jpg")\`};
-style:--g-preview-dev-sm-img-r0c1={\`url("\${processedPath}/chunks/preview-dev-sm-r0c1.jpg")\`};
-style:--g-preview-dev-sm-img-r0c2={\`url("\${processedPath}/chunks/preview-dev-sm-r0c2.jpg")\`};
-style:--g-preview-dev-sm-img-r1c0={\`url("\${processedPath}/chunks/preview-dev-sm-r1c0.jpg")\`};
-style:--g-preview-dev-sm-img-r1c1={\`url("\${processedPath}/chunks/preview-dev-sm-r1c1.jpg")\`};
-style:--g-preview-dev-sm-img-r1c2={\`url("\${processedPath}/chunks/preview-dev-sm-r1c2.jpg")\`};
-style:--g-preview-dev-sm-img-r2c0={\`url("\${processedPath}/chunks/preview-dev-sm-r2c0.jpg")\`};
-style:--g-preview-dev-sm-img-r2c1={\`url("\${processedPath}/chunks/preview-dev-sm-r2c1.jpg")\`};
-style:--g-preview-dev-sm-img-r2c2={\`url("\${processedPath}/chunks/preview-dev-sm-r2c2.jpg")\`};
-style:--g-png24-layer-image-md={\`url("\${processedPath}/tagged/preview-dev/layer-image-md.png")\`};
-style:--g-preview-dev-md-img-r0c0={\`url("\${processedPath}/chunks/preview-dev-md-r0c0.jpg")\`};
-style:--g-preview-dev-md-img-r0c1={\`url("\${processedPath}/chunks/preview-dev-md-r0c1.jpg")\`};
-style:--g-preview-dev-md-img-r0c2={\`url("\${processedPath}/chunks/preview-dev-md-r0c2.jpg")\`};
-style:--g-preview-dev-md-img-r1c0={\`url("\${processedPath}/chunks/preview-dev-md-r1c0.jpg")\`};
-style:--g-preview-dev-md-img-r1c1={\`url("\${processedPath}/chunks/preview-dev-md-r1c1.jpg")\`};
-style:--g-preview-dev-md-img-r1c2={\`url("\${processedPath}/chunks/preview-dev-md-r1c2.jpg")\`};
-style:--g-preview-dev-md-img-r2c0={\`url("\${processedPath}/chunks/preview-dev-md-r2c0.jpg")\`};
-style:--g-preview-dev-md-img-r2c1={\`url("\${processedPath}/chunks/preview-dev-md-r2c1.jpg")\`};
-style:--g-preview-dev-md-img-r2c2={\`url("\${processedPath}/chunks/preview-dev-md-r2c2.jpg")\`};
-style:--g-png24-layer-image-r0c0-lg={\`url("\${processedPath}/tagged/preview-dev/chunks/layer-image-lg-r0c0.png")\`};
-style:--g-png24-layer-image-r0c1-lg={\`url("\${processedPath}/tagged/preview-dev/chunks/layer-image-lg-r0c1.png")\`};
-style:--g-png24-layer-image-r1c0-lg={\`url("\${processedPath}/tagged/preview-dev/chunks/layer-image-lg-r1c0.png")\`};
-style:--g-png24-layer-image-r1c1-lg={\`url("\${processedPath}/tagged/preview-dev/chunks/layer-image-lg-r1c1.png")\`};
-style:--g-preview-dev-lg-img-r0c0={\`url("\${processedPath}/chunks/preview-dev-lg-r0c0.jpg")\`};
-style:--g-preview-dev-lg-img-r0c1={\`url("\${processedPath}/chunks/preview-dev-lg-r0c1.jpg")\`};
-style:--g-preview-dev-lg-img-r0c2={\`url("\${processedPath}/chunks/preview-dev-lg-r0c2.jpg")\`};
-style:--g-preview-dev-lg-img-r0c3={\`url("\${processedPath}/chunks/preview-dev-lg-r0c3.jpg")\`};
-style:--g-preview-dev-lg-img-r1c0={\`url("\${processedPath}/chunks/preview-dev-lg-r1c0.jpg")\`};
-style:--g-preview-dev-lg-img-r1c1={\`url("\${processedPath}/chunks/preview-dev-lg-r1c1.jpg")\`};
-style:--g-preview-dev-lg-img-r1c2={\`url("\${processedPath}/chunks/preview-dev-lg-r1c2.jpg")\`};
-style:--g-preview-dev-lg-img-r1c3={\`url("\${processedPath}/chunks/preview-dev-lg-r1c3.jpg")\`};
-style:--g-preview-dev-lg-img-r2c0={\`url("\${processedPath}/chunks/preview-dev-lg-r2c0.jpg")\`};
-style:--g-preview-dev-lg-img-r2c1={\`url("\${processedPath}/chunks/preview-dev-lg-r2c1.jpg")\`};
-style:--g-preview-dev-lg-img-r2c2={\`url("\${processedPath}/chunks/preview-dev-lg-r2c2.jpg")\`};
-style:--g-preview-dev-lg-img-r2c3={\`url("\${processedPath}/chunks/preview-dev-lg-r2c3.jpg")\`};
-style:--g-png24-layer-image-r0c0-xl={\`url("\${processedPath}/tagged/preview-dev/chunks/layer-image-xl-r0c0.png")\`};
-style:--g-png24-layer-image-r0c1-xl={\`url("\${processedPath}/tagged/preview-dev/chunks/layer-image-xl-r0c1.png")\`};
-style:--g-png24-layer-image-r1c0-xl={\`url("\${processedPath}/tagged/preview-dev/chunks/layer-image-xl-r1c0.png")\`};
-style:--g-png24-layer-image-r1c1-xl={\`url("\${processedPath}/tagged/preview-dev/chunks/layer-image-xl-r1c1.png")\`};
-style:--g-preview-dev-xl-img-r0c0={\`url("\${processedPath}/chunks/preview-dev-xl-r0c0.jpg")\`};
-style:--g-preview-dev-xl-img-r0c1={\`url("\${processedPath}/chunks/preview-dev-xl-r0c1.jpg")\`};
-style:--g-preview-dev-xl-img-r0c2={\`url("\${processedPath}/chunks/preview-dev-xl-r0c2.jpg")\`};
-style:--g-preview-dev-xl-img-r0c3={\`url("\${processedPath}/chunks/preview-dev-xl-r0c3.jpg")\`};
-style:--g-preview-dev-xl-img-r0c4={\`url("\${processedPath}/chunks/preview-dev-xl-r0c4.jpg")\`};
-style:--g-preview-dev-xl-img-r1c0={\`url("\${processedPath}/chunks/preview-dev-xl-r1c0.jpg")\`};
-style:--g-preview-dev-xl-img-r1c1={\`url("\${processedPath}/chunks/preview-dev-xl-r1c1.jpg")\`};
-style:--g-preview-dev-xl-img-r1c2={\`url("\${processedPath}/chunks/preview-dev-xl-r1c2.jpg")\`};
-style:--g-preview-dev-xl-img-r1c3={\`url("\${processedPath}/chunks/preview-dev-xl-r1c3.jpg")\`};
-style:--g-preview-dev-xl-img-r1c4={\`url("\${processedPath}/chunks/preview-dev-xl-r1c4.jpg")\`};
-style:--g-preview-dev-xl-img-r2c0={\`url("\${processedPath}/chunks/preview-dev-xl-r2c0.jpg")\`};
-style:--g-preview-dev-xl-img-r2c1={\`url("\${processedPath}/chunks/preview-dev-xl-r2c1.jpg")\`};
-style:--g-preview-dev-xl-img-r2c2={\`url("\${processedPath}/chunks/preview-dev-xl-r2c2.jpg")\`};
-style:--g-preview-dev-xl-img-r2c3={\`url("\${processedPath}/chunks/preview-dev-xl-r2c3.jpg")\`};
-style:--g-preview-dev-xl-img-r2c4={\`url("\${processedPath}/chunks/preview-dev-xl-r2c4.jpg")\`};>
+style:--debug-stroke={debugTaggedText ? '2px' : '0px'} style:--g-png24-layer-image-xs={\`url("\${processedPath}/tagged/preview-dev/layer-image-xs.png")\`}
+style:--g-preview-dev-xs-img-r0c0={\`url("\${processedPath}/chunks/preview-dev-xs-r0c0.jpg")\`}
+style:--g-preview-dev-xs-img-r0c1={\`url("\${processedPath}/chunks/preview-dev-xs-r0c1.jpg")\`}
+style:--g-preview-dev-xs-img-r1c0={\`url("\${processedPath}/chunks/preview-dev-xs-r1c0.jpg")\`}
+style:--g-preview-dev-xs-img-r1c1={\`url("\${processedPath}/chunks/preview-dev-xs-r1c1.jpg")\`}
+style:--g-preview-dev-xs-img-r2c0={\`url("\${processedPath}/chunks/preview-dev-xs-r2c0.jpg")\`}
+style:--g-preview-dev-xs-img-r2c1={\`url("\${processedPath}/chunks/preview-dev-xs-r2c1.jpg")\`}
+style:--g-png24-layer-image-sm={\`url("\${processedPath}/tagged/preview-dev/layer-image-sm.png")\`}
+style:--g-preview-dev-sm-img-r0c0={\`url("\${processedPath}/chunks/preview-dev-sm-r0c0.jpg")\`}
+style:--g-preview-dev-sm-img-r0c1={\`url("\${processedPath}/chunks/preview-dev-sm-r0c1.jpg")\`}
+style:--g-preview-dev-sm-img-r0c2={\`url("\${processedPath}/chunks/preview-dev-sm-r0c2.jpg")\`}
+style:--g-preview-dev-sm-img-r1c0={\`url("\${processedPath}/chunks/preview-dev-sm-r1c0.jpg")\`}
+style:--g-preview-dev-sm-img-r1c1={\`url("\${processedPath}/chunks/preview-dev-sm-r1c1.jpg")\`}
+style:--g-preview-dev-sm-img-r1c2={\`url("\${processedPath}/chunks/preview-dev-sm-r1c2.jpg")\`}
+style:--g-preview-dev-sm-img-r2c0={\`url("\${processedPath}/chunks/preview-dev-sm-r2c0.jpg")\`}
+style:--g-preview-dev-sm-img-r2c1={\`url("\${processedPath}/chunks/preview-dev-sm-r2c1.jpg")\`}
+style:--g-preview-dev-sm-img-r2c2={\`url("\${processedPath}/chunks/preview-dev-sm-r2c2.jpg")\`}
+style:--g-png24-layer-image-md={\`url("\${processedPath}/tagged/preview-dev/layer-image-md.png")\`}
+style:--g-preview-dev-md-img-r0c0={\`url("\${processedPath}/chunks/preview-dev-md-r0c0.jpg")\`}
+style:--g-preview-dev-md-img-r0c1={\`url("\${processedPath}/chunks/preview-dev-md-r0c1.jpg")\`}
+style:--g-preview-dev-md-img-r0c2={\`url("\${processedPath}/chunks/preview-dev-md-r0c2.jpg")\`}
+style:--g-preview-dev-md-img-r1c0={\`url("\${processedPath}/chunks/preview-dev-md-r1c0.jpg")\`}
+style:--g-preview-dev-md-img-r1c1={\`url("\${processedPath}/chunks/preview-dev-md-r1c1.jpg")\`}
+style:--g-preview-dev-md-img-r1c2={\`url("\${processedPath}/chunks/preview-dev-md-r1c2.jpg")\`}
+style:--g-preview-dev-md-img-r2c0={\`url("\${processedPath}/chunks/preview-dev-md-r2c0.jpg")\`}
+style:--g-preview-dev-md-img-r2c1={\`url("\${processedPath}/chunks/preview-dev-md-r2c1.jpg")\`}
+style:--g-preview-dev-md-img-r2c2={\`url("\${processedPath}/chunks/preview-dev-md-r2c2.jpg")\`}
+style:--g-png24-layer-image-r0c0-lg={\`url("\${processedPath}/tagged/preview-dev/chunks/layer-image-lg-r0c0.png")\`}
+style:--g-png24-layer-image-r0c1-lg={\`url("\${processedPath}/tagged/preview-dev/chunks/layer-image-lg-r0c1.png")\`}
+style:--g-png24-layer-image-r1c0-lg={\`url("\${processedPath}/tagged/preview-dev/chunks/layer-image-lg-r1c0.png")\`}
+style:--g-png24-layer-image-r1c1-lg={\`url("\${processedPath}/tagged/preview-dev/chunks/layer-image-lg-r1c1.png")\`}
+style:--g-preview-dev-lg-img-r0c0={\`url("\${processedPath}/chunks/preview-dev-lg-r0c0.jpg")\`}
+style:--g-preview-dev-lg-img-r0c1={\`url("\${processedPath}/chunks/preview-dev-lg-r0c1.jpg")\`}
+style:--g-preview-dev-lg-img-r0c2={\`url("\${processedPath}/chunks/preview-dev-lg-r0c2.jpg")\`}
+style:--g-preview-dev-lg-img-r0c3={\`url("\${processedPath}/chunks/preview-dev-lg-r0c3.jpg")\`}
+style:--g-preview-dev-lg-img-r1c0={\`url("\${processedPath}/chunks/preview-dev-lg-r1c0.jpg")\`}
+style:--g-preview-dev-lg-img-r1c1={\`url("\${processedPath}/chunks/preview-dev-lg-r1c1.jpg")\`}
+style:--g-preview-dev-lg-img-r1c2={\`url("\${processedPath}/chunks/preview-dev-lg-r1c2.jpg")\`}
+style:--g-preview-dev-lg-img-r1c3={\`url("\${processedPath}/chunks/preview-dev-lg-r1c3.jpg")\`}
+style:--g-preview-dev-lg-img-r2c0={\`url("\${processedPath}/chunks/preview-dev-lg-r2c0.jpg")\`}
+style:--g-preview-dev-lg-img-r2c1={\`url("\${processedPath}/chunks/preview-dev-lg-r2c1.jpg")\`}
+style:--g-preview-dev-lg-img-r2c2={\`url("\${processedPath}/chunks/preview-dev-lg-r2c2.jpg")\`}
+style:--g-preview-dev-lg-img-r2c3={\`url("\${processedPath}/chunks/preview-dev-lg-r2c3.jpg")\`}
+style:--g-png24-layer-image-r0c0-xl={\`url("\${processedPath}/tagged/preview-dev/chunks/layer-image-xl-r0c0.png")\`}
+style:--g-png24-layer-image-r0c1-xl={\`url("\${processedPath}/tagged/preview-dev/chunks/layer-image-xl-r0c1.png")\`}
+style:--g-png24-layer-image-r1c0-xl={\`url("\${processedPath}/tagged/preview-dev/chunks/layer-image-xl-r1c0.png")\`}
+style:--g-png24-layer-image-r1c1-xl={\`url("\${processedPath}/tagged/preview-dev/chunks/layer-image-xl-r1c1.png")\`}
+style:--g-preview-dev-xl-img-r0c0={\`url("\${processedPath}/chunks/preview-dev-xl-r0c0.jpg")\`}
+style:--g-preview-dev-xl-img-r0c1={\`url("\${processedPath}/chunks/preview-dev-xl-r0c1.jpg")\`}
+style:--g-preview-dev-xl-img-r0c2={\`url("\${processedPath}/chunks/preview-dev-xl-r0c2.jpg")\`}
+style:--g-preview-dev-xl-img-r0c3={\`url("\${processedPath}/chunks/preview-dev-xl-r0c3.jpg")\`}
+style:--g-preview-dev-xl-img-r0c4={\`url("\${processedPath}/chunks/preview-dev-xl-r0c4.jpg")\`}
+style:--g-preview-dev-xl-img-r1c0={\`url("\${processedPath}/chunks/preview-dev-xl-r1c0.jpg")\`}
+style:--g-preview-dev-xl-img-r1c1={\`url("\${processedPath}/chunks/preview-dev-xl-r1c1.jpg")\`}
+style:--g-preview-dev-xl-img-r1c2={\`url("\${processedPath}/chunks/preview-dev-xl-r1c2.jpg")\`}
+style:--g-preview-dev-xl-img-r1c3={\`url("\${processedPath}/chunks/preview-dev-xl-r1c3.jpg")\`}
+style:--g-preview-dev-xl-img-r1c4={\`url("\${processedPath}/chunks/preview-dev-xl-r1c4.jpg")\`}
+style:--g-preview-dev-xl-img-r2c0={\`url("\${processedPath}/chunks/preview-dev-xl-r2c0.jpg")\`}
+style:--g-preview-dev-xl-img-r2c1={\`url("\${processedPath}/chunks/preview-dev-xl-r2c1.jpg")\`}
+style:--g-preview-dev-xl-img-r2c2={\`url("\${processedPath}/chunks/preview-dev-xl-r2c2.jpg")\`}
+style:--g-preview-dev-xl-img-r2c3={\`url("\${processedPath}/chunks/preview-dev-xl-r2c3.jpg")\`}
+style:--g-preview-dev-xl-img-r2c4={\`url("\${processedPath}/chunks/preview-dev-xl-r2c4.jpg")\`}>
 	<!-- Artboard: xs -->
 	<div id="g-preview-dev-xs" class="g-artboard" style="max-width: 509px;aspect-ratio: 0.53225806451613;" data-aspect-ratio="0.532" data-min-width="0" data-max-width="509">
 		<div id="g-preview-dev-xs-img" class="g-preview-dev-xs-img g-aiImg" aria-hidden="true" style="">
@@ -2090,11 +2090,11 @@ onArtboardChange(activeArtboard);
 
 </script>
 <div id="g-preview-dev-box" class="ai2svelte" bind:this={aiBox} bind:clientWidth={aiBoxWidth} style:--debug-tagged-text={debugTaggedText ? 'visible' : 'hidden'}
-style:--debug-stroke={debugTaggedText ? '2px' : '0px'} style:--g-png24-layer-image-xs={\`url("\${processedPath}/tagged/preview-dev/layer-image-xs.png")\`};
-style:--g-png24-layer-image-sm={\`url("\${processedPath}/tagged/preview-dev/layer-image-sm.png")\`};
-style:--g-png24-layer-image-md={\`url("\${processedPath}/tagged/preview-dev/layer-image-md.png")\`};
-style:--g-png24-layer-image-lg={\`url("\${processedPath}/tagged/preview-dev/layer-image-lg.png")\`};
-style:--g-png24-layer-image-xl={\`url("\${processedPath}/tagged/preview-dev/layer-image-xl.png")\`};>
+style:--debug-stroke={debugTaggedText ? '2px' : '0px'} style:--g-png24-layer-image-xs={\`url("\${processedPath}/tagged/preview-dev/layer-image-xs.png")\`}
+style:--g-png24-layer-image-sm={\`url("\${processedPath}/tagged/preview-dev/layer-image-sm.png")\`}
+style:--g-png24-layer-image-md={\`url("\${processedPath}/tagged/preview-dev/layer-image-md.png")\`}
+style:--g-png24-layer-image-lg={\`url("\${processedPath}/tagged/preview-dev/layer-image-lg.png")\`}
+style:--g-png24-layer-image-xl={\`url("\${processedPath}/tagged/preview-dev/layer-image-xl.png")\`}>
 	<!-- Artboard: xs -->
 	<div id="g-preview-dev-xs" class="g-artboard" style="max-width: 509px;aspect-ratio: 0.53225806451613;" data-aspect-ratio="0.532" data-min-width="0" data-max-width="509">
 <svg class="g-preview-dev-xs-img g-aiImg g-svg" style="position: absolute;width: 76.3636%;height: 31.9355%;top: 34.0323%;left: 20%;" id="g-preview-dev-xs-img" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" viewBox="0 0 252 198">

@@ -188,6 +188,40 @@ export function writeFile(fileName: string, data: unknown): boolean {
  * Fetches plugin settings from the Illustrator document,
  * updates the corresponding Svelte stores, and loads user preferences.
  */
+export function compareVersions(v1: string, v2: string) {
+  const parts1 = v1.split(".").map(Number);
+  const parts2 = v2.split(".").map(Number);
+
+  const length = Math.max(parts1.length, parts2.length);
+
+  for (let i = 0; i < length; i++) {
+    const num1 = parts1[i] || 0;
+    const num2 = parts2[i] || 0;
+
+    if (num1 > num2) return 1; // v1 is newer
+    if (num1 < num2) return -1; // v2 is newer
+  }
+
+  return 0; // versions are equal
+}
+
+// use_lazy_loader did nothing before 1.0.10 but defaulted to true, so settings
+// saved by older versions have it on by accident. Drop it there, or re-exporting
+// an old graphic would switch lazy loading on.
+export async function dropStaleSettings(
+  settings: SettingsObject,
+): Promise<SettingsObject> {
+  if (!("use_lazy_loader" in settings)) return settings;
+  const saved = (await evalTS("getVariable", "version")) as {
+    version?: string;
+  };
+  if (saved?.version && compareVersions(saved.version, "1.0.10") >= 0)
+    return settings;
+  const rest = { ...settings };
+  delete rest.use_lazy_loader;
+  return rest;
+}
+
 export async function fetchSettings(): Promise<void> {
   const userSettings = readFile("user-settings.json") as Record<string, string> | null;
   if (userSettings && Object.keys(userSettings).length !== 0) {
@@ -198,7 +232,9 @@ export async function fetchSettings(): Promise<void> {
     writeFile("user-settings.json", userData);
   }
 
-  const fetchedSettings = await evalTS("getVariable", "ai-settings") as SettingsObject;
+  const fetchedSettings = await dropStaleSettings(
+    (await evalTS("getVariable", "ai-settings")) as SettingsObject,
+  );
 
   if (Object.keys(fetchedSettings).length === 0) {
     const usersProfiles = readFile("user-profiles.json") as Record<string, SettingsObject> | null;
@@ -241,7 +277,9 @@ export async function fetchSavedSettings(): Promise<void> {
     writeFile("user-settings.json", userData);
   }
 
-  const fetchedSettings = await evalTS("getVariable", "ai-settings") as SettingsObject;
+  const fetchedSettings = await dropStaleSettings(
+    (await evalTS("getVariable", "ai-settings")) as SettingsObject,
+  );
 
   if (Object.keys(fetchedSettings).length === 0) {
     savedSettings.set({});
