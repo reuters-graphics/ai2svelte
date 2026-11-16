@@ -65,6 +65,7 @@ export const finishAi2Svelte = (summary: {
   converted?: number;
   dropped?: number;
   failed?: number;
+  keptAsPng?: number;
 }) => {
   if (app) finishExport(summary);
 };

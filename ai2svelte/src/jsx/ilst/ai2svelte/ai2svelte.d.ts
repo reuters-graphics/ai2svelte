@@ -4,4 +4,5 @@ export function finishExport(summary: {
   converted?: number;
   dropped?: number;
   failed?: number;
+  keptAsPng?: number;
 }): void;

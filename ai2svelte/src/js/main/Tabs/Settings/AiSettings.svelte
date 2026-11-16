@@ -5,6 +5,7 @@
   import Input from "../../Components/Input.svelte";
   import CmTextArea from "../../Components/CMTextArea.svelte";
   import { aiSettingsTokens } from "../../utils/settingsTokens";
+  import { checkWebpSupport } from "../../utils/rasterJobs";
   import { convertStringToObject } from "./utils";
   import type { SettingsObject } from "../../Tabs/types";
 
@@ -13,6 +14,12 @@
   let codeContent: HTMLElement | undefined = $state();
 
   let previousSettings: SettingsObject | undefined = $state();
+
+  // webp is hidden where the panel can't encode it, unless it's already the
+  // saved value (other systems can still export it; here the images are kept
+  // as PNG and the completion alert says so)
+  let webpOk = $state(true);
+  checkWebpSupport().then((ok) => (webpOk = ok));
 
   // holds key-value pairs as string
   let yamlString: string = $derived.by(() => {
@@ -55,9 +62,15 @@
               "text"}
             <div class="ai-setting">
               {#if type == "select"}
-                {@const options = aiSettingsTokens.find(
-                  (item) => item.label == key
-                )?.options}
+                {@const options = aiSettingsTokens
+                  .find((item) => item.label == key)
+                  ?.options?.filter(
+                    (o) =>
+                      webpOk ||
+                      o != "webp" ||
+                      (key == "image_format" &&
+                        $settingsObject[key] == "webp"),
+                  )}
                 <Input
                   label={key}
                   {options}

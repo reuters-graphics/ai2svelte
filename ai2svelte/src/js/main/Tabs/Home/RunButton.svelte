@@ -33,7 +33,7 @@
   function showImageRetry(failed: RasterJob[]) {
     $alertObject = {
       flag: true,
-      message: `${failed.length} image(s) failed to convert; the exported PNG was kept as is.`,
+      message: `${failed.length} image(s) failed to convert; they were kept as PNG.`,
       action: {
         label: "Retry",
         run: async () => {
@@ -92,7 +92,12 @@
           }),
         );
         missingFontFamilies = result?.missingFontFamilies ?? [];
-        let images = { failed: [] as RasterJob[], converted: 0, dropped: 0 };
+        let images = {
+          failed: [] as RasterJob[],
+          converted: 0,
+          dropped: 0,
+          keptAsPng: 0,
+        };
         try {
           images = await processRasterJobs(
             result?.rasterJobs ?? [],
@@ -104,6 +109,7 @@
             converted: images.converted,
             dropped: images.dropped,
             failed: images.failed.length,
+            keptAsPng: images.keptAsPng,
           });
         }
         if (images.failed.length) showImageRetry(images.failed);

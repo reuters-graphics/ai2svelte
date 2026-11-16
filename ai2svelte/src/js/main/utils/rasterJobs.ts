@@ -10,6 +10,9 @@ export type RasterJob = {
   quality: number;
   tile: { id: string; varKey: string } | null;
   svelte: string | null;
+  // webp that couldn't be encoded: src was renamed to the .png beside dest and
+  // the .svelte relinked to it. A later successful encode relinks it back.
+  keptAsPng?: boolean;
 };
 
 // ponytail: codec glue + wasm are static files (src/js/public/webp, copied from
@@ -24,6 +27,25 @@ const initEncoder = () =>
   (ready ??= import(/* @vite-ignore */ GLUE_URL()).then((m) =>
     m.default({ locateFile: (f: string) => WASM_DIR() + f }),
   ));
+
+// ponytail: checks the APIs and that the wasm encoder loads, no test encode;
+// an encode that fails later still falls back to PNG (see keepAsPng)
+let support: Promise<boolean> | undefined;
+export const checkWebpSupport = () =>
+  (support ??= (async () => {
+    try {
+      if (
+        typeof OffscreenCanvas === "undefined" ||
+        typeof createImageBitmap === "undefined"
+      )
+        return false;
+      await initEncoder();
+      return true;
+    } catch (error) {
+      console.warn("[ai2svelte] webp encoding unavailable:", error);
+      return false;
+    }
+  })());
 
 type Encode = (data: ImageData, quality: number) => Promise<Uint8Array>;
 
@@ -283,6 +305,14 @@ export function removeTiles(
   return svelte;
 }
 
+// Points the .svelte's references to one image file at another (same folder)
+export function relinkImage(svelte: string, from: string, to: string) {
+  return svelte.replace(
+    new RegExp(`/${esc(from)}(?=["'\`)\\s])`, "g"),
+    `/${to}`,
+  );
+}
+
 async function decode(path: string) {
   const bmp = await createImageBitmap(
     new Blob([fs.readFileSync(path)], { type: "image/png" }),
@@ -330,6 +360,39 @@ export async function processRasterJobs(
   const failed: RasterJob[] = [];
   let converted = 0;
   let droppedTiles = 0;
+  let keptAsPng = 0;
+  const webpOk =
+    !jobs.some((j) => j.format === "webp") || (await checkWebpSupport());
+  // svelte path -> [from, to] file-name swaps, applied at the end
+  const relinks = new Map<string, [string, string][]>();
+  const relink = (job: RasterJob, from: string, to: string) => {
+    if (!job.svelte) return;
+    if (!relinks.has(job.svelte)) relinks.set(job.svelte, []);
+    relinks.get(job.svelte)!.push([from, to]);
+  };
+  // the .svelte names dest (x.webp); without an encode, the PNG Illustrator
+  // wrote (x.webp.png) becomes x.png so the link still resolves
+  const keepAsPng = (job: RasterJob): RasterJob => {
+    const png = job.dest.replace(/\.webp$/i, "") + ".png";
+    if (job.keptAsPng || !fs.existsSync(job.src)) return job;
+    fs.renameSync(job.src, png);
+    relink(job, fileName(job.dest), fileName(png));
+    return { ...job, src: png, keptAsPng: true };
+  };
+  const fail = (job: RasterJob) => {
+    if (job.format !== "webp") return failed.push(job);
+    try {
+      failed.push(keepAsPng(job));
+    } catch (error) {
+      console.error("[ai2svelte] couldn't keep webp as png:", job.src, error);
+      failed.push(job);
+    }
+  };
+  const succeeded = (job: RasterJob) => {
+    if (job.format !== "webp") return;
+    converted++;
+    if (job.keptAsPng) relink(job, fileName(job.src), fileName(job.dest));
+  };
   // a tile is dropped only if every density of it is clear (1x can lose art
   // that 2x keeps: Illustrator exports without anti-aliasing)
   const tiles = new Map<string, { jobs: RasterJob[]; clear: boolean }>();
@@ -351,6 +414,17 @@ export async function processRasterJobs(
     );
   };
   const runJob = async (job: RasterJob, encode: Encode) => {
+    if (job.format === "webp" && !webpOk) {
+      // ponytail: clear webp tiles aren't dropped here (that needs a decode)
+      try {
+        keepAsPng(job);
+        keptAsPng++;
+      } catch (error) {
+        console.error("[ai2svelte] couldn't keep webp as png:", job.src, error);
+        failed.push(job);
+      }
+      return;
+    }
     try {
       const data = await decode(job.src);
       const { clear, opaque } = scanAlpha(data.data);
@@ -366,14 +440,14 @@ export async function processRasterJobs(
         }
       }
       await finish(job, data, opaque, encode);
-      if (job.format === "webp") converted++;
+      succeeded(job);
     } catch (error) {
       console.error(
         "[ai2svelte] image post-processing failed:",
         job.src,
         error,
       );
-      failed.push(job);
+      fail(job);
     }
   };
   // each lane pulls the next job until none are left
@@ -407,14 +481,14 @@ export async function processRasterJobs(
     if (t && !t.clear) {
       try {
         await finish(job, await decode(job.src), false, encodeOnMainThread);
-        if (job.format === "webp") converted++;
+        succeeded(job);
       } catch (error) {
         console.error(
           "[ai2svelte] image post-processing failed:",
           job.src,
           error,
         );
-        failed.push(job);
+        fail(job);
       }
     }
   }
@@ -431,5 +505,11 @@ export async function processRasterJobs(
       `[ai2svelte] dropped ${list.length} empty tile(s) from ${svelte}`,
     );
   }
-  return { failed, converted, dropped: droppedTiles };
+  for (const [svelte, swaps] of relinks) {
+    if (!fs.existsSync(svelte)) continue;
+    let text = fs.readFileSync(svelte, "utf8");
+    for (const [from, to] of swaps) text = relinkImage(text, from, to);
+    fs.writeFileSync(svelte, text);
+  }
+  return { failed, converted, dropped: droppedTiles, keptAsPng };
 }

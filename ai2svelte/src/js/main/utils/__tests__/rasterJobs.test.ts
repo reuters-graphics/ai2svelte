@@ -1,6 +1,11 @@
 import { describe, expect, it } from "vitest";
 import { deflateSync, inflateSync } from "node:zlib";
-import { encodeRgbPng, removeTiles, scanAlpha } from "../rasterJobs";
+import {
+  encodeRgbPng,
+  relinkImage,
+  removeTiles,
+  scanAlpha,
+} from "../rasterJobs";
 
 // Reverses PNG filters on an 8-bit RGB IDAT stream, to round-trip the encoder
 function decodeRgb(png: Uint8Array) {
@@ -105,5 +110,24 @@ describe("removeTiles", () => {
     ]);
     expect(out.match(/<div id="g-a-r0c1"/g)).toHaveLength(2);
     expect(out).not.toContain("var(--g-a-r0c1)");
+  });
+});
+
+describe("relinkImage", () => {
+  it("swaps every reference to the file, not files that end with its name", () => {
+    const svelte = [
+      'style:--a={`url("${processedPath}/doc-md.webp")`}',
+      '<link rel="preload" href="${processedPath}/doc-md.webp" />',
+      'style:--b={`url("${processedPath}/big-doc-md.webp")`}',
+      'style:--c={`url("${processedPath}/doc-md.webp.bak")`}',
+    ].join("\n");
+    expect(relinkImage(svelte, "doc-md.webp", "doc-md.png")).toBe(
+      [
+        'style:--a={`url("${processedPath}/doc-md.png")`}',
+        '<link rel="preload" href="${processedPath}/doc-md.png" />',
+        'style:--b={`url("${processedPath}/big-doc-md.webp")`}',
+        'style:--c={`url("${processedPath}/doc-md.webp.bak")`}',
+      ].join("\n"),
+    );
   });
 });

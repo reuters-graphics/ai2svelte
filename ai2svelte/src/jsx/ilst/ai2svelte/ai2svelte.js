@@ -101,7 +101,7 @@ export function exportProgress(done, total, title) {
   if (pendingExport) pendingExport.progress(done, total, title);
 }
 
-// summary: {converted, dropped, failed} counts from the panel's image pass
+// summary: {converted, dropped, failed, keptAsPng} counts from the panel's image pass
 export function finishExport(summary) {
   var p = pendingExport;
   pendingExport = null;
@@ -1187,6 +1187,13 @@ export function main(settingsArg) {
       warn(
         summary.failed +
           " image(s) couldn't be processed; their exported PNGs were kept",
+      );
+    }
+    if (summary.keptAsPng) {
+      warn(
+        "WebP isn't supported in this version of Illustrator: " +
+          summary.keptAsPng +
+          " image(s) were saved as PNG instead",
       );
     }
     if (errors.length > 0) {
