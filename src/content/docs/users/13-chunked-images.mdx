@@ -151,6 +151,8 @@ Tiles load the same way ai2svelte's regular images do: through CSS, per breakpoi
 
 Set `use_lazy_loader: true` to load each tile only as it comes near the screen, which is usually half a screen ahead. On a wide panorama, readers then download only the part they actually scroll to. Images load after the page's JavaScript runs, so for an opener at the top of the page also set `priority_fetch: true`. Its top row of tiles then loads straight away.
 
+If the panorama pans inside an element that clips it (`overflow: hidden`, `contain: paint`), tiles load only once they're on screen. To load them earlier, see [`check()`](../ai2svelte-settings-ref/#use_lazy_loader).
+
 With `use_2x_images_if_possible: both`, every tile is exported at 1x and at 2x (`opener-xl-r0c0.jpg` and `opener-xl-r0c0@2x.jpg`). Each screen downloads only the size it needs: standard screens get the 1x tiles, and retina screens get the 2x ones.
 
 Because each tile is a separate, smaller image, the browser can decode the tiles near the screen first. It never needs a single texture the size of the whole panorama.

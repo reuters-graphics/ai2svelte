@@ -33,6 +33,7 @@
 
 // These are base settings used in the script
 import { defaultSettings, placeholderSettings } from "./settings";
+import { LAZY_SCRIPT } from "./lazyScript";
 
 import {
   caps,
@@ -5528,10 +5529,12 @@ export function main(settingsArg) {
       script += ", artboardWidth = $bindable(undefined)";
     }
 
-    // how far from the viewport lazy images start loading; read once, when
-    // the first image mounts
+    // how far from the viewport lazy images start loading, and the element
+    // they're measured against (null = viewport); read once, when the first
+    // image mounts. lazyMargin can't reach past a clipping ancestor (overflow,
+    // contain: paint): there the host calls reveal() (see lazyScript.js)
     if (hasLazyImages) {
-      script += ", lazyMargin = '50% 50%'";
+      script += ", lazyMargin = '50% 50%', lazyRoot = null";
     }
 
     script += " } = $props();\r\r";
@@ -5554,28 +5557,9 @@ export function main(settingsArg) {
       ? "\tlet allArtboards = $state([]);\r"
       : "";
     script += "\tlet activeArtboard = $state(undefined);\r";
-    // use_lazy_loader: seen holds ids of images that have neared the viewport.
-    // the lazy attachment observes each image while it's mounted, so artboards swapped in
-    // by {#if} are covered; display:none artboards never intersect.
+    // use_lazy_loader: see lazyScript.js
     if (hasLazyImages) {
-      script +=
-        "\tlet seen = $state({});\r" +
-        "\tlet io;\r\r" +
-        "\tfunction lazy(el) {\r" +
-        "\t\tio ??= new IntersectionObserver(\r" +
-        "\t\t\t(entries) => {\r" +
-        "\t\t\t\tfor (const e of entries) {\r" +
-        "\t\t\t\t\tif (e.isIntersecting) {\r" +
-        "\t\t\t\t\t\tseen[e.target.id] = true;\r" +
-        "\t\t\t\t\t\tio.unobserve(e.target);\r" +
-        "\t\t\t\t\t}\r" +
-        "\t\t\t\t}\r" +
-        "\t\t\t},\r" +
-        "\t\t\t{ rootMargin: lazyMargin },\r" +
-        "\t\t);\r" +
-        "\t\tio.observe(el);\r" +
-        "\t\treturn () => io.unobserve(el);\r" +
-        "\t}\r";
+      script += LAZY_SCRIPT;
     }
     script += "\r\tonMount(() => {\r";
     if (isTrue(settings.include_resizer_css)) {

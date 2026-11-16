@@ -254,6 +254,26 @@ If `true`, each image (and each tile of a [chunked image](../chunked-images/)) l
 
 To change how early images load, pass the component a `lazyMargin` prop. It takes a CSS margin, like IntersectionObserver's [`rootMargin`](https://developer.mozilla.org/en-US/docs/Web/API/IntersectionObserver/rootMargin), and defaults to `'50% 50%'`. For example, `<Graphic lazyMargin="1000px 0px" />` starts loading images 1,000px before they scroll into view. Browsers ignore it when the graphic is in a cross-origin iframe, so there images load only once they're on screen.
 
+`lazyMargin` can't reach past an ancestor that clips the graphic (`overflow` other than `visible`, or `contain: paint`). The browser trims each image to that ancestor before applying the margin, so there images load only once they're on screen, whatever the margin. This happens with a wide graphic panned sideways inside a clipped scroller. If the clipping element is inside your page and contains the graphic, you can pass it as `lazyRoot` (default `null`, the viewport) to measure against it instead. That doesn't help with `contain: paint` or several clipping layers.
+
+For those cases, call the component's `check()` whenever the graphic moves, for example on each frame of a pan. It loads every image within `lazyMargin` of the viewport (or of `lazyRoot`), using each image's real on-page position, which includes your transforms and ignores clipping:
+
+```svelte
+<script>
+  let ai;
+  // wherever you already move the graphic:
+  // x = ...; ai?.check();
+</script>
+
+<Graphic bind:this={ai} lazyMargin="0% 200%" />
+```
+
+The usual loading on scroll keeps running alongside it, so if you miss a call an image still loads once it's on screen. Each call checks only the images that haven't loaded yet, so it gets cheaper as you pan, and costs almost nothing once everything has loaded.
+
+To decide yourself what loads, use `getLazyTiles()`, which lists the mounted images that haven't loaded yet as `{ id, el }`, and `reveal(ids)`, which loads the images with those ids (one id or an array) straight away. For example, `ai.reveal(ai.getLazyTiles().map(({ id }) => id))` loads them all.
+
+Copies of an image made with `cloneNode` keep only what the image had when copied, so a copy made before the image loads stays blank. Call `reveal()` for the originals first, then copy them after the next update (`await tick()`).
+
 Before v1.0.10 this setting did nothing, but it was `true` by default. Values saved by those versions are ignored, so set it again to turn lazy loading on.
 
 Options: `false`, `true`
