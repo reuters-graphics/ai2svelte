@@ -252,6 +252,8 @@ Options: `yes`, `no`, `both`
 
 If `true`, each image (and each tile of a [chunked image](../chunked-images/)) loads only when it comes within about half a screen of the viewport. Images load after the page's JavaScript runs, so pair it with `priority_fetch` for graphics at the top of the page.
 
+To change how early images load, pass the component a `lazyMargin` prop. It takes a CSS margin, like IntersectionObserver's [`rootMargin`](https://developer.mozilla.org/en-US/docs/Web/API/IntersectionObserver/rootMargin), and defaults to `'50% 50%'`. For example, `<Graphic lazyMargin="1000px 0px" />` starts loading images 1,000px before they scroll into view. Browsers ignore it when the graphic is in a cross-origin iframe, so there images load only once they're on screen.
+
 Before v1.0.10 this setting did nothing, but it was `true` by default. Values saved by those versions are ignored, so set it again to turn lazy loading on.
 
 Options: `false`, `true`

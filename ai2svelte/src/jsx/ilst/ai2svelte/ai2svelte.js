@@ -5528,6 +5528,12 @@ export function main(settingsArg) {
       script += ", artboardWidth = $bindable(undefined)";
     }
 
+    // how far from the viewport lazy images start loading; read once, when
+    // the first image mounts
+    if (hasLazyImages) {
+      script += ", lazyMargin = '50% 50%'";
+    }
+
     script += " } = $props();\r\r";
 
     script += "\timport { onMount, untrack } from 'svelte';\r\r";
@@ -5565,7 +5571,7 @@ export function main(settingsArg) {
         "\t\t\t\t\t}\r" +
         "\t\t\t\t}\r" +
         "\t\t\t},\r" +
-        "\t\t\t{ rootMargin: '50% 50%' },\r" +
+        "\t\t\t{ rootMargin: lazyMargin },\r" +
         "\t\t);\r" +
         "\t\tio.observe(el);\r" +
         "\t\treturn () => io.unobserve(el);\r" +
