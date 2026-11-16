@@ -42,7 +42,11 @@ describe("debugLog", () => {
     logEvent("panel-error", new Error("boom"));
 
     const lines = readLines(realPath.join(debugDir(), "sessions"));
-    expect(lines.map((l) => l.type)).toEqual(["session", "call", "panel-error"]);
+    expect(lines.map((l) => l.type)).toEqual([
+      "session",
+      "call",
+      "panel-error",
+    ]);
     expect(lines.map((l) => l.seq)).toEqual([1, 2, 3]);
     expect(lines[1].data.fn).toBe("runAi2Svelte");
     expect(lines[2].data.message).toBe("boom");
@@ -72,18 +76,27 @@ describe("debugLog", () => {
       realFs.writeFileSync(realPath.join(tmp, n), ""),
     );
     pruneDir(tmp, 2);
-    expect(realFs.readdirSync(tmp).sort()).toEqual(["2026-01-02", "2026-01-03"]);
+    expect(realFs.readdirSync(tmp).sort()).toEqual([
+      "2026-01-02",
+      "2026-01-03",
+    ]);
   });
 
   it("withSnapshot logs the snapshot and still runs when snapshotting fails", async () => {
     const { withSnapshot, debugDir, evalTS } = await freshModule();
-    evalTS.mockResolvedValueOnce({ path: "/x/a.ai", saved: true, name: "a.ai" });
+    evalTS.mockResolvedValueOnce({
+      path: "/x/a.ai",
+      saved: true,
+      name: "a.ai",
+    });
     expect(await withSnapshot(async () => "ran")).toBe("ran");
 
     evalTS.mockRejectedValueOnce(new Error("no document"));
     expect(await withSnapshot(async () => "ran again")).toBe("ran again");
 
-    const types = readLines(realPath.join(debugDir(), "sessions")).map((l) => l.type);
+    const types = readLines(realPath.join(debugDir(), "sessions")).map(
+      (l) => l.type,
+    );
     expect(types).toEqual(["session", "snapshot", "snapshot-failed"]);
   });
 
@@ -94,8 +107,14 @@ describe("debugLog", () => {
     const old = "2026-01-01T00-00-00-000Z-demo.ai";
     const otherDoc = "2026-01-01T00-00-01-000Z-my-demo.ai"; // name ends like demo.ai
     const latest = "2026-01-02T00-00-00-000Z-demo.ai";
-    [old, otherDoc, latest].forEach((n) => realFs.writeFileSync(realPath.join(dir, n), ""));
-    evalTS.mockResolvedValueOnce({ path: realPath.join(dir, latest), saved: true, name: "demo.ai" });
+    [old, otherDoc, latest].forEach((n) =>
+      realFs.writeFileSync(realPath.join(dir, n), ""),
+    );
+    evalTS.mockResolvedValueOnce({
+      path: realPath.join(dir, latest),
+      saved: true,
+      name: "demo.ai",
+    });
 
     await withSnapshot(async () => {});
     expect(realFs.readdirSync(dir).sort()).toEqual([otherDoc, latest]);
@@ -105,23 +124,48 @@ describe("debugLog", () => {
     const { findDebugData, exportDebugReport, debugDir } = await freshModule();
     const dir = debugDir();
     const snap = (file: string, source?: string) =>
-      JSON.stringify({ type: "snapshot", data: { path: `/x/${file}`, name: "demo.ai", source } });
+      JSON.stringify({
+        type: "snapshot",
+        data: { path: `/x/${file}`, name: "demo.ai", source },
+      });
     realFs.mkdirSync(realPath.join(dir, "sessions"), { recursive: true });
     realFs.mkdirSync(realPath.join(dir, "snapshots"));
-    realFs.writeFileSync(realPath.join(dir, "sessions", "a.jsonl"), snap("s1-demo.ai", "/work/demo.ai") + "\n");
-    realFs.writeFileSync(realPath.join(dir, "sessions", "b.jsonl"), snap("s2-demo.ai", "/other/demo.ai") + "\n"); // same name, other folder
-    realFs.writeFileSync(realPath.join(dir, "sessions", "c.jsonl"), snap("s3-demo.ai") + "\n"); // old event, no source
-    realFs.writeFileSync(realPath.join(dir, "sessions", "d.jsonl"), '{"type":"call","data":{}}\n');
-    ["s1-demo.ai", "s2-demo.ai"].forEach((n) => realFs.writeFileSync(realPath.join(dir, "snapshots", n), ""));
+    realFs.writeFileSync(
+      realPath.join(dir, "sessions", "a.jsonl"),
+      snap("s1-demo.ai", "/work/demo.ai") + "\n",
+    );
+    realFs.writeFileSync(
+      realPath.join(dir, "sessions", "b.jsonl"),
+      snap("s2-demo.ai", "/other/demo.ai") + "\n",
+    ); // same name, other folder
+    realFs.writeFileSync(
+      realPath.join(dir, "sessions", "c.jsonl"),
+      snap("s3-demo.ai") + "\n",
+    ); // old event, no source
+    realFs.writeFileSync(
+      realPath.join(dir, "sessions", "d.jsonl"),
+      '{"type":"call","data":{}}\n',
+    );
+    ["s1-demo.ai", "s2-demo.ai"].forEach((n) =>
+      realFs.writeFileSync(realPath.join(dir, "snapshots", n), ""),
+    );
 
     const data = findDebugData("/work/demo.ai");
-    expect(data).toEqual({ sessions: ["a.jsonl", "c.jsonl"], snapshots: ["s1-demo.ai", "s3-demo.ai"] });
+    expect(data).toEqual({
+      sessions: ["a.jsonl", "c.jsonl"],
+      snapshots: ["s1-demo.ai", "s3-demo.ai"],
+    });
     expect(findDebugData("/work/none.ai")).toBeNull();
 
     const out = realFs.mkdtempSync(realPath.join(os.tmpdir(), "debugout-"));
     const dest = exportDebugReport(out, data!);
-    expect(realFs.readdirSync(realPath.join(dest, "sessions")).sort()).toEqual(["a.jsonl", "c.jsonl"]);
-    expect(realFs.readdirSync(realPath.join(dest, "snapshots"))).toEqual(["s1-demo.ai"]); // s3 was pruned
+    expect(realFs.readdirSync(realPath.join(dest, "sessions")).sort()).toEqual([
+      "a.jsonl",
+      "c.jsonl",
+    ]);
+    expect(realFs.readdirSync(realPath.join(dest, "snapshots"))).toEqual([
+      "s1-demo.ai",
+    ]); // s3 was pruned
     realFs.rmSync(out, { recursive: true, force: true });
   });
 });

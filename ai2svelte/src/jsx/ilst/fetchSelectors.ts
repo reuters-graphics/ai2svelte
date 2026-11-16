@@ -2,8 +2,7 @@ export function fetchSelectors() {
   var activeDoc = app.activeDocument;
   var docTextFrames = activeDoc.textFrames;
 
-  for(let i = 0; i < docTextFrames.length; i++) {
-  }
+  for (let i = 0; i < docTextFrames.length; i++) {}
 
   alert(String(docTextFrames.length));
 }

@@ -1,5 +1,5 @@
-import '@testing-library/jest-dom/vitest';
-import { vi } from 'vitest';
+import "@testing-library/jest-dom/vitest";
+import { vi } from "vitest";
 
 // Svelte 5 transitions call element.animate(). jsdom doesn't implement the Web
 // Animation API, so we polyfill with a mock that:
@@ -19,11 +19,11 @@ function makeAnimationMock(): Animation {
     finished: Promise.resolve({} as Animation),
     ready: Promise.resolve({} as Animation),
     currentTime: 0,
-    playState: 'finished' as AnimationPlayState,
+    playState: "finished" as AnimationPlayState,
     effect: null,
     timeline: null,
-    id: '',
-    replaceState: 'active' as AnimationReplaceState,
+    id: "",
+    replaceState: "active" as AnimationReplaceState,
     pending: false,
     commitStyles: vi.fn(),
     persist: vi.fn(),
@@ -58,7 +58,7 @@ SVGElement.prototype.animate = HTMLElement.prototype.animate;
 
 // jsdom does not implement window.matchMedia.
 // Svelte 5's Spring / MediaQuery rune requires this at construction time.
-Object.defineProperty(window, 'matchMedia', {
+Object.defineProperty(window, "matchMedia", {
   writable: true,
   value: vi.fn().mockImplementation((query: string) => ({
     matches: false,
@@ -97,6 +97,10 @@ if (!HTMLElement.prototype.releasePointerCapture) {
 // Pill.svelte's onclick handler checks `e.target instanceof SVGPathElement`.
 // jsdom exposes SVGElement but not SVGPathElement; alias it so the check doesn't
 // throw a ReferenceError and the else-branch (onClick) runs correctly.
-if (typeof (global as unknown as Record<string, unknown>).SVGPathElement === 'undefined') {
-  (global as unknown as Record<string, unknown>).SVGPathElement = global.SVGElement;
+if (
+  typeof (global as unknown as Record<string, unknown>).SVGPathElement ===
+  "undefined"
+) {
+  (global as unknown as Record<string, unknown>).SVGPathElement =
+    global.SVGElement;
 }

@@ -2,7 +2,7 @@
 
 import { ns } from "../shared/shared";
 
-import * as ilst from "./ilst/ilst"; 
+import * as ilst from "./ilst/ilst";
 
 //@ts-ignore
 const host = typeof $ !== "undefined" ? $ : window;
@@ -54,19 +54,11 @@ const getAppNameSafely = (): ApplicationName | "unknown" => {
 };
 
 switch (getAppNameSafely()) {
-  
-  
-  
-  
-  
   case "illustrator":
   case "illustratorbeta":
     host[ns] = ilst;
     break;
-
-  
-  
-  }
+}
 
 const empty = {};
 // prettier-ignore

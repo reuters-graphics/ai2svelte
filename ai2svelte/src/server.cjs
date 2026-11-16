@@ -116,7 +116,7 @@ async function buildSvelteES() {
         }
         if (Object.keys(chunkOrAsset.modules).length > 5) {
           console.log(
-            `  ... and ${Object.keys(chunkOrAsset.modules).length - 5} more modules`
+            `  ... and ${Object.keys(chunkOrAsset.modules).length - 5} more modules`,
           );
         }
       }
@@ -126,7 +126,7 @@ async function buildSvelteES() {
     console.log("📄 You can now use the bundle in HTML like:");
     console.log('   <script src="dist/svelte-component.iife.js"></script>');
     console.log(
-      "   <script>new SvelteComponent({ target: document.body });</script>"
+      "   <script>new SvelteComponent({ target: document.body });</script>",
     );
 
     // Close bundle

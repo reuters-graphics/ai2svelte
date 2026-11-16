@@ -53,7 +53,7 @@ export default function ensureAnimationFirst({ debug = false } = {}) {
         if (!toMove.length) {
           if (debug) {
             console.log(
-              `[ensure-animation-first] selector="${rule.selector}" no animation decls`
+              `[ensure-animation-first] selector="${rule.selector}" no animation decls`,
             );
           }
           return;
@@ -100,7 +100,7 @@ export default function ensureAnimationFirst({ debug = false } = {}) {
         if (debug) {
           const movedProps = toMove.map(({ decl }) => decl.prop).join(", ");
           console.log(
-            `[ensure-animation-first] selector="${rule.selector}" moved to top: ${movedProps}`
+            `[ensure-animation-first] selector="${rule.selector}" moved to top: ${movedProps}`,
           );
         }
       });

@@ -63,7 +63,7 @@
           }
           return acc;
         },
-        {} as Record<string, string>
+        {} as Record<string, string>,
       );
   }
 

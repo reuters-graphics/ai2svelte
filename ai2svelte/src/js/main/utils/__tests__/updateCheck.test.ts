@@ -37,9 +37,10 @@ describe("checkForUpdate", () => {
         json: () =>
           Promise.resolve({
             tag_name: "v1.0.9",
-            html_url: "https://github.com/reuters-graphics/ai2svelte/releases/tag/v1.0.9",
+            html_url:
+              "https://github.com/reuters-graphics/ai2svelte/releases/tag/v1.0.9",
           }),
-      })
+      }),
     );
 
     const result = await checkForUpdate("1.0.8");
@@ -55,8 +56,11 @@ describe("checkForUpdate", () => {
       vi.fn().mockResolvedValue({
         ok: true,
         json: () =>
-          Promise.resolve({ tag_name: "v1.0.8", html_url: "https://example.com" }),
-      })
+          Promise.resolve({
+            tag_name: "v1.0.8",
+            html_url: "https://example.com",
+          }),
+      }),
     );
 
     expect(await checkForUpdate("1.0.8")).toBeNull();

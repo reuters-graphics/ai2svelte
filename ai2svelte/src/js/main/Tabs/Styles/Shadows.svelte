@@ -28,14 +28,14 @@
    */
   async function toggleShadowCard(
     shadowName: string,
-    operation: boolean
+    operation: boolean,
   ): Promise<void> {
     const shadowParam = `shadow-${shadowName}(${stylesState.shadowColor})`;
 
     let rule: Rule | null =
       ($styles?.root?.nodes.find(
         (node) =>
-          node.type === "rule" && node.selector === stylesState.cssSelector
+          node.type === "rule" && node.selector === stylesState.cssSelector,
       ) as Rule) || null;
 
     // true to add
@@ -66,7 +66,9 @@
       removeIfEmpty(rule);
     }
 
-    await commitStyles(stringToStyles($styles?.root?.toString() || "") as Promise<Result<Root>>);
+    await commitStyles(
+      stringToStyles($styles?.root?.toString() || "") as Promise<Result<Root>>,
+    );
   }
 
   function fetchShadows() {
@@ -94,7 +96,7 @@
       let rule: Rule | null =
         ($styles?.root?.nodes.find(
           (node) =>
-            node.type === "rule" && node.selector === stylesState.cssSelector
+            node.type === "rule" && node.selector === stylesState.cssSelector,
         ) as Rule) || null;
 
       if (rule) {

@@ -2,3 +2,9 @@
 src/js/lib/cep/
 # @include-d raw into the ES3 bundle, bypasses Babel
 src/jsx/lib/
+# vendored
+src/js/public/webp/
+src/public/BoltHostAdapter.js
+# ai2svelte export output (visual-test fixtures)
+src/js/main/example/
+src/js/main/src/

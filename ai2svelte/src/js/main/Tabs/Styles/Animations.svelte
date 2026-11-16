@@ -33,7 +33,7 @@
     animationName: string,
     animationDefinition: string,
     animationRule: string,
-    operation: boolean
+    operation: boolean,
   ): Promise<void> {
     const animationMixinRegex = new RegExp(/.*@include (.*)\(\)/);
     const mixinCheck = animationUsage?.match(animationMixinRegex);
@@ -42,7 +42,7 @@
     let rule: Rule | null =
       ($styles?.root?.nodes.find(
         (node) =>
-          node.type === "rule" && node.selector === stylesState.cssSelector
+          node.type === "rule" && node.selector === stylesState.cssSelector,
       ) as Rule) || null;
 
     const animationParam = `animation-${animationName}()`;
@@ -118,7 +118,9 @@
       removeIfEmpty(rule);
     }
 
-    await commitStyles(stringToStyles($styles?.root?.toString() || "") as Promise<Result<Root>>);
+    await commitStyles(
+      stringToStyles($styles?.root?.toString() || "") as Promise<Result<Root>>,
+    );
   }
 
   function clearAnimationSelection() {
@@ -128,7 +130,7 @@
       let rule: Rule | null =
         ($styles?.root?.nodes.find(
           (node) =>
-            node.type === "rule" && node.selector === stylesState.cssSelector
+            node.type === "rule" && node.selector === stylesState.cssSelector,
         ) as Rule) || null;
 
       let animationParam = `animation-${x.name}()`;
@@ -188,7 +190,7 @@
           animation.name,
           animation.arguments,
           animation.animationRule,
-          animation.active
+          animation.active,
         );
       }}
       delay={index * 10}

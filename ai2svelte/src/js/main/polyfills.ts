@@ -67,7 +67,7 @@ if (typeof String.prototype.at !== "function") {
     function (e) {
       if (e.isTrusted) nativePDFired = true;
     },
-    { capture: true }
+    { capture: true },
   );
 
   // On mousedown: if pointerdown didn't precede it, synthesize one
@@ -94,12 +94,12 @@ if (typeof String.prototype.at !== "function") {
             pointerType: "mouse",
             isPrimary: true,
             pressure: 0.5,
-          })
+          }),
         );
       }
       nativePDFired = false; // reset for the next interaction
     },
-    { capture: true }
+    { capture: true },
   );
 
   // Same for pointerup ← mouseup
@@ -108,7 +108,7 @@ if (typeof String.prototype.at !== "function") {
     function (e) {
       if (e.isTrusted) nativePUFired = true;
     },
-    { capture: true }
+    { capture: true },
   );
 
   document.addEventListener(
@@ -134,11 +134,11 @@ if (typeof String.prototype.at !== "function") {
             pointerType: "mouse",
             isPrimary: true,
             pressure: 0,
-          })
+          }),
         );
       }
       nativePUFired = false;
     },
-    { capture: true }
+    { capture: true },
   );
 })();

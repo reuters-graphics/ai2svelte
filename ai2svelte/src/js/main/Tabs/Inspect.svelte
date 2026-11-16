@@ -78,8 +78,12 @@
         },
       });
     };
-    evalTS("setVariable", "ai-settings", {}).catch(onError("setVariable ai-settings"));
-    evalTS("setVariable", "version", { version: version }).catch(onError("setVariable version"));
+    evalTS("setVariable", "ai-settings", {}).catch(
+      onError("setVariable ai-settings"),
+    );
+    evalTS("setVariable", "version", { version: version }).catch(
+      onError("setVariable version"),
+    );
     alert("File data has been reset. Rerun ai2svelte to save changes.");
   }
 
@@ -87,8 +91,6 @@
     diffLines(SavedYamlSettingsString, currentYamlSettingsString),
   );
   let stylesDiff = $derived(diffLines(savedCssString, currentCssString));
-
-
 </script>
 
 <div class="tab-content">

@@ -82,9 +82,7 @@ export const evalTS = <
     const id = ++evalTSCallId;
     const start = Date.now();
     logEvent("call", { id, fn: functionName, args });
-    const formattedArgs = args
-      .map((arg) => `${JSON.stringify(arg)}`)
-      .join(",");
+    const formattedArgs = args.map((arg) => `${JSON.stringify(arg)}`).join(",");
     csi.evalScript(
       `try{
           var host = typeof $ !== 'undefined' ? $ : window;

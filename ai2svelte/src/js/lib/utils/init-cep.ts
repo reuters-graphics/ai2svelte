@@ -23,7 +23,7 @@ const buildFlyoutMenu = () => {
       try {
         //? On build the events come in garbled string which requires some replacing and then parsing to get the data
         menuId = JSON.parse(
-          event.data.replace(/\$/g, "").replace(/\=2/g, ":")
+          event.data.replace(/\$/g, "").replace(/\=2/g, ":"),
         ).menuId;
       } catch (e) {
         console.error(e);
@@ -43,7 +43,7 @@ const buildFlyoutMenu = () => {
   window.__adobe_cep__.invokeSync("setPanelFlyoutMenu", menu);
   window.__adobe_cep__.addEventListener(
     "com.adobe.csxs.events.flyoutMenuClicked",
-    flyoutHandler
+    flyoutHandler,
   );
 };
 
@@ -78,7 +78,7 @@ const buildContextMenu = () => {
     JSON.stringify(menuObj),
     (e: string) => {
       menuObj.menu.find((m) => m.id === e)?.callback();
-    }
+    },
   );
 };
 

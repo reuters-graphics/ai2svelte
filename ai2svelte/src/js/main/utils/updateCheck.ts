@@ -17,7 +17,7 @@ export function isNewerVersion(latest: string, current: string): boolean {
 }
 
 export async function checkForUpdate(
-  currentVersion: string
+  currentVersion: string,
 ): Promise<{ version: string; url: string } | null> {
   try {
     const response = await fetch(RELEASES_URL);

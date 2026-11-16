@@ -57,7 +57,11 @@ export const runAi2Svelte = (settings: any) => {
 
 // Image post-processing progress for a runAi2Svelte({ deferCompletion: true })
 // export, then its progress bar close and completion alert.
-export const updateExportProgress = (done: number, total: number, title: string) => {
+export const updateExportProgress = (
+  done: number,
+  total: number,
+  title: string,
+) => {
   if (app) exportProgress(done, total, title);
 };
 

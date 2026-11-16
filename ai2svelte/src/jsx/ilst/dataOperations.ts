@@ -17,7 +17,7 @@ export function storeHiddenData(key: string, value: unknown) {
     var xmpFile = new XMPFile(
       filePath,
       XMPConst!.UNKNOWN,
-      XMPConst!.OPEN_FOR_UPDATE
+      XMPConst!.OPEN_FOR_UPDATE,
     );
     var xmpMeta = xmpFile.getXMP(); // Get current metadata
 
@@ -39,7 +39,11 @@ export function storeHiddenData(key: string, value: unknown) {
 
     // Illustrator keeps the XMP it read at open time and writes it back on
     // the next save, wiping what we just wrote to disk. Mirror it in memory.
-    var readBack = new XMPFile(filePath, XMPConst!.UNKNOWN, XMPConst!.OPEN_FOR_READ);
+    var readBack = new XMPFile(
+      filePath,
+      XMPConst!.UNKNOWN,
+      XMPConst!.OPEN_FOR_READ,
+    );
     doc.XMPString = readBack.getXMP().serialize();
     readBack.closeFile();
 
@@ -64,7 +68,7 @@ export function getHiddenData(key: string) {
     var xmpFile = new XMPFile(
       filePath,
       XMPConst!.UNKNOWN,
-      XMPConst!.OPEN_FOR_READ
+      XMPConst!.OPEN_FOR_READ,
     );
     var xmpMeta = xmpFile.getXMP();
 

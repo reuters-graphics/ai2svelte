@@ -17,7 +17,7 @@ export const helloNum = (n: number) => {
 };
 export const helloArrayStr = (arr: string[]) => {
   alert(
-    `ExtendScript received an array of ${arr.length} strings: ${arr.toString()}`
+    `ExtendScript received an array of ${arr.length} strings: ${arr.toString()}`,
   );
   return arr;
 };

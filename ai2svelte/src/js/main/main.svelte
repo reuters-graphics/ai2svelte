@@ -135,7 +135,8 @@
     try {
       $docName = ((await evalTS("getDocumentName")) as unknown as string) || "";
 
-      const activeDocs = ((await evalTS("getActiveDocumentsNames")) as string[]) || [];
+      const activeDocs =
+        ((await evalTS("getActiveDocumentsNames")) as string[]) || [];
 
       // Evict cache entries for documents that are no longer open
       Object.keys($cache).forEach((key) => {
@@ -148,7 +149,9 @@
       // would otherwise count as a hit and get restored, and fetchSettings()
       // would never run — leaving $settingsObject empty and the first run
       // exporting with default paths. Require actual keys to count as a hit.
-      const cached = $cache[$docName]?.settingsObject as SettingsObject | undefined;
+      const cached = $cache[$docName]?.settingsObject as
+        | SettingsObject
+        | undefined;
       const cacheHit = !!cached && Object.keys(cached).length > 0;
       if (cacheHit) {
         // Snapshot cached values BEFORE touching any store. The `cache` derived
@@ -223,7 +226,11 @@
         if (
           JSON.stringify(previousSettings) !== JSON.stringify($settingsObject)
         ) {
-          saveSettings($settingsObject, { styleText: $styles?.root?.toString() }, version);
+          saveSettings(
+            $settingsObject,
+            { styleText: $styles?.root?.toString() },
+            version,
+          );
         }
       }
     };
@@ -261,7 +268,10 @@
           // with the previous doc's (or empty) settings — wrong export path.
           $updateInProgress = true;
           await handleCache().catch((err) => {
-            console.error("[ai2svelte] handleCache error on document change:", err);
+            console.error(
+              "[ai2svelte] handleCache error on document change:",
+              err,
+            );
           });
           $updateInProgress = false;
         });

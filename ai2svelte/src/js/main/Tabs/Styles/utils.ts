@@ -40,7 +40,10 @@ export async function stringToStyles(string: string) {
   return object;
 }
 
-export function removeSelectorFromResult(result: Result<Root>, selector: string) {
+export function removeSelectorFromResult(
+  result: Result<Root>,
+  selector: string,
+) {
   result.root.walkRules((rule) => {
     if (rule.selector === selector) {
       rule.remove();

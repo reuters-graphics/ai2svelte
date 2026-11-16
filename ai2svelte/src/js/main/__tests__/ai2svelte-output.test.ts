@@ -12,7 +12,8 @@ describe("ai2svelte generated output (visual-test)", () => {
   for (const fixture of fixtures) {
     // multiple-export fixtures snapshot each component; one-file keeps the
     // original test name so existing snapshots still match
-    const files: (string | null)[] = (fixture as { files?: string[] }).files ?? [null];
+    const files: (string | null)[] = (fixture as { files?: string[] })
+      .files ?? [null];
     for (const file of files) {
       const label = file ? `${fixture.name}/${file}` : fixture.name;
       it(`${label} matches last-approved snapshot`, () => {

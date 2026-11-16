@@ -10,7 +10,8 @@ export const keyRegisterOverride = () => {
   //@ts-ignore
   const platform = navigator.platform.substring(0, 3);
   let maxKey = 0;
-  if (platform === "Mac") maxKey = 126; // Mac Max Key Code
+  if (platform === "Mac")
+    maxKey = 126; // Mac Max Key Code
   else if (platform === "Win") maxKey = 222; // HTML Max Key Code
   let allKeys: {
     keyCode: number;

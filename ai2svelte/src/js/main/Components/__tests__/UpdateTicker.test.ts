@@ -10,7 +10,7 @@ describe("UpdateTicker", () => {
       version: "v1.0.8",
     });
     expect(getByRole("button", { name: /download now/i }).textContent).toMatch(
-      /v1\.0\.8 is now available\. Download now!/
+      /v1\.0\.8 is now available\. Download now!/,
     );
   });
 
@@ -20,7 +20,7 @@ describe("UpdateTicker", () => {
       version: null,
     });
     expect(getByRole("button", { name: /download now/i }).textContent).toMatch(
-      /A new version is now available\. Download now!/
+      /A new version is now available\. Download now!/,
     );
   });
 

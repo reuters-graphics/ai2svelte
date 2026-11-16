@@ -26,14 +26,14 @@ export async function compileComponent() {
     userDataPath,
     config.id,
     "writable",
-    "previewWrapper.js"
+    "previewWrapper.js",
   );
 
   const writableOutputPath = path.join(
     userDataPath,
     config.id,
     "writable",
-    "previewComponent.js"
+    "previewComponent.js",
   );
 
   serverProcess = spawn(
@@ -46,7 +46,7 @@ export async function compileComponent() {
         ...process.env,
         NODE_ENV: "production",
       },
-    }
+    },
   );
 
   console.log("Started server with PID:", serverProcess.pid);

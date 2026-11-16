@@ -1,17 +1,17 @@
 <script lang="ts">
-    import { onMount } from "svelte";
+  import { onMount } from "svelte";
 
-    interface Props {
-        value: string;
-    }
+  interface Props {
+    value: string;
+  }
 
-    let { value = $bindable() }: Props = $props();
+  let { value = $bindable() }: Props = $props();
 
-    onMount(() => {});
+  onMount(() => {});
 </script>
 
 <div></div>
 
 <style lang="scss">
-    @use "../styles/variables.scss" as *;
+  @use "../styles/variables.scss" as *;
 </style>

@@ -91,7 +91,7 @@
         "file.scss",
         "scss",
         1,
-        view.state.doc.toString()
+        view.state.doc.toString(),
       );
 
       const scssService = getSCSSLanguageService();
@@ -134,7 +134,7 @@
 
       // test if the text change is made by user input
       const userInput = update.transactions.some(
-        (tr) => tr.isUserEvent("input") || tr.isUserEvent("delete")
+        (tr) => tr.isUserEvent("input") || tr.isUserEvent("delete"),
       );
 
       // if made by the user input,
@@ -174,7 +174,7 @@
                 return indentMore(view);
               },
             },
-          ])
+          ]),
         ),
         updateListener,
         EditorView.editable.of(!readonly),

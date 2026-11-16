@@ -80,12 +80,17 @@
           <div class="value-display">
             <p class="dropdown-value hidden">{value}</p>
             {#key value}
-              <p class="dropdown-value" transition:fly={{ duration: 400, y: 40 }}>
+              <p
+                class="dropdown-value"
+                transition:fly={{ duration: 400, y: 40 }}
+              >
                 {value}
               </p>
             {/key}
           </div>
-          <p class="chevron" style="rotate:{menuOpen ? '180deg' : '0deg'};">▼</p>
+          <p class="chevron" style="rotate:{menuOpen ? '180deg' : '0deg'};">
+            ▼
+          </p>
         </button>
       {/snippet}
     </Select.Trigger>
@@ -106,7 +111,11 @@
           <div {...props} class="dropdown-menu">
             <ul bind:this={parentContainer}>
               <!-- Chaser: absolute highlight that slides to the hovered item -->
-              <li class="li-selector" bind:this={chaserElement} aria-hidden="true">
+              <li
+                class="li-selector"
+                bind:this={chaserElement}
+                aria-hidden="true"
+              >
                 <button tabindex="-1">{value}</button>
               </li>
 

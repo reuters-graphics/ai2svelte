@@ -74,9 +74,11 @@
       <!-- Floating value label — repositions itself to stay readable at either end -->
       <p
         class="range-value"
-        style="left: {progress.current * 100}%; text-align: {progress.current < 0.5
+        style="left: {progress.current * 100}%; text-align: {progress.current <
+        0.5
           ? 'left'
-          : 'right'}; transform: translateY(-50%) translateX({progress.current < 0.5
+          : 'right'}; transform: translateY(-50%) translateX({progress.current <
+        0.5
           ? 'calc(4px)'
           : 'calc(-100% - 4px)'}); color: {progress.current < 0.5
           ? 'var(--color-text)'

@@ -233,11 +233,15 @@ export function settingsEqual(a: SettingsObject, b: SettingsObject): boolean {
 }
 
 export async function fetchSettings(): Promise<void> {
-  const userSettings = readFile("user-settings.json") as Record<string, string> | null;
+  const userSettings = readFile("user-settings.json") as Record<
+    string,
+    string
+  > | null;
   if (userSettings && Object.keys(userSettings).length !== 0) {
     userData.theme = userSettings.theme;
     userData.accentColor = userSettings.accentColor;
-    userData.fontsConfig = (userSettings.fontsConfig as unknown as { [key: string]: string }) || {};
+    userData.fontsConfig =
+      (userSettings.fontsConfig as unknown as { [key: string]: string }) || {};
   } else {
     writeFile("user-settings.json", userData);
   }
@@ -247,7 +251,10 @@ export async function fetchSettings(): Promise<void> {
   );
 
   if (Object.keys(fetchedSettings).length === 0) {
-    const usersProfiles = readFile("user-profiles.json") as Record<string, SettingsObject> | null;
+    const usersProfiles = readFile("user-profiles.json") as Record<
+      string,
+      SettingsObject
+    > | null;
 
     if (usersProfiles && Object.keys(usersProfiles).includes("default")) {
       settingsObject.set(usersProfiles.default);
@@ -261,7 +268,9 @@ export async function fetchSettings(): Promise<void> {
   } else {
     savedSettings.set({ ...fetchedSettings });
     settingsObject.set({ ...fetchedSettings });
-    const fetchedStyles = await evalTS("getVariable", "css-settings") as { styleText?: string };
+    const fetchedStyles = (await evalTS("getVariable", "css-settings")) as {
+      styleText?: string;
+    };
     const stylesAST = await parseCSS(fetchedStyles.styleText || "");
     savedStyles.set(
       await postcss().process(stylesAST.root.clone(), { from: undefined }),
@@ -269,7 +278,7 @@ export async function fetchSettings(): Promise<void> {
     styles.set(
       await postcss().process(stylesAST.root.clone(), { from: undefined }),
     );
-    lastSaved.set(await evalTS("getVariable", "lastSaved") as { time: Date });
+    lastSaved.set((await evalTS("getVariable", "lastSaved")) as { time: Date });
   }
 }
 
@@ -278,11 +287,15 @@ export async function fetchSettings(): Promise<void> {
  * Does not update the active settingsObject/styles stores.
  */
 export async function fetchSavedSettings(): Promise<void> {
-  const userSettings = readFile("user-settings.json") as Record<string, string> | null;
+  const userSettings = readFile("user-settings.json") as Record<
+    string,
+    string
+  > | null;
   if (userSettings && Object.keys(userSettings).length !== 0) {
     userData.theme = userSettings.theme;
     userData.accentColor = userSettings.accentColor;
-    userData.fontsConfig = (userSettings.fontsConfig as unknown as { [key: string]: string }) || {};
+    userData.fontsConfig =
+      (userSettings.fontsConfig as unknown as { [key: string]: string }) || {};
   } else {
     writeFile("user-settings.json", userData);
   }
@@ -297,11 +310,13 @@ export async function fetchSavedSettings(): Promise<void> {
     lastSaved.set("Never");
   } else {
     savedSettings.set({ ...fetchedSettings });
-    const fetchedStyles = await evalTS("getVariable", "css-settings") as { styleText?: string };
+    const fetchedStyles = (await evalTS("getVariable", "css-settings")) as {
+      styleText?: string;
+    };
     const stylesAST = await parseCSS(fetchedStyles.styleText || "");
     savedStyles.set(
       await postcss().process(stylesAST.root.clone(), { from: undefined }),
     );
-    lastSaved.set(await evalTS("getVariable", "lastSaved") as { time: Date });
+    lastSaved.set((await evalTS("getVariable", "lastSaved")) as { time: Date });
   }
 }

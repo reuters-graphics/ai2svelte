@@ -6,7 +6,12 @@
   import { evalTS } from "../../../lib/utils/bolt";
 
   // DATA IMPORTS
-  import { styles, updateInProgress, ai2svelteInProgress, commitStyles } from "../../stores";
+  import {
+    styles,
+    updateInProgress,
+    ai2svelteInProgress,
+    commitStyles,
+  } from "../../stores";
 
   // OTHER LIB IMPORTS
   import postcss from "postcss";
@@ -119,10 +124,13 @@
   // reference and call removeEventListener() in onDestroy.
   function addSelectionChangeEventListener(): void {
     const adapter = AIEventAdapter.getInstance();
-    adapter.addEventListener(AIEvent.ART_SELECTION_CHANGED, async (_e: Event) => {
-      if ($ai2svelteInProgress) return;
-      await detectIdentifier();
-    });
+    adapter.addEventListener(
+      AIEvent.ART_SELECTION_CHANGED,
+      async (_e: Event) => {
+        if ($ai2svelteInProgress) return;
+        await detectIdentifier();
+      },
+    );
   }
 
   // init styles to a POSTCSS AST format

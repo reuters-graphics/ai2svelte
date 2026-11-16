@@ -8,7 +8,5 @@
       "../../../node_modules/types-for-adobe/shared/PlugPlugExternalObject"
     ]
   },
-  "include": [
-    "./**/*"
-  ]
+  "include": ["./**/*"]
 }

@@ -148,7 +148,13 @@
       stylesString: $stylesString,
     };
 
-    if (!deepEqual(previewObject as Record<string, unknown>, $lastPreviewObject as Record<string, unknown>) || forceRender) {
+    if (
+      !deepEqual(
+        previewObject as Record<string, unknown>,
+        $lastPreviewObject as Record<string, unknown>,
+      ) ||
+      forceRender
+    ) {
       await fs.unlink(inputPath, (err: Error | null) => {
         if (err) throw err;
       });

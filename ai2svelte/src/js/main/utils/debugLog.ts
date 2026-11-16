@@ -101,7 +101,9 @@ export async function withSnapshot<T>(run: () => Promise<T>): Promise<T> {
       if (snap?.path) {
         const latest = path.basename(snap.path);
         fs.readdirSync(dir)
-          .filter((n) => n !== latest && n.slice(STAMP_LENGTH + 1) === snap.name)
+          .filter(
+            (n) => n !== latest && n.slice(STAMP_LENGTH + 1) === snap.name,
+          )
           .forEach((n) => fs.unlinkSync(path.join(dir, n)));
       }
       pruneDir(dir, MAX_SNAPSHOTS);
@@ -157,7 +159,8 @@ export function exportDebugReport(
     for (const name of names) {
       const from = path.join(debugDir(), sub, name);
       // snapshots can already be pruned (one per file, three files)
-      if (fs.existsSync(from)) fs.copyFileSync(from, path.join(dest, sub, name));
+      if (fs.existsSync(from))
+        fs.copyFileSync(from, path.join(dest, sub, name));
     }
   };
   copy("sessions", data.sessions);

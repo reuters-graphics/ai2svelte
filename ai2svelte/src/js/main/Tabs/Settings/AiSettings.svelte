@@ -68,8 +68,7 @@
                     (o) =>
                       webpOk ||
                       o != "webp" ||
-                      (key == "image_format" &&
-                        $settingsObject[key] == "webp"),
+                      (key == "image_format" && $settingsObject[key] == "webp"),
                   )}
                 <Input
                   label={key}
@@ -79,10 +78,10 @@
                 />
               {:else if type == "range"}
                 {@const start = aiSettingsTokens.find(
-                  (item) => item.label == key
+                  (item) => item.label == key,
                 )?.start}
                 {@const end = aiSettingsTokens.find(
-                  (item) => item.label == key
+                  (item) => item.label == key,
                 )?.end}
                 <Input
                   label={key}

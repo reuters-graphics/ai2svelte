@@ -62,7 +62,6 @@ export function createMixinsFile(shadows: ShadowCardItem[]) {
     str += "\n}";
     mixins.push(str);
   });
-
 }
 
 /**

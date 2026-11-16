@@ -24,7 +24,8 @@
   let activeFormat: string = $state("UI");
   let existingProfiles: UserProfiles = $derived.by(() => {
     if (window.cep) {
-      let usersProfiles = (readFile("user-profiles.json") as UserProfiles) || {};
+      let usersProfiles =
+        (readFile("user-profiles.json") as UserProfiles) || {};
       if (usersProfiles && !Object.keys(usersProfiles).includes("default")) {
         writeFile("user-profiles.json", {
           ...usersProfiles,
@@ -118,7 +119,8 @@
             ...existingProfiles,
             ...jsonData,
           });
-          existingProfiles = (readFile("user-profiles.json") as UserProfiles) || {};
+          existingProfiles =
+            (readFile("user-profiles.json") as UserProfiles) || {};
         }
 
         mount(Toast, {
@@ -159,7 +161,9 @@
     }
     const data = findDebugData(docPath);
     if (!data) {
-      toast("There's no debug log for this file yet. Export it once, then try again.");
+      toast(
+        "There's no debug log for this file yet. Export it once, then try again.",
+      );
       return;
     }
     selectFolder("", "Save debug report at", (folderPath: string) => {

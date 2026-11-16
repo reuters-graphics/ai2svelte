@@ -11,7 +11,7 @@ export const getAllLuts = (): { creative: string[]; technical: string[] } => {
   const appLutsDir = path.join(
     isWin ? appPath : path.dirname(appPath),
     "Lumetri",
-    "LUTs"
+    "LUTs",
   );
 
   const winLocal = path.join(
@@ -20,7 +20,7 @@ export const getAllLuts = (): { creative: string[]; technical: string[] } => {
     "Roaming",
     "Adobe",
     "Common",
-    "LUTs"
+    "LUTs",
   );
   const winGlobal = path.join("C:", "Program Files", "Adobe", "Common", "LUTs");
   const macLocal = path.join(
@@ -29,14 +29,14 @@ export const getAllLuts = (): { creative: string[]; technical: string[] } => {
     "Application Support",
     "Adobe",
     "Common",
-    "LUTs"
+    "LUTs",
   );
   const macGlobal = path.join(
     "Library",
     "Application Support",
     "Adobe",
     "Common",
-    "LUTs"
+    "LUTs",
   );
 
   const appCreative = path.join(appLutsDir, "Creative");

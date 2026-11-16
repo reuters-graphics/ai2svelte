@@ -30,7 +30,7 @@ export const getPrefsDir = (): string => {
     mainDir,
     "Adobe",
     "After Effects",
-    parseFloat(appVersion).toFixed(1).toString()
+    parseFloat(appVersion).toFixed(1).toString(),
   );
   return prefsDir;
 };
@@ -44,7 +44,7 @@ export const getOutputModules = (): string[] => {
       encoding: "utf-8",
     });
     const matches = txt.match(
-      /\"Output Module Spec Strings Name .* = \".*.\"/g
+      /\"Output Module Spec Strings Name .* = \".*.\"/g,
     );
     if (matches) {
       let outputModules: string[] = [];
@@ -71,10 +71,10 @@ export const getRenderSettingsList = (): string[] => {
     const lines = txt.match(/[^\r\n]+/g);
     if (lines) {
       const firstLine = lines.findIndex((line) =>
-        line.includes("Render Settings List")
+        line.includes("Render Settings List"),
       );
       const lastLine = lines.findIndex((line) =>
-        line.includes("Still Frame RS Index")
+        line.includes("Still Frame RS Index"),
       );
       const settingBlock = lines
         .slice(firstLine, lastLine)

@@ -1,6 +1,12 @@
 import type { Writable } from "svelte/store";
 import { derived, get, writable } from "svelte/store";
-import type { Style, ShadowItem, AnimationItem, SettingsObject, PreviewObject } from "./Tabs/types";
+import type {
+  Style,
+  ShadowItem,
+  AnimationItem,
+  SettingsObject,
+  PreviewObject,
+} from "./Tabs/types";
 import { generateAllMixins } from "./utils/cssUtils";
 import type { Result, Root } from "postcss";
 
@@ -43,11 +49,10 @@ export const alertObject: Writable<{
   flag: boolean;
   message: string;
   action?: { label: string; run: () => unknown };
-}> =
-  writable({
-    flag: false,
-    message: "",
-  });
+}> = writable({
+  flag: false,
+  message: "",
+});
 
 export const userAnimations: Writable<AnimationItem[]> = writable([]);
 export const userShadows: Writable<ShadowItem[]> = writable([]);

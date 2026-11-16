@@ -3,7 +3,7 @@ import type { ShadowItem } from "../Tabs/types";
 // Convert rgba(...) to #RRGGBBAA
 function rgbaToHex(rgba: string): string {
   const match = rgba.match(
-    /rgba\(\s*(\d{1,3})\s*,\s*(\d{1,3})\s*,\s*(\d{1,3})\s*,\s*(0|1|0?\.\d+)\s*\)/
+    /rgba\(\s*(\d{1,3})\s*,\s*(\d{1,3})\s*,\s*(\d{1,3})\s*,\s*(0|1|0?\.\d+)\s*\)/,
   );
   if (!match) return rgba;
 
@@ -23,7 +23,7 @@ function rgbaToHex(rgba: string): string {
 function replaceRgbaInString(str: string): string {
   return str.replace(
     /rgba\(\s*\d{1,3}\s*,\s*\d{1,3}\s*,\s*\d{1,3}\s*,\s*(0|1|0?\.\d+)\s*\)/g,
-    rgbaToHex
+    rgbaToHex,
   );
 }
 
@@ -35,7 +35,7 @@ function traverse(obj: unknown): unknown {
     return obj.map((item) => traverse(item));
   } else if (typeof obj === "object" && obj !== null) {
     return Object.fromEntries(
-      Object.entries(obj).map(([key, value]) => [key, traverse(value)])
+      Object.entries(obj).map(([key, value]) => [key, traverse(value)]),
     );
   }
   return obj;

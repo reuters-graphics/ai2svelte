@@ -34,10 +34,13 @@
       {...props}
       class="theme-switcher"
       data-value={theme}
-      aria-label={"Change to " + (theme === "dark" ? "light" : "dark") + " theme"}
+      aria-label={"Change to " +
+        (theme === "dark" ? "light" : "dark") +
+        " theme"}
       use:tooltip={{
         ...tooltipSettings,
-        content: "Change to " + (theme === "dark" ? "light" : "dark") + " theme",
+        content:
+          "Change to " + (theme === "dark" ? "light" : "dark") + " theme",
       }}
     >
       <div id="icon-container">
