@@ -14,5 +14,11 @@
     "aiPath": "src/js/main/example/preview-dev.ai",
     "settings": { "image_chunk_width": 512, "image_chunk_height": 512 },
     "baseline": "preview-dev"
+  },
+  {
+    "name": "multi-export",
+    "aiPath": "src/js/main/example/multi-export.ai",
+    "settings": { "project_name": "multi{1,3}step" },
+    "files": ["multi1step", "multi2step", "multi3step"]
   }
 ]

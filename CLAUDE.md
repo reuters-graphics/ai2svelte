@@ -99,6 +99,11 @@ in `scripts/visual-test/__screenshots__/`. A companion Vitest snapshot test
 (`src/js/main/__tests__/ai2svelte-output.test.ts`) diffs the generated
 `.svelte` text itself, catching logic changes a pixel diff might miss.
 
+A fixture with a `files` list is a multiple export (`multi-export.ai`: layers
+`step1`/`label1`, `step2:svg`, `step3` plus shared `base`, exported with
+`project_name: "multi{1,3}step"`). The test asserts exactly those `.svelte`
+files were written and screenshots/snapshots each one (`bundle-<component>.js`).
+
 Baselines are "last approved," not immutable — when a change is intentional,
 regenerate and review the diff, then accept:
 ```bash

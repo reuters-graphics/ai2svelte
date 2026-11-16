@@ -1,8 +1,33 @@
 import { test, expect } from "@playwright/test";
+import { readdirSync } from "node:fs";
 import path from "node:path";
 import fixtures from "./fixtures.json" with { type: "json" };
 
 for (const fixture of fixtures) {
+  // multiple exports (project_name "x{1,3}y" + layers ending 1/2/3): one
+  // component per number, each checked on its own
+  if ("files" in fixture) {
+    const outputDir = `${path.dirname(fixture.aiPath)}/visual-test-output-${fixture.name}`;
+    test(`visual: ${fixture.name} writes one .svelte per layer number`, () => {
+      const written = readdirSync(outputDir)
+        .filter((f) => f.endsWith(".svelte"))
+        .map((f) => f.replace(/\.svelte$/, ""))
+        .sort();
+      expect(written).toEqual(fixture.files);
+    });
+    for (const file of fixture.files) {
+      test(`visual: ${fixture.name}/${file}`, async ({ page }) => {
+        await page.goto(
+          `/scripts/visual-test/harness.html?bundle=/${outputDir}/bundle-${file}.js&assetsPath=/${outputDir}`,
+        );
+        await expect(page.locator("#frameContent")).toHaveScreenshot(
+          `${fixture.name}-${file}.png`,
+        );
+      });
+    }
+    continue;
+  }
+
   test(`visual: ${fixture.name}`, async ({ page }) => {
     const outputDir = `${path.dirname(fixture.aiPath)}/visual-test-output-${fixture.name}`;
     const chunkRequests: string[] = [];

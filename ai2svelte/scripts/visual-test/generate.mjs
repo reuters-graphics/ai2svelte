@@ -4,7 +4,7 @@
 // browser. Requires Illustrator installed locally and `pnpm build` run first
 // (needs dist/cep/jsx/index.js).
 import { execFileSync } from "node:child_process";
-import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, rmSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -26,6 +26,8 @@ const serverScript = path.join(rootDir, "src/server.cjs");
 for (const fixture of fixtures) {
   const aiPath = path.resolve(rootDir, fixture.aiPath);
   const outputDir = path.join(path.dirname(aiPath), `visual-test-output-${fixture.name}`);
+  // fresh dir: a stale .svelte from an earlier run would pass as new output
+  rmSync(outputDir, { recursive: true, force: true });
   mkdirSync(outputDir, { recursive: true });
 
   const settingsArg = {
@@ -65,22 +67,22 @@ for (const fixture of fixtures) {
     throw err;
   }
 
-  const svelteFile = readdirSync(outputDir).find((f) => f.endsWith(".svelte"));
-  if (!svelteFile) {
+  const svelteFiles = readdirSync(outputDir).filter((f) => f.endsWith(".svelte")).sort();
+  if (!svelteFiles.length) {
     throw new Error(`[${fixture.name}] no .svelte output found in ${outputDir}`);
   }
 
-  writeFileSync(
-    path.join(outputDir, "entry.js"),
-    entryTemplate.replace("%%COMPONENT%%", `./${svelteFile}`)
-  );
-
-  console.log(`[${fixture.name}] bundling with server.cjs...`);
-  execFileSync(
-    "node",
-    [serverScript, path.join(outputDir, "entry.js"), path.join(outputDir, "bundle.js")],
-    { stdio: "inherit" }
-  );
+  // a single component keeps the plain entry.js/bundle.js names; multiple
+  // exports (project_name "x{1,3}y") get bundle-<component>.js per file
+  for (const svelteFile of svelteFiles) {
+    const suffix = svelteFiles.length > 1 ? `-${svelteFile.replace(/\.svelte$/, "")}` : "";
+    const entry = path.join(outputDir, `entry${suffix}.js`);
+    writeFileSync(entry, entryTemplate.replace("%%COMPONENT%%", `./${svelteFile}`));
+    console.log(`[${fixture.name}] bundling ${svelteFile} with server.cjs...`);
+    execFileSync("node", [serverScript, entry, path.join(outputDir, `bundle${suffix}.js`)], {
+      stdio: "inherit",
+    });
+  }
 
   console.log(`[${fixture.name}] done -> ${outputDir}`);
 }

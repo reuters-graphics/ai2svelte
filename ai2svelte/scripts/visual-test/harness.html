@@ -23,6 +23,45 @@
         },
       };
       mod.default(document.getElementById("frameContent"), { assetsPath, taggedText });
+
+      // ?debug=1 (preview.html checkbox): outline + label every ai2svelte element.
+      // Drawn in an overlay so <svg>/<img> get labels too (no ::after on those).
+      if (params.get("debug")) {
+        const KINDS = [
+          [".g-artboard", "#888", (el) => `artboard ${el.id.replace(/^g-/, "")}`],
+          ["[data-tagged-type]", "#e11d48", (el) => `${el.dataset.taggedType} ${el.dataset.taggedProp}`],
+          [".g-aiSnippet", "#7c3aed", (el) => `snippet ${el.dataset.name}`],
+          [".g-aiTile", "#ea580c", (el) => `chunk ${el.id.split("-").pop()}`],
+          [".g-aiImg", "#2563eb", (el) => `img ${el.id.replace(/^g-/, "")}`],
+          ["svg.g-svg", "#16a34a", (el) => `svg ${el.id.replace(/^g-/, "")}`],
+          [".g-text:not([data-tagged-type])", "#0891b2", (el) => `text ${el.id.replace(/^g-/, "")}`],
+        ];
+        const layer = document.createElement("div");
+        layer.style.cssText = "position:absolute;inset:0;pointer-events:none;z-index:99999";
+        document.body.append(layer);
+        const draw = () => {
+          layer.replaceChildren();
+          const seen = new Set();
+          for (const [sel, color, label] of KINDS) {
+            for (const el of document.querySelectorAll(`#frameContent ${sel}`)) {
+              if (seen.has(el)) continue;
+              seen.add(el);
+              const r = el.getBoundingClientRect();
+              if (!r.width && !r.height) continue; // hidden breakpoint
+              const box = document.createElement("div");
+              box.style.cssText = `position:absolute;left:${r.left + scrollX}px;top:${r.top + scrollY}px;width:${r.width}px;height:${r.height}px;outline:1px dashed ${color};outline-offset:-1px`;
+              const tag = document.createElement("span");
+              tag.textContent = label(el);
+              tag.style.cssText = `position:absolute;left:0;top:0;background:${color};color:#fff;font:10px/1.4 ui-monospace,monospace;padding:0 3px;white-space:nowrap`;
+              box.append(tag);
+              layer.append(box);
+            }
+          }
+        };
+        // ponytail: redraw on a timer, catches lazy/async layout without observers
+        setInterval(draw, 500);
+        draw();
+      }
     </script>
   </body>
 </html>

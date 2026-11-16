@@ -14,6 +14,7 @@
       <select id="fixture"></select>
       <input id="width" type="range" min="320" max="1600" step="1" value="800" />
       <output id="widthOut">800px</output>
+      <label><input id="debug" type="checkbox" /> debug</label>
       <a id="open" target="_blank">open alone</a>
     </header>
     <div id="frame"><iframe id="view"></iframe></div>
@@ -22,20 +23,26 @@
       // output dir. Drag the width to step through the artboard breakpoints.
       const fixtures = await (await fetch("./fixtures.json")).json();
       const params = new URLSearchParams(location.search);
-      fixture.innerHTML = fixtures.map((f) => `<option>${f.name}</option>`).join("");
-      fixture.value = params.get("fixture") || fixtures[0].name;
+      // multiple-export fixtures list one entry per component
+      const views = fixtures.flatMap((f) =>
+        f.files ? f.files.map((file) => ({ ...f, label: `${f.name}/${file}`, bundle: `bundle-${file}.js` }))
+                : [{ ...f, label: f.name, bundle: "bundle.js" }],
+      );
+      fixture.innerHTML = views.map((v) => `<option>${v.label}</option>`).join("");
+      fixture.value = params.get("fixture") || views[0].label;
       width.value = params.get("width") || 800;
+      debug.checked = params.has("debug");
 
       function render() {
-        const f = fixtures.find((x) => x.name === fixture.value);
+        const f = views.find((x) => x.label === fixture.value);
         const dir = `/${f.aiPath.replace(/\/[^/]+$/, "")}/visual-test-output-${f.name}`;
-        const src = `harness.html?bundle=${dir}/bundle.js&assetsPath=${dir}&width=${width.value}`;
+        const src = `harness.html?bundle=${dir}/${f.bundle}&assetsPath=${dir}&width=${width.value}${debug.checked ? "&debug=1" : ""}`;
         view.src = open.href = src;
         view.style.width = +width.value + 16 + "px";
         widthOut.value = width.value + "px";
-        history.replaceState(null, "", `?fixture=${f.name}&width=${width.value}`);
+        history.replaceState(null, "", `?fixture=${f.label}&width=${width.value}${debug.checked ? "&debug" : ""}`);
       }
-      fixture.onchange = render;
+      fixture.onchange = debug.onchange = render;
       width.onchange = render; // reload on release, not every pixel
       width.oninput = () => (widthOut.value = width.value + "px");
       render();
