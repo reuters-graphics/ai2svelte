@@ -107,7 +107,7 @@
           <p
             class="status-{row.added ? 'added' : row.removed ? 'removed' : ''}"
           >
-            {@html row.value.replaceAll("\n", "<br>")}
+            {row.value}
           </p>
         {/each}
       </div>
@@ -117,7 +117,7 @@
           <p
             class="status-{row.added ? 'added' : row.removed ? 'removed' : ''}"
           >
-            {@html row.value.replaceAll("\n", "<br>")}
+            {row.value}
           </p>
         {/each}
       </div>
@@ -149,6 +149,7 @@
     p {
       padding: 2px 4px;
       margin: 0;
+      white-space: pre-line; // keeps the diff's line breaks
     }
 
     .status-removed {

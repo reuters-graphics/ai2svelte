@@ -15,8 +15,9 @@
 
 <div class="ticker" transition:slide={{ axis: "y", duration: 200 }}>
   <button class="message" onclick={() => url && openLinkInBrowser(url)}>
-    {@html `<span style="color: white; font-weight: 500;">${version ? version : "A new version"}</span> is now available.`}
-    Download now!
+    <span style="color: white; font-weight: 500;"
+      >{version ? version : "A new version"}</span
+    > is now available. Download now!
   </button>
   <button
     class="dismiss"
