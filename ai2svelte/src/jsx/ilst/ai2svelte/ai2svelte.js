@@ -536,8 +536,8 @@ export function main(settingsArg) {
   }
 
   // progress title for one tagged layer of the current artboard
-  var taggedLayerIndex = 0;
-  var taggedLayerTotal = 0;
+  // set before each artboard's export (initializers here would never run)
+  var taggedLayerIndex, taggedLayerTotal;
   function stepTaggedLayer(lyr, ab) {
     taggedLayerIndex++;
     progressBar.setTitle(
@@ -552,11 +552,10 @@ export function main(settingsArg) {
     );
   }
 
+  // (it used to also assign abIndex/abSettings/docArtboardName, but those
+  // were undeclared globals nothing read: the callers have their own locals)
   function restoreAbState(activeArtboard) {
-    abIndex = findArtboardIndex(activeArtboard);
-    abSettings = getArtboardSettings(activeArtboard);
-    docArtboardName = getDocumentArtboardName(activeArtboard);
-    doc.artboards.setActiveArtboardIndex(abIndex);
+    doc.artboards.setActiveArtboardIndex(findArtboardIndex(activeArtboard));
   }
 
   function formatError(e) {
@@ -768,7 +767,7 @@ export function main(settingsArg) {
       pathJoin,
       pathSplit,
       folderExists,
-      formatCss,
+      formatCssRule,
       getCssColor,
       applyTemplate,
       cleanHtmlText,
@@ -807,7 +806,7 @@ export function main(settingsArg) {
         // multiple-file output: artboards are grouped by name
         groupName = getDocumentArtboardName(ab);
         group = find(groups, function (o) {
-          o.name == groupName;
+          return o.groupName == groupName;
         });
       }
       if (!group) {
@@ -3733,6 +3732,7 @@ export function main(settingsArg) {
   // Capture and save an image to the filesystem and return html embed code
   //
   function exportImage(imgName, format, ab, masks, layer, settings, group) {
+    var width, height, left, top, abBox; // svg placement (were leaking as globals)
     var imgFile = getImageFileName(imgName, format);
     if (isTaggedRasterPrefix(settings.tagPrefix)) {
       imgFile = getImageFileName(imgName + "-" + getArtboardName(ab), format);
@@ -3843,7 +3843,7 @@ export function main(settingsArg) {
         height = roundTo(svgOutput.height, 3);
         left = roundTo(svgOutput.left, 3);
         top = roundTo(svgOutput.top, 3);
-        var abBox = convertAiBounds(ab.artboardRect);
+        abBox = convertAiBounds(ab.artboardRect);
 
         svgInlineStyle += "position: absolute;";
         svgInlineStyle += "width: " + formatCssPct(width, abBox.width) + ";";
@@ -3874,7 +3874,7 @@ export function main(settingsArg) {
         height = roundTo(svgOutput.height, 3);
         left = roundTo(svgOutput.left, 3);
         top = roundTo(svgOutput.top, 3);
-        var abBox = convertAiBounds(ab.artboardRect);
+        abBox = convertAiBounds(ab.artboardRect);
 
         svgInlineStyle += "width: " + formatCssPct(width, abBox.width) + ";";
         svgInlineStyle += "height: " + formatCssPct(height, abBox.height) + ";";
@@ -3930,7 +3930,7 @@ export function main(settingsArg) {
         }
 
         // position the (now trimmed) image within the artboard
-        var abBox = convertAiBounds(ab.artboardRect);
+        abBox = convertAiBounds(ab.artboardRect);
         var cropBox = convertAiBounds(cropRect);
         pngInlineStyle += "position:absolute;";
         pngInlineStyle +=
@@ -3985,7 +3985,7 @@ export function main(settingsArg) {
   }
 
   function generateInlineSvg(imgPath, imgClass, imgStyle, settings) {
-    var svg = readFile(imgPath) || "";
+    var svg = readFile(imgPath, null, warn) || "";
     var attr = ' class="' + imgClass + '"';
     if (imgStyle) {
       attr += ' style="' + imgStyle + '"';
@@ -4947,7 +4947,7 @@ export function main(settingsArg) {
   //   }
 
   function rewriteSVGFile(path, id, settings, pageName, svgNotes) {
-    var svg = readFile(path);
+    var svg = readFile(path, null, warn);
     var selector;
     if (!svg) return;
     // replace id created by Illustrator (relevant for inline SVG)
@@ -5095,7 +5095,7 @@ export function main(settingsArg) {
   function checkForImagesInSVG(content, pageName) {
     var regex = /<image\b[^>]*\bxlink:href="([^"]+)"/g;
     var match;
-    imgDir =
+    var imgDir =
       "{ assetsPath.replace(new RegExp('/([^/.]+)$'), '/$1/') || '/' }" +
       settingsArg.settings.image_source_path;
 

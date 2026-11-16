@@ -91,7 +91,14 @@ function parseDataAttributes(note) {
   return o;
 }
 
-function readFile(fpath, enc) {
+// warn: the engine's warn() lives inside main(), out of this module's reach,
+// so callers pass it in (it used to be a ReferenceError on unreadable files)
+function readFile(fpath, enc, warn) {
+  warn =
+    warn ||
+    function (msg) {
+      $.writeln(msg); // detached $.writeln throws in ExtendScript
+    };
   var content = null;
   var file = new File(fpath);
   if (file.exists) {
