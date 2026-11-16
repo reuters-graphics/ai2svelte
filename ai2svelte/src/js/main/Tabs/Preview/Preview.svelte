@@ -70,8 +70,14 @@
     const maxTries = 10;
 
     while (component == undefined && tryCount < maxTries) {
+      // file:/// + forward slashes, so Windows' C:\... becomes a valid URL
       const filePath =
-        "file://" + writablePath + "previewComponent.js" + "?" + Date.now();
+        "file:///" +
+        (writablePath + "previewComponent.js")
+          .replace(/\\/g, "/")
+          .replace(/^\/+/, "") +
+        "?" +
+        Date.now();
       try {
         const componentRaw = (await import(/* @vite-ignore */ filePath))
           ?.default;

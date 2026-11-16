@@ -448,15 +448,17 @@ function applyTemplate(template, replacements) {
     .replace(ejsPattern, replace);
 }
 
-// Similar to Node.js path.join()
+// Similar to Node.js path.join(). Backslashes (Windows-style settings like
+// "..\images") become "/"; the first part keeps its leading "/" so an absolute
+// doc folder (e.g. "/d/proj" on Windows) stays absolute.
 function pathJoin() {
   var path = "";
   forEach(arguments, function (arg) {
     if (!arg) return;
-    arg = String(arg);
-    arg = arg.replace(/^\/+/, "").replace(/\/+$/, "");
+    arg = String(arg).replace(/\\/g, "/").replace(/\/+$/, "");
     if (path.length > 0) {
       path += "/";
+      arg = arg.replace(/^\/+/, "");
     }
     path += arg;
   });

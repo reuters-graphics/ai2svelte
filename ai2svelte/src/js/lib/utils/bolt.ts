@@ -311,6 +311,12 @@ export const isAppRunning = (targetSpecifier: string) => {
 interface IOpenDialogResult {
   data: string[];
 }
+// Dialog results can be file URLs; "file:///C:/x" must become "C:/x", not "/C:/x"
+const dialogPath = (p: string) =>
+  decodeURIComponent(
+    p.replace(/^file:\/\//, "").replace(/^\/(?=[A-Za-z]:)/, ""),
+  );
+
 export const selectFolder = (
   dir: string,
   msg: string,
@@ -320,8 +326,7 @@ export const selectFolder = (
     window.cep.fs.showOpenDialogEx || window.cep.fs.showOpenDialog
   )(false, true, msg, dir) as IOpenDialogResult;
   if (result.data?.length > 0) {
-    const folder = decodeURIComponent(result.data[0].replace("file://", ""));
-    callback(folder);
+    callback(dialogPath(result.data[0]));
   }
 };
 
@@ -334,8 +339,7 @@ export const selectFile = (
     window.cep.fs.showOpenDialogEx || window.cep.fs.showOpenDialog
   )(false, false, msg, dir) as IOpenDialogResult;
   if (result.data?.length > 0) {
-    const folder = decodeURIComponent(result.data[0].replace("file://", ""));
-    callback(folder);
+    callback(dialogPath(result.data[0]));
   }
 };
 
