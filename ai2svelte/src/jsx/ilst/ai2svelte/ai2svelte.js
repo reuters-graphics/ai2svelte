@@ -447,7 +447,7 @@ export function main(settingsArg) {
         "\t</div>\r";
 
       if (isFalse(settings.include_resizer_css)) {
-        output.html += "{/if}";
+        output.html += "\t{/if}\r";
       }
 
       var abStyles = textData.styles;
@@ -1990,7 +1990,6 @@ export function main(settingsArg) {
   ) {
     var html = "",
       diff;
-    html += "\r\t\t\t";
 
     if (text.length === 0) {
       // empty pg
@@ -2012,8 +2011,7 @@ export function main(settingsArg) {
         "taggedText " +
         nameSpace +
         tagType +
-        '"' +
-        'data-tagged-type="' +
+        '" data-tagged-type="' +
         tagType.toUpperCase() +
         '" data-tagged-prop="' +
         propName +
@@ -2025,8 +2023,7 @@ export function main(settingsArg) {
         "taggedText " +
         nameSpace +
         tagType +
-        '"' +
-        'data-tagged-type="' +
+        '" data-tagged-type="' +
         tagType.toUpperCase() +
         '" data-tagged-prop="' +
         propName +
@@ -2149,9 +2146,8 @@ export function main(settingsArg) {
       var html = "";
 
       if (isTagged && objName) {
-        html += "\r\t\t\t";
-        html += "\r";
         if (isTrue(settings.override_text)) {
+          html += "\r\t\t\t";
           html += generateTaggedTextFrameHtml(
             obj.paragraphs,
             objName,
@@ -2168,7 +2164,6 @@ export function main(settingsArg) {
             charStyles,
           );
         }
-        html += "\r";
       } else {
         html = generateTextFrameHtml(
           obj.paragraphs,
@@ -3027,9 +3022,9 @@ export function main(settingsArg) {
         properties +
         getNoteDataAttributes(item.note) +
         getBasicSymbolCss(geom, style, abBox, opts) +
-        ">\r" +
-        innerBlock +
-        "\r</div>";
+        ">" +
+        (innerBlock ? "\r\t\t\t\t" + innerBlock + "\r\t\t\t" : "") +
+        "</div>";
     }
     return html;
   }
@@ -3470,11 +3465,14 @@ export function main(settingsArg) {
       return a.z - b.z;
     });
 
-    var accumulatedHTML = map(sortedLayerHtml, function (layer) {
-      return layer.html;
+    // each layer's html ends in its own mix of newlines (or none): trim them
+    // and put every layer on its own line
+    var html = "";
+    forEach(sortedLayerHtml, function (layer) {
+      var layerHtml = layer.html.replace(/\s+$/, "");
+      if (layerHtml) html += layerHtml + "\r";
     });
-
-    return accumulatedHTML.join("");
+    return html;
   }
 
   // Generate images and return HTML embed code
@@ -4172,7 +4170,8 @@ export function main(settingsArg) {
       'style="';
 
     if (imgStyle) {
-      html += imgStyle + ";";
+      html += imgStyle;
+      if (!/;$/.test(imgStyle)) html += ";";
     }
 
     if (innerHtml !== undefined) {
@@ -5151,16 +5150,16 @@ export function main(settingsArg) {
     if (isFalse(settings.include_resizer_css)) {
       if (visibleRange[1] < Infinity) {
         html +=
-          "{#if aiBoxWidth && ( aiBoxWidth >= " +
+          "\t{#if aiBoxWidth && (aiBoxWidth >= " +
           visibleRange[0] +
-          " && aiBoxWidth <" +
+          " && aiBoxWidth < " +
           (Number(visibleRange[1]) + 1) +
           ")}";
       } else {
-        html += "{#if aiBoxWidth && (aiBoxWidth >= " + visibleRange[0] + ")}";
+        html += "\t{#if aiBoxWidth && (aiBoxWidth >= " + visibleRange[0] + ")}";
       }
 
-      html += "\n\r";
+      html += "\r";
     }
 
     html +=
@@ -5361,34 +5360,28 @@ export function main(settingsArg) {
         isTrue(settings.fit_mode == "cover")) &&
       isFalse(settings.allow_overflow)
     ) {
-      css += blockStart + "{\r";
-      css += "height: 100%;\r";
-      css += "width: 100%;\r";
-      css += "overflow: hidden;\r";
-      css += "position: relative;\r";
-      css += "}\r";
+      css += formatCssRule(blockStart, {
+        height: "100%",
+        width: "100%",
+        overflow: "hidden",
+        position: "relative",
+      });
     } else if (
       (isTrue(settings.fit_mode == "height") ||
         isTrue(settings.fit_mode == "cover")) &&
       isTrue(settings.allow_overflow)
     ) {
-      css += blockStart + "{\r";
-      css += "height: 100%;\r";
-      css += "position: relative;\r";
-      css += "}\r";
+      css += formatCssRule(blockStart, {
+        height: "100%",
+        position: "relative",
+      });
     }
 
     if (isTrue(settings.include_resizer_css)) {
       // add container queries for each artboard
-      css +=
-        blockStart +
-        "." +
-        nameSpace +
-        "aiPointText p { white-space: nowrap; }\r";
-
-      css += blockStart + "{\r";
-      css += "width: 100%;\r";
-      css += "container-type: inline-size;\r";
+      css += blockStart + " {\r";
+      css += "\twidth: 100%;\r";
+      css += "\tcontainer-type: inline-size;\r";
 
       forEachUsableArtboard(function (ab, abIndex) {
         var id = nameSpace + getDocumentArtboardName(ab);
@@ -5396,30 +5389,30 @@ export function main(settingsArg) {
 
         if (visibleRange[1] < Infinity) {
           css +=
-            "@container (min-width:" +
+            "\t@container (min-width: " +
             visibleRange[0] +
             "px) and (max-width: " +
             visibleRange[1] +
             "px) {\r";
         } else {
-          css += "@container (min-width:" + visibleRange[0] + "px) {\r";
+          css += "\t@container (min-width: " + visibleRange[0] + "px) {\r";
         }
 
-        css += "#" + id + " {\r";
-        css += "display: block !important;\r\r";
+        css += "\t\t#" + id + " {\r";
+        css += "\t\t\tdisplay: block !important;\r";
 
         for (var key in imgVars) {
           if (imgVars.hasOwnProperty(key)) {
             if (imgVars[key].artboardId === id) {
-              css += "#" + imgVars[key].id + " {\n\r";
-              css += "background-image: var(--" + key + ");\n\r";
-              css += "}\n\r";
+              css += "\t\t\t#" + imgVars[key].id + " {\r";
+              css += "\t\t\t\tbackground-image: var(--" + key + ");\r";
+              css += "\t\t\t}\r";
             }
           }
         }
 
-        css += "}\r";
-        css += "}\r";
+        css += "\t\t}\r";
+        css += "\t}\r";
       });
 
       css += "}\r";
@@ -5429,8 +5422,11 @@ export function main(settingsArg) {
   }
 
   function addTextBlockContent(output, content) {
-    if (content.css) {
-      output.css += "\r/* Custom CSS */\r" + content.css + "\r";
+    var customCss = content.css
+      ? String(content.css).replace(/^\s+/, "").replace(/\s+$/, "")
+      : "";
+    if (customCss) {
+      output.css += "\r/* Custom CSS */\r" + customCss + "\r";
     }
     if (content["html-before"]) {
       output.html +=
@@ -5457,14 +5453,14 @@ export function main(settingsArg) {
 
   function addArtboardChangeEffect(settings) {
     let resizerArtboards =
-      "const currentArtboard = allArtboards.filter((artboard) => {\n" +
-      "const minWidth = parseFloat(artboard.dataset.minWidth);\n" +
-      "const maxWidth = parseFloat(artboard.dataset.maxWidth) || Infinity;\n" +
-      "return minWidth <= aiBoxWidth && maxWidth >= aiBoxWidth;\n" +
-      "})[0];\n";
+      "\t\t\tconst currentArtboard = allArtboards.filter((artboard) => {\r" +
+      "\t\t\t\tconst minWidth = parseFloat(artboard.dataset.minWidth);\r" +
+      "\t\t\t\tconst maxWidth = parseFloat(artboard.dataset.maxWidth) || Infinity;\r" +
+      "\t\t\t\treturn minWidth <= aiBoxWidth && maxWidth >= aiBoxWidth;\r" +
+      "\t\t\t})[0];\r";
 
     let nonResizerArtboards =
-      "const currentArtboard = aiBox.querySelectorAll('.g-artboard')[0];\n";
+      "\t\t\tconst currentArtboard = aiBox.querySelectorAll('.g-artboard')[0];\r";
 
     let resizerBlock = "";
 
@@ -5475,15 +5471,15 @@ export function main(settingsArg) {
     }
 
     let effectCode =
-      "$effect(() => {\n" +
-      "if (aiBoxWidth && onArtboardChange) {\n" +
+      "\t$effect(() => {\r" +
+      "\t\tif (aiBoxWidth && onArtboardChange) {\r" +
       resizerBlock +
-      "if (currentArtboard?.id !== activeArtboard?.id) {\n" +
-      "activeArtboard = untrack(() => currentArtboard);\n" +
-      "onArtboardChange(activeArtboard);\n" +
-      "}\n" +
-      "}\n" +
-      "});\n";
+      "\t\t\tif (currentArtboard?.id !== activeArtboard?.id) {\r" +
+      "\t\t\t\tactiveArtboard = untrack(() => currentArtboard);\r" +
+      "\t\t\t\tonArtboardChange(activeArtboard);\r" +
+      "\t\t\t}\r" +
+      "\t\t}\r" +
+      "\t});\r";
     return effectCode;
   }
 
@@ -5510,10 +5506,10 @@ export function main(settingsArg) {
 
   // generates <script> code
   function generateSvelteScript(group, settings) {
-    var script = "<script>\r\t";
+    var script = "<script>\r";
 
     script +=
-      "let { assetsPath = '/', onAiMounted = null, onArtboardChange = null";
+      "\tlet { assetsPath = '/', onAiMounted = null, onArtboardChange = null";
 
     if (getObjectKeyCount(docSettings.snippetProps) > 0) {
       script += ", " + docSettings.snippetProps.join(", ");
@@ -5532,56 +5528,62 @@ export function main(settingsArg) {
       script += ", artboardWidth = $bindable(undefined)";
     }
 
-    script += " } = $props();\r";
+    script += " } = $props();\r\r";
 
-    // add prop for onmount function that defaults to noop
-    script += "import { onMount, untrack } from 'svelte';\n\r";
-    script += "let processedPath = $derived(\n\r";
-    script += "assetsPath.replace(new RegExp('/([^/.]+)$'), '/$1/') || '/'\n\r";
-    script += ");\n\r";
-    script += "let aiBox;\n";
+    script += "\timport { onMount, untrack } from 'svelte';\r\r";
+    script += "\tlet processedPath = $derived(\r";
+    script +=
+      "\t\tassetsPath.replace(new RegExp('/([^/.]+)$'), '/$1/') || '/',\r";
+    script += "\t);\r\r";
+    script += "\tlet aiBox;\r";
 
     if (isTrue(settings.allow_overflow)) {
-      script += "let screenWidth = $state(0);\n";
-      script += "let aiBoxWidth = $derived(artboardWidth ?? screenWidth);\n";
+      script += "\tlet screenWidth = $state(0);\r";
+      script += "\tlet aiBoxWidth = $derived(artboardWidth ?? screenWidth);\r";
     } else {
-      script += "let aiBoxWidth = $state(undefined);\n";
+      script += "\tlet aiBoxWidth = $state(undefined);\r";
     }
 
     script += isTrue(settings.include_resizer_css)
-      ? "let allArtboards = $state([]);\n"
+      ? "\tlet allArtboards = $state([]);\r"
       : "";
-    script += "let activeArtboard = $state(undefined);\n";
+    script += "\tlet activeArtboard = $state(undefined);\r";
     // use_lazy_loader: seen holds ids of images that have neared the viewport.
     // the lazy attachment observes each image while it's mounted, so artboards swapped in
     // by {#if} are covered; display:none artboards never intersect.
     if (hasLazyImages) {
       script +=
-        "let seen = $state({});\n" +
-        "let io;\n" +
-        "function lazy(el) {\n" +
-        "io ??= new IntersectionObserver((entries) => {\n" +
-        "for (const e of entries) {\n" +
-        "if (e.isIntersecting) { seen[e.target.id] = true; io.unobserve(e.target); }\n" +
-        "}\n" +
-        "}, { rootMargin: '50% 50%' });\n" +
-        "io.observe(el);\n" +
-        "return () => io.unobserve(el);\n" +
-        "}\n";
+        "\tlet seen = $state({});\r" +
+        "\tlet io;\r\r" +
+        "\tfunction lazy(el) {\r" +
+        "\t\tio ??= new IntersectionObserver(\r" +
+        "\t\t\t(entries) => {\r" +
+        "\t\t\t\tfor (const e of entries) {\r" +
+        "\t\t\t\t\tif (e.isIntersecting) {\r" +
+        "\t\t\t\t\t\tseen[e.target.id] = true;\r" +
+        "\t\t\t\t\t\tio.unobserve(e.target);\r" +
+        "\t\t\t\t\t}\r" +
+        "\t\t\t\t}\r" +
+        "\t\t\t},\r" +
+        "\t\t\t{ rootMargin: '50% 50%' },\r" +
+        "\t\t);\r" +
+        "\t\tio.observe(el);\r" +
+        "\t\treturn () => io.unobserve(el);\r" +
+        "\t}\r";
     }
-    script += "onMount(() => {\r";
+    script += "\r\tonMount(() => {\r";
     if (isTrue(settings.include_resizer_css)) {
       script +=
-        "allArtboards = Array.from(aiBox.querySelectorAll('" +
+        "\t\tallArtboards = Array.from(aiBox.querySelectorAll('" +
         "." +
         nameSpace +
         "artboard" +
         "'));\r";
     }
-    script += "onAiMounted?.();";
-    script += "\r});\r";
+    script += "\t\tonAiMounted?.();\r";
+    script += "\t});\r\r";
     script += addArtboardChangeEffect(settings);
-    script += "\r</script>\r";
+    script += "</script>\r";
 
     return script;
   }
@@ -5592,48 +5594,48 @@ export function main(settingsArg) {
 
     css = [
       "." + nameSpace + "taggedText:empty::before {",
-      "content: attr(data-tagged-type);",
-      "padding: 0px 4px;",
-      "font-size: 0.6rem;",
-      "font-style: normal;",
-      "color: #fff;",
-      "background-color: #ee0000;",
-      "display: block;",
-      "font-weight: 800;",
-      "visibility: var(--debug-tagged-text, hidden);",
-      "}\n",
+      "\tcontent: attr(data-tagged-type);",
+      "\tpadding: 0px 4px;",
+      "\tfont-size: 0.6rem;",
+      "\tfont-style: normal;",
+      "\tcolor: #fff;",
+      "\tbackground-color: #ee0000;",
+      "\tdisplay: block;",
+      "\tfont-weight: 800;",
+      "\tvisibility: var(--debug-tagged-text, hidden);",
+      "}",
       "." + nameSpace + "taggedText:empty::after {",
-      "content: attr(data-tagged-prop);",
-      "padding: 0px 4px;",
-      "font-size: 0.8rem;",
-      "font-style: normal;",
-      "color: #fff;",
-      "font-weight: 500;",
-      "visibility: var(--debug-tagged-text, hidden);",
-      "}\n",
+      "\tcontent: attr(data-tagged-prop);",
+      "\tpadding: 0px 4px;",
+      "\tfont-size: 0.8rem;",
+      "\tfont-style: normal;",
+      "\tcolor: #fff;",
+      "\tfont-weight: 500;",
+      "\tvisibility: var(--debug-tagged-text, hidden);",
+      "}",
       "." + nameSpace + "taggedText:empty {",
-      "background-color: #440000;",
-      "outline: 2px solid #ee0000;",
-      "visibility: var(--debug-tagged-text, hidden);",
-      "}\n",
+      "\tbackground-color: #440000;",
+      "\toutline: 2px solid #ee0000;",
+      "\tvisibility: var(--debug-tagged-text, hidden);",
+      "}",
       "." + nameSpace + "taggedText:not(:empty)::before {",
-      "content: attr(data-tagged-type);",
-      "position: absolute;",
-      "width: calc(100% + 4px);",
-      "transform: translateY(-100%) translateX(-2px);",
-      "padding: 0px 4px;",
-      "font-size: 0.6rem;",
-      "font-style: normal;",
-      "color: #fff;",
-      "background-color: black;",
-      "display: block;",
-      "font-weight: 800;",
-      "visibility: var(--debug-tagged-text, hidden);",
-      "box-sizing: border-box;",
-      "}\n",
+      "\tcontent: attr(data-tagged-type);",
+      "\tposition: absolute;",
+      "\twidth: calc(100% + 4px);",
+      "\ttransform: translateY(-100%) translateX(-2px);",
+      "\tpadding: 0px 4px;",
+      "\tfont-size: 0.6rem;",
+      "\tfont-style: normal;",
+      "\tcolor: #fff;",
+      "\tbackground-color: black;",
+      "\tdisplay: block;",
+      "\tfont-weight: 800;",
+      "\tvisibility: var(--debug-tagged-text, hidden);",
+      "\tbox-sizing: border-box;",
+      "}",
       "." + nameSpace + "taggedText {",
-      "outline: var(--debug-stroke, 0px) solid black;",
-      "}\n",
+      "\toutline: var(--debug-stroke, 0px) solid black;",
+      "}",
     ].join("\n");
 
     return css;
@@ -5689,12 +5691,14 @@ export function main(settingsArg) {
     // SCRIPT
     html = generateSvelteScript(group, settings);
 
+    html += "\r";
+
     if (isTrue(settings.priority_fetch)) {
       html += "<svelte:head>\r";
       for (let i = 0; i < priorityFetches.length; i++) {
-        html += priorityFetches[i] + "\r";
+        html += "\t" + priorityFetches[i] + "\r";
       }
-      html += "</svelte:head>\r";
+      html += "</svelte:head>\r\r";
     }
 
     if (
@@ -5703,7 +5707,7 @@ export function main(settingsArg) {
       isTrue(settings.override_text)
     ) {
       debugTaggedTextVariable =
-        "style:--debug-tagged-text={debugTaggedText ? 'visible' : 'hidden'}\n" +
+        "style:--debug-tagged-text={debugTaggedText ? 'visible' : 'hidden'}\r\t" +
         "style:--debug-stroke={debugTaggedText ? '2px' : '0px'}";
 
       taggedTextCSS = setTaggedTextCSS();
@@ -5752,7 +5756,7 @@ export function main(settingsArg) {
       " " +
       rootBindings +
       (debugTaggedTextVariable ? " " + debugTaggedTextVariable : "") +
-      (bgVars.length > 0 ? " " + bgVars.join("\r") : "") +
+      (bgVars.length > 0 ? "\r\t" + bgVars.join("\r\t") + "\r" : "") +
       ">\r";
 
     if (settings.alt_text) {
@@ -5763,7 +5767,7 @@ export function main(settingsArg) {
         altTextId +
         '">' +
         encodeHtmlEntities(settings.alt_text) +
-        "</div>";
+        "</div>\r";
     }
     if (linkSrc) {
       // optional link around content
@@ -5788,23 +5792,20 @@ export function main(settingsArg) {
     css +=
       generatePageCss(containerId, group, settings) +
       content.css +
-      taggedTextCSS +
-      "\r</style>\r";
+      (taggedTextCSS ? taggedTextCSS + "\r" : "") +
+      "</style>\r";
 
     // JS
     js = content.js + responsiveJs;
 
     textForFile =
-      "\r" +
       commentBlock +
       css +
       "\r" +
       html +
-      "\r" +
-      js +
-      "\r" +
+      (js ? "\r" + js : "") +
       comments +
-      "<!-- End ai2svelte" +
+      "\r<!-- End ai2svelte" +
       " - " +
       getDateTimeStamp() +
       " -->\r";
