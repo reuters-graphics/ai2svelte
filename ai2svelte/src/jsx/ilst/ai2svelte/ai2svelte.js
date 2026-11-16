@@ -539,7 +539,6 @@ export function main(settingsArg) {
   var taggedLayerIndex = 0;
   var taggedLayerTotal = 0;
   function stepTaggedLayer(lyr, ab) {
-    if (taggedLayerIndex === 0) taggedLayerTotal = countTaggedImageLayers();
     taggedLayerIndex++;
     progressBar.setTitle(
       getDocumentArtboardName(ab) +
@@ -3549,6 +3548,8 @@ export function main(settingsArg) {
     });
 
     taggedLayerIndex = 0;
+    // count now: forEachImageLayer hides layers, and findLayers skips hidden ones
+    taggedLayerTotal = countTaggedImageLayers();
     forEach(findTaggedLayers("svg"), function (lyr) {
       stepTaggedLayer(lyr, activeArtboard);
       var opts = extend({}, settings, { tagPrefix: "svg" });
