@@ -4098,6 +4098,7 @@ export function main(settingsArg) {
     if (
       formats[0] != "auto" &&
       formats[0] != "jpg" &&
+      formats[0] != "webp" && // lossy too, so photos are fine
       artboardContainsVisibleRasterImage(ab)
     ) {
       warnOnce(
@@ -4310,7 +4311,9 @@ export function main(settingsArg) {
     var abPos = convertAiBounds(ab.artboardRect);
     var k = getImageDensity(settings);
     // thresholds may be obsolete
-    var warnThreshold = format == "jpg" ? 32 * 1024 * 1024 : 5 * 1024 * 1024; // jpg and png
+    // webp gets the jpg limit: it's lossy and newer than the old 5MP png decode cap
+    var warnThreshold =
+      format == "jpg" || format == "webp" ? 32 * 1024 * 1024 : 5 * 1024 * 1024;
     var pixels = abPos.width * abPos.height * k * k;
     if (pixels > warnThreshold) {
       warn(
