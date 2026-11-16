@@ -50,7 +50,6 @@
     "bits-ui": "^2.18.1",
     "codemirror": "^6.0.2",
     "diff": "^8.0.3",
-    "express": "^5.2.1",
     "json5": "^2.2.3",
     "postcss": "^8.5.26",
     "postcss-safe-parser": "^7.0.1",
