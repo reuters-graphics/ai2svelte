@@ -1,9 +1,8 @@
 export const helloVoid = (): void => {
   alert("test");
 };
-export const helloError = (str: string) => {
+export const helloError = (_str: string) => {
   // Intentional Error for Error Handling Demonstration
-  //@ts-ignore
   throw new Error(`We're throwing an error`);
 };
 

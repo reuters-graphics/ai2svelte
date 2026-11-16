@@ -1,6 +1,5 @@
 <script lang="ts">
-  import { onMount, untrack } from "svelte";
-  import { evalTS } from "../../lib/utils/bolt";
+  import { onMount } from "svelte";
 
   onMount(() => {});
 </script>

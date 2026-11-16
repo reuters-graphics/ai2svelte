@@ -43,11 +43,9 @@ export const getOutputModules = (): string[] => {
     const txt = fs.readFileSync(path.join(prefsDir, outputPref), {
       encoding: "utf-8",
     });
-    const matches = txt.match(
-      /\"Output Module Spec Strings Name .* = \".*.\"/g,
-    );
+    const matches = txt.match(/"Output Module Spec Strings Name .* = ".*."/g);
     if (matches) {
-      let outputModules: string[] = [];
+      const outputModules: string[] = [];
       matches.map((line) => {
         const str = line.split("=").pop()?.trim().replace(/"/g, "");
         if (str && !str.includes("_HIDDEN X-Factor")) {
@@ -80,14 +78,14 @@ export const getRenderSettingsList = (): string[] => {
         .slice(firstLine, lastLine)
         .join("")
         .trim()
-        .replace(/^.*\=/g, "")
+        .replace(/^.*=/g, "")
         .replace(/\t/g, "")
         .replace(/\\/g, "")
-        .replace(/\"\"/g, "");
-      let renderSettings: string[] = [];
-      settingBlock.match(/\".*?\"/g)?.map((str) => {
+        .replace(/""/g, "");
+      const renderSettings: string[] = [];
+      settingBlock.match(/".*?"/g)?.map((str) => {
         if (str && !str.includes("_HIDDEN X-Factor")) {
-          renderSettings.push(str.replace(/\"/g, ""));
+          renderSettings.push(str.replace(/"/g, ""));
         }
       });
       return renderSettings;

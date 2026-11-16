@@ -7,7 +7,7 @@ export function getDocPath() {
 }
 
 export function createFolder(folderPath: string) {
-  var folder = new Folder(folderPath);
+  const folder = new Folder(folderPath);
   if (!folder.exists) {
     folder.create();
   }
@@ -16,7 +16,7 @@ export function createFolder(folderPath: string) {
 
 // Recursively deletes a folder and all its contents
 export function deleteFolderRecursive(folderPath: string) {
-  var folder = new Folder(folderPath);
+  const folder = new Folder(folderPath);
   folder.rename(folder.name + "_old");
   const items = folder.getFiles();
   for (let i = 0; i < items.length; i++) {
@@ -31,14 +31,17 @@ export function deleteFolderRecursive(folderPath: string) {
 }
 
 export function createFile(filePath: string, fileContent: string) {
-  var file = new File(filePath);
+  const file = new File(filePath);
   file.open("w");
   file.write(fileContent);
   file.close();
 }
 
 // true when every selected item is named `name`, e.g. one "pulse" per artboard
-function selectionSharesName(selection: any, name: string) {
+function selectionSharesName(
+  selection: { length: number; [i: number]: { name: string } },
+  name: string,
+) {
   if (!name) return false;
   for (let i = 0; i < selection.length; i++) {
     if (selection[i].name != name) return false;
@@ -60,8 +63,8 @@ function allItemsSelected(layer: Layer) {
 }
 
 export function getSelectedItems() {
-  let doc = app.activeDocument;
-  var identifier = "";
+  const doc = app.activeDocument;
+  let identifier = "";
 
   if (doc.selection.length > 1) {
     // ignore multiple selections
@@ -79,14 +82,16 @@ export function getSelectedItems() {
   if (!objectLayer) {
     // ignore empty selections
   } else {
-    let objectLayerName = objectLayer.name;
-    let tag = (/:(.*)/.exec(objectLayerName) || [])[1] || "";
-    let object = doc.selection[0];
-    let objectName = doc.selection[0].name;
+    const objectLayerName = objectLayer.name;
+    const tag = (/:(.*)/.exec(objectLayerName) || [])[1] || "";
+    const object = doc.selection[0];
+    const objectName = doc.selection[0].name;
 
     if (objectLayerName) {
-      var settings = getHiddenData("ai-settings") as any;
-      var namespace = "g-";
+      const settings = getHiddenData("ai-settings") as {
+        settings?: { namespace?: string };
+      } | null;
+      let namespace = "g-";
       // retrieve custom namespace if used
       if (settings?.settings?.namespace) {
         namespace = settings.settings.namespace;
@@ -96,12 +101,13 @@ export function getSelectedItems() {
 
       if (tag == "snippet") {
         // g-snippet-snippetName
-        let snippetName = (/(.*):snippet/.exec(objectLayerName) || [])[1] || "";
+        const snippetName =
+          (/(.*):snippet/.exec(objectLayerName) || [])[1] || "";
         identifier = `#${namespace}snippet-${snippetName}`;
       } else if (tag == "png" || tag == "png24" || tag == "webp") {
         // g-png-layer-imageName
         // trimmed, spaces as "-": same as getTaggedImageName in ai2svelte.js
-        let imageName = (
+        const imageName = (
           (/(.*):(?:png|webp)/.exec(objectLayerName) || [])[1] || ""
         )
           .replace(/^\s+|\s+$/g, "")
@@ -109,7 +115,7 @@ export function getSelectedItems() {
         identifier = `#${namespace}${tag}-layer-${imageName}`;
       } else if (tag == "div" && (objectName || objectLayerName)) {
         // g-snippet-snippetName
-        let imageName = (/(.*):div/.exec(objectLayerName) || [])[1] || "";
+        const imageName = (/(.*):div/.exec(objectLayerName) || [])[1] || "";
         // the layer wrapper has no id, only classes: <div class="g-div-layer g-name">
         if (
           allItemsSelected(objectLayer) &&
@@ -121,7 +127,7 @@ export function getSelectedItems() {
         }
       } else if (tag == "symbol" && (objectName || objectLayerName)) {
         // g-snippet-snippetName
-        let imageName = (/(.*):symbol/.exec(objectLayerName) || [])[1] || "";
+        const imageName = (/(.*):symbol/.exec(objectLayerName) || [])[1] || "";
         // the layer wrapper has no id, only classes: <div class="g-symbol-layer g-name">
         if (
           allItemsSelected(objectLayer) &&
@@ -133,7 +139,7 @@ export function getSelectedItems() {
         }
       } else if (tag == "svg" && (objectName || objectLayerName)) {
         // g-svg-layerName
-        let imageName = (/(.*):svg/.exec(objectLayerName) || [])[1] || "";
+        const imageName = (/(.*):svg/.exec(objectLayerName) || [])[1] || "";
         if (allItemsSelected(objectLayer)) {
           identifier = `#${namespace}svg-${imageName}`;
         } else if (objectName) {
@@ -144,7 +150,7 @@ export function getSelectedItems() {
         (objectName || objectLayerName)
       ) {
         // g-svg-layerName
-        let layerName =
+        const layerName =
           (/(.*):(text|htext)/.exec(objectLayerName) || [])[1] || "";
         if (allItemsSelected(objectLayer)) {
           identifier = `.${namespace}${layerName}`;

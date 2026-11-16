@@ -8,10 +8,10 @@ import {
   createFolder,
   createFile,
   getSelectedItems,
-  deleteFolderRecursive,
 } from "./ilstUtils";
 // Preview disabled until the UXP migration; see CLAUDE.md "Dormant: Preview".
 // import { wrapper } from "./previewWrapper";
+// (runPreview also needs deleteFolderRecursive from ./ilstUtils)
 
 export const updateAiSettings = (settingsObj: string, str: string) => {
   if (app) {
@@ -49,7 +49,7 @@ export const getVariable = (key: string) => {
   }
 };
 
-export const runAi2Svelte = (settings: any) => {
+export const runAi2Svelte = (settings: Record<string, unknown>) => {
   if (app) {
     return main(settings);
   }
@@ -84,6 +84,7 @@ export const saveAndSnapshotDocument = (pathPrefix: string) => {
     const hadUnsavedEdits = !doc.saved;
     if (hadUnsavedEdits && String(doc.path)) {
       const saveOptions = new IllustratorSaveOptions();
+      // @ts-expect-error -- types-for-adobe wrongly declares pdfCompatible static; it is an instance property
       saveOptions.pdfCompatible = false;
       doc.saveAs(new File(doc.path + "/" + doc.name), saveOptions);
     }

@@ -1,4 +1,4 @@
-//@ts-ignore
+// eslint-disable-next-line no-var -- global declarations must use var
 declare var JSON: {
   stringify(value: unknown): string;
   parse(text: string): object;

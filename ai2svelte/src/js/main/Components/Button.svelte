@@ -1,9 +1,11 @@
 <script lang="ts">
+  import type { HTMLButtonAttributes } from "svelte/elements";
+
   interface Props {
     text: string;
     onClick?: () => void;
     disabled?: boolean;
-    args?: any;
+    args?: HTMLButtonAttributes;
     minimal?: boolean;
   }
 

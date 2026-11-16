@@ -1,4 +1,6 @@
 import { describe, it, expect } from "vitest";
+// ts-ignore, not expect-error: only some of our tsconfigs see this as an error
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore plain ExtendScript JS module, no types
 import { parseDataAttributes } from "../../../../jsx/ilst/ai2svelte/aiUtils.js";
 

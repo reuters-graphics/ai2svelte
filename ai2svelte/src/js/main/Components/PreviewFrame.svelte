@@ -1,11 +1,11 @@
 <script lang="ts">
-  import { onMount } from "svelte";
+  import { onMount, type Snippet } from "svelte";
   import { Spring } from "svelte/motion";
   import { tooltip } from "svooltip";
   import { tooltipSettings } from "../utils/utils";
 
   interface Props {
-    children?: unknown;
+    children?: Snippet;
     previewWidth: Spring<number>;
     previewHeight: Spring<number>;
   }
@@ -32,7 +32,7 @@
     }
   }
 
-  function releaseDrag(e: MouseEvent) {
+  function releaseDrag() {
     draggingX = false;
     draggingY = false;
   }
@@ -67,7 +67,7 @@
     <button
       class="preview-thumb-vertical"
       aria-label="Resize preview"
-      onmousedown={(e) => {
+      onmousedown={() => {
         draggingY = true;
       }}
       onmousemove={(e) => handleResize(e)}
@@ -90,7 +90,7 @@
   <button
     class="preview-thumb-horizontal"
     aria-label="Resize preview"
-    onmousedown={(e) => {
+    onmousedown={() => {
       draggingX = true;
     }}
     onmousemove={(e) => handleResize(e)}

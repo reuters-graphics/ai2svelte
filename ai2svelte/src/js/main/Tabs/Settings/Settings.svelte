@@ -16,7 +16,6 @@
 
   let profileNameDialog: HTMLDialogElement;
   let profileListDialog: HTMLDialogElement;
-  let activeProfile: string = $state("");
   let tempActiveProfile: string = $state("default");
   let newProfileName: string = $state("");
   let fileLoader: HTMLInputElement;
@@ -89,7 +88,6 @@
 
   function profileLoaded(profile: string | null): void {
     if (profile && existingProfiles[profile]) {
-      activeProfile = profile;
       refreshKey++;
       $settingsObject = { ...existingProfiles[profile] };
       mount(Toast, {

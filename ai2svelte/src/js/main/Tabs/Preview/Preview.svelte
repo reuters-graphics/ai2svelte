@@ -1,6 +1,6 @@
 <script lang="ts">
   // SVELTE IMPORTS
-  import { onDestroy, onMount, unmount, type ComponentType } from "svelte";
+  import { onDestroy, onMount, unmount } from "svelte";
   import { Spring } from "svelte/motion";
   import PreviewFrame from "../../Components/PreviewFrame.svelte";
 
@@ -8,8 +8,6 @@
   import {
     settingsObject,
     stylesString,
-    styles,
-    unsavedChanges,
     forcePreview,
     lastPreviewObject,
   } from "../../stores";
@@ -21,27 +19,25 @@
   import { fs, path } from "../../../lib/cep/node";
 
   // OTHER IMPORTS
-  // @ts-ignore: preview-dev.svelte is a generated file and has no TypeScript declarations
+  // @ts-expect-error: preview-dev.svelte is a generated file and has no TypeScript declarations
   import PreviewDev from "../../example/ai2svelte/preview-dev.svelte";
-  import { saveSettings } from "../../utils/utils";
   import config from "../../../../../cep.config";
-  import { version } from "../../../../shared/shared";
-  // @ts-ignore: startServer.js is a plain JS file with no TypeScript declarations
+  // @ts-expect-error: startServer.js is a plain JS file with no TypeScript declarations
   import { compileComponent } from "./startServer";
   import type { PreviewObject } from "../../Tabs/types";
 
   let { forceRender = false }: { forceRender?: boolean } = $props();
 
-  let PreviewComponent: ComponentType | undefined = $state();
   let isLoadingPreview: boolean = $state(false);
   let previewError: string | undefined = $state(undefined);
 
   let previewWidth: Spring<number> = new Spring(800);
   let previewHeight: Spring<number> = new Spring(400);
 
-  let currentArtboard: HTMLElement | undefined = $state();
   let frameContent: HTMLDivElement | undefined = $state();
-  let component: Record<string, unknown> | undefined = undefined;
+  let component:
+    | ({ unmount?: () => void } & Record<string, unknown>)
+    | undefined = undefined;
 
   function delay(ms: number) {
     return new Promise((resolve) => setTimeout(resolve, ms));
@@ -53,8 +49,7 @@
     }, 100);
   };
 
-  const onArtboardChange = (artboard: HTMLElement) => {
-    currentArtboard = artboard;
+  const onArtboardChange = () => {
     displaySnippetNames();
   };
 
@@ -170,6 +165,7 @@
       });
 
       await evalTS(
+        // @ts-expect-error -- runPreview is commented out in ilst.ts while Preview is dormant (CLAUDE.md)
         "runPreview",
         {
           settings: $settingsObject,

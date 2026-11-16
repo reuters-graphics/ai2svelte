@@ -3,11 +3,9 @@ import { csi } from "../../../lib/utils/bolt";
 import config from "../../../../../cep.config";
 import { stylesState } from "./stylesState.svelte";
 
-let extensionPath = "";
 let userDataPath = "";
 
 if (window.cep) {
-  extensionPath = csi?.getSystemPath("extension") ?? "";
   userDataPath = csi?.getSystemPath("userData") ?? "";
 }
 

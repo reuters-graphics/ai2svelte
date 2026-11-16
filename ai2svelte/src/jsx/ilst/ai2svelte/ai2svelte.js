@@ -87,7 +87,6 @@ import {
   applyTemplate,
   pathJoin,
   pathSplit,
-  replaceAll,
 } from "./utils";
 
 // An export run from the panel (deferCompletion) returns before its images are
@@ -704,11 +703,6 @@ export function main(settingsArg) {
     forEach(doc.layers, unlockContainer);
   }
 
-  function unlockObject(obj) {
-    obj.locked = false;
-    objectsToRelock.push(obj);
-  }
-
   // Unlock a layer or group if visible and locked, as well as any locked and visible
   // clipping masks
   // unlocks every single thing in the ai doc
@@ -934,6 +928,7 @@ export function main(settingsArg) {
     if (typeof JSON !== "object") {
       JSON = {};
     }
+    /* eslint-disable no-useless-escape, no-control-regex, no-misleading-character-class -- vendored json2 */
     (function () {
       "use strict";
       var rx_one = /^[\],:{}\s]*$/;
@@ -945,6 +940,7 @@ export function main(settingsArg) {
         /[\\"\u0000-\u001f\u007f-\u009f\u00ad\u0600-\u0604\u070f\u17b4\u17b5\u200c-\u200f\u2028-\u202f\u2060-\u206f\ufeff\ufff0-\uffff]/g;
       var rx_dangerous =
         /[\u0000\u00ad\u0600-\u0604\u070f\u17b4\u17b5\u200c-\u200f\u2028-\u202f\u2060-\u206f\ufeff\ufff0-\uffff]/g;
+      /* eslint-enable no-useless-escape, no-control-regex, no-misleading-character-class */
       function f(n) {
         return n < 10 ? "0" + n : n;
       }
@@ -1396,7 +1392,7 @@ export function main(settingsArg) {
     });
     return [
       thisWidth == minWidth ? 0 : thisWidth,
-      !!nextWidth ? nextWidth - 1 : Infinity,
+      nextWidth ? nextWidth - 1 : Infinity,
     ];
   }
 
@@ -1545,14 +1541,6 @@ export function main(settingsArg) {
     app.executeMenuCommand("deselectall");
   }
 
-  function objectOverlapsAnArtboard(obj) {
-    var hit = false;
-    forEachUsableArtboard(function (ab) {
-      hit = hit || objectOverlapsArtboard(obj, ab);
-    });
-    return hit;
-  }
-
   function objectOverlapsArtboard(obj, ab) {
     return testBoundsIntersection(ab.artboardRect, obj.geometricBounds);
   }
@@ -1572,16 +1560,6 @@ export function main(settingsArg) {
       obj = obj.parent;
     }
     return hidden;
-  }
-
-  function objectIsLocked(obj) {
-    while (obj && obj.typename != "Document") {
-      if (obj.locked) {
-        return true;
-      }
-      obj = obj.parent;
-    }
-    return false;
   }
 
   function unlockObject(obj) {
@@ -1682,7 +1660,6 @@ export function main(settingsArg) {
     });
     forEach(relevantMasks, function (mask) {
       var obj = { mask: mask };
-      var selection, item;
 
       // Select items in this mask
       mask.locked = false;
@@ -1754,11 +1731,6 @@ export function main(settingsArg) {
     // Treat text rotated by < 1 degree as unrotated.
     // (It's common to accidentally rotate text and then try to unrotate manually).
     return Math.abs(angle) > 1;
-  }
-
-  function hideTextFrame(textFrame) {
-    textFramesToUnhide.push(textFrame);
-    textFrame.hidden = true;
   }
 
   // color: a color object, e.g. RGBColor
@@ -1961,8 +1933,8 @@ export function main(settingsArg) {
       diff = objectDiff(range.cssStyle, pData.cssStyle);
       if (diff) {
         const spaceEncodedHtml = rangeHtml
-          .replace(/^ +/, (m) => "&nbsp;")
-          .replace(/ +$/, (m) => "&nbsp;");
+          .replace(/^ +/, () => "&nbsp;")
+          .replace(/ +$/, () => "&nbsp;");
         rangeHtml =
           '<span class="' +
           getTextStyleClass(diff, cStyles, "cstyle") +
@@ -2322,17 +2294,6 @@ export function main(settingsArg) {
     }
     // testStr += aifont + ", ";
 
-    var fontFamilies = {
-      arial: "Arial, sans-serif",
-      freight: "FreightTextPro,Georgia,serif",
-      georgia: 'Georgia, "Times New Roman", Times, serif',
-      source:
-        '"Source Sans Pro", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Helvetica, Arial, sans-serif',
-      knowledge: '"Knowledge", "Source Sans Pro", Arial, sans-serif',
-      menlo:
-        'Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace',
-    };
-
     // all i could find on my illustrator in the above fonts.
     var weights = {
       bold: "700",
@@ -2647,7 +2608,7 @@ export function main(settingsArg) {
     var o = parseDataAttributes(note);
     var html = "";
     for (var k in o) {
-      if (!o.hasOwnProperty(k)) continue;
+      if (!Object.prototype.hasOwnProperty.call(o, k)) continue;
       var name = makeKeyword(k.toLowerCase().replace(/^data-/, ""));
       if (!name) continue;
       // braces would be parsed as expressions by Svelte
@@ -3003,13 +2964,13 @@ export function main(settingsArg) {
     if (opts.tagPrefix == "snippet") {
       symbolClass += " " + nameSpace + "aiSnippet";
       properties = 'data-name="' + opts.idName + '" ';
-      var id = nameSpace + "snippet-" + opts.idName;
+      var id = nameSpace + "snippet-" + opts.idName; // one var, set per branch
       divId = 'id="' + id + '" ';
     } else if (opts.tagPrefix == "div" && item.name) {
-      var id = nameSpace + "div-" + opts.idName + "-" + item.name;
+      id = nameSpace + "div-" + opts.idName + "-" + item.name;
       divId = 'id="' + id + '" ';
     } else if (opts.tagPrefix == "symbol" && item.name) {
-      var id = nameSpace + "symbol-" + opts.idName + "-" + item.name;
+      id = nameSpace + "symbol-" + opts.idName + "-" + item.name;
       divId = 'id="' + id + '" ';
     }
 
@@ -3487,7 +3448,6 @@ export function main(settingsArg) {
     var hideTextFrames =
       !isTrue(settings.testing_mode) && settings.render_text_as != "image";
     var textFrameCount = textFrames.length;
-    var html = "";
     var uniqNames = [];
     var hiddenItems = [];
     var hiddenLayers = [];
@@ -5045,8 +5005,6 @@ export function main(settingsArg) {
           mode = "color-dodge";
         } else if (mode == "colorburn") {
           mode = "color-burn";
-        } else {
-          mode = mode;
         }
 
         style += "mix-blend-mode:" + mode + ";";
@@ -5071,25 +5029,6 @@ export function main(settingsArg) {
       return parseInt(found[1]) / 100;
     }
     return svg.replace(rxp, replace);
-  }
-
-  function removeImagesInSVG(content, path) {
-    var dir = pathSplit(path)[0];
-    var count = 0;
-    content = content.replace(
-      /<image[^<]+href="([^"]+)"[^<]+<\/image>/gm,
-      function (match, href) {
-        count++;
-        deleteFile(pathJoin(dir, href));
-        return "";
-      },
-    );
-    if (count > 0) {
-      warnOnce(
-        "This document contains images or effects that can't be exported to SVG.",
-      );
-    }
-    return content;
   }
 
   function checkForImagesInSVG(content, pageName) {
@@ -5392,7 +5331,7 @@ export function main(settingsArg) {
       css += "\twidth: 100%;\r";
       css += "\tcontainer-type: inline-size;\r";
 
-      forEachUsableArtboard(function (ab, abIndex) {
+      forEachUsableArtboard(function (ab) {
         var id = nameSpace + getDocumentArtboardName(ab);
         var visibleRange = getArtboardVisibilityRange(ab, group, settings);
 
@@ -5411,7 +5350,7 @@ export function main(settingsArg) {
         css += "\t\t\tdisplay: block !important;\r";
 
         for (var key in imgVars) {
-          if (imgVars.hasOwnProperty(key)) {
+          if (Object.prototype.hasOwnProperty.call(imgVars, key)) {
             if (imgVars[key].artboardId === id) {
               css += "\t\t\t#" + imgVars[key].id + " {\r";
               css += "\t\t\t\tbackground-image: var(--" + key + ");\r";
@@ -5497,20 +5436,11 @@ export function main(settingsArg) {
     var count = 0;
 
     for (var key in obj) {
-      if (obj.hasOwnProperty(key)) {
+      if (Object.prototype.hasOwnProperty.call(obj, key)) {
         count++;
       }
     }
     return count;
-  }
-
-  function pathToFileURL(osPath) {
-    // Normalize slashes for Windows and macOS
-    let normalized = osPath.replace(/\\/g, "/");
-    // Encode spaces and non-ASCII safely
-    normalized = encodeURI(normalized);
-    // Add file URL scheme; Windows needs triple slash
-    return "file:///" + normalized.replace(/^\/+/, "");
   }
 
   // generates <script> code
@@ -5729,7 +5659,7 @@ export function main(settingsArg) {
     var bgVars = [];
 
     for (var key in imgVars) {
-      if (imgVars.hasOwnProperty(key)) {
+      if (Object.prototype.hasOwnProperty.call(imgVars, key)) {
         var v = imgVars[key];
         var url2x = "";
         if (v.src2x) url2x = 'url("$' + v.src2x + '")';

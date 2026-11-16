@@ -24,7 +24,7 @@
   <p class="title">Font Configuration</p>
   {#if activeFormat === "UI"}
     <div class="options content-item">
-      {#each Object.keys(userData.fontsConfig) as key, index}
+      {#each Object.keys(userData.fontsConfig) as key, index (key)}
         <div class="ai-setting">
           <Input
             label={key}

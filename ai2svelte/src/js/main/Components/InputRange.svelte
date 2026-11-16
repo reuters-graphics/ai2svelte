@@ -23,7 +23,7 @@
   // Spring drives the fill-bar animation with a soft easing effect.
   // Using length = end - start + 1 preserves the original mapping behaviour
   // (value / length gives a slightly sub-1 fill at max, matching prior design).
-  let length = $state(end - start + 1);
+  let length = $derived(end - start + 1);
   let progress = new Spring(0, {
     stiffness: 0.05,
     damping: 0.5,

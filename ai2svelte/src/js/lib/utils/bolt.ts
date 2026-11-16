@@ -21,7 +21,7 @@ export const vulcan = new Vulcan();
  */
 
 export const evalES = (script: string, isGlobal = false): Promise<string> => {
-  return new Promise(function (resolve, reject) {
+  return new Promise(function (resolve) {
     const pre = isGlobal
       ? ""
       : `var host = typeof $ !== 'undefined' ? $ : window; host["${ns}"].`;
@@ -39,12 +39,8 @@ import type { Scripts } from "@esTypes/index";
 import type { EventTS } from "../../../shared/universals";
 import { initializeCEP } from "./init-cep";
 
-type ArgTypes<F extends Function> = F extends (...args: infer A) => any
-  ? A
-  : never;
-type ReturnType<F extends Function> = F extends (...args: infer A) => infer B
-  ? B
-  : never;
+type ArgTypes<F> = F extends (...args: infer A) => unknown ? A : never;
+type ReturnType<F> = F extends (...args: never[]) => infer B ? B : never;
 
 /**
  * @description End-to-end type-safe ExtendScript evaluation with error handling
@@ -73,7 +69,7 @@ let evalTSCallId = 0;
 
 export const evalTS = <
   Key extends string & keyof Scripts,
-  Func extends Function & Scripts[Key],
+  Func extends Scripts[Key],
 >(
   functionName: Key,
   ...args: ArgTypes<Func>
@@ -96,8 +92,7 @@ export const evalTS = <
         try {
           if (res === "undefined") {
             logEvent("result", { id, ms: Date.now() - start });
-            //@ts-ignore
-            return resolve();
+            return resolve(undefined as ReturnType<Func>);
           }
           const parsed = JSON.parse(res);
           if (
@@ -116,7 +111,7 @@ export const evalTS = <
             logEvent("result", { id, ms: Date.now() - start });
             resolve(parsed);
           }
-        } catch (error) {
+        } catch {
           logEvent("error", { id, ms: Date.now() - start, error: res });
           reject(res);
         }
@@ -286,11 +281,11 @@ export const vulcanSend = (id: string, msgObj: IVulcanMessageObject) => {
   vulcan.dispatchMessage(msg);
 };
 
-export const vulcanListen = (id: string, callback: Function) => {
+export const vulcanListen = (id: string, callback: (msg: unknown) => void) => {
   vulcan.addMessageListener(
     VulcanMessage.TYPE_PREFIX + id,
-    (res: any) => {
-      var msgStr = vulcan.getPayload(res);
+    (res: unknown) => {
+      const msgStr = vulcan.getPayload(res);
       const msgObj = JSON.parse(msgStr);
       callback(msgObj);
     },
@@ -299,7 +294,7 @@ export const vulcanListen = (id: string, callback: Function) => {
 };
 
 export const isAppRunning = (targetSpecifier: string) => {
-  const { major, minor, micro } = csi.getCurrentApiVersion();
+  const { major, minor } = csi.getCurrentApiVersion();
   const version = parseFloat(`${major}.${minor}`);
   if (version >= 11.2) {
     return vulcan.isAppRunningEx(targetSpecifier.toUpperCase());
@@ -350,7 +345,7 @@ export const selectFile = (
 
 export const enableSpectrum = () => {
   if (window.PointerEvent) {
-    //@ts-ignore
+    // @ts-expect-error -- PointerEvent isn't optional on Window
     delete window.PointerEvent;
   }
 };

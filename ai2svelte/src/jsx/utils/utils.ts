@@ -11,12 +11,11 @@ export const dispatchTS = <Key extends string & keyof EventTS>(
   event: Key,
   data: EventTS[Key],
 ) => {
-  if (new ExternalObject("lib:PlugPlugExternalObject")) {
-    var eventObj = new CSXSEvent();
-    eventObj.type = `${ns}.${event}`;
-    eventObj.data = JSON.stringify(data);
-    eventObj.dispatch();
-  }
+  new ExternalObject("lib:PlugPlugExternalObject"); // loads CSXSEvent
+  const eventObj = new CSXSEvent();
+  eventObj.type = `${ns}.${event}`;
+  eventObj.data = JSON.stringify(data);
+  eventObj.dispatch();
 };
 
 export const forEach = <T>(
@@ -28,11 +27,11 @@ export const forEach = <T>(
   }
 };
 
-export const map = <T>(
+export const map = <T, U>(
   arr: T[],
-  callback: (item: T, i: number) => any,
-): T[] => {
-  let res = [];
+  callback: (item: T, i: number) => U,
+): U[] => {
+  const res: U[] = [];
   for (let i = 0; i < arr.length; i++) {
     res.push(callback(arr[i], i));
   }
@@ -43,7 +42,7 @@ export const filter = <T>(
   arr: T[],
   func: (item: T, i: number) => boolean,
 ): T[] => {
-  let res = [];
+  const res = [];
   for (let i = 0; i < arr.length; i++) {
     if (func(arr[i], i)) {
       res.push(arr[i]);

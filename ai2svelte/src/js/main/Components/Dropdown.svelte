@@ -119,7 +119,7 @@
                 <button tabindex="-1">{value}</button>
               </li>
 
-              {#each options as opt}
+              {#each options as opt (opt)}
                 <Select.Item value={opt} label={opt}>
                   {#snippet child({ props: itemProps })}
                     <li

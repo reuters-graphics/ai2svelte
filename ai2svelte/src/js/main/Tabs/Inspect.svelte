@@ -103,7 +103,7 @@
     />
     {#if activeTab == "Settings"}
       <div class="diff-checker">
-        {#each settingsDiff as row}
+        {#each settingsDiff as row, i (i)}
           <p
             class="status-{row.added ? 'added' : row.removed ? 'removed' : ''}"
           >
@@ -113,7 +113,7 @@
       </div>
     {:else if activeTab == "Styles"}
       <div class="diff-checker">
-        {#each stylesDiff as row}
+        {#each stylesDiff as row, i (i)}
           <p
             class="status-{row.added ? 'added' : row.removed ? 'removed' : ''}"
           >

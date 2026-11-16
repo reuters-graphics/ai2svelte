@@ -7,13 +7,12 @@ import { csi } from "./bolt";
  */
 
 export const keyRegisterOverride = () => {
-  //@ts-ignore
   const platform = navigator.platform.substring(0, 3);
   let maxKey = 0;
   if (platform === "Mac")
     maxKey = 126; // Mac Max Key Code
   else if (platform === "Win") maxKey = 222; // HTML Max Key Code
-  let allKeys: {
+  const allKeys: {
     keyCode: number;
     ctrlKey: boolean;
     altKey: boolean;
@@ -45,9 +44,7 @@ export const textCepPatch = (e: KeyboardEvent) => {
   const isShiftKey = e.shiftKey;
   const input = e.target as HTMLTextAreaElement | HTMLInputElement;
   const start = input.selectionStart;
-  let end = input.selectionEnd;
-
-  const selectionExists = start !== null && end !== null && start !== end;
+  const end = input.selectionEnd;
 
   if (start === null || end === null) return;
 

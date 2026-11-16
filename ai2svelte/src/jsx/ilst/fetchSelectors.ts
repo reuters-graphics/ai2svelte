@@ -1,8 +1,6 @@
 export function fetchSelectors() {
-  var activeDoc = app.activeDocument;
-  var docTextFrames = activeDoc.textFrames;
-
-  for (let i = 0; i < docTextFrames.length; i++) {}
+  const activeDoc = app.activeDocument;
+  const docTextFrames = activeDoc.textFrames;
 
   alert(String(docTextFrames.length));
 }

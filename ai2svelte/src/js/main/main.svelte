@@ -14,7 +14,6 @@
     userShadowsBaked,
     unsavedChanges,
     alertObject,
-    forcePreview,
     docName,
     cache,
   } from "./stores";
@@ -40,7 +39,7 @@
     writeFile,
   } from "./utils/utils";
   import { bakeShadows } from "./utils/bakeShadows";
-  // @ts-ignore: precheck.js is a plain JS file with no TypeScript declarations
+  // @ts-expect-error: precheck.js is a plain JS file with no TypeScript declarations
   import { precheck } from "./precheck/precheck.js";
   import { fetchSettings } from "./utils/utils";
   import type { SettingsObject } from "./Tabs/types";
@@ -184,7 +183,7 @@
     // Run un-awaited, these two XMPFile reads on the same .ai file overlap and
     // the ai-settings read can fail, leaving $settingsObject empty — so the
     // first run exports with default paths. Serialize them.
-    await precheck().catch((err) => {
+    await precheck().catch((err: unknown) => {
       console.error("[ai2svelte] precheck failed:", err);
     });
 

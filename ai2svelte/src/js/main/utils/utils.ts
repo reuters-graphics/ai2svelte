@@ -17,12 +17,11 @@ import {
 } from "../stores";
 import defaultProfile from "../Tabs/data/default-profile.json";
 import postcss from "postcss";
-// @ts-ignore: postcss-safe-parser has no TypeScript declarations
 import safeParser from "postcss-safe-parser";
 import { parseCSS } from "./cssUtils";
 import type { SettingsObject } from "../Tabs/types";
 
-let userDataPath = window.cep ? csi.getSystemPath("userData") : "";
+const userDataPath = window.cep ? csi.getSystemPath("userData") : "";
 
 const allowedUserDataFiles = new Set([
   ".flags.json",

@@ -6,7 +6,16 @@ import ts from 'typescript-eslint';
 // import svelteConfig from './svelte.config.js';
 
 export default ts.config(
-  { ignores: ['src/js/lib/cep/'] }, // vendored Adobe CEP libs
+  {
+    ignores: [
+      'src/js/lib/cep/', // vendored Adobe CEP libs
+      'src/js/public/webp/', // vendored wasm encoder
+      'src/jsx/lib/json2.js', // vendored JSON polyfill
+      'src/public/BoltHostAdapter.js', // vendored Bolt adapter
+      'src/js/main/example/', // ai2svelte export output (visual-test fixtures)
+      'src/js/main/src/', // ai2svelte export output
+    ],
+  },
   js.configs.recommended,
   ...ts.configs.recommended,
   ...svelte.configs.recommended,
@@ -44,9 +53,43 @@ export default ts.config(
     }
   },
   {
+    // tsc already reports undefined names, with the real Illustrator types
+    // (typescript-eslint recommends this)
+    files: ['**/*.ts', '**/*.svelte'],
+    rules: { 'no-undef': 'off' },
+  },
+  {
+    // ExtendScript engine (plain JS): Illustrator's globals, not the browser's
+    // (so e.g. an undeclared `top` is caught instead of matching window.top)
+    files: ['src/jsx/**/*.js'],
+    languageOptions: {
+      globals: Object.fromEntries(
+        [
+          'app', '$', 'File', 'Folder', 'module',
+          'BlendModes', 'DocumentColorSpace', 'ElementPlacement', 'ExportType',
+          'ExportOptionsJPEG', 'ExportOptionsPNG24', 'ExportOptionsPNG8',
+          'ExportOptionsSVG', 'FontBaselineOption', 'IllustratorSaveOptions',
+          'PointType', 'SaveOptions', 'SVGCSSPropertyLocation',
+          'SVGDocumentEncoding', 'SVGDTDVersion', 'SVGFontSubsetting', 'TextType',
+        ].map((name) => [name, 'readonly']),
+      ),
+    },
+  },
+  {
+    files: ['**/*.cjs'], // CommonJS (node globals are already on)
+    rules: { '@typescript-eslint/no-require-imports': 'off' },
+  },
+  {
     rules: {
-      // Override or add rule settings here, such as:
-      // 'svelte/rule-name': 'error'
-    }
+      '@typescript-eslint/no-unused-vars': [
+        'error',
+        // ES3 (ExtendScript) has no optional catch binding, so `catch (e)` stays
+        { caughtErrors: 'none', argsIgnorePattern: '^_' },
+      ],
+      '@typescript-eslint/ban-ts-comment': [
+        'error',
+        { 'ts-nocheck': 'allow-with-description' },
+      ],
+    },
   }
 );

@@ -31,7 +31,7 @@
   let argumentsString = $derived.by(() => {
     let str = "";
     str =
-      (animationArguments as String)
+      (animationArguments as string)
         .replaceAll("$", "--")
         .replaceAll(",", ";")
         .replaceAll("(", "")
@@ -93,7 +93,7 @@
 {#if mounted}
   <button
     class="card card-animation {active ? 'focused' : ''}"
-    onclick={(e: Event) => {
+    onclick={() => {
       active = !active;
       onChange();
     }}
@@ -124,7 +124,7 @@
               cx="50%"
               cy="50%"
               r={20}
-              fill={"url(#Gradient)"}
+              fill="url(#Gradient)"
               style={`${argumentsString} animation: ${animationRule};`}
             />
           {:else if candidate == "line"}

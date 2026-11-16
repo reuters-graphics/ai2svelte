@@ -165,12 +165,12 @@ export function parseSCSS(style: SCSSNode): string {
     case "atrule":
       return `@${style.name} ${style.params}`;
 
-    case "rule":
+    case "rule": {
       const styles = (style.nodes ?? []).map((x) => parseSCSS(x)).join(";\n");
-      const str = `${style.selector} {
+      return `${style.selector} {
 ${styles};
 }`;
-      return str;
+    }
 
     case "comment":
       return `/* ${style.text} */`;

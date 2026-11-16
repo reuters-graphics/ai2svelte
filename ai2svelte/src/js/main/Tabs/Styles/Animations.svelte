@@ -174,7 +174,7 @@
 </script>
 
 <div class="card-container content-item">
-  {#each allAnimations as animation, index}
+  {#each allAnimations as animation, index (index)}
     <AnimationCard
       name={animation.name}
       animationArguments={animation.arguments}

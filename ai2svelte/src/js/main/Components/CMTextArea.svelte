@@ -4,7 +4,10 @@
   import { Compartment, Prec } from "@codemirror/state";
   import { EditorView, keymap } from "@codemirror/view";
   import type { EditorViewConfig } from "@codemirror/view";
-  import { autocompletion } from "@codemirror/autocomplete";
+  import {
+    autocompletion,
+    type CompletionSource,
+  } from "@codemirror/autocomplete";
   import {
     insertNewlineAndIndent,
     indentLess,
@@ -53,7 +56,7 @@
 
   const themeConfig = new Compartment();
 
-  let customCompletions: (context: any) => { from: any; options: any } | null;
+  let customCompletions: CompletionSource;
 
   function setupAutoCompletions(tokens: tokenTypeArray) {
     // Create completion source
@@ -188,15 +191,15 @@
         type == "css" ? lintGutter() : [],
         myTheme,
         EditorView.domEventHandlers({
-          focusin: (e, v) => {
+          focusin: () => {
             isFocused = true;
             // console.log("focus in", editor?.hasFocus);
           },
-          focusout: (e, v) => {
+          focusout: () => {
             isFocused = false;
             // console.log("focus out", editor?.hasFocus);
           },
-          keydown(event, view) {
+          keydown(event) {
             // Stop all keyboard events from bubbling up and reaching parent apps (e.g., Illustrator)
             event.stopPropagation();
             event.stopImmediatePropagation();

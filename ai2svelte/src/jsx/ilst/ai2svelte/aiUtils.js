@@ -4,6 +4,7 @@
 
 // Remove whitespace from beginning and end of a string
 function trim(s) {
+  // eslint-disable-next-line no-control-regex -- \x03: Illustrator line break
   return s.replace(/^[\s\uFEFF\xA0\x03]+|[\s\uFEFF\xA0\x03]+$/g, "");
 }
 

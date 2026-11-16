@@ -4,7 +4,7 @@
 
   // UTILS
   import { fetchNewImageURL, tooltipSettings } from "../../utils/utils";
-  // @ts-ignore
+  // @ts-expect-error -- screenSnip.js is plain JS with no type declarations
   import { captureRegion } from "./screenSnip";
 
   // MEDIA

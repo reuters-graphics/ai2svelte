@@ -1,5 +1,4 @@
 import { company, displayName, version } from "../../../shared/shared";
-import { dispatchTS, openLinkInBrowser } from "./bolt";
 import { keyRegisterOverride, dropDisable } from "./cep";
 
 const buildFlyoutMenu = () => {
@@ -23,7 +22,7 @@ const buildFlyoutMenu = () => {
       try {
         //? On build the events come in garbled string which requires some replacing and then parsing to get the data
         menuId = JSON.parse(
-          event.data.replace(/\$/g, "").replace(/\=2/g, ":"),
+          event.data.replace(/\$/g, "").replace(/=2/g, ":"),
         ).menuId;
       } catch (e) {
         console.error(e);

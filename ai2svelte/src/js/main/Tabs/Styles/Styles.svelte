@@ -19,7 +19,7 @@
   import {
     AIEvent,
     AIEventAdapter,
-    // @ts-ignore: BoltHostAdapter.js is a plain JS Adobe SDK file with no TypeScript declarations
+    // @ts-expect-error: BoltHostAdapter.js is a plain JS Adobe SDK file with no TypeScript declarations
   } from "../../../../public/BoltHostAdapter.js";
 
   // COMPONENT IMPORTS
@@ -29,7 +29,6 @@
   import SectionTabBar from "../../Components/SectionTabBar.svelte";
   import PillsContainer from "./PillsContainer.svelte";
   import ExtraConfigs from "./ExtraConfigs.svelte";
-  // @ts-ignore: postcss-safe-parser has no TypeScript declarations
   import safeParser from "postcss-safe-parser";
 
   // MISC
@@ -45,10 +44,6 @@
   let activeFormat: string = $state("UI");
 
   let initialLoad: boolean = $state(false);
-
-  let previousStyles: Result<Root> | undefined = undefined;
-
-  let previousSelector: string = "";
 
   let codeEditor: EditorView | undefined = $state();
 
@@ -73,13 +68,6 @@
   $effect(() => {
     if (initialLoad && editableCssString) {
       initialLoad = false;
-    }
-  });
-
-  // if css identifier changes
-  $effect(() => {
-    if (stylesState.cssSelector) {
-      previousSelector = stylesState.cssSelector;
     }
   });
 
@@ -148,8 +136,6 @@
       addSelectionChangeEventListener();
       detectIdentifier();
     }
-
-    previousStyles = $styles;
   });
 
   // switches to UI format

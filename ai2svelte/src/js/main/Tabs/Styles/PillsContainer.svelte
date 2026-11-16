@@ -1,9 +1,6 @@
 <script lang="ts">
   import { slide } from "svelte/transition";
   import Pill from "../../Components/Pill.svelte";
-  import postcss from "postcss";
-  // @ts-ignore
-  import safeParser from "postcss-safe-parser";
 
   import { stylesState } from "./stylesState.svelte";
   import { removeSelectorFromResult } from "./utils";
@@ -13,7 +10,7 @@
 
 {#if styles && styles.root?.nodes.length}
   <div class="pills-container" transition:slide={{ duration: 200 }}>
-    {#each stylesState.selectors as selector}
+    {#each stylesState.selectors as selector, i (i)}
       <Pill
         name={selector}
         active={selector == stylesState.cssSelector}

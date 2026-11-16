@@ -1,7 +1,6 @@
 import type { Writable } from "svelte/store";
 import { derived, get, writable } from "svelte/store";
 import type {
-  Style,
   ShadowItem,
   AnimationItem,
   SettingsObject,

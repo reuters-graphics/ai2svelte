@@ -1,4 +1,4 @@
-// @ts-nocheck
+// @ts-nocheck -- patches DOM prototypes CEP's Chromium lacks; the DOM lib types already declare them
 /**
  * Polyfills for APIs missing or broken in Adobe CEP's embedded Chromium.
  *

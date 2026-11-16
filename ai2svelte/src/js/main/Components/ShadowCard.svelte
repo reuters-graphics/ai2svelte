@@ -62,7 +62,7 @@
     class="card card-shadow {active ? 'focused' : ''}"
     style="background-image: url({backdrop});"
     data-name={dataName}
-    onclick={(e: Event) => {
+    onclick={() => {
       active = !active;
       onChange();
     }}

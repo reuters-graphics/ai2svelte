@@ -7,13 +7,10 @@
   import { aiSettingsTokens } from "../../utils/settingsTokens";
   import { checkWebpSupport } from "../../utils/rasterJobs";
   import { convertStringToObject } from "./utils";
-  import type { SettingsObject } from "../../Tabs/types";
 
   let { activeFormat = $bindable("UI"), defaultProfile } = $props();
 
   let codeContent: HTMLElement | undefined = $state();
-
-  let previousSettings: SettingsObject | undefined = $state();
 
   // webp is hidden where the panel can't encode it, unless it's already the
   // saved value (other systems can still export it; here the images are kept
@@ -36,9 +33,7 @@
   let editableYamlString: string = $derived(yamlString);
 
   onMount(() => {
-    if (Object.keys($settingsObject).length > 0) {
-      previousSettings = { ...$settingsObject };
-    } else {
+    if (Object.keys($settingsObject).length === 0) {
       $settingsObject = { ...defaultProfile };
     }
   });
@@ -46,7 +41,7 @@
 
 <div class="ai-settings">
   <SectionTitle
-    title={"Settings"}
+    title="Settings"
     labels={["UI", "Code"]}
     tooltipDescription={["Simplified settings", "Advanced settings"]}
     bind:activeValue={activeFormat}
@@ -56,7 +51,7 @@
     {#if activeFormat === "UI"}
       <div id="ui-form" class="options content-item">
         {#if $settingsObject && aiSettingsTokens}
-          {#each Object.keys($settingsObject) as key, index}
+          {#each Object.keys($settingsObject) as key, index (key)}
             {@const type =
               aiSettingsTokens.find((item) => item.label == key)?.inputType ||
               "text"}

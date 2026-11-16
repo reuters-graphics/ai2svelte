@@ -214,7 +214,7 @@ function extend(o) {
 
 function forEachProperty(o, cb) {
   for (var k in o) {
-    if (o.hasOwnProperty(k)) {
+    if (Object.prototype.hasOwnProperty.call(o, k)) {
       cb(o[k], k);
     }
   }
@@ -226,7 +226,7 @@ function forEachProperty(o, cb) {
 function objectDiff(a, b) {
   var diff = null;
   for (var k in a) {
-    if (a[k] != b[k] && a.hasOwnProperty(k)) {
+    if (a[k] != b[k] && Object.prototype.hasOwnProperty.call(a, k)) {
       diff = diff || {};
       diff[k] = a[k];
     }
@@ -284,12 +284,14 @@ function firstBy(f1, f2) {
 
 // Remove whitespace from beginning and end of a string
 function trim(s) {
+  // eslint-disable-next-line no-control-regex -- \x03: Illustrator line break
   return s.replace(/^[\s\uFEFF\xA0\x03]+|[\s\uFEFF\xA0\x03]+$/g, "");
 }
 
 // splits a string into non-empty lines
 function stringToLines(str) {
   var empty = /^\s*$/;
+  // eslint-disable-next-line no-control-regex -- \x03: Illustrator line break
   return filter(str.split(/[\r\n\x03]+/), function (line) {
     return !empty.test(line);
   });

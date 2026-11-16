@@ -53,7 +53,7 @@ describe("createShadowMixinFromCSS", () => {
   it("returns empty string when id is undefined", () => {
     const result = createShadowMixinFromCSS({
       ...shadow,
-      id: undefined as any,
+      id: undefined as unknown as string,
     });
     expect(result).toBe("");
   });
@@ -136,7 +136,7 @@ describe("parseSCSS", () => {
     const root = scss.default.parse(
       ".foo { color: red; // a line comment\n /* a block comment */ }",
     );
-    const comments: any[] = [];
+    const comments: Parameters<typeof parseSCSS>[0][] = [];
     root.walkComments((c) => {
       comments.push(c);
     });

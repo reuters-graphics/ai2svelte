@@ -74,7 +74,7 @@
       <Tabs.List>
         {#snippet child({ props })}
           <div {...props} class="tab-items">
-            {#each staticTabs as label}
+            {#each staticTabs as label (label)}
               <Tabs.Trigger value={label.toUpperCase()}>
                 {#snippet child({ props: triggerProps })}
                   <button

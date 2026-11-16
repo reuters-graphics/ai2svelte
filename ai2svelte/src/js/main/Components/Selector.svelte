@@ -28,7 +28,7 @@
   item's button, since Svelte actions cannot be applied to component wrappers.
 -->
 <RadioGroup.Root bind:value>
-  {#each labels as label, index}
+  {#each labels as label, index (label)}
     <RadioGroup.Item value={label}>
       {#snippet child({ props })}
         <button

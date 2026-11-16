@@ -1,13 +1,9 @@
 import type { Result, Root, Rule } from "postcss";
 import postcss from "postcss";
-import type { Plugin } from "postcss";
 import * as prettier from "prettier/standalone";
 import parserPostCSS from "prettier/plugins/postcss";
-// @ts-ignore: postcss-scss has no TypeScript declarations
 import scss from "postcss-scss";
 import discardEmpty from "postcss-discard-empty";
-// @ts-ignore: mixedDecls is a plain JS PostCSS plugin with no type declarations
-import mixedDecls from "./mixedDecls";
 
 export function removeIfEmpty(rule: Rule) {
   if (!rule.nodes || rule.nodes.length === 0) {

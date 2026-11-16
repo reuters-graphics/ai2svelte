@@ -3,7 +3,6 @@ import { render, screen, waitFor } from "@testing-library/svelte";
 import userEvent from "@testing-library/user-event";
 import * as Svelte from "svelte";
 import { get } from "svelte/store";
-// @ts-ignore: postcss-safe-parser has no TypeScript declarations
 import safeParser from "postcss-safe-parser";
 import postcss from "postcss";
 import { triggerConfetti, ai2svelteInProgress, styles } from "../../../stores";

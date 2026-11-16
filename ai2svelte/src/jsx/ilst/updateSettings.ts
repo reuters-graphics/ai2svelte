@@ -1,7 +1,7 @@
 export function updateSettings(settingsObject: string, newSettings: string) {
-  var activeDoc = app.activeDocument;
+  const activeDoc = app.activeDocument;
   try {
-    var settingsTextFrame = activeDoc.textFrames.getByName(settingsObject);
+    const settingsTextFrame = activeDoc.textFrames.getByName(settingsObject);
     if (settingsTextFrame) {
       settingsTextFrame.contents = newSettings;
     }
@@ -11,11 +11,11 @@ export function updateSettings(settingsObject: string, newSettings: string) {
 }
 
 export function fetchSettings(settingsObject: string) {
-  var activeDoc = app.activeDocument;
-  var settingsTextFrame = activeDoc.textFrames.getByName(settingsObject);
+  const activeDoc = app.activeDocument;
+  const settingsTextFrame = activeDoc.textFrames.getByName(settingsObject);
   if (settingsTextFrame.paragraphs.length) {
-    var t = "";
-    for (var i = 0; i < settingsTextFrame.paragraphs.length; i++) {
+    let t = "";
+    for (let i = 0; i < settingsTextFrame.paragraphs.length; i++) {
       try {
         t += settingsTextFrame.paragraphs[i].contents;
       } catch (e) {

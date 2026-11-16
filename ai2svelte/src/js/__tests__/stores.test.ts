@@ -1,13 +1,11 @@
 import { describe, it, expect, beforeEach } from "vitest";
 import { get } from "svelte/store";
-// @ts-ignore: postcss-safe-parser has no TypeScript declarations
 import safeParser from "postcss-safe-parser";
 import postcss from "postcss";
 import {
   styles,
   stylesString,
   settingsObject,
-  savedSettings,
   docName,
   cacheObj,
   cache,
