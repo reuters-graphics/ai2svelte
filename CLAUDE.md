@@ -240,7 +240,7 @@ Requires:
 - Adobe Illustrator installed
 - **PlayerDebugMode** enabled (required for `pnpm dev` hot reload): set `PlayerDebugMode=1` in the Adobe CEP config
 - Symlink set up: `pnpm symlink` (run once to point Illustrator at the `dist/` folder)
-- pnpm 9.6+ and Node 18+
+- pnpm 9.6+ and Node 20.19+
 
 ## Release Process
 

@@ -97,7 +97,7 @@ Bolt CEP Info Page Link: https://hyperbrew.co/resources/bolt-cep
 
 ## Prerequisites
 
-- [Node.js 18](https://nodejs.org/en/) or later
+- [Node.js 20.19](https://nodejs.org/en/) or later
 - Package manager either
   - NPM (comes with Node.js)
   - [Yarn](https://classic.yarnpkg.com/lang/en/docs/install/) ( ensure by running `yarn set version classic` )
