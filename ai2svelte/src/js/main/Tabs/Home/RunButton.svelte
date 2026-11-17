@@ -17,6 +17,7 @@
   import { logEvent, withSnapshot } from "../../utils/debugLog";
   import { findMissingStyles } from "../../utils/cssUtils";
   import { processRasterJobs, type RasterJob } from "../../utils/rasterJobs";
+  import { withWatchdog } from "../../utils/exportControl";
 
   import { version } from "../../../../shared/shared";
   import { tooltip } from "svooltip";
@@ -81,15 +82,17 @@
         // warnings for its completion alert. deferCompletion: it keeps the
         // progress bar open and holds the alert until finishAi2Svelte, so the
         // image pass below shows in the same bar and "done" means done.
-        const result = await withSnapshot(() =>
-          evalTS("runAi2Svelte", {
-            settings: {
-              show_completion_dialog_box: true,
-              ...$settingsObject,
-            },
-            code: { css: $stylesString, fontsConfig: userData.fontsConfig },
-            deferCompletion: true,
-          }),
+        const result = await withWatchdog(
+          withSnapshot(() =>
+            evalTS("runAi2Svelte", {
+              settings: {
+                show_completion_dialog_box: true,
+                ...$settingsObject,
+              },
+              code: { css: $stylesString, fontsConfig: userData.fontsConfig },
+              deferCompletion: true,
+            }),
+          ),
         );
         missingFontFamilies = result?.missingFontFamilies ?? [];
         let images = {
