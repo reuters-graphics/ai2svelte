@@ -232,7 +232,7 @@ Keep this list current when a setting is dropped or renamed, so stale keys in ol
 
 ## Dormant: Preview
 
-The Preview tab (in-panel render of the exported component) was removed from the UI in v1.0.4 but kept on purpose for a likely CEP → UXP migration — don't delete it. Pieces: `src/js/main/Tabs/Preview/` (not imported anywhere, so not bundled), `Components/PreviewFrame.svelte`, `src/jsx/ilst/previewWrapper.ts`, the commented-out `runPreview` + `wrapper` import in `src/jsx/ilst/ilst.ts`, and the `isPreview` branches in `ai2svelte.js`. To revive: uncomment in `ilst.ts`, import `Preview.svelte` into the tab bar.
+The Preview tab (in-panel render of the exported component) was removed from the UI in v1.0.4 but kept on purpose for a likely CEP → UXP migration — don't delete it. Pieces: `src/js/main/Tabs/Preview/` (not imported anywhere, so not bundled), `Components/PreviewFrame.svelte`, `src/jsx/ilst/previewWrapper.ts`, the commented-out `runPreview` + `wrapper` import in `src/jsx/ilst/ilst.ts`. The only trace in the jsx is the commented-out `runPreview` (and its `isPreview` line) in `ilst.ts`. To revive: uncomment in `ilst.ts`, import `Preview.svelte` into the tab bar. Caveats: the Preview's `startServer.js` spawns the system `node`, and CEP's Chromium 99 can't render container queries, so a revived preview can't show the real responsive output.
 
 ## Dev Setup
 

@@ -12,7 +12,7 @@ ai2svelte lets you design graphics in Illustrator and export them as production-
 - **Preset styling** — apply bundled shadows and animations to art objects.
 - **Font configuration** — map Illustrator fonts to CSS `font-family`.
 - **Profiles** — save and load different ai2svelte settings as reusable profiles.
-- **Multiple exports** — export sequence layers with the `{start, count}` syntax in the artboard name (e.g. `myMap{1,5}`).
+- **Multiple exports** — end layer names with a number (`map1`, `map2`…) and set `project_name` with a `{start,count}` placeholder (e.g. `map{1,3}layer`). See the docs. (`output: multiple-files` is a separate option that groups artboards by name.)
 
 ## Installation
 
