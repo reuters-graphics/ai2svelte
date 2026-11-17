@@ -1,3 +1,31 @@
+<script module lang="ts">
+  import { get } from "svelte/store";
+  import {
+    AIEvent,
+    AIEventAdapter,
+    // @ts-expect-error: BoltHostAdapter.js is a plain JS Adobe SDK file with no TypeScript declarations
+  } from "../../../../public/BoltHostAdapter.js";
+  import { ai2svelteInProgress } from "../../stores";
+
+  // The AIEventAdapter is a singleton and the panel is never truly unloaded,
+  // but this tab remounts on every visit. Register one listener for the
+  // panel's lifetime and route it to whichever instance is mounted.
+  let registered = false;
+  let activeHandler: (() => Promise<void>) | null = null;
+
+  function ensureSelectionListener(): void {
+    if (registered) return;
+    registered = true;
+    AIEventAdapter.getInstance().addEventListener(
+      AIEvent.ART_SELECTION_CHANGED,
+      async (_e: Event) => {
+        if (get(ai2svelteInProgress)) return;
+        await activeHandler?.();
+      },
+    );
+  }
+</script>
+
 <script lang="ts">
   // SVELTE IMPORTS
   import { mount, onMount, untrack } from "svelte";
@@ -6,21 +34,11 @@
   import { evalTS } from "../../../lib/utils/bolt";
 
   // DATA IMPORTS
-  import {
-    styles,
-    updateInProgress,
-    ai2svelteInProgress,
-    commitStyles,
-  } from "../../stores";
+  import { styles, updateInProgress, commitStyles } from "../../stores";
 
   // OTHER LIB IMPORTS
   import postcss from "postcss";
   import { type Result, type Root } from "postcss";
-  import {
-    AIEvent,
-    AIEventAdapter,
-    // @ts-expect-error: BoltHostAdapter.js is a plain JS Adobe SDK file with no TypeScript declarations
-  } from "../../../../public/BoltHostAdapter.js";
 
   // COMPONENT IMPORTS
   import CmTextArea from "../../Components/CMTextArea.svelte";
@@ -98,29 +116,6 @@
     }
   }
 
-  /**
-   * Adds an event listener for the ART_SELECTION_CHANGED event using the AIEventAdapter singleton.
-   * When the selection changes, it fetches the selected items' identifier using evalTS("fetchSelectedItems")
-   * and updates the cssSelector variable accordingly. Needs AiHostAdapter plugin installed in the host system.
-   *
-   * Responsible for populating active css identifier when art selection changes.
-   *
-   */
-  // The AIEventAdapter is a singleton — this listener is registered once and
-  // intentionally lives for the panel's lifetime. CEP panels are never truly
-  // unmounted, so no cleanup is required. If this changes, store the adapter
-  // reference and call removeEventListener() in onDestroy.
-  function addSelectionChangeEventListener(): void {
-    const adapter = AIEventAdapter.getInstance();
-    adapter.addEventListener(
-      AIEvent.ART_SELECTION_CHANGED,
-      async (_e: Event) => {
-        if ($ai2svelteInProgress) return;
-        await detectIdentifier();
-      },
-    );
-  }
-
   // init styles to a POSTCSS AST format
   async function initiateStyles() {
     if ($styles == undefined || Object.keys($styles).length == 0) {
@@ -128,14 +123,19 @@
     }
   }
 
-  onMount(async () => {
-    await initiateStyles();
-
-    if (window.cep) {
-      initialLoad = true;
-      addSelectionChangeEventListener();
-      detectIdentifier();
-    }
+  onMount(() => {
+    (async () => {
+      await initiateStyles();
+      if (window.cep) {
+        initialLoad = true;
+        ensureSelectionListener();
+        activeHandler = detectIdentifier;
+        detectIdentifier();
+      }
+    })();
+    return () => {
+      if (activeHandler === detectIdentifier) activeHandler = null;
+    };
   });
 
   // switches to UI format
