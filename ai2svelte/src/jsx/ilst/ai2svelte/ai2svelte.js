@@ -148,6 +148,7 @@ export function main(settingsArg) {
 
   let textFramesToUnhide = [];
   let objectsToRelock = [];
+  let layersToRestoreVisibility = [];
 
   let docSettings;
   let textBlockData;
@@ -266,6 +267,19 @@ export function main(settingsArg) {
     if (isWild) {
       // wildcard exports
       var numberCheck = /\D*(\d+)$/;
+      // remember visibility so restoreDocumentState can put it back
+      forEach(doc.layers, function (layer) {
+        var m = getLayerName(layer).match(numberCheck);
+        if (m) {
+          var n = parseInt(m[1]);
+          if (n >= start && n <= end) {
+            layersToRestoreVisibility.push({
+              layer: layer,
+              visible: layer.visible,
+            });
+          }
+        }
+      });
       for (var i = start; i <= end; i++) {
         docSlug = projectNameTemplate.replace("*", i);
         docSettings.project_name = docSlug;
@@ -1283,6 +1297,10 @@ export function main(settingsArg) {
     }
     for (i = objectsToRelock.length - 1; i >= 0; i--) {
       objectsToRelock[i].locked = true;
+    }
+    for (i = 0; i < layersToRestoreVisibility.length; i++) {
+      layersToRestoreVisibility[i].layer.visible =
+        layersToRestoreVisibility[i].visible;
     }
   }
 
