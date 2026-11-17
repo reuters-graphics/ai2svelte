@@ -1,5 +1,8 @@
 [
-  { "name": "preview-dev", "aiPath": "src/js/main/example/preview-dev.ai" },
+  {
+    "name": "preview-dev",
+    "aiPath": "src/js/main/example/preview-dev.ai"
+  },
   {
     "name": "preview-dev-svg",
     "aiPath": "src/js/main/example/preview-dev.ai",
@@ -12,13 +15,66 @@
   {
     "name": "preview-dev-chunked",
     "aiPath": "src/js/main/example/preview-dev.ai",
-    "settings": { "image_chunk_width": 512, "image_chunk_height": 512 },
+    "settings": {
+      "image_chunk_width": 512,
+      "image_chunk_height": 512
+    },
     "baseline": "preview-dev"
   },
   {
     "name": "multi-export",
     "aiPath": "src/js/main/example/multi-export.ai",
-    "settings": { "project_name": "multi{1,3}step" },
+    "settings": {
+      "project_name": "multi{1,3}step"
+    },
     "files": ["multi1step", "multi2step", "multi3step"]
+  },
+  {
+    "name": "presets",
+    "aiPath": "src/js/main/example/presets.ai",
+    "cssPath": "styles/presets.scss",
+    "freezeAnimations": true
+  },
+  {
+    "name": "layers",
+    "aiPath": "src/js/main/example/layers.ai",
+    "cssPath": "styles/layers.scss",
+    "fontsConfig": {
+      "ArialMT": "'Fixture Sans', Arial, sans-serif"
+    },
+    "settings": {
+      "priority_fetch": true
+    },
+    "expect": {
+      "present": [
+        "[data-category=\"road\"]",
+        "[data-color=\"orange\"]",
+        "[data-category=\"rail\"]",
+        "[data-kind=\"pin\"]",
+        "[data-slot=\"main\"]",
+        "[data-role=\"title\"]",
+        "[data-series=\"a\"]",
+        "[data-series=\"b\"]",
+        "[data-src=\"raster\"]"
+      ],
+      "absent": ["[data-hidden=\"yes\"]"]
+    }
+  },
+  {
+    "name": "layers-settings",
+    "aiPath": "src/js/main/example/layers.ai",
+    "settings": {
+      "image_format": "png",
+      "png_transparent": true,
+      "clickable_link": "https://example.com",
+      "allow_overflow": true,
+      "use_lazy_loader": true,
+      "include_resizer_widths": false,
+      "include_resizer_css": false,
+      "center_html_output": false,
+      "namespace": "fx-",
+      "render_text_as": "image",
+      "render_rotated_skewed_text_as": "image"
+    }
   }
 ]

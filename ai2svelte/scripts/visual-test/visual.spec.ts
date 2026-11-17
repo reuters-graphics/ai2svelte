@@ -37,6 +37,30 @@ for (const fixture of fixtures) {
     await page.goto(
       `/scripts/visual-test/harness.html?bundle=/${outputDir}/bundle.js&assetsPath=/${outputDir}`,
     );
+    // onAiMounted must fire; onArtboardChange fires for the artboard on show
+    await page.waitForFunction(() => (window as any).__aiMounted === true);
+    const frozen = "freezeAnimations" in fixture && fixture.freezeAnimations;
+    if (frozen) {
+      // every preset animation parked on the same frame (400ms in): pausing
+      // alone freezes wherever the clock happened to be, which varies per run
+      await page.evaluate(() =>
+        document.getAnimations().forEach((a) => {
+          a.pause();
+          a.currentTime = 400;
+        }),
+      );
+    }
+    // "expect": elements that must (not) be in the output, e.g. data-* attributes
+    const expected = "expect" in fixture ? fixture.expect : undefined;
+    for (const selector of expected?.present ?? []) {
+      expect(
+        await page.locator(selector).count(),
+        `${selector} present`,
+      ).toBeGreaterThan(0);
+    }
+    for (const selector of expected?.absent ?? []) {
+      expect(await page.locator(selector).count(), `${selector} absent`).toBe(0);
+    }
     // "baseline": render must match another fixture's screenshot (e.g. chunked
     // output must look identical to the unchunked export)
     // A borrowed baseline gets a small tolerance: the tiles reassemble to the
@@ -47,7 +71,12 @@ for (const fixture of fixtures) {
     const baseline = borrowed ? fixture.baseline : fixture.name;
     await expect(page.locator("#frameContent")).toHaveScreenshot(
       `${baseline}.png`,
-      borrowed ? { maxDiffPixelRatio: 0.003 } : {},
+      {
+        // "allow": the default "disabled" resets infinite animations to frame 0,
+        // undoing the frozen frame set above
+        ...(frozen ? { animations: "allow" as const } : {}),
+        ...(borrowed ? { maxDiffPixelRatio: 0.003 } : {}),
+      },
     );
 
     if (fixture.name.includes("chunked")) {

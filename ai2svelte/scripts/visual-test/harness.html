@@ -22,7 +22,15 @@
           },
         },
       };
-      mod.default(document.getElementById("frameContent"), { assetsPath, taggedText });
+      // the spec asserts these: the component's event props fire
+      window.__aiMounted = false;
+      window.__artboardChanges = [];
+      mod.default(document.getElementById("frameContent"), {
+        assetsPath,
+        taggedText,
+        onAiMounted: () => (window.__aiMounted = true),
+        onArtboardChange: (el) => window.__artboardChanges.push(el.id),
+      });
 
       // ?debug=1 (preview.html checkbox): outline + label every ai2svelte element.
       // Drawn in an overlay so <svg>/<img> get labels too (no ::after on those).

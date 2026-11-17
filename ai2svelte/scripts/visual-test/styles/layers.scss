@@ -1,0 +1,16 @@
+// Styles on tagged layers: :div and :symbol rects, the snippet slot, and a
+// data-attribute selector (the notes become data-* attributes).
+#g-div-blocks-b1 {
+  border-radius: 24px;
+}
+#g-symbol-pins-p0 {
+  border-radius: 50%;
+}
+#g-snippet-slotbox {
+  outline: 3px dashed #f97316;
+  outline-offset: -3px;
+}
+[data-category="road"] {
+  outline: 4px solid orange;
+  outline-offset: -4px;
+}

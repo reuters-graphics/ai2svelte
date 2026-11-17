@@ -8,6 +8,7 @@ import { existsSync, mkdirSync, rmSync, readFileSync, readdirSync, writeFileSync
 import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { buildStylesString, closeStyles } from "./styles.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(__dirname, "../..");
@@ -23,7 +24,11 @@ const jsxTemplate = readFileSync(path.join(__dirname, "run-fixture.jsx"), "utf8"
 const entryTemplate = readFileSync(path.join(__dirname, "entry-template.js"), "utf8");
 const serverScript = path.join(rootDir, "src/server.cjs");
 
+// optional names: `pnpm test:visual:generate presets layers` runs just those
+const only = process.argv.slice(2);
+
 for (const fixture of fixtures) {
+  if (only.length && !only.includes(fixture.name)) continue;
   const aiPath = path.resolve(rootDir, fixture.aiPath);
   const outputDir = path.join(path.dirname(aiPath), `visual-test-output-${fixture.name}`);
   // fresh dir: a stale .svelte from an earlier run would pass as new output
@@ -39,7 +44,14 @@ for (const fixture of fixtures) {
       override_text: true,
       ...fixture.settings,
     },
-    code: { css: "", fontsConfig: {} },
+    // "cssPath": user SCSS as typed in the Styles tab; the real mixin generator
+    // adds the shadow/animation mixins it @includes, as the panel does
+    code: {
+      css: fixture.cssPath
+        ? await buildStylesString(readFileSync(path.join(__dirname, fixture.cssPath), "utf8"))
+        : "",
+      fontsConfig: fixture.fontsConfig ?? {},
+    },
   };
 
   const jsx = jsxTemplate
@@ -86,3 +98,4 @@ for (const fixture of fixtures) {
 
   console.log(`[${fixture.name}] done -> ${outputDir}`);
 }
+await closeStyles();
