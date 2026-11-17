@@ -164,6 +164,36 @@ describe("debugLog", () => {
     expect(left).toHaveLength(7);
   });
 
+  it("logs polls only when they are slow or fail, and an identical error once", async () => {
+    const { logCall, logDone, logEvent, debugDir } = await freshModule();
+    const poll = (ms: number, error?: unknown) => {
+      logCall(1, "getDocumentName", []);
+      logDone(1, "getDocumentName", [], ms, error);
+    };
+    logEvent("session-start");
+    poll(5); // fast ok: nothing
+    poll(5, { message: "No such element" }); // first error: logged
+    poll(5, { message: "No such element" }); // repeat: counted
+    poll(5, { message: "No such element" });
+    poll(2000); // slow ok: logged, and ends the streak
+    logCall(2, "runAi2Svelte", []); // not quiet: always logged
+    logDone(2, "runAi2Svelte", [], 5);
+
+    const lines = readLines(realPath.join(debugDir(), "sessions"));
+    expect(lines.map((l) => l.type)).toEqual([
+      "session",
+      "session-start",
+      "call",
+      "error",
+      "repeat",
+      "call",
+      "result",
+      "call",
+      "result",
+    ]);
+    expect(lines[4].data.count).toBe(2);
+  });
+
   it("exportDebugReport copies only the sessions and snapshots of one file", async () => {
     const { findDebugData, exportDebugReport, debugDir } = await freshModule();
     const dir = debugDir();

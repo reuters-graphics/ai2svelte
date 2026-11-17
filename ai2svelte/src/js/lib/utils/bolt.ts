@@ -2,7 +2,7 @@ import CSInterface, { CSEvent } from "../cep/csinterface";
 import Vulcan, { VulcanMessage } from "../cep/vulcan";
 import { ns } from "../../../shared/shared";
 import { fs } from "../cep/node";
-import { logEvent } from "../../main/utils/debugLog";
+import { logCall, logDone } from "../../main/utils/debugLog";
 
 export const csi = new CSInterface();
 export const vulcan = new Vulcan();
@@ -77,7 +77,7 @@ export const evalTS = <
   return new Promise(function (resolve, reject) {
     const id = ++evalTSCallId;
     const start = Date.now();
-    logEvent("call", { id, fn: functionName, args });
+    logCall(id, functionName, args);
     const formattedArgs = args.map((arg) => `${JSON.stringify(arg)}`).join(",");
     csi.evalScript(
       `try{
@@ -91,7 +91,7 @@ export const evalTS = <
       (res: string) => {
         try {
           if (res === "undefined") {
-            logEvent("result", { id, ms: Date.now() - start });
+            logDone(id, functionName, args, Date.now() - start);
             return resolve(undefined as ReturnType<Func>);
           }
           const parsed = JSON.parse(res);
@@ -101,18 +101,17 @@ export const evalTS = <
           ) {
             console.error(parsed.message);
             // drop `source`: ExtendScript fills it with the whole compiled script (~180 KB)
-            logEvent("error", {
-              id,
-              ms: Date.now() - start,
-              error: { ...parsed, source: undefined },
+            logDone(id, functionName, args, Date.now() - start, {
+              ...parsed,
+              source: undefined,
             });
             reject(parsed);
           } else {
-            logEvent("result", { id, ms: Date.now() - start });
+            logDone(id, functionName, args, Date.now() - start);
             resolve(parsed);
           }
         } catch {
-          logEvent("error", { id, ms: Date.now() - start, error: res });
+          logDone(id, functionName, args, Date.now() - start, res);
           reject(res);
         }
       },

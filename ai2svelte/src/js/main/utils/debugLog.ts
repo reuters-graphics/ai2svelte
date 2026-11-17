@@ -113,6 +113,52 @@ export function logEvent(type: string, data?: unknown): void {
   }
 }
 
+// Polled every few seconds, so ~98% of all calls: logged only when slow or
+// failing, and a repeating identical error is logged once.
+const QUIET_FNS = ["getVariable", "getDocumentName", "getActiveDocumentsNames"];
+const SLOW_MS = 1000;
+const quietErrors = new Map<string, { message: string; count: number }>();
+
+export function logCall(id: number, fn: string, args: unknown[]): void {
+  if (!QUIET_FNS.includes(fn)) logEvent("call", { id, fn, args });
+}
+
+// `error` is set when the call failed. For a quiet fn the "call" line is
+// written here, after the fact, so the log shows only the calls that matter.
+export function logDone(
+  id: number,
+  fn: string,
+  args: unknown[],
+  ms: number,
+  error?: unknown,
+): void {
+  if (QUIET_FNS.includes(fn)) {
+    const slow = ms >= SLOW_MS;
+    const prev = quietErrors.get(fn);
+    const message =
+      error === undefined
+        ? ""
+        : String((error as { message?: unknown })?.message ?? error);
+    if (error === undefined) {
+      // ponytail: the repeat count is only written once the fn recovers
+      if (prev?.count)
+        logEvent("repeat", { fn, message: prev.message, count: prev.count });
+      quietErrors.delete(fn);
+      if (!slow) return;
+    } else if (prev?.message === message) {
+      if (!slow) {
+        prev.count++;
+        return;
+      }
+    } else quietErrors.set(fn, { message, count: 0 });
+    logEvent("call", { id, fn, args });
+  }
+  logEvent(
+    error === undefined ? "result" : "error",
+    error === undefined ? { id, ms } : { id, ms, error },
+  );
+}
+
 export function initDebugLog(): void {
   window.addEventListener("error", (e) =>
     logEvent("panel-error", {
