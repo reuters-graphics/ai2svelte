@@ -194,6 +194,19 @@ describe("debugLog", () => {
     expect(lines[4].data.count).toBe(2);
   });
 
+  it("logs only the first, last and every 5th export progress call", async () => {
+    const { logCall, logDone, debugDir, logEvent } = await freshModule();
+    logEvent("session-start");
+    for (let i = 1; i <= 12; i++) {
+      logCall(i, "updateExportProgress", [i, 12, "x"]);
+      logDone(i, "updateExportProgress", [i, 12, "x"], 5);
+    }
+    const done = readLines(realPath.join(debugDir(), "sessions"))
+      .filter((l) => l.type === "call")
+      .map((l) => l.data.args[0]);
+    expect(done).toEqual([1, 5, 10, 12]);
+  });
+
   it("exportDebugReport copies only the sessions and snapshots of one file", async () => {
     const { findDebugData, exportDebugReport, debugDir } = await freshModule();
     const dir = debugDir();

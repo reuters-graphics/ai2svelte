@@ -27,7 +27,11 @@ export function pruneDir(dir: string, keep: number): void {
 }
 
 // The snapshot events of one session file (unreadable lines are skipped).
-type SnapshotData = { path: string; name?: string; source?: string };
+type SnapshotData = {
+  path: string;
+  name?: string;
+  source?: string;
+};
 function snapshotEvents(file: string): SnapshotData[] {
   const out: SnapshotData[] = [];
   for (const line of fs.readFileSync(file, "utf8").split("\n")) {
@@ -115,7 +119,13 @@ export function logEvent(type: string, data?: unknown): void {
 
 // Polled every few seconds, so ~98% of all calls: logged only when slow or
 // failing, and a repeating identical error is logged once.
-const QUIET_FNS = ["getVariable", "getDocumentName", "getActiveDocumentsNames"];
+const PROGRESS = "updateExportProgress"; // 20+ calls per export
+const QUIET_FNS = [
+  "getVariable",
+  "getDocumentName",
+  "getActiveDocumentsNames",
+  PROGRESS,
+];
 const SLOW_MS = 1000;
 const quietErrors = new Map<string, { message: string; count: number }>();
 
@@ -134,6 +144,24 @@ export function logDone(
 ): void {
   if (QUIET_FNS.includes(fn)) {
     const slow = ms >= SLOW_MS;
+    if (fn === PROGRESS) {
+      // first, last and every 5th image: a hang still shows roughly where
+      const [done, total] = args as number[];
+      if (
+        error === undefined &&
+        !slow &&
+        done !== 1 &&
+        done !== total &&
+        done % 5
+      )
+        return;
+      logEvent("call", { id, fn, args });
+      logEvent(
+        error === undefined ? "result" : "error",
+        error === undefined ? { id, ms } : { id, ms, error },
+      );
+      return;
+    }
     const prev = quietErrors.get(fn);
     const message =
       error === undefined
