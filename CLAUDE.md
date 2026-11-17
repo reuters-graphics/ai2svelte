@@ -123,6 +123,13 @@ the Styles tab; `generate.mjs` prepends the real mixins (`generateAllMixins`).
 - Not covered: `:webp` (converted by the panel), `fit_mode`/`max_width` (need a
   container height), `responsiveness: fixed`.
 
+`pnpm replay "<debug report folder>" --to-fixture <name>` turns a user's report
+into a fixture: it copies the snapshot `.ai` into `src/js/main/example/`, the
+logged CSS into `scripts/visual-test/styles/`, and appends the logged settings
+to `fixtures.json` (after a typed `y`; it doesn't run Illustrator, so run
+`pnpm test:visual:generate <name>` next). Only with the document owner's consent:
+never commit client artwork.
+
 Baselines are "last approved," not immutable — when a change is intentional,
 regenerate and review the diff, then accept:
 ```bash

@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 // Replays a user's debug report in real Illustrator:
-//   pnpm replay "<ai2svelte-debug-folder>"
+//   pnpm replay "<ai2svelte-debug-folder>" [--to-fixture <name>]
+// (--to-fixture copies the snapshot + logged settings into a visual-test fixture instead of replaying)
 // Lists every .ai file with a snapshot still on disk and asks which to replay.
 // Opens a clone of that file's newest snapshot, in <folder>/test/, then re-runs the
 // state-changing evalTS calls logged after it, in order. Requires `pnpm build` (needs
@@ -10,22 +11,30 @@ import { copyFileSync, existsSync, mkdirSync, readFileSync, readdirSync, writeFi
 import path from "node:path";
 import { createInterface } from "node:readline";
 import { fileURLToPath } from "node:url";
+import { toFixture } from "./to-fixture.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(__dirname, "../..");
-const [bundleDir, ...extra] = process.argv.slice(2);
+const argv = process.argv.slice(2);
+const fixtureAt = argv.indexOf("--to-fixture");
+const fixtureName = fixtureAt === -1 ? undefined : argv.splice(fixtureAt, 2)[1];
+if (fixtureAt !== -1 && !fixtureName) {
+  console.error("--to-fixture needs a name.");
+  process.exit(1);
+}
+const [bundleDir, ...extra] = argv;
 if (extra.length) {
   // an unquoted path with spaces arrives as several arguments
   console.error('Got more than one argument. Quote paths with spaces, e.g. "…/Application Support/…".');
   process.exit(1);
 }
 if (!bundleDir) {
-  console.error('Usage: pnpm replay "<ai2svelte-debug-folder>"');
+  console.error('Usage: pnpm replay "<ai2svelte-debug-folder>" [--to-fixture <name>]');
   process.exit(1);
 }
 
 const jsxIndexPath = path.join(rootDir, "dist/cep/jsx/index.js");
-if (!existsSync(jsxIndexPath)) {
+if (!fixtureName && !existsSync(jsxIndexPath)) {
   console.error(`Missing ${jsxIndexPath} — run "pnpm build" first.`);
   process.exit(1);
 }
@@ -111,6 +120,17 @@ const doc = await choose(lines, "AI file:", docs, (d) => {
 // Newest run only: artwork edits between runs aren't logged, so only the
 // run's own snapshot matches the state its calls ran against.
 const plan = points.filter((p) => docOf(p) === doc).at(-1);
+
+if (fixtureName) {
+  try {
+    await toFixture({ rootDir, name: fixtureName, plan, ask: (q) => ask(lines, q) });
+  } catch (e) {
+    console.error(e.message);
+    process.exitCode = 1;
+  }
+  rl.close();
+  process.exit();
+}
 rl.close();
 
 // Work on a clone in test/ (peer of snapshots/): ai2svelte writes outputs next
