@@ -116,6 +116,12 @@
           });
         }
         if (images.failed.length) showImageRetry(images.failed);
+        logEvent("export-result", {
+          errors: result?.errors,
+          warnings: result?.warnings,
+          missingFontFamilies: result?.missingFontFamilies,
+          rasterJobs: result?.rasterJobs?.length,
+        });
         if (result?.errors?.length) {
           logEvent("engine-error", {
             errors: result.errors,
