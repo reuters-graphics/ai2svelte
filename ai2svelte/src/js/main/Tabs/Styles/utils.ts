@@ -11,8 +11,11 @@ export function removeIfEmpty(rule: Rule) {
   }
 }
 
-export async function stringToStyles(string: string) {
-  let object = {};
+// Resolves undefined when the SCSS doesn't parse, so callers keep the last good styles.
+export async function stringToStyles(
+  string: string,
+): Promise<Result<Root> | undefined> {
+  let object: Result<Root> | undefined;
   let formatted = string;
   try {
     try {
