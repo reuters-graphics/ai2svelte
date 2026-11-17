@@ -104,6 +104,25 @@ A fixture with a `files` list is a multiple export (`multi-export.ai`: layers
 `project_name: "multi{1,3}step"`). The test asserts exactly those `.svelte`
 files were written and screenshots/snapshots each one (`bundle-<component>.js`).
 
+Feature fixtures (`presets.ai`, `layers.ai`) are scripted, not hand-drawn:
+`pnpm test:visual:build-fixtures [presets|layers]` rebuilds them in
+Illustrator (and `scripts/visual-test/styles/presets.scss`). Rebuild after the
+shadow/animation library changes. A fixture's `cssPath` is user SCSS as typed in
+the Styles tab; `generate.mjs` prepends the real mixins (`generateAllMixins`).
+- `presets`: all 29 shadows, all 21 animations (frozen at 400ms via
+  `freezeAnimations`), custom SCSS, a style missing from the library.
+- `layers`: `:div`/`:symbol`/`:png`/`:svg`/`:snippet` layers, notes → `data-*`
+  (`expect.present`/`absent` in `fixtures.json`), a `fixed` artboard tag, a mapped
+  font, `priority_fetch`. `layers-settings` re-exports it with other settings.
+- `layers.ai`'s `narrow:image_only` artboard and `layers-settings`'
+  `render_text_as: "image"` cover the image-only text path (it threw before the
+  `textData.html` fix). The artboards run wide → narrow: an early build once
+  dropped the wide artboard's `:div`/`:symbol`/text HTML with that order, and it
+  never reproduced (14 clean rebuilds), so keeping it guards the symptom. If
+  `layers` suddenly loses that HTML, run `pnpm build` first (stale `dist`).
+- Not covered: `:webp` (converted by the panel), `fit_mode`/`max_width` (need a
+  container height), `responsiveness: fixed`.
+
 Baselines are "last approved," not immutable — when a change is intentional,
 regenerate and review the diff, then accept:
 ```bash
@@ -169,6 +188,35 @@ export const ai2svelte = (layers: Layer[], settings: Settings) => { ... };
 - File system access uses `File` and `Folder` objects (Adobe's API), not Node.js `fs`.
 - Errors in ExtendScript are caught by `evalTS()` and surfaced as rejected promises in the panel.
 - `dataOperations.ts` stores extension state as hidden JSON in the Illustrator document's custom data — this is how settings persist across sessions without writing files.
+
+## Time limit
+
+ExtendScript is single-threaded and can't be interrupted from the panel, so
+`ai2svelte.js` polls `checkAbort()` at every progress update (artboard, layer,
+tile) and stops with a `UserError` after 10 minutes (`timeoutSeconds` overrides
+it). `convertArtItems`, `forEachImageLayer`, `exportSVG` and
+`copyArtboardForImageExport` clean up in `finally`/`catch`, so an abort or error
+leaves no hidden layers, temp layer or temp document. A hang *inside* one
+Illustrator call (e.g. a modal dialog during `app.executeMenuCommand`) can't be
+caught: the panel's watchdog (`utils/exportControl.ts`, 15 minutes) frees the UI.
+
+There is deliberately no Cancel button. While a script runs, Illustrator's main
+thread is busy, so neither the ScriptUI progress window nor the CEP panel can
+take focus or clicks. (A flag-file cancel was built and removed for that reason.)
+
+While `main()` runs, the engine sets Illustrator's alert level to
+`DONTDISPLAYALERTS` (restored before the completion alert, aborted runs
+included), so an Illustrator modal dialog (e.g. a Save prompt for a temp doc)
+surfaces as an error ("the operation was cancelled") instead of blocking the
+script. Test scripts that drive Illustrator should not set the level themselves:
+it lasts for the whole Illustrator session.
+
+An output folder that doesn't exist and can't be created stops the export with
+an error (`ensureFolder`). It used to only warn, and exporting an SVG into a
+missing folder makes Illustrator open a native Save As dialog, which no alert
+level suppresses and which blocks the script indefinitely. `Folder.create()` fails
+for paths through a symlink, e.g. a document in `/tmp` (use `/private/tmp` in
+scratch scripts).
 
 ## Removed Settings
 
