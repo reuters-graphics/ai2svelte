@@ -7,7 +7,7 @@ import fixtures from "../../../../scripts/visual-test/fixtures.json";
 // Structural companion to the Playwright visual-test suite: catches output
 // changes a pixel diff might miss (e.g. markup that renders the same but
 // changed underneath). Populated by `pnpm test:visual:generate`, which needs
-// real Illustrator — skips quietly if that hasn't been run.
+// real Illustrator — skipped if that hasn't been run.
 describe("ai2svelte generated output (visual-test)", () => {
   for (const fixture of fixtures) {
     // multiple-export fixtures snapshot each component; one-file keeps the
@@ -16,39 +16,37 @@ describe("ai2svelte generated output (visual-test)", () => {
       .files ?? [null];
     for (const file of files) {
       const label = file ? `${fixture.name}/${file}` : fixture.name;
-      it(`${label} matches last-approved snapshot`, () => {
-        const outputDir = path.resolve(
-          __dirname,
-          "../../../../",
-          path.dirname(fixture.aiPath),
-          `visual-test-output-${fixture.name}`,
-        );
-        if (!existsSync(outputDir)) {
-          console.warn(
-            `Skipping ${fixture.name}: run "pnpm test:visual:generate" first.`,
+      const outputDir = path.resolve(
+        __dirname,
+        "../../../../",
+        path.dirname(fixture.aiPath),
+        `visual-test-output-${fixture.name}`,
+      );
+      // skipped (listed by the reporter) until "pnpm test:visual:generate" runs
+      it.skipIf(!existsSync(outputDir))(
+        `${label} matches last-approved snapshot`,
+        () => {
+          const svelteFile = file
+            ? `${file}.svelte`
+            : readdirSync(outputDir).find((f) => f.endsWith(".svelte"));
+          const content = readFileSync(
+            path.join(outputDir, svelteFile as string),
+            "utf8",
           );
-          return;
-        }
-        const svelteFile = file
-          ? `${file}.svelte`
-          : readdirSync(outputDir).find((f) => f.endsWith(".svelte"));
-        const content = readFileSync(
-          path.join(outputDir, svelteFile as string),
-          "utf8",
-        );
-        // ai2svelte stamps a generation timestamp in comments — strip it so this
-        // snapshot only fails on actual output changes, not on wall-clock time.
-        // Embedded raster data (svg_embed_images) is MBs of base64 that the
-        // screenshot test already covers -- keep only a short hash of it.
-        const normalized = content
-          .replace(/\d{4}-\d{2}-\d{2} \d{2}:\d{2}/g, "<timestamp>")
-          .replace(
-            /data:image\/(\w+);base64,[A-Za-z0-9+/=\s]+/g,
-            (m, type) =>
-              `data:image/${type};base64,<${createHash("sha1").update(m).digest("hex").slice(0, 12)}>`,
-          );
-        expect(normalized).toMatchSnapshot();
-      });
+          // ai2svelte stamps a generation timestamp in comments — strip it so this
+          // snapshot only fails on actual output changes, not on wall-clock time.
+          // Embedded raster data (svg_embed_images) is MBs of base64 that the
+          // screenshot test already covers -- keep only a short hash of it.
+          const normalized = content
+            .replace(/\d{4}-\d{2}-\d{2} \d{2}:\d{2}/g, "<timestamp>")
+            .replace(
+              /data:image\/(\w+);base64,[A-Za-z0-9+/=\s]+/g,
+              (m, type) =>
+                `data:image/${type};base64,<${createHash("sha1").update(m).digest("hex").slice(0, 12)}>`,
+            );
+          expect(normalized).toMatchSnapshot();
+        },
+      );
     }
   }
 });
