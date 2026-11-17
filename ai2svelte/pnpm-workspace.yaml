@@ -1,7 +1,6 @@
 allowBuilds:
   '@parcel/watcher': true
   '@tsparticles/engine': true
-  core-js: true
   esbuild: true
   jsxbin: true
   svelte-preprocess: true
