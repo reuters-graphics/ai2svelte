@@ -1,4 +1,5 @@
 import { getHiddenData } from "./dataOperations";
+import { makeKeyword } from "./ai2svelte/utils";
 
 // Filesystem path of the active document -- the same form the debug log's
 // snapshots record as `source`.
@@ -85,7 +86,9 @@ export function getSelectedItems() {
     const objectLayerName = objectLayer.name;
     const tag = (/:(.*)/.exec(objectLayerName) || [])[1] || "";
     const object = doc.selection[0];
-    const objectName = doc.selection[0].name;
+    // the engine writes frame ids as makeKeyword(name)
+    const rawObjectName = doc.selection[0].name;
+    const objectName = makeKeyword(rawObjectName);
 
     if (objectLayerName) {
       const settings = getHiddenData("ai-settings") as {
@@ -101,8 +104,9 @@ export function getSelectedItems() {
 
       if (tag == "snippet") {
         // g-snippet-snippetName
-        const snippetName =
-          (/(.*):snippet/.exec(objectLayerName) || [])[1] || "";
+        const snippetName = makeKeyword(
+          (/(.*):snippet/.exec(objectLayerName) || [])[1] || "",
+        );
         identifier = `#${namespace}snippet-${snippetName}`;
       } else if (tag == "png" || tag == "png24" || tag == "webp") {
         // g-png-layer-imageName
@@ -115,11 +119,13 @@ export function getSelectedItems() {
         identifier = `#${namespace}${tag}-layer-${imageName}`;
       } else if (tag == "div" && (objectName || objectLayerName)) {
         // g-snippet-snippetName
-        const imageName = (/(.*):div/.exec(objectLayerName) || [])[1] || "";
+        const imageName = makeKeyword(
+          (/(.*):div/.exec(objectLayerName) || [])[1] || "",
+        );
         // the layer wrapper has no id, only classes: <div class="g-div-layer g-name">
         if (
           allItemsSelected(objectLayer) &&
-          !selectionSharesName(doc.selection, objectName)
+          !selectionSharesName(doc.selection, rawObjectName)
         ) {
           identifier = `.${namespace}div-layer.${namespace}${imageName}`;
         } else if (objectName) {
@@ -127,11 +133,13 @@ export function getSelectedItems() {
         }
       } else if (tag == "symbol" && (objectName || objectLayerName)) {
         // g-snippet-snippetName
-        const imageName = (/(.*):symbol/.exec(objectLayerName) || [])[1] || "";
+        const imageName = makeKeyword(
+          (/(.*):symbol/.exec(objectLayerName) || [])[1] || "",
+        );
         // the layer wrapper has no id, only classes: <div class="g-symbol-layer g-name">
         if (
           allItemsSelected(objectLayer) &&
-          !selectionSharesName(doc.selection, objectName)
+          !selectionSharesName(doc.selection, rawObjectName)
         ) {
           identifier = `.${namespace}symbol-layer.${namespace}${imageName}`;
         } else if (objectName) {
@@ -139,19 +147,22 @@ export function getSelectedItems() {
         }
       } else if (tag == "svg" && (objectName || objectLayerName)) {
         // g-svg-layerName
-        const imageName = (/(.*):svg/.exec(objectLayerName) || [])[1] || "";
+        const imageName = makeKeyword(
+          (/(.*):svg/.exec(objectLayerName) || [])[1] || "",
+        );
         if (allItemsSelected(objectLayer)) {
           identifier = `#${namespace}svg-${imageName}`;
         } else if (objectName) {
-          identifier = `#${namespace}svg-${imageName} #${objectName}`;
+          identifier = `#${namespace}svg-${imageName} #${rawObjectName}`;
         }
       } else if (
         (tag == "text" || tag == "htext") &&
         (objectName || objectLayerName)
       ) {
         // g-svg-layerName
-        const layerName =
-          (/(.*):(text|htext)/.exec(objectLayerName) || [])[1] || "";
+        const layerName = makeKeyword(
+          (/(.*):(text|htext)/.exec(objectLayerName) || [])[1] || "",
+        );
         if (allItemsSelected(objectLayer)) {
           identifier = `.${namespace}${layerName}`;
         } else if (objectName) {
@@ -163,7 +174,7 @@ export function getSelectedItems() {
         // or the layer itself
         // outside tagged layers, only textframe items are saved as HTML elements
         if (allItemsSelected(objectLayer)) {
-          identifier = `.${namespace}${objectLayerName}`;
+          identifier = `.${namespace}${makeKeyword(objectLayerName)}`;
         } else if (objectName && object.typename == "TextFrame") {
           identifier = `#${namespace}${objectName}`;
         }
