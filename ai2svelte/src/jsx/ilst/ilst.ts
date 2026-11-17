@@ -82,7 +82,12 @@ export const saveAndSnapshotDocument = (pathPrefix: string) => {
   if (app) {
     const doc = app.activeDocument;
     const hadUnsavedEdits = !doc.saved;
-    if (hadUnsavedEdits && String(doc.path)) {
+    // only native .ai: saveAs on a .pdf/.eps would overwrite it with an AI file
+    if (
+      hadUnsavedEdits &&
+      String(doc.path) &&
+      String(doc.name).toLowerCase().slice(-3) === ".ai"
+    ) {
       const saveOptions = new IllustratorSaveOptions();
       // @ts-expect-error -- types-for-adobe wrongly declares pdfCompatible static; it is an instance property
       saveOptions.pdfCompatible = false;
