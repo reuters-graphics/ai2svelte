@@ -1295,12 +1295,21 @@ export function main(settingsArg) {
     for (i = 0; i < textFramesToUnhide.length; i++) {
       textFramesToUnhide[i].hidden = false;
     }
+    // each guarded separately: references can be stale after temp cleanup
     for (i = objectsToRelock.length - 1; i >= 0; i--) {
-      objectsToRelock[i].locked = true;
+      try {
+        objectsToRelock[i].locked = true;
+      } catch (e) {
+        // stale reference, skip
+      }
     }
     for (i = 0; i < layersToRestoreVisibility.length; i++) {
-      layersToRestoreVisibility[i].layer.visible =
-        layersToRestoreVisibility[i].visible;
+      try {
+        layersToRestoreVisibility[i].layer.visible =
+          layersToRestoreVisibility[i].visible;
+      } catch (e) {
+        // stale reference, skip
+      }
     }
   }
 
