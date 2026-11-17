@@ -167,7 +167,7 @@
     selectFolder("", "Save debug report at", (folderPath: string) => {
       try {
         toast(
-          `Debug report saved at ${exportDebugReport(folderPath, data)}. It includes a copy of this .ai file.`,
+          `Debug report saved at ${exportDebugReport(folderPath, data)}. It includes a copy of this .ai file plus logs of settings, layer names and file paths, and may cover other documents opened in the same session.`,
         );
       } catch (err: unknown) {
         console.error("[ai2svelte] Debug report export failed:", err);
