@@ -85,8 +85,7 @@ export const evalTS = <
           var res = host["${ns}"].${functionName}(${formattedArgs});
           JSON.stringify(res);
         }catch(e){
-          e.fileName = new File(e.fileName).fsName;
-          JSON.stringify(e);
+          JSON.stringify({__esError: {name: e.name, message: e.message, line: e.line, number: e.number, fileName: new File(e.fileName).fsName, source: undefined}});
         }`,
       (res: string) => {
         try {
@@ -95,17 +94,18 @@ export const evalTS = <
             return resolve(undefined as ReturnType<Func>);
           }
           const parsed = JSON.parse(res);
-          if (
-            typeof parsed.name === "string" &&
-            (<string>parsed.name).toLowerCase().includes("error")
-          ) {
-            console.error(parsed.message);
-            // drop `source`: ExtendScript fills it with the whole compiled script (~180 KB)
-            logDone(id, functionName, args, Date.now() - start, {
-              ...parsed,
-              source: undefined,
-            });
-            reject(parsed);
+          // errors are wrapped in __esError by the evalScript template above;
+          // anything else (even an object whose `name` says "error") is a result
+          if (parsed && parsed.__esError) {
+            console.error(parsed.__esError.message);
+            logDone(
+              id,
+              functionName,
+              args,
+              Date.now() - start,
+              parsed.__esError,
+            );
+            reject(parsed.__esError);
           } else {
             logDone(id, functionName, args, Date.now() - start);
             resolve(parsed);
