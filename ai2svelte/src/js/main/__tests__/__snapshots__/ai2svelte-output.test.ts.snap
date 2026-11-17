@@ -2194,10 +2194,10 @@ exports[`ai2svelte generated output (visual-test) > preview-dev matches last-app
 		</div>
 		<div id="g-png24-layer-image" class="g-png24 g-aiImg" aria-hidden="true" style="position:absolute;left:60.3922%;top:35.6452%;width:33.7255% !important;height:27.7419%;opacity:1;mix-blend-mode: exclusion;"></div>
 		<div id="g-text1" class="g-plain g-aiAbs" style="top:63.2258%;left:34.6994%;width:28.8235%;">
-			<p class="g-pstyle3 g-taggedText g-text" data-tagged-type="TEXT" data-tagged-prop="plain.text1">{taggedText?.text?.plain?.text1 || ''}</p>
+			<p class="g-pstyle3 g-taggedText g-text" data-tagged-type="TEXT" data-tagged-prop="plain.text1">{taggedText?.text?.["plain"]?.["text1"] || ''}</p>
 		</div>
 		<div id="g-text1" class="g-html g-aiAbs" style="top:46.2903%;left:77.2423%;margin-left:-15.6863%;width:31.3725%;">
-			<p class="g-pstyle1 g-taggedText g-htext" data-tagged-type="HTEXT" data-tagged-prop="html.text1">{@html taggedText?.htext?.html?.text1 || ''}</p>
+			<p class="g-pstyle1 g-taggedText g-htext" data-tagged-type="HTEXT" data-tagged-prop="html.text1">{@html taggedText?.htext?.["html"]?.["text1"] || ''}</p>
 		</div>
 <svg class="g-preview-dev-sm-vector-img g-svg" style="position: absolute;width: 34.902%;height: 28.7097%;top: 41.129%;left: 11.3725%;" id="g-svg-vector" xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="0 0 178 178">
   <!-- Generator: Adobe Illustrator 31.0.0, SVG Export Plug-In . SVG Version: 2.1.5 Build 84)  -->
@@ -2227,10 +2227,10 @@ exports[`ai2svelte generated output (visual-test) > preview-dev matches last-app
 		</div>
 		<div id="g-png24-layer-image" class="g-png24 g-aiImg" aria-hidden="true" style="position:absolute;left:58.7879%;top:30.9677%;width:34.8485% !important;height:37.0968%;opacity:1;mix-blend-mode: exclusion;"></div>
 		<div id="g-text1" class="g-plain g-aiAbs" style="top:64.6774%;left:37.1162%;width:22.2727%;">
-			<p class="g-pstyle3 g-taggedText g-text" data-tagged-type="TEXT" data-tagged-prop="plain.text1">{taggedText?.text?.plain?.text1 || ''}</p>
+			<p class="g-pstyle3 g-taggedText g-text" data-tagged-type="TEXT" data-tagged-prop="plain.text1">{taggedText?.text?.["plain"]?.["text1"] || ''}</p>
 		</div>
 		<div id="g-text1" class="g-html g-aiAbs" style="top:46.2903%;left:76.2024%;margin-left:-12.1212%;width:24.2424%;">
-			<p class="g-pstyle1 g-taggedText g-htext" data-tagged-type="HTEXT" data-tagged-prop="html.text1">{@html taggedText?.htext?.html?.text1 || ''}</p>
+			<p class="g-pstyle1 g-taggedText g-htext" data-tagged-type="HTEXT" data-tagged-prop="html.text1">{@html taggedText?.htext?.["html"]?.["text1"] || ''}</p>
 		</div>
 <svg class="g-preview-dev-md-vector-img g-svg" style="position: absolute;width: 33.6364%;height: 35.8065%;top: 37.5806%;left: 12.5758%;" id="g-svg-vector" xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="0 0 222 222">
   <!-- Generator: Adobe Illustrator 31.0.0, SVG Export Plug-In . SVG Version: 2.1.5 Build 84)  -->
@@ -2260,10 +2260,10 @@ exports[`ai2svelte generated output (visual-test) > preview-dev matches last-app
 		</div>
 		<div id="g-png24-layer-image" class="g-png24 g-aiImg" aria-hidden="true" style="position:absolute;left:59.1398%;top:27.7419%;width:29.0323% !important;height:43.5484%;opacity:1;mix-blend-mode: exclusion;"></div>
 		<div id="g-text1" class="g-plain g-aiAbs" style="top:64.6774%;left:35.8029%;width:15.8065%;">
-			<p class="g-pstyle3 g-taggedText g-text" data-tagged-type="TEXT" data-tagged-prop="plain.text1">{taggedText?.text?.plain?.text1 || ''}</p>
+			<p class="g-pstyle3 g-taggedText g-text" data-tagged-type="TEXT" data-tagged-prop="plain.text1">{taggedText?.text?.["plain"]?.["text1"] || ''}</p>
 		</div>
 		<div id="g-text1" class="g-html g-aiAbs" style="top:46.2903%;left:73.649%;margin-left:-8.6022%;width:17.2043%;">
-			<p class="g-pstyle1 g-taggedText g-htext" data-tagged-type="HTEXT" data-tagged-prop="html.text1">{@html taggedText?.htext?.html?.text1 || ''}</p>
+			<p class="g-pstyle1 g-taggedText g-htext" data-tagged-type="HTEXT" data-tagged-prop="html.text1">{@html taggedText?.htext?.["html"]?.["text1"] || ''}</p>
 		</div>
 <svg class="g-preview-dev-lg-vector-img g-svg" style="position: absolute;width: 23.871%;height: 35.8065%;top: 37.5806%;left: 18.2796%;" id="g-svg-vector" xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="0 0 222 222">
   <!-- Generator: Adobe Illustrator 31.0.0, SVG Export Plug-In . SVG Version: 2.1.5 Build 84)  -->
@@ -2293,10 +2293,10 @@ exports[`ai2svelte generated output (visual-test) > preview-dev matches last-app
 		</div>
 		<div id="g-png24-layer-image" class="g-png24 g-aiImg" aria-hidden="true" style="position:absolute;left:60.75%;top:27.7419%;width:22.5% !important;height:43.5484%;opacity:1;mix-blend-mode: exclusion;"></div>
 		<div id="g-text1" class="g-plain g-aiAbs" style="top:64.6774%;left:34.5806%;width:12.25%;">
-			<p class="g-pstyle3 g-taggedText g-text" data-tagged-type="TEXT" data-tagged-prop="plain.text1">{taggedText?.text?.plain?.text1 || ''}</p>
+			<p class="g-pstyle3 g-taggedText g-text" data-tagged-type="TEXT" data-tagged-prop="plain.text1">{taggedText?.text?.["plain"]?.["text1"] || ''}</p>
 		</div>
 		<div id="g-text1" class="g-html g-aiAbs" style="top:46.2903%;left:71.9946%;margin-left:-6.6667%;width:13.3333%;">
-			<p class="g-pstyle1 g-taggedText g-htext" data-tagged-type="HTEXT" data-tagged-prop="html.text1">{@html taggedText?.htext?.html?.text1 || ''}</p>
+			<p class="g-pstyle1 g-taggedText g-htext" data-tagged-type="HTEXT" data-tagged-prop="html.text1">{@html taggedText?.htext?.["html"]?.["text1"] || ''}</p>
 		</div>
 <svg class="g-preview-dev-xl-vector-img g-svg" style="position: absolute;width: 18.5%;height: 35.8065%;top: 37.5806%;left: 21.25%;" id="g-svg-vector" xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="0 0 222 222">
   <!-- Generator: Adobe Illustrator 31.0.0, SVG Export Plug-In . SVG Version: 2.1.5 Build 84)  -->
@@ -2995,10 +2995,10 @@ exports[`ai2svelte generated output (visual-test) > preview-dev-chunked matches 
 		</div>
 		<div id="g-png24-layer-image" class="g-png24 g-aiImg" aria-hidden="true" style="position:absolute;left:60.3922%;top:35.6452%;width:33.7255% !important;height:27.7419%;opacity:1;mix-blend-mode: exclusion;"></div>
 		<div id="g-text1" class="g-plain g-aiAbs" style="top:63.2258%;left:34.6994%;width:28.8235%;">
-			<p class="g-pstyle3 g-taggedText g-text" data-tagged-type="TEXT" data-tagged-prop="plain.text1">{taggedText?.text?.plain?.text1 || ''}</p>
+			<p class="g-pstyle3 g-taggedText g-text" data-tagged-type="TEXT" data-tagged-prop="plain.text1">{taggedText?.text?.["plain"]?.["text1"] || ''}</p>
 		</div>
 		<div id="g-text1" class="g-html g-aiAbs" style="top:46.2903%;left:77.2423%;margin-left:-15.6863%;width:31.3725%;">
-			<p class="g-pstyle1 g-taggedText g-htext" data-tagged-type="HTEXT" data-tagged-prop="html.text1">{@html taggedText?.htext?.html?.text1 || ''}</p>
+			<p class="g-pstyle1 g-taggedText g-htext" data-tagged-type="HTEXT" data-tagged-prop="html.text1">{@html taggedText?.htext?.["html"]?.["text1"] || ''}</p>
 		</div>
 <svg class="g-preview-dev-sm-vector-img g-svg" style="position: absolute;width: 34.902%;height: 28.7097%;top: 41.129%;left: 11.3725%;" id="g-svg-vector" xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="0 0 178 178">
   <!-- Generator: Adobe Illustrator 31.0.0, SVG Export Plug-In . SVG Version: 2.1.5 Build 84)  -->
@@ -3038,10 +3038,10 @@ exports[`ai2svelte generated output (visual-test) > preview-dev-chunked matches 
 		</div>
 		<div id="g-png24-layer-image" class="g-png24 g-aiImg" aria-hidden="true" style="position:absolute;left:58.7879%;top:30.9677%;width:34.8485% !important;height:37.0968%;opacity:1;mix-blend-mode: exclusion;"></div>
 		<div id="g-text1" class="g-plain g-aiAbs" style="top:64.6774%;left:37.1162%;width:22.2727%;">
-			<p class="g-pstyle3 g-taggedText g-text" data-tagged-type="TEXT" data-tagged-prop="plain.text1">{taggedText?.text?.plain?.text1 || ''}</p>
+			<p class="g-pstyle3 g-taggedText g-text" data-tagged-type="TEXT" data-tagged-prop="plain.text1">{taggedText?.text?.["plain"]?.["text1"] || ''}</p>
 		</div>
 		<div id="g-text1" class="g-html g-aiAbs" style="top:46.2903%;left:76.2024%;margin-left:-12.1212%;width:24.2424%;">
-			<p class="g-pstyle1 g-taggedText g-htext" data-tagged-type="HTEXT" data-tagged-prop="html.text1">{@html taggedText?.htext?.html?.text1 || ''}</p>
+			<p class="g-pstyle1 g-taggedText g-htext" data-tagged-type="HTEXT" data-tagged-prop="html.text1">{@html taggedText?.htext?.["html"]?.["text1"] || ''}</p>
 		</div>
 <svg class="g-preview-dev-md-vector-img g-svg" style="position: absolute;width: 33.6364%;height: 35.8065%;top: 37.5806%;left: 12.5758%;" id="g-svg-vector" xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="0 0 222 222">
   <!-- Generator: Adobe Illustrator 31.0.0, SVG Export Plug-In . SVG Version: 2.1.5 Build 84)  -->
@@ -3089,10 +3089,10 @@ exports[`ai2svelte generated output (visual-test) > preview-dev-chunked matches 
 			<div id="g-png24-layer-image-r1c1" class="g-aiTile" aria-hidden="true" style="left:50.37037%;top:50.37037%;right:0%;bottom:0%;"></div>
 		</div>
 		<div id="g-text1" class="g-plain g-aiAbs" style="top:64.6774%;left:35.8029%;width:15.8065%;">
-			<p class="g-pstyle3 g-taggedText g-text" data-tagged-type="TEXT" data-tagged-prop="plain.text1">{taggedText?.text?.plain?.text1 || ''}</p>
+			<p class="g-pstyle3 g-taggedText g-text" data-tagged-type="TEXT" data-tagged-prop="plain.text1">{taggedText?.text?.["plain"]?.["text1"] || ''}</p>
 		</div>
 		<div id="g-text1" class="g-html g-aiAbs" style="top:46.2903%;left:73.649%;margin-left:-8.6022%;width:17.2043%;">
-			<p class="g-pstyle1 g-taggedText g-htext" data-tagged-type="HTEXT" data-tagged-prop="html.text1">{@html taggedText?.htext?.html?.text1 || ''}</p>
+			<p class="g-pstyle1 g-taggedText g-htext" data-tagged-type="HTEXT" data-tagged-prop="html.text1">{@html taggedText?.htext?.["html"]?.["text1"] || ''}</p>
 		</div>
 <svg class="g-preview-dev-lg-vector-img g-svg" style="position: absolute;width: 23.871%;height: 35.8065%;top: 37.5806%;left: 18.2796%;" id="g-svg-vector" xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="0 0 222 222">
   <!-- Generator: Adobe Illustrator 31.0.0, SVG Export Plug-In . SVG Version: 2.1.5 Build 84)  -->
@@ -3143,10 +3143,10 @@ exports[`ai2svelte generated output (visual-test) > preview-dev-chunked matches 
 			<div id="g-png24-layer-image-r1c1" class="g-aiTile" aria-hidden="true" style="left:50.37037%;top:50.37037%;right:0%;bottom:0%;"></div>
 		</div>
 		<div id="g-text1" class="g-plain g-aiAbs" style="top:64.6774%;left:34.5806%;width:12.25%;">
-			<p class="g-pstyle3 g-taggedText g-text" data-tagged-type="TEXT" data-tagged-prop="plain.text1">{taggedText?.text?.plain?.text1 || ''}</p>
+			<p class="g-pstyle3 g-taggedText g-text" data-tagged-type="TEXT" data-tagged-prop="plain.text1">{taggedText?.text?.["plain"]?.["text1"] || ''}</p>
 		</div>
 		<div id="g-text1" class="g-html g-aiAbs" style="top:46.2903%;left:71.9946%;margin-left:-6.6667%;width:13.3333%;">
-			<p class="g-pstyle1 g-taggedText g-htext" data-tagged-type="HTEXT" data-tagged-prop="html.text1">{@html taggedText?.htext?.html?.text1 || ''}</p>
+			<p class="g-pstyle1 g-taggedText g-htext" data-tagged-type="HTEXT" data-tagged-prop="html.text1">{@html taggedText?.htext?.["html"]?.["text1"] || ''}</p>
 		</div>
 <svg class="g-preview-dev-xl-vector-img g-svg" style="position: absolute;width: 18.5%;height: 35.8065%;top: 37.5806%;left: 21.25%;" id="g-svg-vector" xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="0 0 222 222">
   <!-- Generator: Adobe Illustrator 31.0.0, SVG Export Plug-In . SVG Version: 2.1.5 Build 84)  -->
@@ -3625,10 +3625,10 @@ exports[`ai2svelte generated output (visual-test) > preview-dev-svg matches last
 		</div>
 		<div id="g-png24-layer-image" class="g-png24 g-aiImg" aria-hidden="true" style="position:absolute;left:60.3922%;top:35.6452%;width:33.7255% !important;height:27.7419%;opacity:1;mix-blend-mode: exclusion;"></div>
 		<div id="g-text1" class="g-plain g-aiAbs" style="top:63.2258%;left:34.6994%;width:28.8235%;">
-			<p class="g-pstyle3 g-taggedText g-text" data-tagged-type="TEXT" data-tagged-prop="plain.text1">{taggedText?.text?.plain?.text1 || ''}</p>
+			<p class="g-pstyle3 g-taggedText g-text" data-tagged-type="TEXT" data-tagged-prop="plain.text1">{taggedText?.text?.["plain"]?.["text1"] || ''}</p>
 		</div>
 		<div id="g-text1" class="g-html g-aiAbs" style="top:46.2903%;left:77.2423%;margin-left:-15.6863%;width:31.3725%;">
-			<p class="g-pstyle1 g-taggedText g-htext" data-tagged-type="HTEXT" data-tagged-prop="html.text1">{@html taggedText?.htext?.html?.text1 || ''}</p>
+			<p class="g-pstyle1 g-taggedText g-htext" data-tagged-type="HTEXT" data-tagged-prop="html.text1">{@html taggedText?.htext?.["html"]?.["text1"] || ''}</p>
 		</div>
 <svg class="g-preview-dev-sm-vector-img g-svg" style="position: absolute;width: 34.902%;height: 28.7097%;top: 41.129%;left: 11.3725%;" id="g-svg-vector" xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="0 0 178 178">
   <!-- Generator: Adobe Illustrator 31.0.0, SVG Export Plug-In . SVG Version: 2.1.5 Build 84)  -->
@@ -3672,10 +3672,10 @@ exports[`ai2svelte generated output (visual-test) > preview-dev-svg matches last
 		</div>
 		<div id="g-png24-layer-image" class="g-png24 g-aiImg" aria-hidden="true" style="position:absolute;left:58.7879%;top:30.9677%;width:34.8485% !important;height:37.0968%;opacity:1;mix-blend-mode: exclusion;"></div>
 		<div id="g-text1" class="g-plain g-aiAbs" style="top:64.6774%;left:37.1162%;width:22.2727%;">
-			<p class="g-pstyle3 g-taggedText g-text" data-tagged-type="TEXT" data-tagged-prop="plain.text1">{taggedText?.text?.plain?.text1 || ''}</p>
+			<p class="g-pstyle3 g-taggedText g-text" data-tagged-type="TEXT" data-tagged-prop="plain.text1">{taggedText?.text?.["plain"]?.["text1"] || ''}</p>
 		</div>
 		<div id="g-text1" class="g-html g-aiAbs" style="top:46.2903%;left:76.2024%;margin-left:-12.1212%;width:24.2424%;">
-			<p class="g-pstyle1 g-taggedText g-htext" data-tagged-type="HTEXT" data-tagged-prop="html.text1">{@html taggedText?.htext?.html?.text1 || ''}</p>
+			<p class="g-pstyle1 g-taggedText g-htext" data-tagged-type="HTEXT" data-tagged-prop="html.text1">{@html taggedText?.htext?.["html"]?.["text1"] || ''}</p>
 		</div>
 <svg class="g-preview-dev-md-vector-img g-svg" style="position: absolute;width: 33.6364%;height: 35.8065%;top: 37.5806%;left: 12.5758%;" id="g-svg-vector" xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="0 0 222 222">
   <!-- Generator: Adobe Illustrator 31.0.0, SVG Export Plug-In . SVG Version: 2.1.5 Build 84)  -->
@@ -3719,10 +3719,10 @@ exports[`ai2svelte generated output (visual-test) > preview-dev-svg matches last
 		</div>
 		<div id="g-png24-layer-image" class="g-png24 g-aiImg" aria-hidden="true" style="position:absolute;left:59.1398%;top:27.7419%;width:29.0323% !important;height:43.5484%;opacity:1;mix-blend-mode: exclusion;"></div>
 		<div id="g-text1" class="g-plain g-aiAbs" style="top:64.6774%;left:35.8029%;width:15.8065%;">
-			<p class="g-pstyle3 g-taggedText g-text" data-tagged-type="TEXT" data-tagged-prop="plain.text1">{taggedText?.text?.plain?.text1 || ''}</p>
+			<p class="g-pstyle3 g-taggedText g-text" data-tagged-type="TEXT" data-tagged-prop="plain.text1">{taggedText?.text?.["plain"]?.["text1"] || ''}</p>
 		</div>
 		<div id="g-text1" class="g-html g-aiAbs" style="top:46.2903%;left:73.649%;margin-left:-8.6022%;width:17.2043%;">
-			<p class="g-pstyle1 g-taggedText g-htext" data-tagged-type="HTEXT" data-tagged-prop="html.text1">{@html taggedText?.htext?.html?.text1 || ''}</p>
+			<p class="g-pstyle1 g-taggedText g-htext" data-tagged-type="HTEXT" data-tagged-prop="html.text1">{@html taggedText?.htext?.["html"]?.["text1"] || ''}</p>
 		</div>
 <svg class="g-preview-dev-lg-vector-img g-svg" style="position: absolute;width: 23.871%;height: 35.8065%;top: 37.5806%;left: 18.2796%;" id="g-svg-vector" xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="0 0 222 222">
   <!-- Generator: Adobe Illustrator 31.0.0, SVG Export Plug-In . SVG Version: 2.1.5 Build 84)  -->
@@ -3766,10 +3766,10 @@ exports[`ai2svelte generated output (visual-test) > preview-dev-svg matches last
 		</div>
 		<div id="g-png24-layer-image" class="g-png24 g-aiImg" aria-hidden="true" style="position:absolute;left:60.75%;top:27.7419%;width:22.5% !important;height:43.5484%;opacity:1;mix-blend-mode: exclusion;"></div>
 		<div id="g-text1" class="g-plain g-aiAbs" style="top:64.6774%;left:34.5806%;width:12.25%;">
-			<p class="g-pstyle3 g-taggedText g-text" data-tagged-type="TEXT" data-tagged-prop="plain.text1">{taggedText?.text?.plain?.text1 || ''}</p>
+			<p class="g-pstyle3 g-taggedText g-text" data-tagged-type="TEXT" data-tagged-prop="plain.text1">{taggedText?.text?.["plain"]?.["text1"] || ''}</p>
 		</div>
 		<div id="g-text1" class="g-html g-aiAbs" style="top:46.2903%;left:71.9946%;margin-left:-6.6667%;width:13.3333%;">
-			<p class="g-pstyle1 g-taggedText g-htext" data-tagged-type="HTEXT" data-tagged-prop="html.text1">{@html taggedText?.htext?.html?.text1 || ''}</p>
+			<p class="g-pstyle1 g-taggedText g-htext" data-tagged-type="HTEXT" data-tagged-prop="html.text1">{@html taggedText?.htext?.["html"]?.["text1"] || ''}</p>
 		</div>
 <svg class="g-preview-dev-xl-vector-img g-svg" style="position: absolute;width: 18.5%;height: 35.8065%;top: 37.5806%;left: 21.25%;" id="g-svg-vector" xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="0 0 222 222">
   <!-- Generator: Adobe Illustrator 31.0.0, SVG Export Plug-In . SVG Version: 2.1.5 Build 84)  -->
