@@ -22,7 +22,7 @@ function checkFlagsFile() {
 
 async function checkVersion() {
   let fileVersion = await evalTS("getVariable", "version");
-  if (Object.keys(fileVersion).length === 0 || fileVersion == null) {
+  if (fileVersion == null || Object.keys(fileVersion).length === 0) {
     fileVersion = "1.0.1";
   } else {
     fileVersion = fileVersion.version;
@@ -59,9 +59,9 @@ async function checkVersion() {
         ...usersDefaultProfile,
         responsiveness: "dynamic",
       };
-      const success = writeFile("user-profiles.json", {
-        default: newProfile,
-      });
+      // keep every other saved profile; only replace the default
+      usersProfile.default = newProfile;
+      const success = writeFile("user-profiles.json", usersProfile);
 
       if (success) {
         alert(
@@ -104,7 +104,10 @@ async function checkVersion() {
 
       if (userAnimations) {
         userAnimations.forEach((animation) => {
-          if (animation.definition.includes("transform")) {
+          if (
+            typeof animation.definition === "string" &&
+            animation.definition.includes("transform")
+          ) {
             animation.definition =
               systemAnimations.find((a) => a.name === animation.name)
                 ?.definition || animation.definition;

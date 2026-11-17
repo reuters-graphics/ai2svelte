@@ -114,3 +114,38 @@ describe("precheck 1.0.10 migration (upgrade from 1.0.9)", () => {
     await expect(precheck()).resolves.toBeUndefined();
   });
 });
+
+describe("precheck migrations keep data and don't block", () => {
+  it("1.0.2 updates only the default profile and keeps the others", async () => {
+    files[".flags.json"] = {
+      ...oldFlags(),
+      "1.0.2": { fixedToDynamicResponsiveness: false },
+    };
+    files["user-profiles.json"] = {
+      default: { responsiveness: "fixed" },
+      work: { responsiveness: "fixed", image_format: "png" },
+    };
+    await precheck();
+    expect(files["user-profiles.json"].default.responsiveness).toBe("dynamic");
+    expect(files["user-profiles.json"].work).toEqual({
+      responsiveness: "fixed",
+      image_format: "png",
+    });
+  });
+
+  it("an animation without a definition doesn't block later flags", async () => {
+    const flags: Record<string, unknown> = oldFlags();
+    delete flags["1.0.6"];
+    files[".flags.json"] = flags;
+    files["user-animations.json"] = [{ name: "custom" }];
+    await precheck();
+    expect(files[".flags.json"]["1.0.6"].fixedAnimations).toBe(true);
+    expect(files[".flags.json"]["1.0.10"].addedTransformBox).toBe(true);
+  });
+
+  it("a null version from the document doesn't throw", async () => {
+    files[".flags.json"] = oldFlags();
+    vi.mocked(evalTS).mockResolvedValue(null);
+    await expect(precheck()).resolves.toBeUndefined();
+  });
+});
