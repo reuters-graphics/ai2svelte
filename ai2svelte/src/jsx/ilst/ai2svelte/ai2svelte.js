@@ -134,6 +134,17 @@ export function main(settingsArg) {
   let errors = [];
   let oneTimeWarnings = [];
   let startTime = +new Date();
+  // Time limit. ExtendScript is single-threaded and can't be interrupted from
+  // outside, so the export polls checkAbort() at every progress update
+  // (artboard, layer, tile) and stops once it has run past the limit.
+  const DEFAULT_TIMEOUT_SECONDS = 10 * 60;
+  let timeoutMs = DEFAULT_TIMEOUT_SECONDS * 1000;
+  let abortArmed = false; // only while main() runs; not during the panel's image pass
+  // Illustrator's own modal dialogs (e.g. a Save prompt for a temp document)
+  // block ExtendScript for good and can sit hidden behind other windows. While
+  // the export runs they're suppressed, so they become errors instead of a hang.
+  // The user's setting is restored before the completion alert.
+  let prevInteractionLevel = null;
 
   let textFramesToUnhide = [];
   let objectsToRelock = [];
@@ -236,6 +247,13 @@ export function main(settingsArg) {
     nameSpace = docSettings.namespace || nameSpace;
 
     finishExport({}); // an earlier run whose panel step never finished
+    if (Number(settingsArg.timeoutSeconds) > 0) {
+      timeoutMs = Number(settingsArg.timeoutSeconds) * 1000;
+    }
+    startTime = +new Date();
+    abortArmed = true;
+    prevInteractionLevel = app.userInteractionLevel;
+    app.userInteractionLevel = UserInteractionLevel.DONTDISPLAYALERTS;
     progressBar = new ProgressBar({
       name: "ai2svelte progress",
       steps: calcProgressBarSteps(),
@@ -277,6 +295,10 @@ export function main(settingsArg) {
     errors.push(formatError(e));
   }
 
+  abortArmed = false;
+  if (prevInteractionLevel !== null) {
+    app.userInteractionLevel = prevInteractionLevel;
+  }
   restoreDocumentState();
 
   // ==========================================
@@ -387,7 +409,8 @@ export function main(settingsArg) {
       if (abSettings.image_only || settings.render_text_as == "image") {
         // don't convert text objects to HTML
         textFrames = [];
-        textData = { html: "", styles: [] };
+        // html is an array of {z, html}, like convertTextFrames returns
+        textData = { html: [], styles: [] };
       } else {
         progressBar.setTitle(docArtboardName + ": Generating text...");
         textFrames = getTextFramesByArtboard(activeArtboard, masks, settings);
@@ -498,21 +521,30 @@ export function main(settingsArg) {
     };
   }
 
+  // Makes sure an output folder exists, or stops the export. Exporting into a
+  // missing folder doesn't fail: Illustrator opens a Save As dialog that blocks
+  // the script (and the panel) until someone dismisses it. Folder.create() fails
+  // for paths through a symlink such as /tmp, and for unwritable locations.
+  function ensureFolder(folderPath, nickname) {
+    var folder = new Folder(folderPath);
+    if (folder.exists) return false;
+    if (!folder.create()) {
+      error(
+        "The " +
+          nickname +
+          " folder doesn't exist and couldn't be created: " +
+          folder.fsName +
+          ". Check the path in Settings (a folder reached through a symlink, like /tmp, can't be created: use its real path), then run again.",
+      );
+    }
+    return true;
+  }
+
   function checkForOutputFolder(folderPath, nickname) {
-    var outputFolder = new Folder(folderPath);
-    if (!outputFolder.exists) {
-      var outputFolderCreated = outputFolder.create();
-      if (outputFolderCreated) {
-        message(
-          "The " +
-            nickname +
-            " folder did not exist, so the folder was created.",
-        );
-      } else {
-        warn(
-          "The " + nickname + " folder did not exist and could not be created.",
-        );
-      }
+    if (ensureFolder(folderPath, nickname)) {
+      message(
+        "The " + nickname + " folder did not exist, so the folder was created.",
+      );
     }
   }
 
@@ -678,6 +710,22 @@ export function main(settingsArg) {
     var e = new Error(msg);
     e.name = "UserError";
     throw e;
+  }
+
+  // Throws a UserError once the time limit has passed. A hang inside a single
+  // Illustrator call can't be caught here: this runs between steps, which is
+  // also why the panel has its own watchdog.
+  function checkAbort() {
+    if (!abortArmed) return;
+    if (+new Date() - startTime > timeoutMs) {
+      error(
+        "Export stopped: it ran longer than the " +
+          (timeoutMs >= 120000
+            ? Math.round(timeoutMs / 60000) + " minute"
+            : Math.round(timeoutMs / 1000) + " second") +
+          " limit. If Illustrator is showing a dialog, close it and run again.",
+      );
+    }
   }
 
   // id: optional identifier, for cases when the text for this type of warning may vary.
@@ -900,12 +948,9 @@ export function main(settingsArg) {
 
   // Trigger errors and warnings for some common problems
   function validateDocumentSettings(settings) {
-    if (
-      !(
-        settings.responsiveness == "fixed" ||
-        settings.responsiveness == "dynamic"
-      )
-    ) {
+    if (!(
+      settings.responsiveness == "fixed" || settings.responsiveness == "dynamic"
+    )) {
       warn(
         'Unsupported "responsiveness" setting: ' +
           (settings.responsiveness || "[]"),
@@ -1263,6 +1308,7 @@ export function main(settingsArg) {
 
     function update() {
       win.update();
+      checkAbort();
     }
 
     this.step = function () {
@@ -3464,188 +3510,206 @@ export function main(settingsArg) {
 
     checkForOutputFolder(getImageFolder(settings), "image_output_path");
 
-    if (hideTextFrames) {
-      for (i = 0; i < textFrameCount; i++) {
-        textFrames[i].hidden = true;
+    // everything hidden below is restored in the finally, so an error or a
+    // time-limit abort doesn't leave the user's layers and text hidden
+    try {
+      if (hideTextFrames) {
+        for (i = 0; i < textFrameCount; i++) {
+          textFrames[i].hidden = true;
 
-        hiddenTextframes.push(textFrames[i]);
+          hiddenTextframes.push(textFrames[i]);
 
-        if (
-          textFrames[i].parent.typename === "GroupItem" &&
-          textFrames[i].parent.pageItems.length == 1 &&
-          textFrames[i].parent.hidden == false
-        ) {
-          textFrames[i].parent.hidden = true;
-          hiddenGroups.push(textFrames[i].parent);
+          if (
+            textFrames[i].parent.typename === "GroupItem" &&
+            textFrames[i].parent.pageItems.length == 1 &&
+            textFrames[i].parent.hidden == false
+          ) {
+            textFrames[i].parent.hidden = true;
+            hiddenGroups.push(textFrames[i].parent);
+          }
         }
       }
-    }
 
-    // Symbols in :symbol layers are not scaled
-    forEach(findTaggedLayers("symbol"), function (lyr) {
-      var name = /(.*):symbol/.exec(lyr.name)[1];
-      var obj = exportSymbols(lyr, activeArtboard, masks, {
-        scaled: false,
-        tagPrefix: "symbol",
-        symbolName: name,
-      });
-      var lyrZ = lyr.zOrderPosition;
-      layerHtml.push({
-        z: lyrZ,
-        html: obj.html + "\r",
-      });
-      hiddenItems = hiddenItems.concat(obj.items);
-    });
-
-    // Symbols in :div layers are scaled
-    forEach(findTaggedLayers("div"), function (lyr) {
-      var name = /(.*):div/.exec(lyr.name)[1];
-      var obj = exportSymbols(lyr, activeArtboard, masks, {
-        scaled: true,
-        tagPrefix: "div",
-        divName: name,
-      });
-      var lyrZ = lyr.zOrderPosition;
-      layerHtml.push({
-        z: lyrZ,
-        html: obj.html + "\r",
-      });
-      hiddenItems = hiddenItems.concat(obj.items);
-    });
-
-    taggedLayerIndex = 0;
-    // count now: forEachImageLayer hides layers, and findLayers skips hidden ones
-    taggedLayerTotal = countTaggedImageLayers();
-    forEach(findTaggedLayers("svg"), function (lyr) {
-      stepTaggedLayer(lyr, activeArtboard);
-      var opts = extend({}, settings, { tagPrefix: "svg" });
-      var uniqName = uniqAssetName(
-        getLayerImageName(lyr, activeArtboard, settings),
-        uniqNames,
-      );
-      var abName = activeArtboard.name;
-      var svgHtml = exportImage(
-        uniqName,
-        "svg",
-        activeArtboard,
-        masks,
-        lyr,
-        opts,
-        group,
-      );
-
-      // reset the state
-      activeArtboard = app.activeDocument.artboards.getByName(abName);
-      restoreAbState(activeArtboard);
-
-      var lyrZ = lyr.zOrderPosition;
-      if (svgHtml) {
-        uniqNames.push(uniqName);
+      // Symbols in :symbol layers are not scaled
+      forEach(findTaggedLayers("symbol"), function (lyr) {
+        var name = /(.*):symbol/.exec(lyr.name)[1];
+        var obj = exportSymbols(lyr, activeArtboard, masks, {
+          scaled: false,
+          tagPrefix: "symbol",
+          symbolName: name,
+        });
+        var lyrZ = lyr.zOrderPosition;
         layerHtml.push({
           z: lyrZ,
-          html: svgHtml + "\r",
+          html: obj.html + "\r",
         });
-      }
-      lyr.visible = false;
-      hiddenLayers.push(lyr);
-      progressBar.step();
-    });
-
-    // Embed images tagged :png as separate images
-    // Inside this function, layers are hidden and unhidden as needed
-    forEachImageLayer(["png", "png24", "webp"], function (lyr) {
-      stepTaggedLayer(lyr, activeArtboard);
-      var tagName = /.*:(png24|png|webp)/.exec(lyr.name)[1] || "png";
-
-      var opts = extend({}, settings, {
-        png_transparent: true,
-        tagPrefix: tagName,
-        noteAttributes: getNoteDataAttributes(getLayerNote(lyr)),
+        hiddenItems = hiddenItems.concat(obj.items);
       });
 
-      var name = getTaggedImageName(/(.*):(.*)/.exec(lyr.name)[1]);
-      var imgName = "layer-" + name;
-
-      var fmt = tagName;
-      var lyrZ = lyr.zOrderPosition;
-      // This test prevents empty images, but is expensive when a layer contains many art objects...
-      // consider only testing if an option is set by the user.
-      if (
-        testLayerArtboardIntersection(lyr, activeArtboard) &&
-        getLayerContentBounds(lyr, activeArtboard.artboardRect)
-      ) {
-        // var grps = `${imgName}-${activeArtboard.name}`.match(/(.*)-(.*)-(.*)/);
-        // var importName = `${grps[1]}${grps[2].charAt(0).toUpperCase() + grps[2].slice(1)}${grps[3].toString().toUpperCase()}`;
-
-        var pngHtml =
-          exportImage(imgName, fmt, activeArtboard, null, lyr, opts, group) +
-          "\r";
+      // Symbols in :div layers are scaled
+      forEach(findTaggedLayers("div"), function (lyr) {
+        var name = /(.*):div/.exec(lyr.name)[1];
+        var obj = exportSymbols(lyr, activeArtboard, masks, {
+          scaled: true,
+          tagPrefix: "div",
+          divName: name,
+        });
+        var lyrZ = lyr.zOrderPosition;
         layerHtml.push({
           z: lyrZ,
-          html: pngHtml,
+          html: obj.html + "\r",
+        });
+        hiddenItems = hiddenItems.concat(obj.items);
+      });
+
+      taggedLayerIndex = 0;
+      // count now: forEachImageLayer hides layers, and findLayers skips hidden ones
+      taggedLayerTotal = countTaggedImageLayers();
+      forEach(findTaggedLayers("svg"), function (lyr) {
+        stepTaggedLayer(lyr, activeArtboard);
+        var opts = extend({}, settings, { tagPrefix: "svg" });
+        var uniqName = uniqAssetName(
+          getLayerImageName(lyr, activeArtboard, settings),
+          uniqNames,
+        );
+        var abName = activeArtboard.name;
+        var svgHtml = exportImage(
+          uniqName,
+          "svg",
+          activeArtboard,
+          masks,
+          lyr,
+          opts,
+          group,
+        );
+
+        // reset the state
+        activeArtboard = app.activeDocument.artboards.getByName(abName);
+        restoreAbState(activeArtboard);
+
+        var lyrZ = lyr.zOrderPosition;
+        if (svgHtml) {
+          uniqNames.push(uniqName);
+          layerHtml.push({
+            z: lyrZ,
+            html: svgHtml + "\r",
+          });
+        }
+        lyr.visible = false;
+        hiddenLayers.push(lyr);
+        progressBar.step();
+      });
+
+      // Embed images tagged :png as separate images
+      // Inside this function, layers are hidden and unhidden as needed
+      forEachImageLayer(["png", "png24", "webp"], function (lyr) {
+        stepTaggedLayer(lyr, activeArtboard);
+        var tagName = /.*:(png24|png|webp)/.exec(lyr.name)[1] || "png";
+
+        var opts = extend({}, settings, {
+          png_transparent: true,
+          tagPrefix: tagName,
+          noteAttributes: getNoteDataAttributes(getLayerNote(lyr)),
+        });
+
+        var name = getTaggedImageName(/(.*):(.*)/.exec(lyr.name)[1]);
+        var imgName = "layer-" + name;
+
+        var fmt = tagName;
+        var lyrZ = lyr.zOrderPosition;
+        // This test prevents empty images, but is expensive when a layer contains many art objects...
+        // consider only testing if an option is set by the user.
+        if (
+          testLayerArtboardIntersection(lyr, activeArtboard) &&
+          getLayerContentBounds(lyr, activeArtboard.artboardRect)
+        ) {
+          // var grps = `${imgName}-${activeArtboard.name}`.match(/(.*)-(.*)-(.*)/);
+          // var importName = `${grps[1]}${grps[2].charAt(0).toUpperCase() + grps[2].slice(1)}${grps[3].toString().toUpperCase()}`;
+
+          var pngHtml =
+            exportImage(imgName, fmt, activeArtboard, null, lyr, opts, group) +
+            "\r";
+          layerHtml.push({
+            z: lyrZ,
+            html: pngHtml,
+          });
+        }
+        hiddenLayers.push(lyr); // need to unhide this layer later, after base image is captured
+        progressBar.step();
+      });
+
+      docSettings.snippetProps = [];
+
+      forEach(findSnippets("snippet").reverse(), function (lyr) {
+        var lyrZ = lyr.zOrderPosition;
+        var snippetProp = lyr.name.match(new RegExp(/(.*):snippet/))[1];
+
+        docSettings.snippetProps.push(snippetProp);
+
+        var obj = exportSymbols(lyr, activeArtboard, masks, {
+          scaled: true,
+          tagPrefix: "snippet",
+          prop: snippetProp,
+        });
+
+        layerHtml.push({
+          z: lyrZ,
+          html: obj.html + "\r",
+        });
+
+        hiddenItems = hiddenItems.concat(obj.items);
+      });
+
+      // base artboard image at z = -1
+      progressBar.setTitle(
+        getDocumentArtboardName(activeArtboard) + ": Capturing image...",
+      );
+      layerHtml.push({
+        z: -1,
+        html: captureArtboardImage(
+          imgName,
+          activeArtboard,
+          masks,
+          settings,
+          group,
+        ),
+      });
+    } finally {
+      // a failed restore must not hide the original error
+      forEach(hiddenLayers, function (lyr) {
+        try {
+          lyr.visible = true;
+        } catch (e) {
+          // object already gone
+        }
+      });
+
+      if (hideTextFrames) {
+        forEach(hiddenTextframes, function (tf) {
+          try {
+            tf.hidden = false;
+          } catch (e) {
+            // object already gone
+          }
+        });
+        forEach(hiddenGroups, function (grp) {
+          try {
+            grp.hidden = false;
+          } catch (e) {
+            // object already gone
+          }
         });
       }
-      hiddenLayers.push(lyr); // need to unhide this layer later, after base image is captured
-      progressBar.step();
-    });
 
-    docSettings.snippetProps = [];
-
-    forEach(findSnippets("snippet").reverse(), function (lyr) {
-      var lyrZ = lyr.zOrderPosition;
-      var snippetProp = lyr.name.match(new RegExp(/(.*):snippet/))[1];
-
-      docSettings.snippetProps.push(snippetProp);
-
-      var obj = exportSymbols(lyr, activeArtboard, masks, {
-        scaled: true,
-        tagPrefix: "snippet",
-        prop: snippetProp,
-      });
-
-      layerHtml.push({
-        z: lyrZ,
-        html: obj.html + "\r",
-      });
-
-      hiddenItems = hiddenItems.concat(obj.items);
-    });
-
-    // base artboard image at z = -1
-    progressBar.setTitle(
-      getDocumentArtboardName(activeArtboard) + ": Capturing image...",
-    );
-    layerHtml.push({
-      z: -1,
-      html: captureArtboardImage(
-        imgName,
-        activeArtboard,
-        masks,
-        settings,
-        group,
-      ),
-    });
-
-    // unhide hidden layers (if any)
-    forEach(hiddenLayers, function (lyr) {
-      lyr.visible = true;
-    });
-
-    // unhide text frames
-    if (hideTextFrames) {
-      forEach(hiddenTextframes, function (tf) {
-        tf.hidden = false;
-      });
-
-      forEach(hiddenGroups, function (grp) {
-        grp.hidden = false;
+      // items exported as symbols
+      forEach(hiddenItems, function (item) {
+        try {
+          item.hidden = false;
+        } catch (e) {
+          // object already gone
+        }
       });
     }
-
-    // unhide items exported as symbols
-    forEach(hiddenItems, function (item) {
-      item.hidden = false;
-    });
 
     return layerHtml;
   }
@@ -3709,10 +3773,7 @@ export function main(settingsArg) {
 
       // check if tagged folder exists, if not create it
       var folderPath = pathJoin(getImageFolder(settings), "tagged", pageName);
-      var outputFolder = new Folder(folderPath);
-      if (!outputFolder.exists) {
-        outputFolder.create();
-      }
+      ensureFolder(folderPath, "tagged images");
 
       outputPath = pathJoin(folderPath, imgFile);
     } else {
@@ -4032,19 +4093,29 @@ export function main(settingsArg) {
       hiddenLayers.push(lyr);
     });
 
-    forEach(targetLayers, function (lyr) {
-      // show layer (and any hidden parent layers)
-      unhideLayer(lyr);
-      callback(lyr);
-      lyr.visible = false; // hide again
-    });
-
-    // Re-show all layers except image layers
-    forEach(hiddenLayers, function (lyr) {
-      if (indexOf(targetLayers, lyr) == -1) {
-        lyr.visible = true;
-      }
-    });
+    var finished = false;
+    try {
+      forEach(targetLayers, function (lyr) {
+        // show layer (and any hidden parent layers)
+        unhideLayer(lyr);
+        callback(lyr);
+        lyr.visible = false; // hide again
+      });
+      finished = true;
+    } finally {
+      // Re-show all layers except image layers. If a callback threw (an error
+      // or the time limit) the image layers come back too: the caller never got to
+      // track the ones it hadn't reached.
+      forEach(hiddenLayers, function (lyr) {
+        if (!finished || indexOf(targetLayers, lyr) == -1) {
+          try {
+            lyr.visible = true;
+          } catch (e) {
+            // layer already gone
+          }
+        }
+      });
+    }
   }
 
   // ab: artboard (assumed to be the active artboard)
@@ -4433,7 +4504,7 @@ export function main(settingsArg) {
     var chunkFolder = new Folder(
       firstTile.substring(0, firstTile.lastIndexOf("/")),
     );
-    if (!chunkFolder.exists) chunkFolder.create();
+    ensureFolder(chunkFolder.fsName, "image chunks");
     deleteFile(outputPath); // stale unchunked image
     deleteFile(at2x(outputPath));
 
@@ -4559,9 +4630,12 @@ export function main(settingsArg) {
       track("cropping artboard for image export", ab);
       ab.artboardRect = cropRect;
     }
-    app.activeDocument.exportFile(new File(imgPath), fileType, exportOptions);
-    if (cropRect) {
-      ab.artboardRect = origRect;
+    try {
+      app.activeDocument.exportFile(new File(imgPath), fileType, exportOptions);
+    } finally {
+      if (cropRect) {
+        ab.artboardRect = origRect;
+      }
     }
     // webp: the panel encodes it. png tiles: the panel drops fully transparent
     // ones and strips alpha from opaque png24s (whole images are skipped: too
@@ -4622,20 +4696,36 @@ export function main(settingsArg) {
       group2,
       doc2;
 
-    destLayer.name = "ArtboardContent";
-    destGroup.move(destLayer, ElementPlacement.PLACEATEND);
-    forEach(sourceItems, copyLayerOrItem);
+    // an error below must not leave the temp layer in the user's document or
+    // the temp document open (and active)
+    try {
+      destLayer.name = "ArtboardContent";
+      destGroup.move(destLayer, ElementPlacement.PLACEATEND);
+      forEach(sourceItems, copyLayerOrItem);
 
-    // kludge: export empty documents if items argument is missing (assuming
-    //    this is the main artboard image, which is needed to set the container size)
-    if (itemCount > 0 || !items) {
-      // need to save group position before copying to second document. Oddly,
-      // the reported position of the original group changes after duplication
-      groupPos = destGroup.position;
-      doc2 = makeTmpDocument(doc, ab);
-      track("copying to temp document", destGroup);
-      group2 = destGroup.duplicate(doc2.layers[0], ElementPlacement.PLACEATEND);
-      group2.position = groupPos;
+      // kludge: export empty documents if items argument is missing (assuming
+      //    this is the main artboard image, which is needed to set the container size)
+      if (itemCount > 0 || !items) {
+        // need to save group position before copying to second document. Oddly,
+        // the reported position of the original group changes after duplication
+        groupPos = destGroup.position;
+        doc2 = makeTmpDocument(doc, ab);
+        track("copying to temp document", destGroup);
+        group2 = destGroup.duplicate(
+          doc2.layers[0],
+          ElementPlacement.PLACEATEND,
+        );
+        group2.position = groupPos;
+      }
+    } catch (e) {
+      try {
+        if (doc2) doc2.close(SaveOptions.DONOTSAVECHANGES);
+        doc.activate();
+        destLayer.remove();
+      } catch (e2) {
+        // already gone: keep the original error
+      }
+      throw e;
     }
     doc.activate();
     // Removing the layer also removes destGroup (its only content) --
@@ -4841,52 +4931,56 @@ export function main(settingsArg) {
     //  * Smaller file size (50% on one test file)
     //  * Convert raster/vector effects to external .png images (other DTDs use jpg)
 
-    exportDoc.activate();
+    // the temp doc is closed even if the export throws, so a failed export
+    // doesn't leave it open and active
+    try {
+      exportDoc.activate();
 
-    // Illustrator's SVG exporter always sizes the <svg> to the artwork's
-    // bounding box, not the artboard -- it trims whitespace no matter what
-    // tagPrefix is set to. Run the same menu command for every export (not
-    // just tagPrefix=="svg") so left/top/width/height reflect the real,
-    // already-trimmed output for every format.
-    // "Fit Artboard to artwork bounds" errors on a doc with no artwork (the
-    // base-image export path creates an empty exportDoc for artboards with
-    // no visible content) -- skip trimming and keep the full artboard bounds.
-    if (exported.itemCount > 0) {
-      try {
-        app.executeMenuCommand("Fit Artboard to artwork bounds");
-        var svgBounds = convertAiBounds(exportDoc.artboards[0].artboardRect);
-        // trimming artboard repositions final artboard
-        // to artwork's x, y -- keep these even when the artwork overflows
-        // the parent artboard: the exported SVG file is trimmed to this same
-        // bounding box regardless (see comment above), so reverting here
-        // would leave left/top/width/height out of sync with the real file.
-        // The root container's overflow:hidden (unless allow_overflow) crops
-        // the overflowing part visually.
-        left = svgBounds.left - parentArtboardBounds.left;
-        top = svgBounds.top - parentArtboardBounds.top;
-        width = svgBounds.width;
-        height = svgBounds.height;
-      } catch (e) {
-        // "Fit Artboard to artwork bounds"/"undo" can throw on some artwork
-        // (e.g. grouped items) -- fall back to untrimmed artboard bounds
-        // rather than crashing the whole export.
-        warn(
-          "Could not trim SVG export to artwork bounds (" +
-            e.message +
-            ") -- using full artboard bounds instead.",
-        );
-        left = 0;
-        top = 0;
-        width = parentArtboardBounds.width;
-        height = parentArtboardBounds.height;
+      // Illustrator's SVG exporter always sizes the <svg> to the artwork's
+      // bounding box, not the artboard -- it trims whitespace no matter what
+      // tagPrefix is set to. Run the same menu command for every export (not
+      // just tagPrefix=="svg") so left/top/width/height reflect the real,
+      // already-trimmed output for every format.
+      // "Fit Artboard to artwork bounds" errors on a doc with no artwork (the
+      // base-image export path creates an empty exportDoc for artboards with
+      // no visible content) -- skip trimming and keep the full artboard bounds.
+      if (exported.itemCount > 0) {
+        try {
+          app.executeMenuCommand("Fit Artboard to artwork bounds");
+          var svgBounds = convertAiBounds(exportDoc.artboards[0].artboardRect);
+          // trimming artboard repositions final artboard
+          // to artwork's x, y -- keep these even when the artwork overflows
+          // the parent artboard: the exported SVG file is trimmed to this same
+          // bounding box regardless (see comment above), so reverting here
+          // would leave left/top/width/height out of sync with the real file.
+          // The root container's overflow:hidden (unless allow_overflow) crops
+          // the overflowing part visually.
+          left = svgBounds.left - parentArtboardBounds.left;
+          top = svgBounds.top - parentArtboardBounds.top;
+          width = svgBounds.width;
+          height = svgBounds.height;
+        } catch (e) {
+          // "Fit Artboard to artwork bounds"/"undo" can throw on some artwork
+          // (e.g. grouped items) -- fall back to untrimmed artboard bounds
+          // rather than crashing the whole export.
+          warn(
+            "Could not trim SVG export to artwork bounds (" +
+              e.message +
+              ") -- using full artboard bounds instead.",
+          );
+          left = 0;
+          top = 0;
+          width = parentArtboardBounds.width;
+          height = parentArtboardBounds.height;
+        }
       }
+
+      exportDoc.exportFile(new File(ofile), ExportType.SVG, opts);
+    } finally {
+      doc.activate();
+      //exportDoc.pageItems.removeAll();
+      exportDoc.close(SaveOptions.DONOTSAVECHANGES);
     }
-
-    exportDoc.exportFile(new File(ofile), ExportType.SVG, opts);
-
-    doc.activate();
-    //exportDoc.pageItems.removeAll();
-    exportDoc.close(SaveOptions.DONOTSAVECHANGES);
 
     var response = {
       width: width,

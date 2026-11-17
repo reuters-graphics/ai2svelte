@@ -71,6 +71,7 @@ export default ts.config(
           'ExportOptionsSVG', 'FontBaselineOption', 'IllustratorSaveOptions',
           'PointType', 'SaveOptions', 'SVGCSSPropertyLocation',
           'SVGDocumentEncoding', 'SVGDTDVersion', 'SVGFontSubsetting', 'TextType',
+          'UserInteractionLevel',
         ].map((name) => [name, 'readonly']),
       ),
     },
