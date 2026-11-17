@@ -781,10 +781,14 @@ export function main(settingsArg) {
     // optimization: Layers containing hundreds or thousands of paths are unlikely
     //    to contain a clipping mask and are slow to scan -- skip these
     pathCount = o.pathItems.length;
-    if (
-      (type == "Layer" && pathCount < 500) ||
-      (type == "GroupItem" && o.clipped)
-    ) {
+    // plain ifs: ExtendScript misevaluates a || b && c
+    var scanForClip = false;
+    if (type == "Layer" && pathCount < 500) {
+      scanForClip = true;
+    } else if (type == "GroupItem" && o.clipped) {
+      scanForClip = true;
+    }
+    if (scanForClip) {
       for (i = 0; i < pathCount; i++) {
         item = o.pathItems[i];
         if (!item.hidden && item.clipping && item.locked) {
@@ -977,7 +981,9 @@ export function main(settingsArg) {
     a = map(a.split("."), parseFloat);
     b = map(b.split("."), parseFloat);
     var diff = a[0] - b[0] || a[1] - b[1] || a[2] - b[2] || 0;
-    return (diff < 0 && -1) || (diff > 0 && 1) || 0;
+    if (diff < 0) return -1;
+    if (diff > 0) return 1;
+    return 0;
   }
 
   function initJSON() {
@@ -4490,8 +4496,12 @@ export function main(settingsArg) {
     }
     // only skip empty areas when they'd be transparent anyway; a jpg (or
     // opaque png) shows the artboard background there
-    var transparent =
-      format == "webp" || (format != "jpg" && isTrue(settings.png_transparent));
+    var transparent = false;
+    if (format == "webp") {
+      transparent = true;
+    } else if (format != "jpg") {
+      transparent = isTrue(settings.png_transparent);
+    }
 
     // Seams (measured in Chromium and WebKit, see #103):
     // - Tiles sit on one shared grid, never trimmed per tile: the browser

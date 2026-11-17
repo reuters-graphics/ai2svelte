@@ -61,7 +61,18 @@ export default ts.config(
   {
     // ExtendScript engine (plain JS): Illustrator's globals, not the browser's
     // (so e.g. an undeclared `top` is caught instead of matching window.top)
-    files: ['src/jsx/**/*.js'],
+    files: ['src/jsx/**/*.js', 'src/jsx/**/*.ts'],
+    rules: {
+      'no-restricted-syntax': [
+        'error',
+        {
+          selector:
+            "LogicalExpression[operator='||'] > LogicalExpression[operator='&&']",
+          message:
+            'ExtendScript misevaluates a || b && c (Babel strips parens): use plain ifs',
+        },
+      ],
+    },
     languageOptions: {
       globals: Object.fromEntries(
         [
