@@ -32,7 +32,21 @@ pnpm test       # run the Vitest suite
 
 Dev setup requires Adobe Illustrator, PlayerDebugMode enabled, pnpm 9.6+, and Node 18+. See the [contributor docs](https://reuters-graphics.github.io/ai2svelte/) and [`CLAUDE.md`](./CLAUDE.md) for architecture notes (the extension spans two runtimes: a Svelte panel UI and Adobe ExtendScript).
 
-### Visual regression testing
+### Tests
+
+Run from `ai2svelte/`. The first two work anywhere; the rest drive real Illustrator (macOS, local-only, run `pnpm build` first).
+
+| Command | What it checks | When to run |
+|---|---|---|
+| `pnpm test` | Vitest (jsdom): stores, utils, UI components, precheck. ExtendScript isn't covered. | Every change |
+| `pnpm check` | Type-checks the panel (`check:frontend`) and ExtendScript (`check:jsx`). | Every change |
+| `pnpm test:visual` | Exports `.ai` fixtures through real Illustrator, then diffs screenshots (Playwright) and the generated `.svelte` (Vitest snapshot). | After touching `ai2svelte.js` or the export path; before a release |
+| `pnpm test:persistence` | Styles/settings saved by an export survive closing and reopening the document (XMP). Quits/relaunches Illustrator; needs no open documents. | After touching `dataOperations.ts` or saving; before a release |
+| `pnpm replay "<debug-folder>"` | Not a test: replays a user's debug report in Illustrator to reproduce a bug. | When triaging a bug report |
+
+Helpers: `pnpm test:visual:build-fixtures [presets\|layers]` rebuilds the scripted fixtures, and `pnpm test:visual:preview` serves them in a browser.
+
+#### Visual regression details
 
 Before tagging a release, run `pnpm test:visual` (local-only, requires Illustrator installed and a prior `pnpm build`) to catch unintended changes to the conversion engine. It drives real Illustrator to export sample `.ai` fixtures through the actual production export path, then checks the output two ways: a Playwright pixel diff against a committed screenshot, and a Vitest structural diff against the generated `.svelte` text.
 
@@ -42,8 +56,8 @@ Baselines are "last approved," not immutable — when a change is intentional, r
 
 ```bash
 pnpm test:visual:generate            # re-run the real Illustrator export
-playwright test --update-snapshots   # accept new screenshots
-vitest run src/js/main/__tests__/ai2svelte-output.test.ts -u  # accept new .svelte snapshot
+pnpm exec playwright test --update-snapshots   # accept new screenshots
+pnpm exec vitest run src/js/main/__tests__/ai2svelte-output.test.ts -u  # accept new .svelte snapshot
 ```
 
 Feature branches merge into `main`. Please open an issue or PR on [GitHub](https://github.com/reuters-graphics/ai2svelte).
