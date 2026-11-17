@@ -2,8 +2,20 @@ if (ExternalObject.AdobeXMPScript == undefined) {
   ExternalObject.AdobeXMPScript = new ExternalObject("lib:AdobeXMPScript");
 }
 
+// Close an XMP file without letting a failed close mask the original error.
+function closeQuietly(f: XMPFileInstance | null) {
+  if (!f) return;
+  try {
+    f.closeFile();
+  } catch (e) {
+    // already closed or never opened
+  }
+}
+
 // Corrected XMP implementation
 export function storeHiddenData(key: string, value: unknown) {
+  let xmpFile: XMPFileInstance | null = null;
+  let readBack: XMPFileInstance | null = null;
   try {
     // Load AdobeXMPScript if not already loaded
     if (ExternalObject.AdobeXMPScript === undefined) {
@@ -14,7 +26,7 @@ export function storeHiddenData(key: string, value: unknown) {
     const filePath = doc.fullName.fsName; // Full path to the .ai file
 
     // Open the file for update
-    const xmpFile = new XMPFile(
+    xmpFile = new XMPFile(
       filePath,
       XMPConst!.UNKNOWN,
       XMPConst!.OPEN_FOR_UPDATE,
@@ -36,25 +48,30 @@ export function storeHiddenData(key: string, value: unknown) {
     // Write metadata back to file
     xmpFile.putXMP(xmpMeta);
     xmpFile.closeFile(XMPConst!.CLOSE_UPDATE_SAFELY);
+    xmpFile = null;
 
     // Illustrator keeps the XMP it read at open time and writes it back on
     // the next save, wiping what we just wrote to disk. Mirror it in memory.
-    const readBack = new XMPFile(
+    readBack = new XMPFile(
       filePath,
       XMPConst!.UNKNOWN,
       XMPConst!.OPEN_FOR_READ,
     );
     doc.XMPString = readBack.getXMP().serialize();
-    readBack.closeFile();
 
     return true;
   } catch (e) {
     $.writeln("Error storing data: " + (e as Error).description);
     return false;
+  } finally {
+    closeQuietly(xmpFile);
+    closeQuietly(readBack);
   }
 }
 
 export function getHiddenData(key: string) {
+  let raw: string | null = null;
+  let xmpFile: XMPFileInstance | null = null;
   try {
     // Load AdobeXMPScript if not already loaded
     if (ExternalObject.AdobeXMPScript === undefined) {
@@ -65,11 +82,7 @@ export function getHiddenData(key: string) {
     const filePath = doc.fullName.fsName; // Full path to the .ai file
 
     // Open the file for reading
-    const xmpFile = new XMPFile(
-      filePath,
-      XMPConst!.UNKNOWN,
-      XMPConst!.OPEN_FOR_READ,
-    );
+    xmpFile = new XMPFile(filePath, XMPConst!.UNKNOWN, XMPConst!.OPEN_FOR_READ);
     const xmpMeta = xmpFile.getXMP();
 
     const namespace = "reuters-graphics";
@@ -82,15 +95,17 @@ export function getHiddenData(key: string) {
 
     // Check and retrieve the property
     if (xmpMeta && xmpMeta.doesPropertyExist(namespace, key)) {
-      const value = xmpMeta.getProperty(namespace, key);
-      xmpFile.closeFile(); // Close after reading
-      return JSON.parse(value.value);
+      raw = xmpMeta.getProperty(namespace, key).value;
     }
-
-    xmpFile.closeFile(); // Close even if not found
-    return {};
   } catch (e) {
     $.writeln("Error retrieving data: " + (e as Error).description);
     return {};
+  } finally {
+    closeQuietly(xmpFile);
   }
+
+  // Parse outside the try: a corrupt stored value must surface as an error
+  // (the bridge turns a throw into a rejection), not read back as "no settings".
+  if (raw === null) return {};
+  return JSON.parse(raw);
 }
