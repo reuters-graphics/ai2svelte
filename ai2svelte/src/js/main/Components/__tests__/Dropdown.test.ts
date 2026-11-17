@@ -14,15 +14,15 @@ describe("Dropdown", () => {
 
   it('has aria-expanded="false" when closed', () => {
     render(Dropdown, { options, value: "Helvetica" });
-    // bits-ui Select.Trigger renders a <button> with aria-expanded and aria-haspopup.
-    // It does NOT carry role="combobox" — the native button role stays as-is.
-    const trigger = screen.getByRole("button");
+    // bits-ui >=2.21 Select.Trigger renders a <button role="combobox"> with
+    // aria-expanded and aria-haspopup (2.18 left the native button role).
+    const trigger = screen.getByRole("combobox");
     expect(trigger).toHaveAttribute("aria-expanded", "false");
   });
 
   it('sets aria-expanded="true" after the trigger is clicked', async () => {
     render(Dropdown, { options, value: "Helvetica" });
-    const trigger = screen.getByRole("button");
+    const trigger = screen.getByRole("combobox");
     await userEvent.click(trigger);
     // bits-ui updates ARIA state asynchronously after pointer events; waitFor
     // gives Svelte and bits-ui a chance to flush state before asserting.
@@ -33,7 +33,7 @@ describe("Dropdown", () => {
 
   it("shows all options in the list after opening", async () => {
     render(Dropdown, { options, value: "Helvetica" });
-    await userEvent.click(screen.getByRole("button"));
+    await userEvent.click(screen.getByRole("combobox"));
     for (const opt of options) {
       await waitFor(() =>
         expect(screen.getAllByText(opt).length).toBeGreaterThan(0),
@@ -43,7 +43,7 @@ describe("Dropdown", () => {
 
   it("marks the current value as active via data-active", async () => {
     render(Dropdown, { options, value: "Arial" });
-    await userEvent.click(screen.getByRole("button"));
+    await userEvent.click(screen.getByRole("combobox"));
     // The active li item has data-active="true"
     await waitFor(() => {
       const activeItems = document.querySelectorAll('[data-active="true"]');
