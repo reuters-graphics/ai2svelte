@@ -36,8 +36,8 @@
 
   let frameContent: HTMLDivElement | undefined = $state();
   let component:
-    | ({ unmount?: () => void } & Record<string, unknown>)
-    | undefined = undefined;
+    ({ unmount?: () => void } & Record<string, unknown>) | undefined =
+    undefined;
 
   function delay(ms: number) {
     return new Promise((resolve) => setTimeout(resolve, ms));

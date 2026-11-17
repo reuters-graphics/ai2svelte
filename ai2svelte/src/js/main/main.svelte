@@ -148,8 +148,7 @@
       // would never run — leaving $settingsObject empty and the first run
       // exporting with default paths. Require actual keys to count as a hit.
       const cached = $cache[$docName]?.settingsObject as
-        | SettingsObject
-        | undefined;
+        SettingsObject | undefined;
       const cacheHit = !!cached && Object.keys(cached).length > 0;
       if (cacheHit) {
         // Snapshot cached values BEFORE touching any store. The `cache` derived

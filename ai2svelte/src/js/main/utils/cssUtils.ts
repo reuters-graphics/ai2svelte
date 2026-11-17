@@ -20,8 +20,7 @@ let shadows: ShadowItem[];
 
 if (window.cep) {
   const userAnimations = readFile("user-animations.json") as
-    | AnimationItem[]
-    | null;
+    AnimationItem[] | null;
   if (userAnimations && Object.keys(userAnimations).length !== 0) {
     animations = userAnimations;
   } else {

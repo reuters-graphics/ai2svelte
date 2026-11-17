@@ -80,9 +80,7 @@ export const docName: Writable<string> = writable("");
 // active document hasn't changed while the parse was in flight. Without this,
 // a shadow/animation/CSS edit started on document A can land on document B's
 // styles if the user switches documents before the parse promise resolves.
-export async function commitStyles(
-  pending: Promise<Result<Root> | undefined>,
-) {
+export async function commitStyles(pending: Promise<Result<Root> | undefined>) {
   const docAtStart = get(docName);
   const result = await pending;
   if (result === undefined) return;

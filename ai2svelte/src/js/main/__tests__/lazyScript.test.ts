@@ -48,8 +48,8 @@ describe("emitted lazy loader", () => {
     const target = document.createElement("div");
     const ai = mount(C, { target, props: { lazyMargin: "0% 1000%" } });
     flushSync();
-    const [a, b] = ["a", "b"].map(
-      (id) => target.querySelector<HTMLElement>(`#${id}`)!,
+    const [a, b] = ["a", "b"].map((id) =>
+      target.querySelector<HTMLElement>(`#${id}`)!,
     );
     const io = observers[0];
 
