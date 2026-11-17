@@ -189,7 +189,7 @@ const KEEP_CHUNKS = ["sRGB", "gAMA", "cHRM", "iCCP", "pHYs"];
 function readKeptChunks(png: Uint8Array) {
   const kept: Uint8Array[] = [];
   const view = new DataView(png.buffer, png.byteOffset, png.byteLength);
-  for (let p = 8; p + 12 <= png.length; ) {
+  for (let p = 8; p + 12 <= png.length;) {
     const len = view.getUint32(p);
     const type = String.fromCharCode(...png.subarray(p + 4, p + 8));
     if (KEEP_CHUNKS.includes(type)) kept.push(png.slice(p, p + 12 + len));
