@@ -13,8 +13,10 @@ jobs:
         working-directory: ai2svelte
     steps:
       - uses: actions/checkout@v4
-      # reads the pinned version from the root package.json "packageManager"
+      # the extension pins its own pnpm; the root package.json pin is for the docs site
       - uses: pnpm/action-setup@v4
+        with:
+          package_json_file: ai2svelte/package.json
       - uses: actions/setup-node@v4
         with:
           node-version: 22

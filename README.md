@@ -30,7 +30,7 @@ pnpm build      # full build → dist/cep/
 pnpm test       # run the Vitest suite
 ```
 
-Dev setup requires Adobe Illustrator, PlayerDebugMode enabled, pnpm 9.6+, and Node 20.19+. See the [contributor docs](https://reuters-graphics.github.io/ai2svelte/) and [`CLAUDE.md`](./CLAUDE.md) for architecture notes (the extension spans two runtimes: a Svelte panel UI and Adobe ExtendScript).
+Dev setup requires Adobe Illustrator, PlayerDebugMode enabled, pnpm 10+, and Node 20.19+. See the [contributor docs](https://reuters-graphics.github.io/ai2svelte/) and [`CLAUDE.md`](./CLAUDE.md) for architecture notes (the extension spans two runtimes: a Svelte panel UI and Adobe ExtendScript).
 
 ### Tests
 
