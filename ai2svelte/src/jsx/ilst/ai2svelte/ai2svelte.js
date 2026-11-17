@@ -1612,7 +1612,10 @@ export function main(settingsArg) {
     // unlock parent first, to avoid "cannot be modified" error
     if (obj && obj.typename != "Document") {
       unlockObject(obj.parent);
-      obj.locked = false;
+      if (obj.locked) {
+        obj.locked = false;
+        objectsToRelock.push(obj);
+      }
     }
   }
 
