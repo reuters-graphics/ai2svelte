@@ -90,12 +90,20 @@ export const saveAndSnapshotDocument = (pathPrefix: string) => {
     }
     const dest = pathPrefix + doc.name;
     const copied = doc.fullName.copy(dest);
+    // names only, for the debug log's export summary
+    const artboards: string[] = [];
+    for (let i = 0; i < doc.artboards.length; i++)
+      artboards.push(doc.artboards[i].name);
+    const layers: string[] = [];
+    for (let i = 0; i < doc.layers.length; i++) layers.push(doc.layers[i].name);
     return {
       path: copied ? dest : "",
       saved: doc.saved, // false only if the save above didn't happen
       hadUnsavedEdits: hadUnsavedEdits,
       name: doc.name,
       source: doc.fullName.fsName,
+      artboards: artboards,
+      layers: layers,
     };
   }
 };

@@ -12,6 +12,7 @@ const MAX_SESSIONS = 5; // per .ai file with a kept snapshot, plus 5 with none
 const MAX_SNAPSHOTS = 3; // one per .ai file, so at most 3 files
 
 let sessionFile = "";
+let lastSnap: SnapshotData | undefined;
 let seq = 0;
 
 export function debugDir(): string {
@@ -31,6 +32,8 @@ type SnapshotData = {
   path: string;
   name?: string;
   source?: string;
+  artboards?: string[];
+  layers?: string[];
 };
 function snapshotEvents(file: string): SnapshotData[] {
   const out: SnapshotData[] = [];
@@ -201,10 +204,16 @@ export function initDebugLog(): void {
   );
 }
 
+// What the latest withSnapshot saw (for the export summary); undefined if it failed.
+export function lastSnapshot(): SnapshotData | undefined {
+  return lastSnap;
+}
+
 // Saves the active .ai file if it has unsaved edits, then copies it, before
 // running `run` -- so the copy is exactly the artwork `run` sees.
 // A failed snapshot is logged and never blocks the user's action.
 export async function withSnapshot<T>(run: () => Promise<T>): Promise<T> {
+  lastSnap = undefined;
   if (window.cep) {
     try {
       const dir = path.join(debugDir(), "snapshots");
@@ -214,6 +223,7 @@ export async function withSnapshot<T>(run: () => Promise<T>): Promise<T> {
         path.join(dir, stamp() + "-"),
       );
       logEvent("snapshot", snap);
+      lastSnap = snap;
       // replay only uses a file's newest snapshot, so drop its older copies
       if (snap?.path) {
         const latest = path.basename(snap.path);

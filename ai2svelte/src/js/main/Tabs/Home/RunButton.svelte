@@ -14,7 +14,7 @@
   import { userData } from "../../state.svelte";
   import { saveSettings, tooltipSettings, writeFile } from "../../utils/utils";
   import Toast from "../../Components/Toast.svelte";
-  import { logEvent, withSnapshot } from "../../utils/debugLog";
+  import { lastSnapshot, logEvent, withSnapshot } from "../../utils/debugLog";
   import { findMissingStyles } from "../../utils/cssUtils";
   import { processRasterJobs, type RasterJob } from "../../utils/rasterJobs";
   import { withWatchdog } from "../../utils/exportControl";
@@ -73,6 +73,8 @@
       $alertObject = { flag: false, message: "" };
 
       let missingFontFamilies = [];
+      let engineMs = 0;
+      let imagesMs = 0;
       $ai2svelteInProgress = true;
 
       // set show_completion_dialog_box
@@ -83,16 +85,21 @@
         // progress bar open and holds the alert until finishAi2Svelte, so the
         // image pass below shows in the same bar and "done" means done.
         const result = await withWatchdog(
-          withSnapshot(() =>
-            evalTS("runAi2Svelte", {
-              settings: {
-                show_completion_dialog_box: true,
-                ...$settingsObject,
-              },
-              code: { css: $stylesString, fontsConfig: userData.fontsConfig },
-              deferCompletion: true,
-            }),
-          ),
+          withSnapshot(async () => {
+            const t = Date.now();
+            try {
+              return await evalTS("runAi2Svelte", {
+                settings: {
+                  show_completion_dialog_box: true,
+                  ...$settingsObject,
+                },
+                code: { css: $stylesString, fontsConfig: userData.fontsConfig },
+                deferCompletion: true,
+              });
+            } finally {
+              engineMs = Date.now() - t;
+            }
+          }),
         );
         missingFontFamilies = result?.missingFontFamilies ?? [];
         let images = {
@@ -101,6 +108,7 @@
           dropped: 0,
           keptAsPng: 0,
         };
+        const imagesStart = Date.now();
         try {
           images = await processRasterJobs(
             result?.rasterJobs ?? [],
@@ -108,6 +116,7 @@
               evalTS("updateExportProgress", done, total, title),
           );
         } finally {
+          imagesMs = Date.now() - imagesStart; // before the completion alert
           await evalTS("finishAi2Svelte", {
             converted: images.converted,
             dropped: images.dropped,
@@ -116,11 +125,28 @@
           });
         }
         if (images.failed.length) showImageRetry(images.failed);
+        const doc = lastSnapshot();
         logEvent("export-result", {
+          summary: {
+            ok: !result?.errors?.length,
+            doc: doc?.name,
+            artboards: doc?.artboards,
+            layers: doc?.layers,
+            ms: { engine: engineMs, images: imagesMs },
+            images: {
+              jobs: result?.rasterJobs?.length ?? 0,
+              converted: images.converted,
+              dropped: images.dropped,
+              failed: images.failed.length,
+              keptAsPng: images.keptAsPng,
+            },
+            errors: result?.errors?.length ?? 0,
+            warnings: result?.warnings?.length ?? 0,
+            missingFonts: missingFontFamilies.length,
+          },
           errors: result?.errors,
           warnings: result?.warnings,
-          missingFontFamilies: result?.missingFontFamilies,
-          rasterJobs: result?.rasterJobs?.length,
+          missingFontFamilies,
         });
         if (result?.errors?.length) {
           logEvent("engine-error", {
@@ -129,6 +155,17 @@
           });
         }
       } catch (error) {
+        const doc = lastSnapshot();
+        logEvent("export-result", {
+          summary: {
+            ok: false,
+            doc: doc?.name,
+            artboards: doc?.artboards,
+            layers: doc?.layers,
+            ms: { engine: engineMs, images: imagesMs },
+            error: error instanceof Error ? error.message : String(error),
+          },
+        });
         console.error("[ai2svelte] runAi2Svelte failed:", error);
         mount(Toast, {
           target: document.body,
