@@ -56,7 +56,22 @@
     };
   }
 
+  // true from click until the run ends: covers the delay and the missing-styles
+  // gate, before the shared $ai2svelteInProgress store is set.
+  let starting = $state(false);
+
   async function runAi2Svelte() {
+    if ($ai2svelteInProgress || starting) return;
+    starting = true;
+    try {
+      await runExport();
+    } finally {
+      starting = false;
+      $ai2svelteInProgress = false; // never leave the other button stuck
+    }
+  }
+
+  async function runExport() {
     // let disabled state kick in
     await delay(500);
 
@@ -221,19 +236,12 @@
 <button
   class="cta-button"
   class:minimal
-  disabled={$updateInProgress}
-  onclick={async (e) => {
-    const ele = e.currentTarget;
-    ele.textContent = "Running...";
-    ele.setAttribute("disabled", "true");
-    await runAi2Svelte();
-    ele.textContent = "Run AI2SVELTE";
-    ele.removeAttribute("disabled");
-  }}
+  disabled={$updateInProgress || $ai2svelteInProgress || starting}
+  onclick={runAi2Svelte}
   use:tooltip={{
     ...tooltipSettings,
     content: "Run ai2svelte with current settings",
-  }}>Run AI2SVELTE</button
+  }}>{$ai2svelteInProgress || starting ? "Running..." : "Run AI2SVELTE"}</button
 >
 
 <style lang="scss">

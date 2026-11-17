@@ -182,5 +182,25 @@ describe("RunButton", () => {
         }),
       );
     });
+
+    it("ignores a second click while the export is pending", async () => {
+      let resolve!: (v: unknown) => void;
+      evalTS.mockImplementation((fn: string) =>
+        fn === "runAi2Svelte"
+          ? new Promise((r) => (resolve = r))
+          : Promise.resolve(true),
+      );
+      render(RunButton);
+      const btn = screen.getByRole("button");
+      await user.click(btn);
+      await vi.advanceTimersByTimeAsync(600);
+      await user.click(btn);
+      await vi.advanceTimersByTimeAsync(600);
+      const calls = () =>
+        evalTS.mock.calls.filter((c: unknown[]) => c[0] === "runAi2Svelte");
+      expect(calls()).toHaveLength(1);
+      resolve({ missingFontFamilies: [], errors: [], warnings: [] });
+      await vi.runAllTimersAsync();
+    });
   });
 });
