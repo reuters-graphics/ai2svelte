@@ -149,5 +149,38 @@ describe("RunButton", () => {
         expect.any(Object),
       );
     });
+
+    it("does not set triggerConfetti when the engine reports errors", async () => {
+      evalTS.mockImplementation(async (fn: string) =>
+        fn === "runAi2Svelte"
+          ? { missingFontFamilies: [], errors: ["x"], warnings: [] }
+          : true,
+      );
+      render(RunButton);
+      await user.click(screen.getByRole("button"));
+      await vi.runAllTimersAsync();
+      expect(get(triggerConfetti)).toBe(false);
+      expect(get(ai2svelteInProgress)).toBe(false);
+    });
+
+    it("shows a toast when settings could not be saved", async () => {
+      const mountSpy = vi.spyOn(Svelte, "mount");
+      evalTS.mockImplementation(async (fn: string) =>
+        fn === "setVariable"
+          ? false
+          : { missingFontFamilies: [], errors: [], warnings: [] },
+      );
+      render(RunButton);
+      await user.click(screen.getByRole("button"));
+      await vi.runAllTimersAsync();
+      expect(mountSpy).toHaveBeenCalledWith(
+        expect.any(Function),
+        expect.objectContaining({
+          props: expect.objectContaining({
+            message: expect.stringMatching(/could not be saved/),
+          }),
+        }),
+      );
+    });
   });
 });

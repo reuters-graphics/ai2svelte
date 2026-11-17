@@ -45,11 +45,20 @@
       class="cta-button"
       onclick={async () => {
         if (window.cep) {
-          saveSettings(
+          const saved = await saveSettings(
             $settingsObject,
             { styleText: $styles?.root?.toString() },
             version,
           );
+          if (!saved) {
+            mount(Toast, {
+              target: document.body,
+              props: {
+                message: "Settings could not be saved to the document",
+                duration: 4000,
+              },
+            });
+          }
           try {
             await evalTS("exportAsTemplate");
           } catch (error) {

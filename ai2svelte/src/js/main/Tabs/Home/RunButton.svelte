@@ -10,6 +10,7 @@
   } from "../../stores";
   import { evalTS } from "../../../lib/utils/bolt";
   import { mount } from "svelte";
+  import type { Scripts } from "@esTypes/index";
 
   import { userData } from "../../state.svelte";
   import { saveSettings, tooltipSettings, writeFile } from "../../utils/utils";
@@ -73,6 +74,7 @@
       $alertObject = { flag: false, message: "" };
 
       let missingFontFamilies = [];
+      let result: Awaited<ReturnType<Scripts["runAi2Svelte"]>> | undefined;
       let engineMs = 0;
       let imagesMs = 0;
       $ai2svelteInProgress = true;
@@ -84,7 +86,7 @@
         // warnings for its completion alert. deferCompletion: it keeps the
         // progress bar open and holds the alert until finishAi2Svelte, so the
         // image pass below shows in the same bar and "done" means done.
-        const result = await withWatchdog(
+        result = await withWatchdog(
           withSnapshot(async () => {
             const t = Date.now();
             try {
@@ -186,19 +188,29 @@
         writeFile("user-settings.json", userData);
       }
 
-      saveSettings(
+      const ok = !!result && !result.errors?.length;
+      const saved = await saveSettings(
         $settingsObject,
         {
           styleText: $styles?.root?.toString(),
         },
         version,
       );
+      if (!saved) {
+        mount(Toast, {
+          target: document.body,
+          props: {
+            message: "Settings could not be saved to the document",
+            duration: 4000,
+          },
+        });
+      }
 
       // fetch updated settings
       // and update the UI
-      refreshSettings();
+      await refreshSettings();
 
-      $triggerConfetti = true;
+      if (ok) $triggerConfetti = true;
       $ai2svelteInProgress = false;
     } else {
       $triggerConfetti = true;

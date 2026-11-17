@@ -82,17 +82,21 @@ export async function fetchNewImageURL(): Promise<string | undefined> {
   }
 }
 
-export function saveSettings(
+export async function saveSettings(
   aiSettings: SettingsObject,
   styleSettings: { styleText?: string },
   version: string,
-) {
-  if (window.cep) {
-    evalTS("setVariable", "ai-settings", aiSettings);
-    evalTS("setVariable", "css-settings", styleSettings);
-    evalTS("setVariable", "version", { version });
-    evalTS("setVariable", "lastSaved", { time: Date.now() });
-  }
+): Promise<boolean> {
+  if (!window.cep) return true;
+  const results = await Promise.all(
+    [
+      evalTS("setVariable", "ai-settings", aiSettings),
+      evalTS("setVariable", "css-settings", styleSettings),
+      evalTS("setVariable", "version", { version }),
+      evalTS("setVariable", "lastSaved", { time: Date.now() }),
+    ].map((p) => p.catch(() => false)),
+  );
+  return results.every((r) => r === true);
 }
 
 export const myTheme = EditorView.theme(
