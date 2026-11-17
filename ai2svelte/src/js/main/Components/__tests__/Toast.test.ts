@@ -37,4 +37,19 @@ describe("Toast", () => {
       expect(screen.getByText(/Persistent/)).toBeInTheDocument(),
     );
   });
+
+  it("renders **bold** as <strong>", async () => {
+    const { container } = render(Toast, { message: "**a** b" });
+    await waitFor(() =>
+      expect(container.querySelector("strong")?.textContent).toBe("a"),
+    );
+  });
+
+  it("shows HTML as literal text, not markup", async () => {
+    const { container } = render(Toast, { message: "<img src=x>" });
+    await waitFor(() =>
+      expect(screen.getByText("<img src=x>")).toBeInTheDocument(),
+    );
+    expect(container.querySelector("img")).toBeNull();
+  });
 });

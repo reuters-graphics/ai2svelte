@@ -1,7 +1,6 @@
 <script lang="ts">
   import { onMount } from "svelte";
   import { fly } from "svelte/transition";
-  import { Markdown } from "@reuters-graphics/svelte-markdown";
 
   interface Props {
     message: string;
@@ -26,7 +25,9 @@
     in:fly={{ y: 20, duration: 400 }}
     out:fly={{ y: -20, duration: 400 }}
   >
-    <Markdown source={message} />
+    {#each message.split("**") as part, i (i)}{#if i % 2 === 1}<strong
+          >{part}</strong
+        >{:else}{part}{/if}{/each}
   </div>
 {/if}
 

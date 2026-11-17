@@ -48,7 +48,6 @@
     "@floating-ui/dom": "^1.8.0",
     "@fsegurai/codemirror-theme-bundle": "^6.5.0",
     "@jsquash/webp": "^1.5.0",
-    "@reuters-graphics/svelte-markdown": "^0.0.3",
     "@reuters-graphics/vite-plugin-purge-styles": "^0.0.3",
     "@tsparticles/confetti": "^3.9.1",
     "bits-ui": "^2.21.0",
