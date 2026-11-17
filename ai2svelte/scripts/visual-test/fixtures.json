@@ -55,7 +55,8 @@
         "[data-role=\"title\"]",
         "[data-series=\"a\"]",
         "[data-series=\"b\"]",
-        "[data-src=\"raster\"]"
+        "[data-src=\"raster\"]",
+        "#g-my_label"
       ],
       "absent": ["[data-hidden=\"yes\"]"]
     }
@@ -73,8 +74,12 @@
       "include_resizer_css": false,
       "center_html_output": false,
       "namespace": "fx-",
+      "alt_text": "Map {x} & \"y\" <z>",
       "render_text_as": "image",
       "render_rotated_skewed_text_as": "image"
+    },
+    "expect": {
+      "present": ["#fx-layers-box-img-desc"]
     }
   }
 ]

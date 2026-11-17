@@ -187,6 +187,8 @@ function build(ox, s) {
   var label = layer(doc, "label");
   noted(text(label, "title", "Layers fixture", X(40), Y(400), 28 * s, dark), "role: title");
   text(label, "caption", "Tags, notes and artboards", X(40), Y(445), 16 * s, dark);
+  // name with a space + text with braces, & and <b>: engine must sanitize the id and escape the text
+  text(label, "my label", "Braces {a} & <b>", X(40), Y(472), 12 * s, dark);
 }
 build(0, 1);
 build(900, 0.5);
