@@ -324,6 +324,15 @@ function encodeHtmlEntities(text) {
   );
 }
 
+// Svelte reads { and } in markup as expressions, so artwork text must not carry them
+function escapeBraces(text) {
+  return text.replace(/\{/g, "&#123;").replace(/\}/g, "&#125;");
+}
+
+function escapeSvelteText(text) {
+  return escapeBraces(encodeHtmlEntities(text));
+}
+
 function cleanHtmlText(text) {
   // Characters "<>& are not replaced
   return replaceChars(text, extraCharacterReplacements);
@@ -496,6 +505,8 @@ export {
   truncateString,
   makeKeyword,
   encodeHtmlEntities,
+  escapeBraces,
+  escapeSvelteText,
   cleanHtmlText,
   replaceChars,
   straightenCurlyQuotesInsideAngleBrackets,

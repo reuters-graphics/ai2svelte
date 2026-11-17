@@ -10,6 +10,8 @@ const utils = utilsModule as any;
 const {
   encodeHtmlEntities,
   cleanHtmlText,
+  escapeBraces,
+  escapeSvelteText,
   makeKeyword,
   applyTemplate,
   pathJoin,
@@ -136,5 +138,27 @@ describe("getCssColor", () => {
     expect(getCssColor(...(args as [number, number, number, number]))).toBe(
       expected,
     );
+  });
+});
+
+describe("escapeBraces", () => {
+  it.each([
+    ["{x}", "&#123;x&#125;"],
+    ["{{a}} {b}", "&#123;&#123;a&#125;&#125; &#123;b&#125;"],
+    ["no braces", "no braces"],
+    ["", ""],
+  ])("%j -> %j", (input, expected) => {
+    expect(escapeBraces(input)).toBe(expected);
+  });
+});
+
+describe("escapeSvelteText", () => {
+  it("encodes entities and braces", () => {
+    expect(escapeSvelteText('a & "{b}" <c>')).toBe(
+      "a &amp; &quot;&#123;b&#125;&quot; &lt;c&gt;",
+    );
+  });
+  it("re-encodes the & of an already-encoded entity (existing behaviour)", () => {
+    expect(escapeSvelteText("&#123;")).toBe("&amp;#123;");
   });
 });
