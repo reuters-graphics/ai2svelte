@@ -1,11 +1,22 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { deflateSync, inflateSync } from "node:zlib";
+import nodeFs from "node:fs";
+import os from "node:os";
+import path from "node:path";
 import {
   encodeRgbPng,
+  processRasterJobs,
+  type RasterJob,
   relinkImage,
   removeTiles,
   scanAlpha,
 } from "../rasterJobs";
+
+// the CEP node bridge is empty outside CEP; give processRasterJobs real fs/zlib
+vi.mock("../../../lib/cep/node", async () => ({
+  fs: await import("node:fs"),
+  zlib: await import("node:zlib"),
+}));
 
 // Reverses PNG filters on an 8-bit RGB IDAT stream, to round-trip the encoder
 function decodeRgb(png: Uint8Array) {
@@ -129,5 +140,135 @@ describe("relinkImage", () => {
         'style:--c={`url("${processedPath}/doc-md.webp.bak")`}',
       ].join("\n"),
     );
+  });
+});
+
+describe("processRasterJobs", () => {
+  let dir: string;
+  const write = (name: string, content: string | Uint8Array) => {
+    const file = path.join(dir, name);
+    nodeFs.writeFileSync(file, content);
+    return file;
+  };
+  // decode() is stubbed: a test "image" file holds the raw RGBA of one pixel
+  const stubDecoder = () => {
+    vi.stubGlobal("createImageBitmap", async (blob: Blob) => ({
+      width: 1,
+      height: 1,
+      rgba: new Uint8ClampedArray(await blob.arrayBuffer()),
+    }));
+    vi.stubGlobal(
+      "OffscreenCanvas",
+      class {
+        bmp: { rgba: Uint8ClampedArray } | undefined;
+        getContext() {
+          return {
+            drawImage: (bmp: { rgba: Uint8ClampedArray }) => (this.bmp = bmp),
+            getImageData: () => ({ data: this.bmp!.rgba, width: 1, height: 1 }),
+          };
+        }
+      },
+    );
+  };
+  const CLEAR = new Uint8Array([9, 9, 9, 0]);
+  const OPAQUE = new Uint8Array([9, 9, 9, 255]);
+  const tileJob = (src: string, svelte: string, format = "png"): RasterJob => ({
+    src,
+    dest: src,
+    format: format as RasterJob["format"],
+    quality: 80,
+    tile: { id: "g-a-r0c1", varKey: "g-a-r0c1" },
+    svelte,
+  });
+  const svelteText = [
+    'style:--g-a-r0c1={`url("${processedPath}/a-r0c1.png")`}\r',
+    '<div id="g-a-r0c1" class="g-aiTile"></div>\r',
+    "#g-a-r0c1 {\n\rbackground-image: var(--g-a-r0c1);\n\r}\n\r",
+  ].join("");
+
+  beforeEach(() => {
+    dir = nodeFs.mkdtempSync(path.join(os.tmpdir(), "rj-"));
+    vi.spyOn(console, "warn").mockImplementation(() => {});
+    vi.spyOn(console, "log").mockImplementation(() => {});
+  });
+  afterEach(() => {
+    vi.unstubAllGlobals();
+    vi.restoreAllMocks();
+    nodeFs.rmSync(dir, { recursive: true, force: true });
+  });
+
+  it("keeps a webp job as png and relinks the .svelte when webp is unsupported", async () => {
+    // jsdom has no OffscreenCanvas, so checkWebpSupport() resolves false
+    const svelte = write("a.svelte", 'url("${p}/a-md.webp") and /a-md.webp"');
+    const src = write("a-md.webp.png", OPAQUE);
+    const job: RasterJob = {
+      src,
+      dest: path.join(dir, "a-md.webp"),
+      format: "webp",
+      quality: 80,
+      tile: null,
+      svelte,
+    };
+    const progress = vi.fn();
+    const res = await processRasterJobs([job], progress);
+    expect(res).toEqual({
+      failed: [],
+      converted: 0,
+      dropped: 0,
+      keptAsPng: 1,
+    });
+    expect(nodeFs.existsSync(src)).toBe(false);
+    expect(nodeFs.readFileSync(path.join(dir, "a-md.png"))).toEqual(
+      Buffer.from(OPAQUE),
+    );
+    expect(nodeFs.readFileSync(svelte, "utf8")).toBe(
+      'url("${p}/a-md.png") and /a-md.png"',
+    );
+    expect(progress).toHaveBeenCalledWith(
+      1,
+      1,
+      "Converted to WebP: a-md.webp (1 of 1)",
+    );
+  });
+
+  it("keeps a tile that is clear at 1x but opaque at 2x", async () => {
+    stubDecoder();
+    const svelte = write("a.svelte", svelteText);
+    const one = write("a-r0c1.png", CLEAR);
+    const two = write("a-r0c1@2x.png", OPAQUE);
+    const res = await processRasterJobs([
+      tileJob(one, svelte),
+      tileJob(two, svelte),
+    ]);
+    expect(res).toEqual({
+      failed: [],
+      converted: 0,
+      dropped: 0,
+      keptAsPng: 0,
+    });
+    expect(nodeFs.existsSync(one)).toBe(true);
+    expect(nodeFs.existsSync(two)).toBe(true);
+    expect(nodeFs.readFileSync(svelte, "utf8")).toBe(svelteText);
+  });
+
+  it("removes an all-clear tile and patches it out of the .svelte", async () => {
+    stubDecoder();
+    const svelte = write("a.svelte", svelteText);
+    const one = write("a-r0c1.png", CLEAR);
+    const two = write("a-r0c1@2x.png", CLEAR);
+    const res = await processRasterJobs([
+      tileJob(one, svelte),
+      tileJob(two, svelte),
+    ]);
+    expect(res).toEqual({
+      failed: [],
+      converted: 0,
+      dropped: 1,
+      keptAsPng: 0,
+    });
+    expect(nodeFs.existsSync(one)).toBe(false);
+    expect(nodeFs.existsSync(two)).toBe(false);
+    const out = nodeFs.readFileSync(svelte, "utf8");
+    expect(out).not.toContain("r0c1");
   });
 });
