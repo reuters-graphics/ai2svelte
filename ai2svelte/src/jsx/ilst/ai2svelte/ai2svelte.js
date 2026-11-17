@@ -147,6 +147,8 @@ export function main(settingsArg) {
   let prevInteractionLevel = null;
 
   let textFramesToUnhide = [];
+  // visible copies of point text, converted to area text and removed on restore
+  let tempTextFrames = [];
   let objectsToRelock = [];
   let layersToRestoreVisibility = [];
 
@@ -1298,9 +1300,23 @@ export function main(settingsArg) {
 
   function restoreDocumentState() {
     var i;
-    for (i = 0; i < textFramesToUnhide.length; i++) {
-      textFramesToUnhide[i].hidden = false;
+    // remove the converted copies first, then show the original point text
+    for (i = tempTextFrames.length - 1; i >= 0; i--) {
+      try {
+        tempTextFrames[i].remove();
+      } catch (e) {
+        // stale reference, skip
+      }
     }
+    tempTextFrames = [];
+    for (i = 0; i < textFramesToUnhide.length; i++) {
+      try {
+        textFramesToUnhide[i].hidden = false;
+      } catch (e) {
+        // stale reference, skip
+      }
+    }
+    textFramesToUnhide = [];
     // each guarded separately: references can be stale after temp cleanup
     for (i = objectsToRelock.length - 1; i >= 0; i--) {
       try {
@@ -2164,6 +2180,13 @@ export function main(settingsArg) {
         (textRegex.test(tf.layer.name) || htextRegex.test(tf.layer.name))
       ) {
         track("converting point text to area text", tf);
+        // work on a copy so the user's point text is left untouched; the
+        // original is hidden (so it isn't re-fetched) until restoreDocumentState
+        var original = tf;
+        tf = original.duplicate(original, ElementPlacement.PLACEBEFORE);
+        tempTextFrames.push(tf);
+        original.hidden = true;
+        textFramesToUnhide.push(original);
         var tfWidth = tf.width;
         var group = tf.parent.groupItems.add();
         group.move(tf, ElementPlacement.PLACEBEFORE);
@@ -2175,6 +2198,8 @@ export function main(settingsArg) {
         tf.move(group, ElementPlacement.PLACEBEFORE);
         tf.contents = tf.contents.replace("\r", " ").replace(/\s+/g, " ");
         tf.width = tfWidth;
+        // the converted frame is a new object (the duplicate may be replaced)
+        tempTextFrames[tempTextFrames.length - 1] = tf;
         group.remove();
       }
     });
