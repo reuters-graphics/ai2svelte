@@ -120,6 +120,50 @@ describe("debugLog", () => {
     expect(realFs.readdirSync(dir).sort()).toEqual([otherDoc, latest]);
   });
 
+  it("withSnapshot keeps the newest 5 sessions per file with a snapshot, plus 5 with none", async () => {
+    const { withSnapshot, debugDir, evalTS } = await freshModule();
+    const sdir = realPath.join(debugDir(), "sessions");
+    const ndir = realPath.join(debugDir(), "snapshots");
+    realFs.mkdirSync(sdir, { recursive: true });
+    realFs.mkdirSync(ndir);
+    const ev = (doc: string) =>
+      JSON.stringify({
+        type: "snapshot",
+        data: { path: `/gone/old-${doc}`, name: doc },
+      }) + "\n";
+    // 7 sessions of a.ai, 1 of b.ai (no snapshot left), 1 that never exported
+    for (let i = 1; i <= 7; i++)
+      realFs.writeFileSync(
+        realPath.join(sdir, `2026-01-0${i}.jsonl`),
+        ev("a.ai"),
+      );
+    realFs.writeFileSync(realPath.join(sdir, "2026-01-08.jsonl"), ev("b.ai"));
+    realFs.writeFileSync(
+      realPath.join(sdir, "2026-01-09.jsonl"),
+      '{"type":"call"}\n',
+    );
+    const latest = "2026-02-01T00-00-00-000Z-a.ai";
+    realFs.writeFileSync(realPath.join(ndir, latest), "");
+    evalTS.mockResolvedValueOnce({
+      path: realPath.join(ndir, latest),
+      saved: true,
+      name: "a.ai",
+    });
+    await withSnapshot(async () => {});
+
+    // newest 4 old a.ai sessions + the running one (also a.ai) = 5
+    const left = realFs.readdirSync(sdir).sort();
+    expect(left.slice(0, 4)).toEqual([
+      "2026-01-04.jsonl",
+      "2026-01-05.jsonl",
+      "2026-01-06.jsonl",
+      "2026-01-07.jsonl",
+    ]);
+    // b.ai and never-exported sessions fall in the "no snapshot" group
+    expect(left.slice(4, 6)).toEqual(["2026-01-08.jsonl", "2026-01-09.jsonl"]);
+    expect(left).toHaveLength(7);
+  });
+
   it("exportDebugReport copies only the sessions and snapshots of one file", async () => {
     const { findDebugData, exportDebugReport, debugDir } = await freshModule();
     const dir = debugDir();
@@ -166,6 +210,13 @@ describe("debugLog", () => {
     expect(realFs.readdirSync(realPath.join(dest, "snapshots"))).toEqual([
       "s1-demo.ai",
     ]); // s3 was pruned
+    // c.jsonl's snapshot (s3) was pruned: flagged; a.jsonl (s1) is replayable
+    expect(
+      realFs.readFileSync(realPath.join(dest, "notes.txt"), "utf8"),
+    ).toMatch(/c\.jsonl/);
+    expect(
+      realFs.readFileSync(realPath.join(dest, "notes.txt"), "utf8"),
+    ).not.toMatch(/a\.jsonl/);
     realFs.rmSync(out, { recursive: true, force: true });
   });
 });

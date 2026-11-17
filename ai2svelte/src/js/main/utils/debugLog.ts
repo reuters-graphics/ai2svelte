@@ -8,7 +8,7 @@ import { fs, path } from "../../lib/cep/node";
 import { csi, evalTS } from "../../lib/utils/bolt";
 import { ns, version } from "../../../shared/shared";
 
-const MAX_SESSIONS = 10;
+const MAX_SESSIONS = 5; // per .ai file with a kept snapshot, plus 5 with none
 const MAX_SNAPSHOTS = 3; // one per .ai file, so at most 3 files
 
 let sessionFile = "";
@@ -24,6 +24,49 @@ export function pruneDir(dir: string, keep: number): void {
   names
     .slice(0, Math.max(0, names.length - keep))
     .forEach((name) => fs.unlinkSync(path.join(dir, name)));
+}
+
+// The snapshot events of one session file (unreadable lines are skipped).
+type SnapshotData = { path: string; name?: string; source?: string };
+function snapshotEvents(file: string): SnapshotData[] {
+  const out: SnapshotData[] = [];
+  for (const line of fs.readFileSync(file, "utf8").split("\n")) {
+    if (!line.includes('"type":"snapshot"')) continue;
+    try {
+      const event = JSON.parse(line);
+      if (event.type === "snapshot" && event.data?.path) out.push(event.data);
+    } catch {
+      // half-written line
+    }
+  }
+  return out;
+}
+
+// Sessions are grouped by the .ai file (name) they exported. Each file that
+// still has a snapshot keeps its newest `perFile` sessions, and so does one extra
+// group for sessions with no snapshot (never exported, or its file's snapshot is
+// gone): they still carry errors and call logs. So at most (MAX_SNAPSHOTS + 1) *
+// perFile sessions. The running session is never deleted. Run after snapshots
+// are pruned.
+function pruneSessions(perFile: number): void {
+  const dir = path.join(debugDir(), "sessions");
+  const snapDir = path.join(debugDir(), "snapshots");
+  const files = new Set(
+    (fs.existsSync(snapDir) ? fs.readdirSync(snapDir) : []).map((n) =>
+      n.slice(STAMP_LENGTH + 1),
+    ),
+  );
+  const current = sessionFile && path.basename(sessionFile);
+  const count: Record<string, number> = {};
+  for (const name of fs.readdirSync(dir).sort().reverse()) {
+    const linked = snapshotEvents(path.join(dir, name))
+      .map((s) => s.name ?? "")
+      .filter((n) => files.has(n));
+    const docs = linked.length ? linked : [""];
+    if (docs.some((d) => (count[d] || 0) < perFile) || name === current)
+      docs.forEach((d) => (count[d] = (count[d] || 0) + 1));
+    else fs.unlinkSync(path.join(dir, name));
+  }
 }
 
 // "2026-09-30T07-14-20-688Z"; snapshot names are `${stamp}-${doc name}`
@@ -56,7 +99,7 @@ export function logEvent(type: string, data?: unknown): void {
     if (!sessionFile || !fs.existsSync(sessionFile)) {
       const dir = path.join(debugDir(), "sessions");
       fs.mkdirSync(dir, { recursive: true });
-      pruneDir(dir, MAX_SESSIONS - 1);
+      pruneSessions(MAX_SESSIONS - 1);
       sessionFile = path.join(dir, stamp() + ".jsonl");
       writeLine("session", {
         version,
@@ -107,6 +150,7 @@ export async function withSnapshot<T>(run: () => Promise<T>): Promise<T> {
           .forEach((n) => fs.unlinkSync(path.join(dir, n)));
       }
       pruneDir(dir, MAX_SNAPSHOTS);
+      pruneSessions(MAX_SESSIONS);
     } catch (e) {
       logEvent("snapshot-failed", toPlain(e));
     }
@@ -125,18 +169,12 @@ export function findDebugData(
   const snapshots: string[] = [];
   for (const name of fs.readdirSync(sessionsDir)) {
     let linked = false;
-    const lines = fs
-      .readFileSync(path.join(sessionsDir, name), "utf8")
-      .split("\n");
-    for (const line of lines) {
-      if (!line.includes('"type":"snapshot"')) continue;
-      const event = JSON.parse(line);
-      const snap = event.type === "snapshot" && event.data;
+    for (const snap of snapshotEvents(path.join(sessionsDir, name))) {
       // older snapshots have no source, so match those by file name
-      const sameFile = snap?.source
+      const sameFile = snap.source
         ? snap.source === docPath
-        : snap?.name === path.basename(docPath);
-      if (snap?.path && sameFile) {
+        : snap.name === path.basename(docPath);
+      if (sameFile) {
         linked = true;
         snapshots.push(path.basename(snap.path));
       }
@@ -165,5 +203,20 @@ export function exportDebugReport(
   };
   copy("sessions", data.sessions);
   copy("snapshots", data.snapshots);
+  // sessions whose own snapshot was pruned can be read but not replayed
+  const noSnapshot = data.sessions.filter(
+    (name) =>
+      !snapshotEvents(path.join(debugDir(), "sessions", name)).some((s) =>
+        fs.existsSync(path.join(dest, "snapshots", path.basename(s.path))),
+      ),
+  );
+  if (noSnapshot.length)
+    fs.writeFileSync(
+      path.join(dest, "notes.txt"),
+      "These sessions have no snapshot of their own (the .ai file was exported\n" +
+        "again later), so they show what happened but cannot be replayed:\n" +
+        noSnapshot.join("\n") +
+        "\n",
+    );
   return dest;
 }
