@@ -20,6 +20,9 @@ sidebar:
 - Fixes wildcard exports picking the wrong layers when numbered layers had a tag, e.g. `map1:png`
 - Fixes transform animations (`pulse`, `rotate`, `zoomFade` and others) drifting off-centre in `:svg` layers. Your copies of the presets are updated unless you've edited them
 - Fixes `image_alt_text` not reaching screen readers. Images now get `role="img"` and `aria-label`, or are hidden as decorative when it's blank
+- Fixes curly braces (`{` and `}`) in artwork text, alt text and inline SVG text breaking the exported component. They now export literally
+- `:snippet` layer names must be valid JavaScript identifiers, since they become component props. Other `:snippet` layers are skipped with a warning
+- IDs and classes built from layer names that contain spaces or punctuation now use `_` in place of those characters
 
 ### v1.0.9
 
