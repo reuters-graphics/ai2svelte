@@ -82,6 +82,33 @@ describe("debugLog", () => {
     ]);
   });
 
+  it("starts a new session file once the current one is over 5 MB", async () => {
+    const { logEvent, debugDir } = await freshModule();
+    const dir = realPath.join(debugDir(), "sessions");
+    logEvent("call", { id: 0 });
+    const [first] = realFs.readdirSync(dir);
+    realFs.appendFileSync(
+      realPath.join(dir, first),
+      "x".repeat(5 * 1024 * 1024),
+    );
+    await new Promise((r) => setTimeout(r, 5)); // distinct timestamp name
+    for (let i = 1; i <= 100; i++) logEvent("call", { id: i });
+    expect(realFs.readdirSync(dir)).toHaveLength(2);
+  });
+
+  it("prunes files older than 30 days, keeps recent and unparseable names", async () => {
+    const { pruneDir } = await freshModule();
+    const recent = new Date().toISOString().replace(/[:.]/g, "-");
+    const old = "2020-01-01T00-00-00-000Z-a.ai";
+    [old, recent + "-b.ai", "notes.txt"].forEach((n) =>
+      realFs.writeFileSync(realPath.join(tmp, n), ""),
+    );
+    pruneDir(tmp, 10);
+    expect(realFs.readdirSync(tmp).sort()).toEqual(
+      ["notes.txt", recent + "-b.ai"].sort(),
+    );
+  });
+
   it("withSnapshot logs the snapshot and still runs when snapshotting fails", async () => {
     const { withSnapshot, debugDir, evalTS } = await freshModule();
     evalTS.mockResolvedValueOnce({
@@ -104,9 +131,9 @@ describe("debugLog", () => {
     const { withSnapshot, debugDir, evalTS } = await freshModule();
     const dir = realPath.join(debugDir(), "snapshots");
     realFs.mkdirSync(dir, { recursive: true });
-    const old = "2026-01-01T00-00-00-000Z-demo.ai";
-    const otherDoc = "2026-01-01T00-00-01-000Z-my-demo.ai"; // name ends like demo.ai
-    const latest = "2026-01-02T00-00-00-000Z-demo.ai";
+    const old = "2099-01-01T00-00-00-000Z-demo.ai";
+    const otherDoc = "2099-01-01T00-00-01-000Z-my-demo.ai"; // name ends like demo.ai
+    const latest = "2099-01-02T00-00-00-000Z-demo.ai";
     [old, otherDoc, latest].forEach((n) =>
       realFs.writeFileSync(realPath.join(dir, n), ""),
     );
@@ -142,7 +169,7 @@ describe("debugLog", () => {
       realPath.join(sdir, "2026-01-09.jsonl"),
       '{"type":"call"}\n',
     );
-    const latest = "2026-02-01T00-00-00-000Z-a.ai";
+    const latest = "2099-02-01T00-00-00-000Z-a.ai";
     realFs.writeFileSync(realPath.join(ndir, latest), "");
     evalTS.mockResolvedValueOnce({
       path: realPath.join(ndir, latest),

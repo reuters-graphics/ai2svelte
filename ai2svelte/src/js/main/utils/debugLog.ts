@@ -10,21 +10,35 @@ import { ns, version } from "../../../shared/shared";
 
 const MAX_SESSIONS = 5; // per .ai file with a kept snapshot, plus 5 with none
 const MAX_SNAPSHOTS = 3; // one per .ai file, so at most 3 files
+const MAX_SESSION_BYTES = 5 * 1024 * 1024; // rotate to a new session file past this
+const MAX_AGE_MS = 30 * 24 * 3600 * 1000; // older sessions/snapshots are deleted
 
 let sessionFile = "";
 let lastSnap: SnapshotData | undefined;
 let seq = 0;
+let linesSinceSizeCheck = 0;
 
 export function debugDir(): string {
   return path.join(csi.getSystemPath("userData"), ns, "debug");
 }
 
+// True when the name's timestamp prefix is older than MAX_AGE_MS; names
+// without a parseable prefix are never "too old" (kept).
+function tooOld(name: string): boolean {
+  const m = /^(\d{4}-\d{2}-\d{2}T\d{2})-(\d{2})-(\d{2})-(\d{3}Z)/.exec(name);
+  if (!m) return false;
+  return (
+    Date.parse(`${m[1]}:${m[2]}:${m[3]}.${m[4]}`) < Date.now() - MAX_AGE_MS
+  );
+}
+
 // File names start with a timestamp, so name order is age order.
 export function pruneDir(dir: string, keep: number): void {
   const names = fs.readdirSync(dir).sort();
-  names
-    .slice(0, Math.max(0, names.length - keep))
-    .forEach((name) => fs.unlinkSync(path.join(dir, name)));
+  names.forEach((name, i) => {
+    if (i < names.length - keep || tooOld(name))
+      fs.unlinkSync(path.join(dir, name));
+  });
 }
 
 // The snapshot events of one session file (unreadable lines are skipped).
@@ -66,6 +80,10 @@ function pruneSessions(perFile: number): void {
   const current = sessionFile && path.basename(sessionFile);
   const count: Record<string, number> = {};
   for (const name of fs.readdirSync(dir).sort().reverse()) {
+    if (name !== current && tooOld(name)) {
+      fs.unlinkSync(path.join(dir, name));
+      continue;
+    }
     const linked = snapshotEvents(path.join(dir, name))
       .map((s) => s.name ?? "")
       .filter((n) => files.has(n));
@@ -101,6 +119,14 @@ function writeLine(type: string, data?: unknown): void {
 export function logEvent(type: string, data?: unknown): void {
   if (!window.cep) return;
   try {
+    // every 100th line, rotate once the file is over the size cap
+    if (
+      sessionFile &&
+      ++linesSinceSizeCheck % 100 === 0 &&
+      fs.existsSync(sessionFile) &&
+      fs.statSync(sessionFile).size > MAX_SESSION_BYTES
+    )
+      sessionFile = "";
     // also restart when the file vanished (debug folder deleted while the
     // panel stayed loaded — CEP keeps module state across close/reopen)
     if (!sessionFile || !fs.existsSync(sessionFile)) {
@@ -113,6 +139,8 @@ export function logEvent(type: string, data?: unknown): void {
         host: csi.hostEnvironment?.appVersion,
         userAgent: navigator.userAgent,
       });
+      // keep findDebugData's link to the file when an export spans a rotation
+      if (lastSnap) writeLine("snapshot", lastSnap);
     }
     writeLine(type, data);
   } catch (e) {
