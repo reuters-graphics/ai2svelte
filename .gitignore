@@ -24,4 +24,7 @@ pnpm-debug.log*
 
 # macOS-specific files
 .DS_Store
+
+# improve skill (symlink, so no trailing slash)
+.claude/skills/improve
 ai2svelte/examples-output/
