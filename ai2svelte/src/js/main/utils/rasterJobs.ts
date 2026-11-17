@@ -315,7 +315,7 @@ export function relinkImage(svelte: string, from: string, to: string) {
 
 async function decode(path: string) {
   const bmp = await createImageBitmap(
-    new Blob([fs.readFileSync(path)], { type: "image/png" }),
+    new Blob([new Uint8Array(fs.readFileSync(path))], { type: "image/png" }),
     { colorSpaceConversion: "none", premultiplyAlpha: "none" },
   );
   const ctx = new OffscreenCanvas(bmp.width, bmp.height).getContext("2d")!;
