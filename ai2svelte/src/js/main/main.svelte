@@ -39,7 +39,6 @@
     writeFile,
   } from "./utils/utils";
   import { bakeShadows } from "./utils/bakeShadows";
-  // @ts-expect-error: precheck.js is a plain JS file with no TypeScript declarations
   import { precheck } from "./precheck/precheck.js";
   import { fetchSettings } from "./utils/utils";
   import type { SettingsObject } from "./Tabs/types";
