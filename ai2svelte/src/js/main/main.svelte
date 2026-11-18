@@ -50,7 +50,7 @@
   import Home from "./Tabs/Home/Home.svelte";
   import Inspect from "./Tabs/Inspect.svelte";
   import Alert from "./Components/Alert.svelte";
-  import Confetti from "./Components/Confetti.svelte";
+  import Wave from "./Components/Wave.svelte";
 
   // --- state ---
 
@@ -278,25 +278,25 @@
 </script>
 
 {#if splashScreen}
-  <Confetti />
+  <Wave>
+    {#if $unsavedChanges.flag}
+      <Alert message={$unsavedChanges.message} />
+    {/if}
+    {#if $alertObject.flag}
+      <Alert message={$alertObject.message} action={$alertObject.action} />
+    {/if}
+    <TabBar bind:activeLabel={activeTab} {inspectMode} />
 
-  {#if $unsavedChanges.flag}
-    <Alert message={$unsavedChanges.message} />
-  {/if}
-  {#if $alertObject.flag}
-    <Alert message={$alertObject.message} action={$alertObject.action} />
-  {/if}
-  <TabBar bind:activeLabel={activeTab} {inspectMode} />
-
-  {#if activeTab === "HOME"}
-    <Home refreshSettings={fetchSettings} />
-  {:else if activeTab === "STYLES"}
-    <Styles />
-  {:else if activeTab === "SETTINGS"}
-    <Settings />
-  {:else if activeTab === "INSPECT"}
-    <Inspect />
-  {/if}
+    {#if activeTab === "HOME"}
+      <Home refreshSettings={fetchSettings} />
+    {:else if activeTab === "STYLES"}
+      <Styles />
+    {:else if activeTab === "SETTINGS"}
+      <Settings />
+    {:else if activeTab === "INSPECT"}
+      <Inspect />
+    {/if}
+  </Wave>
 {/if}
 
 <style lang="scss">

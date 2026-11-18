@@ -12,8 +12,9 @@ export default ts.config(
       'src/js/public/webp/', // vendored wasm encoder
       'src/jsx/lib/json2.js', // vendored JSON polyfill
       'src/public/BoltHostAdapter.js', // vendored Bolt adapter
-      'src/js/main/example/', // ai2svelte export output (visual-test fixtures)
+      'src/js/main/example/', // ai2svelte export output for the preview sample
       'src/js/main/src/', // ai2svelte export output
+      'src/js/main/lib/distortion-waves/', // vendored (MIT) wave engine
     ],
   },
   js.configs.recommended,

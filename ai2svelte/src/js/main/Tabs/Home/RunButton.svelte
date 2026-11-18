@@ -4,7 +4,7 @@
     stylesString,
     styles,
     ai2svelteInProgress,
-    triggerConfetti,
+    triggerWave,
     updateInProgress,
     alertObject,
   } from "../../stores";
@@ -225,10 +225,10 @@
       // and update the UI
       await refreshSettings();
 
-      if (ok) $triggerConfetti = true;
+      if (ok) $triggerWave = true;
       $ai2svelteInProgress = false;
     } else {
-      $triggerConfetti = true;
+      $triggerWave = true;
     }
   }
 </script>

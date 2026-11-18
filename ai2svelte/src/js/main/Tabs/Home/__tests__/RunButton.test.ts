@@ -5,7 +5,7 @@ import * as Svelte from "svelte";
 import { get } from "svelte/store";
 import safeParser from "postcss-safe-parser";
 import postcss from "postcss";
-import { triggerConfetti, ai2svelteInProgress, styles } from "../../../stores";
+import { triggerWave, ai2svelteInProgress, styles } from "../../../stores";
 import RunButton from "../RunButton.svelte";
 import { evalTS } from "../../../../__mocks__/bolt";
 
@@ -24,7 +24,7 @@ function unstubCep() {
 describe("RunButton", () => {
   beforeEach(async () => {
     vi.clearAllMocks();
-    triggerConfetti.set(false);
+    triggerWave.set(false);
     ai2svelteInProgress.set(false);
     // stylesString derived store reads `styles.root.toString()`.
     // Without an initialised PostCSS result it throws at subscription time.
@@ -40,10 +40,10 @@ describe("RunButton", () => {
       ).toBeInTheDocument();
     });
 
-    it("sets triggerConfetti when clicked outside of CEP", async () => {
+    it("sets triggerWave when clicked outside of CEP", async () => {
       render(RunButton);
       await userEvent.click(screen.getByRole("button"));
-      await waitFor(() => expect(get(triggerConfetti)).toBe(true));
+      await waitFor(() => expect(get(triggerWave)).toBe(true));
     });
   });
 
@@ -83,11 +83,11 @@ describe("RunButton", () => {
       );
     });
 
-    it("sets triggerConfetti to true after a successful run", async () => {
+    it("sets triggerWave to true after a successful run", async () => {
       render(RunButton);
       await user.click(screen.getByRole("button"));
       await vi.runAllTimersAsync();
-      expect(get(triggerConfetti)).toBe(true);
+      expect(get(triggerWave)).toBe(true);
     });
 
     it("disables the button while the run is in progress", async () => {
@@ -128,14 +128,14 @@ describe("RunButton", () => {
       );
     });
 
-    it("does not set triggerConfetti on error", async () => {
+    it("does not set triggerWave on error", async () => {
       evalTS.mockRejectedValueOnce(new Error("Boom"));
 
       render(RunButton);
       await user.click(screen.getByRole("button"));
       await vi.runAllTimersAsync();
 
-      expect(get(triggerConfetti)).toBe(false);
+      expect(get(triggerWave)).toBe(false);
       expect(get(ai2svelteInProgress)).toBe(false);
     });
 
@@ -150,7 +150,7 @@ describe("RunButton", () => {
       );
     });
 
-    it("does not set triggerConfetti when the engine reports errors", async () => {
+    it("does not set triggerWave when the engine reports errors", async () => {
       evalTS.mockImplementation(async (fn: string) =>
         fn === "runAi2Svelte"
           ? { missingFontFamilies: [], errors: ["x"], warnings: [] }
@@ -159,7 +159,7 @@ describe("RunButton", () => {
       render(RunButton);
       await user.click(screen.getByRole("button"));
       await vi.runAllTimersAsync();
-      expect(get(triggerConfetti)).toBe(false);
+      expect(get(triggerWave)).toBe(false);
       expect(get(ai2svelteInProgress)).toBe(false);
     });
 

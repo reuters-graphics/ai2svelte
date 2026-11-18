@@ -50,7 +50,6 @@
     "@floating-ui/dom": "^1.8.0",
     "@fsegurai/codemirror-theme-bundle": "^6.5.0",
     "@jsquash/webp": "^1.5.0",
-    "@tsparticles/confetti": "^3.9.1",
     "bits-ui": "^2.21.0",
     "codemirror": "^6.0.2",
     "diff": "^8.0.4",
