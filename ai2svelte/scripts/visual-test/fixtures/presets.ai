@@ -39,7 +39,7 @@
    ai2svelte-companion:ai-settings="{&quot;image_format&quot;:&quot;webp&quot;,&quot;responsiveness&quot;:&quot;dynamic&quot;,&quot;output&quot;:&quot;one-file&quot;,&quot;html_output_path&quot;:&quot;../src/lib/ai2svelte/&quot;,&quot;image_output_path&quot;:&quot;../src/statics/images/graphics/&quot;,&quot;image_source_path&quot;:&quot;images/graphics/&quot;,&quot;png_transparent&quot;:&quot;yes&quot;,&quot;png_number_of_colors&quot;:256,&quot;inline_svg&quot;:&quot;true&quot;,&quot;image_quality&quot;:90}"
    ai2svelte-companion:css-settings="{&quot;styleText&quot;:&quot;&quot;}"
    ai2svelte-companion:version="{&quot;version&quot;:&quot;1.0.10&quot;}"
-   ai2svelte-companion:lastSaved="{&quot;time&quot;:1794934793506}">
+   ai2svelte-companion:lastSaved="{&quot;time&quot;:1794942586931}">
    <dc:title>
     <rdf:Alt>
      <rdf:li xml:lang="x-default">presets</rdf:li>

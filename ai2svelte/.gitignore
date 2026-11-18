@@ -8,6 +8,6 @@ yarn-error.log
 dist/cep
 !dist/zxp/
 !dist/zxp/**
-visual-test-output-*/
+scripts/visual-test/.output/
 test-results/
 playwright-report/

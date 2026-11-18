@@ -19,8 +19,8 @@
     </header>
     <div id="frame"><iframe id="view"></iframe></div>
     <script type="module">
-      // Renders the bundles `pnpm test:visual:generate` left in each fixture's
-      // output dir. Drag the width to step through the artboard breakpoints.
+      // Renders the bundles `pnpm test:visual:generate` left in .output.
+      // Drag the width to step through the artboard breakpoints.
       const fixtures = await (await fetch("./fixtures.json")).json();
       const params = new URLSearchParams(location.search);
       // multiple-export fixtures list one entry per component
@@ -35,7 +35,7 @@
 
       function render() {
         const f = views.find((x) => x.label === fixture.value);
-        const dir = `/${f.aiPath.replace(/\/[^/]+$/, "")}/visual-test-output-${f.name}`;
+        const dir = `/scripts/visual-test/.output/${f.name}`;
         const src = `harness.html?bundle=${dir}/${f.bundle}&assetsPath=${dir}&width=${width.value}${debug.checked ? "&debug=1" : ""}`;
         view.src = open.href = src;
         view.style.width = +width.value + 16 + "px";

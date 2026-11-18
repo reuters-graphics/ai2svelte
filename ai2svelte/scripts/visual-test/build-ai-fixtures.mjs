@@ -4,9 +4,9 @@
 //   presets.ai  every shadow + animation preset, custom SCSS, a missing style
 //   layers.ai   :div / :symbol / :png / :svg / :snippet layers, data-attribute
 //               notes, fixed-width and image_only artboard tags, a mapped font
-// Writes them to src/js/main/example/ plus styles/presets.scss (the SCSS a user
-// would type into the Styles tab, one rule per preset). Local-only: needs
-// Illustrator. Re-run when the preset library changes, then regenerate baselines.
+// Writes them to fixtures/ plus styles/presets.scss (the SCSS a user would type
+// into the Styles tab, one rule per preset). Local-only: needs Illustrator.
+// Re-run when the preset library changes, then regenerate baselines.
 import { execFileSync } from "node:child_process";
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import os from "node:os";
@@ -17,7 +17,7 @@ import { closeStyles, toCamelCase } from "./styles.mjs";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(here, "../..");
-const exampleDir = path.join(rootDir, "src/js/main/example");
+const fixtureDir = path.join(here, "fixtures");
 const dataDir = path.join(rootDir, "src/js/main/Tabs/data");
 
 const animations = JSON5.parse(readFileSync(path.join(dataDir, "animations.json"), "utf8"));
@@ -71,6 +71,7 @@ $sizes: (sm: 4px, md: 8px, lg: 16px);
 }`,
 ].join("\n\n");
 mkdirSync(path.join(here, "styles"), { recursive: true });
+mkdirSync(fixtureDir, { recursive: true });
 writeFileSync(path.join(here, "styles/presets.scss"), scss + "\n");
 await closeStyles();
 
@@ -133,7 +134,7 @@ for (i = 0; i < textCount; i++) text(at, "t" + i, "Animated " + i, 30 + i * 270,
 // custom SCSS targets
 var custom = layer(doc, "custom:div");
 for (i = 0; i < 3; i++) rect(custom, "c" + i, 30 + i * 260, 620, 220, 70, rgb(60, 60, 60));
-save(doc, ${JSON.stringify(path.join(exampleDir, "presets.ai"))});
+save(doc, ${JSON.stringify(path.join(fixtureDir, "presets.ai"))});
 `;
 
 const layersJsx = `
@@ -192,7 +193,7 @@ function build(ox, s) {
 }
 build(0, 1);
 build(900, 0.5);
-save(doc, ${JSON.stringify(path.join(exampleDir, "layers.ai"))});
+save(doc, ${JSON.stringify(path.join(fixtureDir, "layers.ai"))});
 `;
 
 function run(name, jsx) {

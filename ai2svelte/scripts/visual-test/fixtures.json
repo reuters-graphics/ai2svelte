@@ -1,11 +1,11 @@
 [
   {
     "name": "preview-dev",
-    "aiPath": "src/js/main/example/preview-dev.ai"
+    "aiPath": "scripts/visual-test/fixtures/preview-dev.ai"
   },
   {
     "name": "preview-dev-svg",
-    "aiPath": "src/js/main/example/preview-dev.ai",
+    "aiPath": "scripts/visual-test/fixtures/preview-dev.ai",
     "settings": {
       "image_format": "svg",
       "svg_embed_images": true,
@@ -14,7 +14,7 @@
   },
   {
     "name": "preview-dev-chunked",
-    "aiPath": "src/js/main/example/preview-dev.ai",
+    "aiPath": "scripts/visual-test/fixtures/preview-dev.ai",
     "settings": {
       "image_chunk_width": 512,
       "image_chunk_height": 512
@@ -23,7 +23,7 @@
   },
   {
     "name": "multi-export",
-    "aiPath": "src/js/main/example/multi-export.ai",
+    "aiPath": "scripts/visual-test/fixtures/multi-export.ai",
     "settings": {
       "project_name": "multi{1,3}step"
     },
@@ -31,13 +31,13 @@
   },
   {
     "name": "presets",
-    "aiPath": "src/js/main/example/presets.ai",
+    "aiPath": "scripts/visual-test/fixtures/presets.ai",
     "cssPath": "styles/presets.scss",
     "freezeAnimations": true
   },
   {
     "name": "layers",
-    "aiPath": "src/js/main/example/layers.ai",
+    "aiPath": "scripts/visual-test/fixtures/layers.ai",
     "cssPath": "styles/layers.scss",
     "fontsConfig": {
       "ArialMT": "'Fixture Sans', Arial, sans-serif"
@@ -63,7 +63,7 @@
   },
   {
     "name": "layers-settings",
-    "aiPath": "src/js/main/example/layers.ai",
+    "aiPath": "scripts/visual-test/fixtures/layers.ai",
     "settings": {
       "image_format": "png",
       "png_transparent": true,

@@ -30,7 +30,8 @@ const only = process.argv.slice(2);
 for (const fixture of fixtures) {
   if (only.length && !only.includes(fixture.name)) continue;
   const aiPath = path.resolve(rootDir, fixture.aiPath);
-  const outputDir = path.join(path.dirname(aiPath), `visual-test-output-${fixture.name}`);
+  const outputDir = path.join(__dirname, ".output", fixture.name);
+  const relativeOutputDir = `${path.relative(path.dirname(aiPath), outputDir).split(path.sep).join("/")}/`;
   // fresh dir: a stale .svelte from an earlier run would pass as new output
   rmSync(outputDir, { recursive: true, force: true });
   mkdirSync(outputDir, { recursive: true });
@@ -38,8 +39,8 @@ for (const fixture of fixtures) {
   const settingsArg = {
     settings: {
       show_completion_dialog_box: false,
-      html_output_path: `visual-test-output-${fixture.name}/`,
-      image_output_path: `visual-test-output-${fixture.name}/`,
+      html_output_path: relativeOutputDir,
+      image_output_path: relativeOutputDir,
       inline_svg: true,
       override_text: true,
       ...fixture.settings,

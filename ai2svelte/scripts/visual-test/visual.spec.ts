@@ -1,13 +1,12 @@
 import { test, expect } from "@playwright/test";
 import { readdirSync } from "node:fs";
-import path from "node:path";
 import fixtures from "./fixtures.json" with { type: "json" };
 
 for (const fixture of fixtures) {
   // multiple exports (project_name "x{1,3}y" + layers ending 1/2/3): one
   // component per number, each checked on its own
   if ("files" in fixture) {
-    const outputDir = `${path.dirname(fixture.aiPath)}/visual-test-output-${fixture.name}`;
+    const outputDir = `scripts/visual-test/.output/${fixture.name}`;
     test(`visual: ${fixture.name} writes one .svelte per layer number`, () => {
       const written = readdirSync(outputDir)
         .filter((f) => f.endsWith(".svelte"))
@@ -29,7 +28,7 @@ for (const fixture of fixtures) {
   }
 
   test(`visual: ${fixture.name}`, async ({ page }) => {
-    const outputDir = `${path.dirname(fixture.aiPath)}/visual-test-output-${fixture.name}`;
+    const outputDir = `scripts/visual-test/.output/${fixture.name}`;
     const chunkRequests: string[] = [];
     page.on("request", (req) => {
       if (req.url().includes("/chunks/")) chunkRequests.push(req.url());

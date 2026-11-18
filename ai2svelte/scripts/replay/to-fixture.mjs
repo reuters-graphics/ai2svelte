@@ -15,7 +15,7 @@ export async function toFixture({ rootDir, name, plan, ask }) {
   if (!arg?.settings || typeof arg.code?.css !== "string") throw new Error("This run has no runAi2Svelte call with settings and CSS.");
 
   console.log(`Document: ${plan.snapshot.name}`);
-  console.log(`WARNING: this .ai may contain unpublished work. It will be copied into src/js/main/example/. Never commit client artwork.`);
+  console.log(`WARNING: this .ai may contain unpublished work. It will be copied into scripts/visual-test/fixtures/. Never commit client artwork.`);
   if ((await ask("Copy it and add the fixture? Type y to continue: ")).trim() !== "y") {
     console.log("Cancelled, nothing changed.");
     return;
@@ -23,7 +23,7 @@ export async function toFixture({ rootDir, name, plan, ask }) {
 
   // generate.mjs sets its own output paths and completion dialog
   const { html_output_path, image_output_path, show_completion_dialog_box, ...settings } = arg.settings;
-  const aiPath = `src/js/main/example/${name}.ai`;
+  const aiPath = `scripts/visual-test/fixtures/${name}.ai`;
   const fixture = { name, aiPath };
   if (Object.keys(settings).length) fixture.settings = settings;
   // ponytail: the logged CSS already holds the mixins generate.mjs prepends again; duplicate @mixin definitions compile fine

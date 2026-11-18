@@ -19,8 +19,8 @@ describe("ai2svelte generated output (visual-test)", () => {
       const outputDir = path.resolve(
         __dirname,
         "../../../../",
-        path.dirname(fixture.aiPath),
-        `visual-test-output-${fixture.name}`,
+        "scripts/visual-test/.output",
+        fixture.name,
       );
       // skipped (listed by the reporter) until "pnpm test:visual:generate" runs
       it.skipIf(!existsSync(outputDir))(
