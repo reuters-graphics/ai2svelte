@@ -60,18 +60,20 @@
   // gate, before the shared $ai2svelteInProgress store is set.
   let starting = $state(false);
 
-  async function runAi2Svelte() {
+  async function runAi2Svelte(
+    event: MouseEvent & { currentTarget: HTMLButtonElement },
+  ) {
     if ($ai2svelteInProgress || starting) return;
     starting = true;
     try {
-      await runExport();
+      await runExport(event.currentTarget);
     } finally {
       starting = false;
       $ai2svelteInProgress = false; // never leave the other button stuck
     }
   }
 
-  async function runExport() {
+  async function runExport(source: HTMLButtonElement) {
     // let disabled state kick in
     await delay(500);
 
@@ -225,10 +227,10 @@
       // and update the UI
       await refreshSettings();
 
-      if (ok) $triggerWave = true;
+      if (ok) $triggerWave = source;
       $ai2svelteInProgress = false;
     } else {
-      $triggerWave = true;
+      $triggerWave = source;
     }
   }
 </script>

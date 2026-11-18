@@ -24,7 +24,7 @@ function unstubCep() {
 describe("RunButton", () => {
   beforeEach(async () => {
     vi.clearAllMocks();
-    triggerWave.set(false);
+    triggerWave.set(null);
     ai2svelteInProgress.set(false);
     // stylesString derived store reads `styles.root.toString()`.
     // Without an initialised PostCSS result it throws at subscription time.
@@ -40,10 +40,11 @@ describe("RunButton", () => {
       ).toBeInTheDocument();
     });
 
-    it("sets triggerWave when clicked outside of CEP", async () => {
+    it("passes the clicked button as the wave source outside of CEP", async () => {
       render(RunButton);
-      await userEvent.click(screen.getByRole("button"));
-      await waitFor(() => expect(get(triggerWave)).toBe(true));
+      const button = screen.getByRole("button");
+      await userEvent.click(button);
+      await waitFor(() => expect(get(triggerWave)).toBe(button));
     });
   });
 
@@ -83,11 +84,22 @@ describe("RunButton", () => {
       );
     });
 
-    it("sets triggerWave to true after a successful run", async () => {
+    it("preserves the wave source after a successful export longer than two seconds", async () => {
+      let finishExport!: (value: unknown) => void;
+      evalTS.mockImplementation((fn: string) =>
+        fn === "runAi2Svelte"
+          ? new Promise((resolve) => (finishExport = resolve))
+          : Promise.resolve(true),
+      );
       render(RunButton);
-      await user.click(screen.getByRole("button"));
+      const button = screen.getByRole("button");
+      await user.click(button);
+      await vi.advanceTimersByTimeAsync(3000);
+      button.blur();
+      expect(get(triggerWave)).toBeNull();
+      finishExport({ missingFontFamilies: [], errors: [], warnings: [] });
       await vi.runAllTimersAsync();
-      expect(get(triggerWave)).toBe(true);
+      expect(get(triggerWave)).toBe(button);
     });
 
     it("disables the button while the run is in progress", async () => {
@@ -135,7 +147,7 @@ describe("RunButton", () => {
       await user.click(screen.getByRole("button"));
       await vi.runAllTimersAsync();
 
-      expect(get(triggerWave)).toBe(false);
+      expect(get(triggerWave)).toBeNull();
       expect(get(ai2svelteInProgress)).toBe(false);
     });
 
@@ -159,7 +171,7 @@ describe("RunButton", () => {
       render(RunButton);
       await user.click(screen.getByRole("button"));
       await vi.runAllTimersAsync();
-      expect(get(triggerWave)).toBe(false);
+      expect(get(triggerWave)).toBeNull();
       expect(get(ai2svelteInProgress)).toBe(false);
     });
 

@@ -63,7 +63,7 @@ export const unsavedChanges: Writable<{ flag: boolean; message: string }> =
 
 export const forcePreview: Writable<boolean> = writable(false);
 
-export const triggerWave: Writable<boolean> = writable(false);
+export const triggerWave = writable<HTMLButtonElement | null>(null);
 
 export const lastSaved: Writable<{ time: Date } | "Never"> = writable("Never");
 

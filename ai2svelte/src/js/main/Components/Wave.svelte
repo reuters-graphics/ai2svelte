@@ -22,8 +22,8 @@
 
   $effect(() => {
     if ($triggerWave && controller) {
-      controller.play();
-      $triggerWave = false;
+      controller.play({ source: $triggerWave });
+      $triggerWave = null;
     }
   });
 </script>
