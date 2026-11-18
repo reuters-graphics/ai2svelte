@@ -77,6 +77,34 @@ swap the accent and the typefaces for another brand and keep the rules.
 - Monochrome white-on-black art is inverted with `filter: invert(1)` for light mode, not
   re-exported. Screenshots of real dark UIs stay dark in both themes.
 
+### CEP extension palette
+
+The Illustrator panel keeps its existing rounded controls and layout rather than adopting the
+site's square, hairline primitives. Its theme tokens live in
+`ai2svelte/src/js/main/styles/theme.scss` and use the `--color-` prefix.
+
+| Light-mode token | Value |
+|---|---|
+| `--color-background` | `#f4f6f8` |
+| `--color-primary` | `#ffffff` |
+| `--color-secondary` | `#e5e9ef` |
+| `--color-tertiary` | `#667085` |
+| `--color-ruler` | `#cdd4de` |
+| `--color-text`, `--color-text-hover` | `#202936` |
+| `--color-text-muted` | `#596579` |
+| `--color-text-secondary` | `#3e4c60` |
+| `--color-field-border` | `rgba(205, 212, 222, 0.6)` |
+
+- Keep light surfaces and neutral text cool blue-gray; retain the customizable orange accent.
+- Use text tokens, not element opacity, for field labels, values and inactive tabs. Light-mode
+  labels and values must retain at least 4.5:1 contrast on their control surfaces.
+- Control borders are subtle inset 1px lines; focus retains the 2px accent inset. Separators
+  remain solid-filled, not hollow outlines.
+- Dropdown selection uses full-strength, bold text in both themes, not a separate colored fill.
+  The moving hover background uses `--color-tertiary` at 12% opacity.
+- Color-picker popovers follow the active theme's surface, text and ruler tokens.
+- Number sliders retain their original value colors and opacity, without a number badge.
+
 ---
 
 ## 4. Typography

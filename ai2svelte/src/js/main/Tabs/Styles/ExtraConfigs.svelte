@@ -149,10 +149,10 @@
       --picker-indicator-size="40px"
       --picker-z-index="10"
       --input-size="20px"
-      --cp-border-color="#ffffff22"
-      --cp-bg-color="#292929"
-      --cp-text-color="#ffffff"
-      --cp-input-color="#292929"
+      --cp-border-color="var(--color-ruler)"
+      --cp-bg-color="var(--color-primary)"
+      --cp-text-color="var(--color-text)"
+      --cp-input-color="var(--color-secondary)"
     />
   </div>
   <div
@@ -175,10 +175,10 @@
       --picker-indicator-size="40px"
       --picker-z-index="10"
       --input-size="20px"
-      --cp-border-color="#ffffff22"
-      --cp-bg-color="#292929"
-      --cp-text-color="#ffffff"
-      --cp-input-color="#292929"
+      --cp-border-color="var(--color-ruler)"
+      --cp-bg-color="var(--color-primary)"
+      --cp-text-color="var(--color-text)"
+      --cp-input-color="var(--color-secondary)"
     />
   </div>
 </div>

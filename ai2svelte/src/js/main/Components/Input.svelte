@@ -88,20 +88,17 @@
     transition: 0.2s ease;
     background-color: var(--color-primary);
     border: unset;
+    box-shadow: inset 0 0 0 1px var(--color-field-border);
     width: 100%;
   }
 
   .option-container:hover {
     .option-title {
-      opacity: 0.5;
-    }
-
-    .hidden {
-      opacity: 0.5;
+      color: var(--color-text-secondary);
     }
 
     :global(.option-text) {
-      opacity: 1;
+      color: var(--color-text);
     }
   }
 
@@ -124,8 +121,7 @@
     text-transform: uppercase;
     font-size: var(--font-size-sm);
     font-weight: 400;
-    color: var(--color-text);
-    opacity: 0.3;
+    color: var(--color-text-muted);
     user-select: none;
     cursor: default;
     @include animation-default;

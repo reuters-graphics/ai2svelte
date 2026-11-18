@@ -22,16 +22,15 @@
     padding: 0;
     background-color: transparent;
     border: unset;
-    color: var(--color-text);
+    color: var(--color-text-secondary);
     font-size: var(--font-size-base);
     caret-color: var(--color-accent-primary);
-    opacity: 0.5;
     @include animation-default;
   }
 
   .option-text:focus {
     border: unset;
     outline: unset;
-    opacity: 0.7;
+    color: var(--color-text-hover);
   }
 </style>

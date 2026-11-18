@@ -154,9 +154,8 @@
 
   .dropdown-value {
     position: absolute;
-    color: var(--color-text);
+    color: var(--color-text-secondary);
     top: 0px;
-    opacity: 0.5;
     @include animation-default;
   }
 
@@ -166,7 +165,7 @@
   }
 
   .chevron {
-    opacity: 0.3;
+    color: var(--color-text-muted);
     @include animation-default;
   }
 
@@ -190,8 +189,9 @@
   }
 
   .selected-option:hover {
-    .dropdown-value {
-      opacity: 0.7;
+    .dropdown-value,
+    .chevron {
+      color: var(--color-text-hover);
     }
   }
 
@@ -226,7 +226,7 @@
     span {
       display: block;
       width: 100%;
-      opacity: 0.5;
+      color: var(--color-text-secondary);
       padding: var(--space-2xs);
       @include animation-default;
     }
@@ -234,7 +234,7 @@
 
   .li-item:hover {
     span {
-      opacity: 0.7;
+      color: var(--color-text);
     }
   }
 
@@ -242,7 +242,8 @@
     color: var(--color-text);
 
     span {
-      opacity: 1 !important;
+      color: var(--color-text);
+      font-weight: 700;
     }
   }
 
@@ -250,7 +251,7 @@
     position: absolute;
     width: 100%;
     background-color: var(--color-tertiary);
-    opacity: 0.5;
+    opacity: 0.12;
     border-radius: var(--space-2xs);
     top: 0px;
     z-index: 3;

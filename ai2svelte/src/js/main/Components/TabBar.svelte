@@ -131,10 +131,10 @@
                 --picker-indicator-size="40px"
                 --picker-z-index="10"
                 --input-size="24px"
-                --cp-border-color="#ffffff22"
-                --cp-bg-color="#292929"
-                --cp-text-color="#ffffff"
-                --cp-input-color="#292929"
+                --cp-border-color="var(--color-ruler)"
+                --cp-bg-color="var(--color-primary)"
+                --cp-text-color="var(--color-text)"
+                --cp-input-color="var(--color-secondary)"
               />
             </div>
           </div>
@@ -177,7 +177,7 @@
   /* Tab trigger button */
   .tab {
     background-color: transparent;
-    color: var(--color-text);
+    color: var(--color-text-muted);
     border: none;
     @include animation-default;
     user-select: none;
@@ -185,13 +185,15 @@
     font-weight: 700;
     font-size: var(--font-size-base);
     text-transform: uppercase;
-    opacity: 0.3;
     padding: var(--space-2xs);
     margin: 0;
 
+    &:hover {
+      color: var(--color-text-hover);
+    }
+
     /* Active tab — bits-ui sets data-state="active" on the trigger element */
     &[data-state="active"] {
-      opacity: 1;
       position: relative;
       background-color: var(--color-accent-primary);
       color: var(--color-white);

@@ -56,10 +56,9 @@
     cursor: pointer;
     font-size: var(--font-size-lg);
     font-weight: 600;
-    opacity: 0.3;
     border: unset;
     background-color: unset;
-    color: var(--color-text);
+    color: var(--color-text-muted);
     padding: 0;
     margin: 0;
     text-transform: uppercase;
@@ -72,10 +71,10 @@
   }
 
   .radio-button:hover {
-    opacity: 0.7;
+    color: var(--color-text-hover);
   }
 
   .radio-button[data-checked="true"] {
-    opacity: 1;
+    color: var(--color-text);
   }
 </style>

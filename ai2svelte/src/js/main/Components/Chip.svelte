@@ -21,7 +21,7 @@
     background-color: var(--color-primary);
     border: unset;
     border-radius: 8px;
-    color: rgba(var(--color-text), 0.1);
+    color: var(--color-text);
     font-size: var(--font-size-sm);
     font-weight: 500;
     text-transform: uppercase;

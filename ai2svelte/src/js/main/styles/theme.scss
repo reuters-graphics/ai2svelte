@@ -16,24 +16,32 @@ $dark-theme: (
   accent-primary: #dc4300,
   accent-secondary: #241e1c,
   text: #ffffff,
+  text-muted: rgba(255, 255, 255, 0.3),
+  text-secondary: rgba(255, 255, 255, 0.5),
+  text-hover: rgba(255, 255, 255, 0.7),
+  field-border: transparent,
 
   black: #000000,
   white: #ffffff,
 );
 
 $light-theme: (
-  background: #fff,
-  primary: #efefef,
-  secondary: #eeeeee,
-  tertiary: #aaa,
-  ruler: #e1e1e1,
+  background: #f4f6f8,
+  primary: #ffffff,
+  secondary: #e5e9ef,
+  tertiary: #667085,
+  ruler: #cdd4de,
 
   invert: #ffffff,
 
   accent-primary: #dc4300,
   accent-secondary: #241e1c,
 
-  text: #222,
+  text: #202936,
+  text-muted: #596579,
+  text-secondary: #3e4c60,
+  text-hover: #202936,
+  field-border: rgba(205, 212, 222, 0.6),
 
   black: #000000,
   white: #ffffff,
@@ -75,12 +83,15 @@ $color-white: #ffffff;
 
 :root {
   @include generate-theme-vars($dark-theme);
+  color-scheme: dark;
 }
 
 [data-theme="dark"] {
   @include generate-theme-vars($dark-theme);
+  color-scheme: dark;
 }
 
 [data-theme="light"] {
   @include generate-theme-vars($light-theme);
+  color-scheme: light;
 }
