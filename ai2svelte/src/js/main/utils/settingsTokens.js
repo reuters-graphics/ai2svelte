@@ -57,7 +57,7 @@ export let aiSettingsTokens = [
     label: "project_name",
     type: "variable",
     info: "Defaults to the name of the AI file",
-    default: null,
+    default: "Illustrator file name",
     inputType: "text",
   },
   {

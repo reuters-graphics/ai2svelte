@@ -32,7 +32,12 @@
     textValue: string;
     type: string;
     onUpdate?: (value: string) => void;
-    autoCompletionTokens?: { label: string; type: string; info: string }[];
+    autoCompletionTokens?: {
+      label: string;
+      type: string;
+      info: string;
+      default?: string | null;
+    }[];
     readonly?: boolean;
   }
 
@@ -40,6 +45,7 @@
     label: string;
     type: string;
     info: string;
+    default?: string | null;
   }
   type tokenTypeArray = tokenType[];
 
@@ -71,7 +77,7 @@
         options: tokens.map((token) => ({
           label: token.label,
           type: token.type,
-          info: token.info,
+          info: `${token.info}\nDefault: ${token.default ?? "(blank)"}`,
         })),
       };
     };

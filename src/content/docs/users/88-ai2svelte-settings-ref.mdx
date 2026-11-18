@@ -6,7 +6,9 @@ sidebar:
   order: 880
 ---
 
-This page lists every ai2svelte export setting, what it does and which values it accepts.
+This page lists every ai2svelte export setting, what it does and which values it accepts. Defaults describe new projects using the bundled panel profile combined with the engine defaults. Without that profile, the engine fallbacks differ for `image_format` (`auto`), the output paths (`ai2html-output/`), `image_source_path` (blank), and `inline_svg` (`false`).
+
+For boolean settings, `true` and `false` are the preferred values; the engine also accepts the legacy `yes` and `no` forms.
 
 ---
 
@@ -15,6 +17,8 @@ This page lists every ai2svelte export setting, what it does and which values it
 If `true`, content can spill outside the ai2svelte container instead of being clipped.
 
 Options: `false`, `true`
+
+Default: `false`
 
 ### alt_text
 
@@ -40,6 +44,8 @@ If `true`, centers the ai2svelte div inside its container.
 
 Options: `true`, `false`
 
+Default: `true`
+
 ### clickable_link
 
 Wraps the whole graphic in an `<a>` tag that links to the URL you enter.
@@ -51,6 +57,8 @@ Default: _(blank)_
 Sets which dimension of the parent element the graphic fits to. `width` fits the parent's width. `height` fits the parent's height instead. `cover` keeps the graphic's aspect ratio and fills the whole parent, cropping the graphic if the aspect ratios differ.
 
 Options: `width`, `height`, `cover`
+
+Default: `width`
 
 :::caution
 With `height` or `cover`, the parent element must have a set width and height. Without a set height, results can be unpredictable.
@@ -112,17 +120,23 @@ If `true`, container queries decide which artboard is shown. If `false`, Svelte'
 
 Options: `true`, `false`
 
+Default: `true`
+
 ### include_resizer_widths
 
 Adds `data-min-width` and `data-max-width` attributes to the artboard containers.
 
 Options: `true`, `false`
 
+Default: `true`
+
 ### inline_svg
 
 If `true`, SVG markup is written into the Svelte component instead of being loaded from a separate file.
 
 Options: `true`, `false`
+
+Default: `true` for the bundled panel profile. The engine fallback without the profile is `false`.
 
 :::caution
 Blend modes are lost when `inline_svg` is `true`. Use it only for simple graphics.
@@ -134,11 +148,15 @@ The quality of exported JPG and WebP images. Documents that still use the old na
 
 Options: any integer from 0 to 100
 
+Default: `90`
+
 ### max_width
 
 Adds a `max-width` in pixels to cap the width of the output.
 
 Options: any positive integer
+
+Default: _(blank)_
 
 ### namespace
 
@@ -153,11 +171,15 @@ Whether to export everything into one file or several files.
 
 Options: `one-file`, `multiple-files`
 
+Default: `one-file`
+
 ### override_text :badge[New]
 
 If `true`, the text in `*:text` and `*:htext` layers is always taken from the `taggedText` prop.
 
 Options: `false`, `true`
+
+Default: `false`
 
 ### png_number_of_colors
 
@@ -165,17 +187,23 @@ The number of colors in PNG and PNG24 images. Fewer colors give smaller files.
 
 Options: any integer from 2 to 256
 
+Default: `256`
+
 ### png_transparent
 
 Makes PNG backgrounds transparent. This can lower image quality; `image_format: png24` gives better results.
 
 Options: `yes`, `no`
 
+Default: `true`
+
 ### priority_fetch :badge[New]
 
 If `true`, the graphic's images load first. Use it for graphics that readers see straight away, such as hero images.
 
 Options: `false`, `true`
+
+Default: `false`
 
 :::caution
 Use this only for above-the-fold graphics. It can hold up other resources on the page.
@@ -194,11 +222,15 @@ How rotated or skewed text is exported.
 
 Options: `html`, `image`
 
+Default: `html`
+
 ### render_text_as
 
 How text from Illustrator is exported in the Svelte component.
 
 Options: `html`, `image`
+
+Default: `html`
 
 ### responsiveness
 
@@ -206,17 +238,23 @@ Whether the ai2svelte container resizes with its parent (`dynamic`) or keeps the
 
 Options: `dynamic`, `fixed`
 
+Default: `dynamic`
+
 ### show_completion_dialog_box
 
 If `true`, shows a summary dialog when the export finishes.
 
 Options: `true`, `false`
 
+Default: `true`
+
 ### svg_embed_images
 
 Embeds images inside SVGs as base64.
 
 Options: `false`, `true`
+
+Default: `false`
 
 :::caution
 Exports take longer. Use it only for very small images.
@@ -234,11 +272,15 @@ If `yes`, renders text both in the image and in the Svelte component, so you can
 
 Options: `no`, `yes`
 
+Default: `false`
+
 ### text_responsiveness
 
 Whether HTML text from Illustrator area text keeps a fixed width or resizes with the graphic.
 
 Options: `dynamic`, `fixed`
+
+Default: `dynamic`
 
 ### use_2x_images_if_possible
 
@@ -247,6 +289,8 @@ If `yes`, exports images at double resolution when size limits allow.
 `both` exports each raster image at 1x and 2x (`name.webp` and `name@2x.webp`) and lets the browser pick one with `image-set`. Standard screens download only the 1x file and retina screens only the 2x one. SVG images aren't affected.
 
 Options: `yes`, `no`, `both`
+
+Default: `true`
 
 ### use_lazy_loader :badge[New]
 
@@ -276,6 +320,8 @@ Copies of an image made with `cloneNode` keep only what the image had when copie
 
 Before v1.0.10 this setting did nothing, but it was `true` by default. Values saved by those versions are ignored, so set it again to turn lazy loading on.
 
+Default: `false`
+
 Options: `false`, `true`
 
 ### write_image_files
@@ -283,3 +329,5 @@ Options: `false`, `true`
 Whether to export artboards as image files.
 
 Options: `yes`, `no`
+
+Default: `true`

@@ -10,9 +10,11 @@ import { Image } from "astro:assets";
 import { Steps } from "@astrojs/starlight/components";
 import Image_Autocomplete from "../../../../public/images/autocomplete.png";
 
-ai2svelte ships with default settings that work for most projects. You can change any of them in the `Settings` tab of the ai2svelte panel.
+ai2svelte starts new panel projects with a bundled profile combined with the engine defaults. The values below show the effective factory defaults; the bundled profile overrides the engine defaults for image format, output paths, image source path, and inline SVG. You can change any of them in the `Settings` tab of the ai2svelte panel.
 
 The [ai2svelte settings reference](../ai2svelte-settings-reference/) explains what each setting does.
+
+Boolean values are shown as `true` or `false`; the engine also accepts the legacy `yes` and `no` forms.
 
 ```yaml
 namespace: g-
@@ -32,6 +34,7 @@ use_2x_images_if_possible: true
 include_resizer_widths: true
 include_resizer_css: true
 inline_svg: true
+use_lazy_loader: false
 svg_embed_images: false
 render_text_as: html
 render_rotated_skewed_text_as: html
@@ -42,6 +45,8 @@ fit_mode: width
 override_text: false
 allow_overflow: false
 ```
+
+Other settings inherit their engine defaults. In particular, `max_width`, `image_alt_text`, `clickable_link`, and `svg_id_prefix` are blank, while `project_name` defaults to the Illustrator file name.
 
 ---
 
