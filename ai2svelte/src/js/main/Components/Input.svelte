@@ -14,6 +14,7 @@
     end?: number;
     stepper?: number;
     delay?: number;
+    portalTarget?: HTMLElement;
   }
 
   let {
@@ -25,6 +26,7 @@
     end = 100,
     stepper = 1,
     delay = 100,
+    portalTarget,
   }: Props = $props();
 
   let mounted = $state(false);
@@ -60,7 +62,12 @@
       {/if}
     </div>
     {#if type == "select"}
-      <Dropdown options={options || []} bind:value={value as string} />
+      <Dropdown
+        id={`select-${label}`}
+        options={options || []}
+        bind:value={value as string}
+        {portalTarget}
+      />
     {:else if type == "text"}
       <InputText {label} bind:value={value as string} />
     {:else if type == "range"}
@@ -108,6 +115,10 @@
 
   .option-container:focus-within {
     box-shadow: inset 0 0 0 2px var(--color-accent-primary);
+  }
+
+  .option-container :global([role="combobox"]:focus-visible) {
+    outline: none;
   }
 
   .label-container {

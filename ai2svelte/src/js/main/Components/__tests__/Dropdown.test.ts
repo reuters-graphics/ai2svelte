@@ -50,4 +50,29 @@ describe("Dropdown", () => {
       expect(activeItems.length).toBeGreaterThan(0);
     });
   });
+
+  it("keeps a portalled menu inside its dialog and allows selection", async () => {
+    const dialog = document.createElement("dialog");
+    dialog.open = true;
+    document.body.append(dialog);
+    try {
+      render(Dropdown, {
+        options,
+        value: "Arial",
+        id: "profile-select",
+        portalTarget: dialog,
+      });
+      const trigger = screen.getByRole("combobox");
+      expect(trigger).toHaveAttribute("id", "profile-select");
+      await userEvent.click(trigger);
+      expect(dialog).toContainElement(
+        await screen.findByRole("listbox", { hidden: true }),
+      );
+      await userEvent.click(screen.getByText("Georgia"));
+      await waitFor(() => expect(trigger).toHaveTextContent("Georgia"));
+      expect(trigger).toHaveAttribute("aria-expanded", "false");
+    } finally {
+      dialog.remove();
+    }
+  });
 });

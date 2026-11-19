@@ -3,6 +3,7 @@
   import { settingsObject } from "../../stores";
   import AiSettings from "./AiSettings.svelte";
   import FontSettings from "./FontSettings.svelte";
+  import Dialog from "../../Components/Dialog.svelte";
   import Input from "../../Components/Input.svelte";
   import { readFile, writeFile, tooltipSettings } from "../../utils/utils";
   import { mount } from "svelte";
@@ -14,8 +15,8 @@
   import type { UserProfiles } from "../types";
   import { exportDebugReport, findDebugData } from "../../utils/debugLog";
 
-  let profileNameDialog: HTMLDialogElement;
-  let profileListDialog: HTMLDialogElement;
+  let profileNameDialog = $state<HTMLDialogElement>();
+  let profileListDialog = $state<HTMLDialogElement>();
   let tempActiveProfile: string = $state("default");
   let newProfileName: string = $state("");
   let fileLoader: HTMLInputElement;
@@ -203,34 +204,71 @@
   }
 </script>
 
-<dialog class="profile-dialog" bind:this={profileNameDialog}>
-  <p>Save profile settings</p>
-  <form method="dialog">
-    <Input label="Profile Name" type="text" bind:value={newProfileName} />
-    <button onclick={() => (newProfileName !== "" ? handleNewProfile() : null)}
-      >OK</button
-    >
-    <button onclick={() => profileNameDialog?.close()}>Cancel</button>
-  </form>
-  <button onclick={() => exportProfilesToFile()}>Export my profiles</button>
-</dialog>
-
-<dialog
-  class="profile-dialog"
-  bind:this={profileListDialog}
-  closedby="closerequest"
+<Dialog
+  title="Save profile"
+  titleId="save-profile-title"
+  bind:element={profileNameDialog}
 >
-  <p>Load profile settings</p>
   <form
+    id="save-profile-form"
+    class="profile-form"
+    onsubmit={(event) => {
+      event.preventDefault();
+      if (!newProfileName.trim()) return;
+      handleNewProfile();
+      profileNameDialog?.close();
+    }}
+  >
+    <label for="profile-name">Profile name</label>
+    <input
+      id="profile-name"
+      name="profile-name"
+      type="text"
+      autocomplete="off"
+      required
+      bind:value={newProfileName}
+    />
+  </form>
+  {#snippet utility()}
+    <button
+      class="dialog-link"
+      type="button"
+      onclick={() => exportProfilesToFile()}>Export all profiles</button
+    >
+  {/snippet}
+  {#snippet actions()}
+    <button class="dialog-button" onclick={() => profileNameDialog?.close()}
+      >Cancel</button
+    >
+    <button
+      class="dialog-button primary"
+      type="submit"
+      form="save-profile-form"
+      disabled={!newProfileName.trim()}>Save profile</button
+    >
+  {/snippet}
+</Dialog>
+
+<Dialog
+  title="Load profile"
+  titleId="load-profile-title"
+  bind:element={profileListDialog}
+>
+  <form
+    id="load-profile-form"
+    class="profile-form"
     onsubmit={(e) => {
       e.preventDefault();
+      profileLoaded(tempActiveProfile);
+      profileListDialog?.close();
     }}
   >
     <Input
-      label="Load Profile"
+      label="Profile"
       type="select"
       options={Object.keys(existingProfiles)}
       bind:value={tempActiveProfile}
+      portalTarget={profileListDialog}
     />
     <input
       bind:this={fileLoader}
@@ -243,21 +281,35 @@
         saveProfilesFromFile(this);
       }}
     />
-    <button onclick={() => fileLoader?.click()}>Import from file</button>
-    <button
-      onclick={() => {
-        profileLoaded(tempActiveProfile);
-        profileListDialog?.close();
-      }}>OK</button
-    >
-    <button onclick={() => profileListDialog?.close()}>Cancel</button>
-    {#if tempActiveProfile !== "default"}
-      <button onclick={() => deleteProfile(tempActiveProfile)}
-        >Delete {tempActiveProfile} Profile</button
-      >
-    {/if}
   </form>
-</dialog>
+  {#snippet utility()}
+    <button
+      class="dialog-link"
+      type="button"
+      onclick={() => fileLoader?.click()}>Import profiles</button
+    >
+  {/snippet}
+  {#if tempActiveProfile !== "default"}
+    <div class="profile-tools">
+      <button
+        class="dialog-button danger"
+        type="button"
+        onclick={() => {
+          deleteProfile(tempActiveProfile);
+          tempActiveProfile = "default";
+        }}>Delete selected profile</button
+      >
+    </div>
+  {/if}
+  {#snippet actions()}
+    <button class="dialog-button" onclick={() => profileListDialog?.close()}
+      >Cancel</button
+    >
+    <button class="dialog-button primary" type="submit" form="load-profile-form"
+      >Load profile</button
+    >
+  {/snippet}
+</Dialog>
 
 <div class="tab-content">
   <div id="settings-content">
@@ -321,82 +373,39 @@
 <style lang="scss">
   @use "../../styles/variables.scss" as *;
 
-  .profile-dialog {
-    // all: unset;
-
-    min-width: 50vw;
-    max-width: 100vw;
-
-    position: absolute;
-
-    // z-index: 10;
-
-    top: 50%;
-    left: 50%;
-    transform-origin: center;
-    transform: translate(-50%, -50%) scale(0.9);
-
+  .profile-form {
     display: flex;
-    background-color: var(--color-secondary);
-    outline: unset;
-    border: unset;
-    padding: 1rem;
-    border-radius: 8px;
     flex-direction: column;
-    gap: 1rem;
-    opacity: 1;
-    color: var(--color-text);
-    transition: 0.2s cubic-bezier(0.45, 0, 0.29, 1.43);
+    gap: var(--space-xs);
 
-    form {
-      display: flex;
-      flex-direction: column;
-      gap: 1rem;
-    }
-
-    button {
-      all: unset;
-      cursor: pointer;
-      flex: 1;
-      padding: 1rem;
-      background-color: var(--color-primary);
-      text-align: center;
+    label {
+      color: var(--color-text);
+      opacity: 0.75;
+      font-size: var(--font-size-sm);
       text-transform: uppercase;
-      letter-spacing: 0.1rem;
-      @include animation-default;
     }
 
-    button:hover {
-      background-color: var(--color-accent-primary);
+    input {
+      box-sizing: border-box;
+      width: 100%;
+      min-width: 0;
+      min-height: 2.5rem;
+      padding: var(--space-s);
+      border: 1px solid var(--color-field-border);
+      border-radius: var(--space-s);
+      background-color: var(--color-primary);
+      color: var(--color-text);
+      font: inherit;
     }
   }
 
-  .profile-dialog:not([open]) {
-    display: none;
-    pointer-events: none;
-  }
-
-  .profile-dialog::backdrop {
-    background: rgba(0, 0, 0, 0.5);
-    backdrop-filter: blur(8px);
-  }
-
-  .modal-open {
-    pointer-events: unset;
-    opacity: 1;
-    transform: translate(-50%, -50%) scale(1);
-  }
-
-  .dialog-backdrop {
-    position: absolute;
-    z-index: 3;
-    width: 100vw;
-    height: 100vh;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    background: rgba(0, 0, 0, 0.5);
-    backdrop-filter: blur(4px);
+  .profile-tools {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-s);
+    margin-top: var(--space-l);
+    padding-top: var(--space-l);
+    border-top: 1px solid var(--color-ruler);
   }
 
   .tab-content {

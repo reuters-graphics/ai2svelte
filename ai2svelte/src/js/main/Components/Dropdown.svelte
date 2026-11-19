@@ -5,10 +5,16 @@
   export interface DropdownProps {
     options?: Array<string>;
     value: string;
+    id?: string;
+    portalTarget?: HTMLElement;
   }
 
-  let { options = [], value = $bindable("Select some option") }: DropdownProps =
-    $props();
+  let {
+    options = [],
+    value = $bindable("Select some option"),
+    id,
+    portalTarget,
+  }: DropdownProps = $props();
 
   // DOM refs for the chaser hover-highlight animation
   let parentContainer: HTMLElement | undefined = $state();
@@ -74,7 +80,7 @@
       Select.Trigger renders as a button with aria-expanded and aria-haspopup.
       The child snippet lets us keep our custom value display and chevron layout.
     -->
-    <Select.Trigger>
+    <Select.Trigger {id}>
       {#snippet child({ props })}
         <button {...props} class="selected-option">
           <div class="value-display">
@@ -105,43 +111,49 @@
       Without rendering this wrapper div, the content lands in normal flow and
       shifts the card layout. props goes on our styled inner div.
     -->
-    <Select.Content>
-      {#snippet child({ props, wrapperProps })}
-        <div {...wrapperProps}>
-          <div {...props} class="dropdown-menu">
-            <ul bind:this={parentContainer}>
-              <!-- Chaser: absolute highlight that slides to the hovered item -->
-              <li
-                class="li-selector"
-                bind:this={chaserElement}
-                aria-hidden="true"
-              >
-                <button tabindex="-1">{value}</button>
-              </li>
+    <Select.Portal to={portalTarget} disabled={!portalTarget}>
+      <Select.Content>
+        {#snippet child({ props, wrapperProps })}
+          <div {...wrapperProps}>
+            <div
+              {...props}
+              class="dropdown-menu"
+              class:portalled={!!portalTarget}
+            >
+              <ul bind:this={parentContainer}>
+                <!-- Chaser: absolute highlight that slides to the hovered item -->
+                <li
+                  class="li-selector"
+                  bind:this={chaserElement}
+                  aria-hidden="true"
+                >
+                  <button tabindex="-1">{value}</button>
+                </li>
 
-              {#each options as opt (opt)}
-                <Select.Item value={opt} label={opt}>
-                  {#snippet child({ props: itemProps })}
-                    <li
-                      {...itemProps}
-                      class="li-item"
-                      data-active={value === opt}
-                      onmouseenter={(e: MouseEvent) =>
-                        (hoveredElement =
-                          e.currentTarget instanceof HTMLElement
-                            ? e.currentTarget
-                            : undefined)}
-                    >
-                      <span>{opt}</span>
-                    </li>
-                  {/snippet}
-                </Select.Item>
-              {/each}
-            </ul>
+                {#each options as opt (opt)}
+                  <Select.Item value={opt} label={opt}>
+                    {#snippet child({ props: itemProps })}
+                      <li
+                        {...itemProps}
+                        class="li-item"
+                        data-active={value === opt}
+                        onmouseenter={(e: MouseEvent) =>
+                          (hoveredElement =
+                            e.currentTarget instanceof HTMLElement
+                              ? e.currentTarget
+                              : undefined)}
+                      >
+                        <span>{opt}</span>
+                      </li>
+                    {/snippet}
+                  </Select.Item>
+                {/each}
+              </ul>
+            </div>
           </div>
-        </div>
-      {/snippet}
-    </Select.Content>
+        {/snippet}
+      </Select.Content>
+    </Select.Portal>
   </Select.Root>
 </div>
 
@@ -206,6 +218,12 @@
       0 0 16px rgba(0, 0, 0, 0.2),
       0 0 4px rgba(0, 0, 0, 0.1);
     width: var(--bits-floating-anchor-width);
+  }
+
+  .dropdown-menu.portalled {
+    max-height: var(--bits-select-content-available-height);
+    overflow-y: auto;
+    overscroll-behavior: contain;
   }
 
   ul {
