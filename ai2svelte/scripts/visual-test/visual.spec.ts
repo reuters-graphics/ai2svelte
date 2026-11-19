@@ -1,8 +1,99 @@
 import { test, expect } from "@playwright/test";
-import { readdirSync } from "node:fs";
+import { readFileSync, readdirSync } from "node:fs";
 import fixtures from "./fixtures.json" with { type: "json" };
 
 for (const fixture of fixtures) {
+  if ("translationHarness" in fixture && fixture.translationHarness) {
+    const outputDir = `scripts/visual-test/.output/${fixture.name}`;
+    const disabled =
+      "settings" in fixture && fixture.settings.include_translations === false;
+    const stale =
+      "translationFixture" in fixture &&
+      "stale" in fixture.translationFixture &&
+      fixture.translationFixture.stale === true;
+    test(`${fixture.name}: generated component ${disabled ? "keeps source-only output" : "switches language and falls back safely"}`, async ({
+      page,
+    }) => {
+      const generated = readFileSync(`${outputDir}/translation.svelte`, "utf8");
+      if (disabled) {
+        expect(generated).not.toContain("__a2sTranslationData");
+        expect(generated).not.toContain("__a2sTranslationGetTextTranslation");
+        expect(generated).not.toContain("{#if __a2sTranslation");
+      }
+      await page.goto(
+        `/scripts/visual-test/harness.html?bundle=/${outputDir}/bundle.js&assetsPath=/${outputDir}`,
+      );
+      await page.waitForFunction(() => (window as any).__aiMounted === true);
+      const content = page.locator("#frameContent");
+      await expect(content).toContainText("Layers fixture");
+
+      if (stale) {
+        await page.getByRole("button", { name: "French", exact: true }).click();
+        await expect(content).toContainText("Layers fixture");
+        await expect(content.locator('p[lang="fr"]')).toHaveCount(0);
+        return;
+      }
+
+      if (disabled) {
+        await page.getByRole("button", { name: "French", exact: true }).click();
+        await expect(content.locator("#g-translation-box")).toHaveAttribute(
+          "lang",
+          "fr",
+        );
+        await expect(content).toContainText("Layers fixture");
+        await expect(content.locator('p[lang="fr"]')).toHaveCount(0);
+        return;
+      }
+
+      await page.getByRole("button", { name: "French", exact: true }).click();
+      const french = content.locator('p[lang="fr"]');
+      await expect(french.first()).toContainText("Carte </script> &");
+      await expect(french).toHaveCount(2);
+      const baseStyleTranslation = french.first().locator("span");
+      await expect(baseStyleTranslation).toContainText("Carte");
+      await expect(baseStyleTranslation).toHaveAttribute("class", /cstyle/);
+      const colors = await french.first().evaluate((paragraph) => ({
+        paragraph: getComputedStyle(paragraph).color,
+        baseStyle: getComputedStyle(paragraph.querySelector("span")!).color,
+      }));
+      expect(colors).toEqual({
+        paragraph: "rgb(220, 38, 38)",
+        baseStyle: "rgb(0, 0, 0)",
+      });
+      expect(await content.locator("script").count()).toBe(0);
+
+      await page.getByRole("button", { name: "French Canada" }).click();
+      await expect(content.locator('p[lang="fr"]')).toHaveCount(2);
+
+      await page.getByRole("button", { name: "Arabic" }).click();
+      const arabic = content.locator('p[lang="ar"]');
+      await expect(arabic).toContainText("خريطة");
+      await expect(arabic).toHaveAttribute("dir", "auto");
+
+      await page.getByRole("button", { name: "German" }).click();
+      await expect(content.locator("#g-translation-box")).toHaveAttribute(
+        "lang",
+        "de",
+      );
+      await expect(content.locator('p[lang="de"]')).toHaveCount(0);
+      await expect(content).toContainText("Layers fixture");
+
+      await page.getByRole("button", { name: "Unknown language" }).click();
+      await expect(content.locator('p[lang="ar"], p[lang="fr"]')).toHaveCount(
+        0,
+      );
+      await expect(content).toContainText("Layers fixture");
+      await content.evaluate((element) => {
+        (element as HTMLElement).style.width = "400px";
+      });
+      await page.getByRole("button", { name: "French", exact: true }).click();
+      await expect(content.locator('p[lang="fr"]').first()).toContainText(
+        "Carte </script> &",
+      );
+    });
+    continue;
+  }
+
   // multiple exports (project_name "x{1,3}y" + layers ending 1/2/3): one
   // component per number, each checked on its own
   if ("files" in fixture) {
@@ -58,7 +149,9 @@ for (const fixture of fixtures) {
       ).toBeGreaterThan(0);
     }
     for (const selector of expected?.absent ?? []) {
-      expect(await page.locator(selector).count(), `${selector} absent`).toBe(0);
+      expect(await page.locator(selector).count(), `${selector} absent`).toBe(
+        0,
+      );
     }
     // "baseline": render must match another fixture's screenshot (e.g. chunked
     // output must look identical to the unchunked export)

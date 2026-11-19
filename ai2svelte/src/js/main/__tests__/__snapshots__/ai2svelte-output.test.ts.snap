@@ -124,9 +124,10 @@ exports[`ai2svelte generated output (visual-test) > layers matches last-approved
 </style>
 
 <script>
-	let { assetsPath = '/', onAiMounted = null, onArtboardChange = null, slot } = $props();
+	let { assetsPath = '/', onAiMounted = null, onArtboardChange = null, lang = "en", slot } = $props();
 
 	import { onMount, untrack } from 'svelte';
+
 
 	let processedPath = $derived(
 		assetsPath.replace(new RegExp('/([^/.]+)$'), '/$1/') || '/',
@@ -164,7 +165,7 @@ exports[`ai2svelte generated output (visual-test) > layers matches last-approved
 	<link rel="preload" as="image" fetchpriority="high" media="(min-width: 0px) and (max-width: 599px)" href="{processedPath}/layers-narrow.png"/>
 </svelte:head>
 
-<div id="g-layers-box" class="ai2svelte" bind:this={aiBox} bind:clientWidth={aiBoxWidth}
+<div id="g-layers-box" class="ai2svelte" bind:this={aiBox} bind:clientWidth={aiBoxWidth} lang={lang}
 	style:--g-png-layer-raster-wide={\`url("\${processedPath}/tagged/layers/layer-raster-wide.png")\`}
 	style:--g-layers-wide-img={\`url("\${processedPath}/layers-wide.png")\`}
 	style:--g-png-layer-raster-narrow={\`url("\${processedPath}/tagged/layers/layer-raster-narrow.png")\`}
@@ -285,9 +286,10 @@ exports[`ai2svelte generated output (visual-test) > layers-settings matches last
 </style>
 
 <script>
-	let { assetsPath = '/', onAiMounted = null, onArtboardChange = null, slot, artboardWidth = $bindable(undefined), lazyMargin = '50% 50%', lazyRoot = null } = $props();
+	let { assetsPath = '/', onAiMounted = null, onArtboardChange = null, lang = "en", slot, artboardWidth = $bindable(undefined), lazyMargin = '50% 50%', lazyRoot = null } = $props();
 
 	import { onMount, untrack } from 'svelte';
+
 
 	let processedPath = $derived(
 		assetsPath.replace(new RegExp('/([^/.]+)$'), '/$1/') || '/',
@@ -383,7 +385,7 @@ exports[`ai2svelte generated output (visual-test) > layers-settings matches last
 
 <svelte:window bind:innerWidth={screenWidth} />
 
-<div id="fx-layers-box" class="ai2svelte" aria-describedby="fx-layers-box-img-desc" bind:this={aiBox}>
+<div id="fx-layers-box" class="ai2svelte" aria-describedby="fx-layers-box-img-desc" bind:this={aiBox} lang={lang}>
 <div class="fx-aiAltText" id="fx-layers-box-img-desc">Map &#123;x&#125; &amp; &quot;y&quot; &lt;z&gt;</div>
 	<a class="fx-ai2svelteLink" href="https://example.com">
 	<!-- Artboard: wide:600,fixed -->
@@ -525,9 +527,10 @@ exports[`ai2svelte generated output (visual-test) > multi-export/multi1step matc
 </style>
 
 <script>
-	let { assetsPath = '/', onAiMounted = null, onArtboardChange = null } = $props();
+	let { assetsPath = '/', onAiMounted = null, onArtboardChange = null, lang = "en" } = $props();
 
 	import { onMount, untrack } from 'svelte';
+
 
 	let processedPath = $derived(
 		assetsPath.replace(new RegExp('/([^/.]+)$'), '/$1/') || '/',
@@ -558,7 +561,7 @@ exports[`ai2svelte generated output (visual-test) > multi-export/multi1step matc
 	});
 </script>
 
-<div id="g-multi1step-box" class="ai2svelte" bind:this={aiBox} bind:clientWidth={aiBoxWidth}
+<div id="g-multi1step-box" class="ai2svelte" bind:this={aiBox} bind:clientWidth={aiBoxWidth} lang={lang}
 	style:--g-multi1step-md-img={\`url("\${processedPath}/multi1step-md.png")\`}
 >
 	<!-- Artboard: md -->
@@ -653,9 +656,10 @@ exports[`ai2svelte generated output (visual-test) > multi-export/multi2step matc
 </style>
 
 <script>
-	let { assetsPath = '/', onAiMounted = null, onArtboardChange = null } = $props();
+	let { assetsPath = '/', onAiMounted = null, onArtboardChange = null, lang = "en" } = $props();
 
 	import { onMount, untrack } from 'svelte';
+
 
 	let processedPath = $derived(
 		assetsPath.replace(new RegExp('/([^/.]+)$'), '/$1/') || '/',
@@ -686,7 +690,7 @@ exports[`ai2svelte generated output (visual-test) > multi-export/multi2step matc
 	});
 </script>
 
-<div id="g-multi2step-box" class="ai2svelte" bind:this={aiBox} bind:clientWidth={aiBoxWidth}
+<div id="g-multi2step-box" class="ai2svelte" bind:this={aiBox} bind:clientWidth={aiBoxWidth} lang={lang}
 	style:--g-multi1step-md-img={\`url("\${processedPath}/multi1step-md.png")\`}
 	style:--g-multi2step-md-img={\`url("\${processedPath}/multi2step-md.png")\`}
 >
@@ -789,9 +793,10 @@ exports[`ai2svelte generated output (visual-test) > multi-export/multi3step matc
 </style>
 
 <script>
-	let { assetsPath = '/', onAiMounted = null, onArtboardChange = null } = $props();
+	let { assetsPath = '/', onAiMounted = null, onArtboardChange = null, lang = "en" } = $props();
 
 	import { onMount, untrack } from 'svelte';
+
 
 	let processedPath = $derived(
 		assetsPath.replace(new RegExp('/([^/.]+)$'), '/$1/') || '/',
@@ -822,7 +827,7 @@ exports[`ai2svelte generated output (visual-test) > multi-export/multi3step matc
 	});
 </script>
 
-<div id="g-multi3step-box" class="ai2svelte" bind:this={aiBox} bind:clientWidth={aiBoxWidth}
+<div id="g-multi3step-box" class="ai2svelte" bind:this={aiBox} bind:clientWidth={aiBoxWidth} lang={lang}
 	style:--g-multi1step-md-img={\`url("\${processedPath}/multi1step-md.png")\`}
 	style:--g-multi2step-md-img={\`url("\${processedPath}/multi2step-md.png")\`}
 	style:--g-multi3step-md-img={\`url("\${processedPath}/multi3step-md.png")\`}
@@ -1623,9 +1628,10 @@ $sizes: (sm: 4px, md: 8px, lg: 16px);
 </style>
 
 <script>
-	let { assetsPath = '/', onAiMounted = null, onArtboardChange = null } = $props();
+	let { assetsPath = '/', onAiMounted = null, onArtboardChange = null, lang = "en" } = $props();
 
 	import { onMount, untrack } from 'svelte';
+
 
 	let processedPath = $derived(
 		assetsPath.replace(new RegExp('/([^/.]+)$'), '/$1/') || '/',
@@ -1656,7 +1662,7 @@ $sizes: (sm: 4px, md: 8px, lg: 16px);
 	});
 </script>
 
-<div id="g-presets-box" class="ai2svelte" bind:this={aiBox} bind:clientWidth={aiBoxWidth}
+<div id="g-presets-box" class="ai2svelte" bind:this={aiBox} bind:clientWidth={aiBoxWidth} lang={lang}
 	style:--g-presets-Artboard_1-img={\`url("\${processedPath}/presets-Artboard_1.png")\`}
 >
 	<!-- Artboard: Artboard 1 -->
@@ -2137,9 +2143,10 @@ exports[`ai2svelte generated output (visual-test) > preview-dev matches last-app
 </style>
 
 <script>
-	let { assetsPath = '/', onAiMounted = null, onArtboardChange = null, chart, taggedText = {text: {}, htext: {}}, debugTaggedText = false } = $props();
+	let { assetsPath = '/', onAiMounted = null, onArtboardChange = null, lang = "en", chart, taggedText = {text: {}, htext: {}}, debugTaggedText = false } = $props();
 
 	import { onMount, untrack } from 'svelte';
+
 
 	let processedPath = $derived(
 		assetsPath.replace(new RegExp('/([^/.]+)$'), '/$1/') || '/',
@@ -2170,7 +2177,7 @@ exports[`ai2svelte generated output (visual-test) > preview-dev matches last-app
 	});
 </script>
 
-<div id="g-preview-dev-box" class="ai2svelte" bind:this={aiBox} bind:clientWidth={aiBoxWidth} style:--debug-tagged-text={debugTaggedText ? 'visible' : 'hidden'}
+<div id="g-preview-dev-box" class="ai2svelte" bind:this={aiBox} bind:clientWidth={aiBoxWidth} lang={lang} style:--debug-tagged-text={debugTaggedText ? 'visible' : 'hidden'}
 	style:--debug-stroke={debugTaggedText ? '2px' : '0px'}
 	style:--g-png24-layer-image-xs={\`url("\${processedPath}/tagged/preview-dev/layer-image-xs.png")\`}
 	style:--g-preview-dev-xs-img={\`url("\${processedPath}/preview-dev-xs.jpg")\`}
@@ -2869,9 +2876,10 @@ exports[`ai2svelte generated output (visual-test) > preview-dev-chunked matches 
 </style>
 
 <script>
-	let { assetsPath = '/', onAiMounted = null, onArtboardChange = null, chart, taggedText = {text: {}, htext: {}}, debugTaggedText = false } = $props();
+	let { assetsPath = '/', onAiMounted = null, onArtboardChange = null, lang = "en", chart, taggedText = {text: {}, htext: {}}, debugTaggedText = false } = $props();
 
 	import { onMount, untrack } from 'svelte';
+
 
 	let processedPath = $derived(
 		assetsPath.replace(new RegExp('/([^/.]+)$'), '/$1/') || '/',
@@ -2902,7 +2910,7 @@ exports[`ai2svelte generated output (visual-test) > preview-dev-chunked matches 
 	});
 </script>
 
-<div id="g-preview-dev-box" class="ai2svelte" bind:this={aiBox} bind:clientWidth={aiBoxWidth} style:--debug-tagged-text={debugTaggedText ? 'visible' : 'hidden'}
+<div id="g-preview-dev-box" class="ai2svelte" bind:this={aiBox} bind:clientWidth={aiBoxWidth} lang={lang} style:--debug-tagged-text={debugTaggedText ? 'visible' : 'hidden'}
 	style:--debug-stroke={debugTaggedText ? '2px' : '0px'}
 	style:--g-png24-layer-image-xs={\`url("\${processedPath}/tagged/preview-dev/layer-image-xs.png")\`}
 	style:--g-preview-dev-xs-img-r0c0={\`url("\${processedPath}/chunks/preview-dev-xs-r0c0.jpg")\`}
@@ -3545,9 +3553,10 @@ exports[`ai2svelte generated output (visual-test) > preview-dev-svg matches last
 </style>
 
 <script>
-	let { assetsPath = '/', onAiMounted = null, onArtboardChange = null, chart, taggedText = {text: {}, htext: {}}, debugTaggedText = false } = $props();
+	let { assetsPath = '/', onAiMounted = null, onArtboardChange = null, lang = "en", chart, taggedText = {text: {}, htext: {}}, debugTaggedText = false } = $props();
 
 	import { onMount, untrack } from 'svelte';
+
 
 	let processedPath = $derived(
 		assetsPath.replace(new RegExp('/([^/.]+)$'), '/$1/') || '/',
@@ -3578,7 +3587,7 @@ exports[`ai2svelte generated output (visual-test) > preview-dev-svg matches last
 	});
 </script>
 
-<div id="g-preview-dev-box" class="ai2svelte" bind:this={aiBox} bind:clientWidth={aiBoxWidth} style:--debug-tagged-text={debugTaggedText ? 'visible' : 'hidden'}
+<div id="g-preview-dev-box" class="ai2svelte" bind:this={aiBox} bind:clientWidth={aiBoxWidth} lang={lang} style:--debug-tagged-text={debugTaggedText ? 'visible' : 'hidden'}
 	style:--debug-stroke={debugTaggedText ? '2px' : '0px'}
 	style:--g-png24-layer-image-xs={\`url("\${processedPath}/tagged/preview-dev/layer-image-xs.png")\`}
 	style:--g-png24-layer-image-sm={\`url("\${processedPath}/tagged/preview-dev/layer-image-sm.png")\`}
@@ -3833,5 +3842,68 @@ taggedText={
 -->
 
 <!-- End ai2svelte - <timestamp> -->
+"
+`;
+
+exports[`ai2svelte generated output (visual-test) > translations matches last-approved snapshot 1`] = `
+"<script>
+  import Graphic from "./translation.svelte";
+
+  let {
+    assetsPath = "/",
+    onAiMounted = null,
+    onArtboardChange = null,
+  } = $props();
+  let lang = $state("en");
+</script>
+
+<button type="button" onclick={() => (lang = "fr")}>French</button>
+<button type="button" onclick={() => (lang = "fr-CA")}>French Canada</button>
+<button type="button" onclick={() => (lang = "ar")}>Arabic</button>
+<button type="button" onclick={() => (lang = "de")}>German</button>
+<button type="button" onclick={() => (lang = "it")}>Unknown language</button>
+<Graphic {assetsPath} {onAiMounted} {onArtboardChange} {lang} />
+"
+`;
+
+exports[`ai2svelte generated output (visual-test) > translations-disabled matches last-approved snapshot 1`] = `
+"<script>
+  import Graphic from "./translation.svelte";
+
+  let {
+    assetsPath = "/",
+    onAiMounted = null,
+    onArtboardChange = null,
+  } = $props();
+  let lang = $state("en");
+</script>
+
+<button type="button" onclick={() => (lang = "fr")}>French</button>
+<button type="button" onclick={() => (lang = "fr-CA")}>French Canada</button>
+<button type="button" onclick={() => (lang = "ar")}>Arabic</button>
+<button type="button" onclick={() => (lang = "de")}>German</button>
+<button type="button" onclick={() => (lang = "it")}>Unknown language</button>
+<Graphic {assetsPath} {onAiMounted} {onArtboardChange} {lang} />
+"
+`;
+
+exports[`ai2svelte generated output (visual-test) > translations-stale matches last-approved snapshot 1`] = `
+"<script>
+  import Graphic from "./translation.svelte";
+
+  let {
+    assetsPath = "/",
+    onAiMounted = null,
+    onArtboardChange = null,
+  } = $props();
+  let lang = $state("en");
+</script>
+
+<button type="button" onclick={() => (lang = "fr")}>French</button>
+<button type="button" onclick={() => (lang = "fr-CA")}>French Canada</button>
+<button type="button" onclick={() => (lang = "ar")}>Arabic</button>
+<button type="button" onclick={() => (lang = "de")}>German</button>
+<button type="button" onclick={() => (lang = "it")}>Unknown language</button>
+<Graphic {assetsPath} {onAiMounted} {onArtboardChange} {lang} />
 "
 `;

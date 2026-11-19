@@ -22,6 +22,8 @@
 
   import { version } from "../../../../shared/shared";
   import { tooltip } from "svooltip";
+  import { parseTextTranslationStore } from "../../../../shared/textTranslations";
+  import { canonicalizeLanguageTags } from "../../utils/languages";
 
   let { refreshSettings = () => {}, minimal = false } = $props();
 
@@ -107,14 +109,36 @@
           withSnapshot(async () => {
             const t = Date.now();
             try {
-              return await evalTS("runAi2Svelte", {
-                settings: {
-                  show_completion_dialog_box: true,
-                  ...$settingsObject,
+              const translationDocument = (await evalTS(
+                "fetchTextTranslationDocument",
+              )) as { identity: string; data: unknown } | undefined;
+              if (!translationDocument?.identity) {
+                throw new Error(
+                  "Save the active Illustrator document before exporting translations.",
+                );
+              }
+              const textTranslations = parseTextTranslationStore(
+                translationDocument.data,
+              );
+              textTranslations.languages = canonicalizeLanguageTags(
+                textTranslations.languages,
+              );
+              return await evalTS(
+                "runAi2Svelte",
+                {
+                  settings: {
+                    show_completion_dialog_box: true,
+                    ...$settingsObject,
+                  },
+                  code: {
+                    css: $stylesString,
+                    fontsConfig: userData.fontsConfig,
+                  },
+                  deferCompletion: true,
+                  textTranslations,
                 },
-                code: { css: $stylesString, fontsConfig: userData.fontsConfig },
-                deferCompletion: true,
-              });
+                translationDocument.identity,
+              );
             } finally {
               engineMs = Date.now() - t;
             }

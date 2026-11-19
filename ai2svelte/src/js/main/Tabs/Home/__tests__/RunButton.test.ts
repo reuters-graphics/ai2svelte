@@ -21,6 +21,20 @@ function unstubCep() {
   vi.unstubAllGlobals();
 }
 
+function translationDocument() {
+  return {
+    identity: "/project/map.ai",
+    saved: true,
+    data: {
+      schemaVersion: 1,
+      sourceLanguage: "en",
+      languages: ["en"],
+      nextMessageId: 1,
+      messages: [],
+    },
+  };
+}
+
 describe("RunButton", () => {
   beforeEach(async () => {
     vi.clearAllMocks();
@@ -57,10 +71,12 @@ describe("RunButton", () => {
 
     beforeEach(() => {
       stubCep();
-      evalTS.mockResolvedValue({
-        missingFontFamilies: [],
-        errors: [],
-        warnings: [],
+      evalTS.mockImplementation(async (fn: string) => {
+        if (fn === "fetchTextTranslationDocument") return translationDocument();
+        if (fn === "runAi2Svelte") {
+          return { missingFontFamilies: [], errors: [], warnings: [] };
+        }
+        return true;
       });
       vi.useFakeTimers();
       user = userEvent.setup({ delay: null });
@@ -81,16 +97,20 @@ describe("RunButton", () => {
           settings: expect.any(Object),
           code: expect.any(Object),
         }),
+        "/project/map.ai",
       );
     });
 
     it("preserves the wave source after a successful export longer than two seconds", async () => {
       let finishExport!: (value: unknown) => void;
-      evalTS.mockImplementation((fn: string) =>
-        fn === "runAi2Svelte"
+      evalTS.mockImplementation((fn: string) => {
+        if (fn === "fetchTextTranslationDocument") {
+          return Promise.resolve(translationDocument());
+        }
+        return fn === "runAi2Svelte"
           ? new Promise((resolve) => (finishExport = resolve))
-          : Promise.resolve(true),
-      );
+          : Promise.resolve(true);
+      });
       render(RunButton);
       const button = screen.getByRole("button");
       await user.click(button);
@@ -163,11 +183,12 @@ describe("RunButton", () => {
     });
 
     it("does not set triggerWave when the engine reports errors", async () => {
-      evalTS.mockImplementation(async (fn: string) =>
-        fn === "runAi2Svelte"
+      evalTS.mockImplementation(async (fn: string) => {
+        if (fn === "fetchTextTranslationDocument") return translationDocument();
+        return fn === "runAi2Svelte"
           ? { missingFontFamilies: [], errors: ["x"], warnings: [] }
-          : true,
-      );
+          : true;
+      });
       render(RunButton);
       await user.click(screen.getByRole("button"));
       await vi.runAllTimersAsync();
@@ -177,11 +198,11 @@ describe("RunButton", () => {
 
     it("shows a toast when settings could not be saved", async () => {
       const mountSpy = vi.spyOn(Svelte, "mount");
-      evalTS.mockImplementation(async (fn: string) =>
-        fn === "setVariable"
-          ? false
-          : { missingFontFamilies: [], errors: [], warnings: [] },
-      );
+      evalTS.mockImplementation(async (fn: string) => {
+        if (fn === "fetchTextTranslationDocument") return translationDocument();
+        if (fn === "setVariable") return false;
+        return { missingFontFamilies: [], errors: [], warnings: [] };
+      });
       render(RunButton);
       await user.click(screen.getByRole("button"));
       await vi.runAllTimersAsync();
@@ -197,11 +218,14 @@ describe("RunButton", () => {
 
     it("ignores a second click while the export is pending", async () => {
       let resolve!: (v: unknown) => void;
-      evalTS.mockImplementation((fn: string) =>
-        fn === "runAi2Svelte"
+      evalTS.mockImplementation((fn: string) => {
+        if (fn === "fetchTextTranslationDocument") {
+          return Promise.resolve(translationDocument());
+        }
+        return fn === "runAi2Svelte"
           ? new Promise((r) => (resolve = r))
-          : Promise.resolve(true),
-      );
+          : Promise.resolve(true);
+      });
       render(RunButton);
       const btn = screen.getByRole("button");
       await user.click(btn);

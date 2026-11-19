@@ -10,6 +10,10 @@ export interface TextFrameGroup {
   // The most common variant when copies differ slightly.
   text: string;
   count: number;
+  // Stable semantic signature; unlike visible numeric marks, style keys do
+  // not change when a scan compacts the style registry.
+  signature: string;
+  styleKeys: string[];
   // True when copies differ in case, line breaks, spacing, quotes, dashes
   // or ellipses.
   inconsistent: boolean;
@@ -17,6 +21,7 @@ export interface TextFrameGroup {
 
 export interface TextStyleInfo {
   id: number;
+  key: string;
   font: string;
   size: number;
 }
@@ -24,6 +29,7 @@ export interface TextStyleInfo {
 export interface DocTextData {
   groups: TextFrameGroup[];
   styles: TextStyleInfo[];
+  identity?: string;
 }
 
 export interface TextReplacementResult {
@@ -61,6 +67,7 @@ interface ScannedFrame {
   frame: TextFrame;
   artboard: number;
   text: string;
+  signature: string;
   base: CapturedStyle | null;
 }
 
@@ -144,7 +151,7 @@ function valueKey(name: string, value: unknown): string {
 
 function captureStyle(attributes: CharacterAttributes): CapturedStyle {
   const values: StyleValues = {};
-  let key = "";
+  const keyParts: string[] = [];
   for (let i = 0; i < STYLE_ATTRIBUTES.length; i++) {
     const name = STYLE_ATTRIBUTES[i];
     let value: unknown;
@@ -154,9 +161,9 @@ function captureStyle(attributes: CharacterAttributes): CapturedStyle {
       value = undefined;
     }
     values[name] = value;
-    key += "|" + valueKey(name, value);
+    keyParts.push(valueKey(name, value));
   }
-  return { key, values };
+  return { key: JSON.stringify(keyParts), values };
 }
 
 function applyStyle(attributes: CharacterAttributes, style: CapturedStyle) {
@@ -232,6 +239,51 @@ function findBaseStyle(runs: StyleRun[]): CapturedStyle {
     }
   }
   return base;
+}
+
+function signatureForRuns(runs: StyleRun[]): string {
+  if (!runs || runs.length === 0) {
+    throw new Error("Text with unreadable styles cannot be identified safely.");
+  }
+  const base = findBaseStyle(runs);
+  const segments: Array<{ text: string; styleKey: string | null }> = [];
+  for (let i = 0; i < runs.length; i++) {
+    segments.push({
+      text: runs[i].text.replace(/\r/g, "\n"),
+      styleKey: runs[i].style.key === base.key ? null : runs[i].style.key,
+    });
+  }
+  return JSON.stringify(segments);
+}
+
+export function getTextFrameStyleRuns(
+  frame: TextFrame,
+): Array<{ text: string; styleKey: string | null }> {
+  const contents = String(frame.contents);
+  const runs = readStyleRuns(frame, contents);
+  if (!runs) return [];
+  const base = findBaseStyle(runs);
+  const segments: Array<{ text: string; styleKey: string | null }> = [];
+  for (let i = 0; i < runs.length; i++) {
+    segments.push({
+      text: runs[i].text,
+      styleKey: runs[i].style.key === base.key ? null : runs[i].style.key,
+    });
+  }
+  return segments;
+}
+
+export function getTextFrameSemanticSignature(frame: TextFrame): string {
+  const contents = String(frame.contents);
+  const runs = readStyleRuns(frame, contents);
+  if (!runs) {
+    throw new Error(
+      'Could not read character styles for "' +
+        toPanelText(contents) +
+        '". Text with unreadable styles cannot be identified safely.',
+    );
+  }
+  return signatureForRuns(runs);
 }
 
 // Illustrator reports a paragraph return with the preceding character's
@@ -362,6 +414,7 @@ function scanDocument(
       frame,
       artboard,
       text: toPanelText(contents),
+      signature: "",
       base: null,
     });
   }
@@ -369,9 +422,10 @@ function scanDocument(
 
   const plainRepeated = repeatedAcrossArtboards(candidates);
   let analyzed = total - candidates.length;
-  for (let i = 0; i < candidates.length; i++) {
-    if (includeAllText || !plainRepeated[nearKey(candidates[i].text)])
-      analyzed++;
+  if (!includeAllText) {
+    for (let i = 0; i < candidates.length; i++) {
+      if (!plainRepeated[nearKey(candidates[i].text)]) analyzed++;
+    }
   }
   if (progress) progress("analyze", analyzed, total);
 
@@ -397,8 +451,6 @@ function scanDocument(
 
     const base = findBaseStyle(runs);
     scanned.base = base;
-    if (runs.length === 1) continue;
-
     let text = "";
     for (let j = 0; j < runs.length; j++) {
       const run = runs[j];
@@ -414,6 +466,7 @@ function scanDocument(
       text += wrapRunText(toPanelText(run.text), styleId);
     }
     scanned.text = text;
+    scanned.signature = signatureForRuns(runs);
   }
 
   // Test again after marking style runs: plain-text repetition alone must
@@ -439,8 +492,12 @@ function collectSelectors(
   const groups: TextFrameGroup[] = [];
   const groupIndexes: Record<string, number> = {};
 
-  const variants: Array<{ texts: string[]; counts: Record<string, number> }> =
-    [];
+  const variants: Array<{
+    texts: string[];
+    counts: Record<string, number>;
+    signatures: Record<string, boolean>;
+  }> = [];
+  const groupStyleKeys: string[][] = [];
 
   for (let i = 0; i < scan.frames.length; i++) {
     const text = scan.frames[i].text;
@@ -448,17 +505,45 @@ function collectSelectors(
     const groupIndex = groupIndexes[key];
 
     let group: TextFrameGroup;
-    let variant: { texts: string[]; counts: Record<string, number> };
+    let variant: {
+      texts: string[];
+      counts: Record<string, number>;
+      signatures: Record<string, boolean>;
+    };
     if (typeof groupIndex === "number") {
       group = groups[groupIndex];
       variant = variants[groupIndex];
       group.count++;
     } else {
       groupIndexes[key] = groups.length;
-      group = { text, count: 1, inconsistent: false };
-      variant = { texts: [], counts: {} };
+      group = {
+        text,
+        count: 1,
+        inconsistent: false,
+        signature: "",
+        styleKeys: [],
+      };
+      variant = { texts: [], counts: {}, signatures: {} };
       groups.push(group);
       variants.push(variant);
+      groupStyleKeys.push([]);
+    }
+    variant.signatures["$" + scan.frames[i].signature] = true;
+    const signatureSegments = JSON.parse(scan.frames[i].signature) as Array<{
+      styleKey: string | null;
+    }>;
+    for (let j = 0; j < signatureSegments.length; j++) {
+      const styleKey = signatureSegments[j].styleKey;
+      let foundStyleKey = false;
+      for (let k = 0; k < groupStyleKeys[groupIndexes[key]].length; k++) {
+        if (groupStyleKeys[groupIndexes[key]][k] === styleKey) {
+          foundStyleKey = true;
+          break;
+        }
+      }
+      if (styleKey && !foundStyleKey) {
+        groupStyleKeys[groupIndexes[key]].push(styleKey);
+      }
     }
     const variantKey = "$" + text;
     if (!variant.counts[variantKey]) {
@@ -478,6 +563,20 @@ function collectSelectors(
     }
     groups[i].text = best;
     groups[i].inconsistent = texts.length > 1;
+    const signatures: string[] = [];
+    for (const signatureKey in variants[i].signatures) {
+      if (
+        Object.prototype.hasOwnProperty.call(
+          variants[i].signatures,
+          signatureKey,
+        )
+      ) {
+        signatures.push(signatureKey.slice(1));
+      }
+    }
+    signatures.sort();
+    groups[i].signature = JSON.stringify(signatures);
+    groups[i].styleKeys = groupStyleKeys[i].sort();
   }
 
   const styles: TextStyleInfo[] = [];
@@ -487,12 +586,43 @@ function collectSelectors(
     const size = values.size;
     styles.push({
       id: scan.styles[i].id,
+      key: scan.styles[i].style.key,
       font: font ? String(font.name) : "",
       size: typeof size === "number" ? Math.round(size * 10) / 10 : 0,
     });
   }
 
   return { groups, styles };
+}
+
+export function getDocumentFrameGroupSignatures(): Record<string, string> {
+  const scan = scanDocument(undefined, true);
+  const groupSignatures: Record<
+    string,
+    { seen: Record<string, boolean>; variants: string[] }
+  > = {};
+  for (let i = 0; i < scan.frames.length; i++) {
+    const key = nearKey(scan.frames[i].text);
+    if (!groupSignatures[key]) {
+      groupSignatures[key] = { seen: {}, variants: [] };
+    }
+    const signature = scan.frames[i].signature;
+    if (!groupSignatures[key].seen["$" + signature]) {
+      groupSignatures[key].seen["$" + signature] = true;
+      groupSignatures[key].variants.push(signature);
+    }
+  }
+
+  const frameToGroup: Record<string, string> = {};
+  for (const key in groupSignatures) {
+    if (!Object.prototype.hasOwnProperty.call(groupSignatures, key)) continue;
+    const variants = groupSignatures[key].variants.sort();
+    const groupSignature = JSON.stringify(variants);
+    for (let i = 0; i < variants.length; i++) {
+      frameToGroup[variants[i]] = groupSignature;
+    }
+  }
+  return frameToGroup;
 }
 
 export function fetchSelectors(
@@ -513,12 +643,13 @@ export function fetchSelectors(
         lastUpdate = now;
         lastPhase = phase;
         const fraction = total > 0 ? done / total : 1;
-        ui.panel.text =
-          phase === "collect"
-            ? includeAllText
-              ? "Finding text"
-              : "Finding repeated text"
-            : "Analyzing text styles";
+        if (phase === "collect") {
+          ui.panel.text = includeAllText
+            ? "Finding text"
+            : "Finding repeated text";
+        } else {
+          ui.panel.text = "Analyzing text styles";
+        }
         ui.label.text =
           (phase === "collect" ? "Checked " : "Analyzed ") +
           done +

@@ -35,6 +35,11 @@
 import { defaultSettings, placeholderSettings } from "./settings";
 import { LAZY_SCRIPT } from "./lazyScript";
 import { createProgressWindow } from "../progressWindow";
+import {
+  getDocumentFrameGroupSignatures,
+  getTextFrameSemanticSignature,
+  getTextFrameStyleRuns,
+} from "../fetchSelectors";
 
 import {
   caps,
@@ -170,6 +175,13 @@ export function main(settingsArg) {
     text: {},
     htext: {},
   };
+  let textTranslationStore;
+  let textTranslationsEnabled = false;
+  let sourceLanguage = "en";
+  let translationRuntimePrefix = "__a2sTranslation";
+  let frameGroupSignatures = {};
+  let usedTranslationMessages = {};
+  let translationStyleMaps = [];
   let imgVars = {};
   let hasChunkedImages = false; // emit the tile CSS rule only when needed
   let hasLazyImages = false; // emit the lazy attachment only when needed
@@ -248,9 +260,45 @@ export function main(settingsArg) {
     textBlockData = initSettings(settingsArg);
 
     docSettings = initDocumentSettings(textBlockData.settings);
+    while (
+      containsPrefix(docSettings.snippetProps || [], translationRuntimePrefix)
+    ) {
+      translationRuntimePrefix += "_";
+    }
     docSlug =
       docSettings.project_name || makeDocumentSlug(getRawDocumentName());
     nameSpace = docSettings.namespace || nameSpace;
+    textTranslationStore =
+      settingsArg.textTranslations || defaultTextTranslationStore();
+    sourceLanguage =
+      typeof textTranslationStore.sourceLanguage == "string"
+        ? textTranslationStore.sourceLanguage
+        : "en";
+    textTranslationsEnabled =
+      isTrue(docSettings.include_translations) &&
+      textTranslationStore.schemaVersion == 1 &&
+      textTranslationStore.languages &&
+      textTranslationStore.languages.length > 1;
+    if (
+      textTranslationsEnabled &&
+      contains(docSettings.snippetProps || [], "lang")
+    ) {
+      error(
+        'The snippet prop "lang" conflicts with ai2svelte text translations. Rename the snippet prop or disable include_translations.',
+      );
+    }
+    if (textTranslationsEnabled) {
+      try {
+        frameGroupSignatures = getDocumentFrameGroupSignatures();
+      } catch (signatureError) {
+        warnOnce(
+          "Text translations were skipped because some source text styles could not be identified safely.",
+          "translation-signature-error",
+        );
+        textTranslationsEnabled = false;
+        frameGroupSignatures = {};
+      }
+    }
 
     finishExport({}); // an earlier run whose panel step never finished
     if (Number(settingsArg.timeoutSeconds) > 0) {
@@ -367,6 +415,84 @@ export function main(settingsArg) {
     warnings: warnings,
   };
 
+  function defaultTextTranslationStore() {
+    return {
+      schemaVersion: 1,
+      sourceLanguage: "en",
+      languages: ["en"],
+      nextMessageId: 1,
+      messages: [],
+    };
+  }
+
+  function containsPrefix(values, prefix) {
+    for (var i = 0; i < values.length; i++) {
+      if (String(values[i]).indexOf(prefix) === 0) return true;
+    }
+    return false;
+  }
+
+  function translationRuntimeName(suffix) {
+    return translationRuntimePrefix + suffix;
+  }
+
+  function hasSavedTranslations(message) {
+    if (!message || !message.translations) return false;
+    for (var i = 0; i < textTranslationStore.languages.length; i++) {
+      var language = textTranslationStore.languages[i];
+      if (
+        message.translations[language] &&
+        message.translations[language].length > 0
+      ) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  function warnSkippedArtboardTranslations(ab, masks, settings, reason) {
+    if (!textTranslationsEnabled) return;
+    var frames = getTextFramesByArtboard(ab, masks, settings);
+    for (var i = 0; i < frames.length; i++) {
+      var message = translationMessageForFrame(frames[i]);
+      if (message) {
+        warnOnce(reason, "skipped-translation-" + message.id);
+      }
+    }
+  }
+
+  function translationMessageForFrame(frame) {
+    if (!textTranslationsEnabled) return null;
+    var frameSignature, groupSignature, messages, message;
+    try {
+      frameSignature = getTextFrameSemanticSignature(frame);
+    } catch (e) {
+      return null;
+    }
+
+    groupSignature = frameGroupSignatures[frameSignature];
+    if (!groupSignature) return null;
+    messages = textTranslationStore.messages || [];
+    for (var i = 0; i < messages.length; i++) {
+      message = messages[i];
+      if (
+        message.signature === groupSignature &&
+        message.reviewedSignature === groupSignature &&
+        hasSavedTranslations(message)
+      ) {
+        return message;
+      }
+    }
+    return null;
+  }
+
+  function safeJsonLiteral(value) {
+    return JSON.stringify(value)
+      .replace(/</g, "\\u003c")
+      .replace(/\u2028/g, "\\u2028")
+      .replace(/\u2029/g, "\\u2029");
+  }
+
   // =================================
   // ai2svelte render function
   // =================================
@@ -410,6 +536,8 @@ export function main(settingsArg) {
   // render a group of artboards and save to a file
   function renderArtboardGroup(group, masks, settings, textBlockContent) {
     var output = { html: "", js: "", css: "" };
+    usedTranslationMessages = {};
+    translationStyleMaps = [];
 
     forEach(group.artboards, function (activeArtboard) {
       var abIndex = findArtboardIndex(activeArtboard);
@@ -427,6 +555,12 @@ export function main(settingsArg) {
 
       if (abSettings.image_only || settings.render_text_as == "image") {
         // don't convert text objects to HTML
+        warnSkippedArtboardTranslations(
+          activeArtboard,
+          masks,
+          settings,
+          "Text in image-only output stays in the source language.",
+        );
         textFrames = [];
         // html is an array of {z, html}, like convertTextFrames returns
         textData = { html: [], styles: [] };
@@ -2003,7 +2137,13 @@ export function main(settingsArg) {
     return tagName ? straightenCurlyQuotesInsideAngleBrackets(str) : str;
   }
 
-  function generateParagraphHtml(pData, baseStyle, pStyles, cStyles) {
+  function generateParagraphHtml(
+    pData,
+    baseStyle,
+    pStyles,
+    cStyles,
+    translationStyleMap,
+  ) {
     var html, diff, range, rangeHtml;
     if (pData.text.length === 0) {
       // empty pg
@@ -2022,16 +2162,22 @@ export function main(settingsArg) {
       range = pData.ranges[j];
       rangeHtml = escapeBraces(cleanHtmlText(cleanHtmlTags(range.text)));
       diff = objectDiff(range.cssStyle, pData.cssStyle);
+      var className = "";
+      var spaceEncodedHtml = rangeHtml;
       if (diff) {
-        const spaceEncodedHtml = rangeHtml
+        className = getTextStyleClass(diff, cStyles, "cstyle");
+        spaceEncodedHtml = rangeHtml
           .replace(/^ +/, () => "&nbsp;")
           .replace(/ +$/, () => "&nbsp;");
+      }
+      if (translationStyleMap && range.translationStyleKeys) {
+        for (var k = 0; k < range.translationStyleKeys.length; k++) {
+          translationStyleMap[range.translationStyleKeys[k]] = className;
+        }
+      }
+      if (diff) {
         rangeHtml =
-          '<span class="' +
-          getTextStyleClass(diff, cStyles, "cstyle") +
-          '">' +
-          spaceEncodedHtml +
-          "</span>";
+          '<span class="' + className + '">' + spaceEncodedHtml + "</span>";
       }
       html += rangeHtml;
     }
@@ -2039,13 +2185,117 @@ export function main(settingsArg) {
     return html;
   }
 
-  function generateTextFrameHtml(paragraphs, baseStyle, pStyles, cStyles) {
+  function generateTextFrameHtml(
+    paragraphs,
+    baseStyle,
+    pStyles,
+    cStyles,
+    translationStyleMap,
+  ) {
     var html = "";
     for (var i = 0; i < paragraphs.length; i++) {
       html +=
         "\r\t\t\t" +
-        generateParagraphHtml(paragraphs[i], baseStyle, pStyles, cStyles);
+        generateParagraphHtml(
+          paragraphs[i],
+          baseStyle,
+          pStyles,
+          cStyles,
+          translationStyleMap,
+        );
     }
+    return html;
+  }
+
+  function assignTranslationStyleKeys(paragraphs, styleRuns) {
+    var runIndex = 0;
+    var runOffset = 0;
+    var i, j, range, remaining, overlap, run, keys;
+    for (i = 0; i < paragraphs.length; i++) {
+      for (j = 0; j < paragraphs[i].ranges.length; j++) {
+        range = paragraphs[i].ranges[j];
+        remaining = range.text.length;
+        keys = [];
+        while (remaining > 0 && runIndex < styleRuns.length) {
+          run = styleRuns[runIndex];
+          overlap = Math.min(remaining, run.text.length - runOffset);
+          var semanticKey = run.styleKey || "__base__";
+          if (contains(keys, semanticKey) === false) {
+            keys.push(semanticKey);
+          }
+          remaining -= overlap;
+          runOffset += overlap;
+          if (runOffset >= run.text.length) {
+            runIndex++;
+            runOffset = 0;
+          }
+        }
+        range.translationStyleKeys = keys;
+      }
+      if (i < paragraphs.length - 1 && runIndex < styleRuns.length) {
+        run = styleRuns[runIndex];
+        if (run.text.charAt(runOffset) == "\r") {
+          runOffset++;
+          if (runOffset >= run.text.length) {
+            runIndex++;
+            runOffset = 0;
+          }
+        }
+      }
+    }
+  }
+
+  function firstParagraphStyleClass(paragraphs, baseStyle, pStyles) {
+    for (var i = 0; i < paragraphs.length; i++) {
+      if (!paragraphs[i].text) continue;
+      var diff = objectDiff(paragraphs[i].cssStyle, baseStyle);
+      return diff ? getTextStyleClass(diff, pStyles, "pstyle") : "";
+    }
+    return "";
+  }
+
+  function makeTranslationStyleMapName(styleMap) {
+    var name = translationRuntimeName("Styles") + translationStyleMaps.length;
+    translationStyleMaps.push({ name: name, map: styleMap });
+    return name;
+  }
+
+  function generateTranslatedTextHtml(message, styleMapName, paragraphClass) {
+    var translationFunction = translationRuntimeName("GetTextTranslation");
+    var linesFunction = translationRuntimeName("TranslationLines");
+    var resolvedLanguage = translationRuntimeName("ResolvedLanguage");
+    var segmentStyleKey = "(segment.styleKey || '__base__')";
+    var html =
+      "{#if " +
+      translationFunction +
+      '("' +
+      message.id +
+      '")}\r{#each ' +
+      linesFunction +
+      "(" +
+      translationFunction +
+      '("' +
+      message.id +
+      '")) as line}\r\t<p' +
+      (paragraphClass ? ' class="' + paragraphClass + '"' : "") +
+      " lang={" +
+      resolvedLanguage +
+      '} dir="auto" style="white-space: pre-wrap;">';
+    html +=
+      "{#if line.length === 0}&nbsp;{:else}{#each line as segment}{#if " +
+      styleMapName +
+      "[" +
+      segmentStyleKey +
+      "] && " +
+      styleMapName +
+      "[" +
+      segmentStyleKey +
+      "].length}<span class={" +
+      styleMapName +
+      "[" +
+      segmentStyleKey +
+      "]}>{segment.text}</span>{:else}{segment.text}{/if}{/each}{/if}";
+    html += "</p>\r{/each}\r{:else}\r";
     return html;
   }
 
@@ -2201,9 +2451,14 @@ export function main(settingsArg) {
   // Convert a collection of TextFrames to HTML and CSS
   function convertTextFrames(textFrames, ab, settings) {
     var frameData = map(textFrames, function (frame) {
-      return {
+      var data = {
         paragraphs: importTextFrameParagraphs(frame),
       };
+      if (textTranslationsEnabled) {
+        data.translationStyleRuns = getTextFrameStyleRuns(frame);
+        assignTranslationStyleKeys(data.paragraphs, data.translationStyleRuns);
+      }
+      return data;
     });
     var pgStyles = [];
     var charStyles = [];
@@ -2222,8 +2477,17 @@ export function main(settingsArg) {
       //   var isTagged = false;
 
       var html = "";
+      var translationMessage = translationMessageForFrame(frame);
+      var translationStyleMap = {};
+      var sourceHtml = "";
 
       if (isTagged && objName) {
+        if (translationMessage) {
+          warnOnce(
+            "A translated text group is tagged. Its taggedText value takes precedence; the Illustrator text stays as the source language.",
+            "tagged-translation-" + translationMessage.id,
+          );
+        }
         if (isTrue(settings.override_text)) {
           html += "\r\t\t\t";
           html += generateTaggedTextFrameHtml(
@@ -2240,15 +2504,31 @@ export function main(settingsArg) {
             baseStyle,
             pgStyles,
             charStyles,
+            translationStyleMap,
           );
         }
       } else {
-        html = generateTextFrameHtml(
+        sourceHtml = generateTextFrameHtml(
           obj.paragraphs,
           baseStyle,
           pgStyles,
           charStyles,
+          translationStyleMap,
         );
+        if (translationMessage) {
+          usedTranslationMessages[translationMessage.id] = translationMessage;
+          var styleMapName = makeTranslationStyleMapName(translationStyleMap);
+          html =
+            generateTranslatedTextHtml(
+              translationMessage,
+              styleMapName,
+              firstParagraphStyleClass(obj.paragraphs, baseStyle, pgStyles),
+            ) +
+            sourceHtml +
+            "{/if}";
+        } else {
+          html = sourceHtml;
+        }
       }
 
       return {
@@ -2256,6 +2536,9 @@ export function main(settingsArg) {
           '\t\t<div id="' +
           divId +
           '" ' +
+          (textTranslationsEnabled
+            ? 'lang="' + sourceLanguage + '" dir="auto" '
+            : "") +
           getNoteDataAttributes(frame.note) +
           positionCss +
           ">" +
@@ -5613,15 +5896,45 @@ export function main(settingsArg) {
     return count;
   }
 
+  function getOutputTranslationDictionary() {
+    var dictionary = {};
+    for (var i = 0; i < textTranslationStore.languages.length; i++) {
+      var language = textTranslationStore.languages[i];
+      dictionary[language] = {};
+      for (var id in usedTranslationMessages) {
+        if (!Object.prototype.hasOwnProperty.call(usedTranslationMessages, id))
+          continue;
+        var translated = usedTranslationMessages[id].translations[language];
+        if (translated && translated.length > 0) {
+          dictionary[language][id] = translated;
+        }
+      }
+    }
+    return dictionary;
+  }
+
   // generates <script> code
   function generateSvelteScript(group, settings) {
     var script = "<script>\r";
 
     script +=
-      "\tlet { assetsPath = '/', onAiMounted = null, onArtboardChange = null";
+      "\tlet { assetsPath = '/', onAiMounted = null, onArtboardChange = null, lang = " +
+      safeJsonLiteral(sourceLanguage);
 
     if (getObjectKeyCount(docSettings.snippetProps) > 0) {
-      script += ", " + docSettings.snippetProps.join(", ");
+      var snippetProps = [];
+      for (
+        var propIndex = 0;
+        propIndex < docSettings.snippetProps.length;
+        propIndex++
+      ) {
+        if (docSettings.snippetProps[propIndex] !== "lang") {
+          snippetProps.push(docSettings.snippetProps[propIndex]);
+        }
+      }
+      if (snippetProps.length > 0) {
+        script += ", " + snippetProps.join(", ");
+      }
     }
 
     if (
@@ -5648,6 +5961,103 @@ export function main(settingsArg) {
     script += " } = $props();\r\r";
 
     script += "\timport { onMount, untrack } from 'svelte';\r\r";
+    if (textTranslationsEnabled) {
+      var sourceLanguageName = translationRuntimeName("SourceLanguage");
+      var translationDataName = translationRuntimeName("Data");
+      var configuredLanguagesName = translationRuntimeName(
+        "ConfiguredLanguages",
+      );
+      var resolveLanguageName = translationRuntimeName("ResolveLanguage");
+      var resolvedLanguageName = translationRuntimeName("ResolvedLanguage");
+      var getTranslationName = translationRuntimeName("GetTextTranslation");
+      var translationLinesName = translationRuntimeName("TranslationLines");
+      script +=
+        "\tconst " +
+        sourceLanguageName +
+        " = " +
+        safeJsonLiteral(sourceLanguage) +
+        ";\r";
+      script +=
+        "\tconst " +
+        translationDataName +
+        " = " +
+        safeJsonLiteral(getOutputTranslationDictionary()) +
+        ";\r";
+      script +=
+        "\tconst " +
+        configuredLanguagesName +
+        " = " +
+        safeJsonLiteral(textTranslationStore.languages) +
+        ";\r";
+      script +=
+        "\tfunction " +
+        resolveLanguageName +
+        "(requested) {\r" +
+        "\t\tconst exact = String(requested || " +
+        sourceLanguageName +
+        ");\r" +
+        "\t\tif (" +
+        configuredLanguagesName +
+        ".indexOf(exact) >= 0) return exact;\r" +
+        "\t\tconst dash = exact.indexOf('-');\r" +
+        "\t\tif (dash > 0) {\r" +
+        "\t\t\tconst base = exact.slice(0, dash);\r" +
+        "\t\t\tif (" +
+        configuredLanguagesName +
+        ".indexOf(base) >= 0) return base;\r" +
+        "\t\t}\r" +
+        "\t\treturn " +
+        sourceLanguageName +
+        ";\r" +
+        "\t}\r" +
+        "\tlet " +
+        resolvedLanguageName +
+        " = $derived(" +
+        resolveLanguageName +
+        "(lang));\r" +
+        "\tfunction " +
+        getTranslationName +
+        "(id) {\r" +
+        "\t\tconst language = " +
+        translationDataName +
+        "[" +
+        resolvedLanguageName +
+        "];\r" +
+        "\t\treturn language && language[id] && language[id].length ? language[id] : null;\r" +
+        "\t}\r" +
+        "\tfunction " +
+        translationLinesName +
+        "(segments) {\r" +
+        "\t\tconst lines = [[]];\r" +
+        "\t\tfor (let i = 0; i < segments.length; i++) {\r" +
+        "\t\t\tconst segment = segments[i];\r" +
+        "\t\t\tconst text = String(segment.text);\r" +
+        "\t\t\tlet start = 0;\r" +
+        "\t\t\tlet next = text.indexOf('\\n', start);\r" +
+        "\t\t\twhile (next >= 0) {\r" +
+        "\t\t\t\tlines[lines.length - 1].push({ text: text.slice(start, next), styleKey: segment.styleKey });\r" +
+        "\t\t\t\tlines.push([]);\r" +
+        "\t\t\t\tstart = next + 1;\r" +
+        "\t\t\t\tnext = text.indexOf('\\n', start);\r" +
+        "\t\t\t}\r" +
+        "\t\t\tlines[lines.length - 1].push({ text: text.slice(start), styleKey: segment.styleKey });\r" +
+        "\t\t}\r" +
+        "\t\treturn lines;\r" +
+        "\t}\r";
+      for (
+        var styleMapIndex = 0;
+        styleMapIndex < translationStyleMaps.length;
+        styleMapIndex++
+      ) {
+        script +=
+          "\tconst " +
+          translationStyleMaps[styleMapIndex].name +
+          " = " +
+          safeJsonLiteral(translationStyleMaps[styleMapIndex].map) +
+          ";\r";
+      }
+    }
+    script += "\r";
     script += "\tlet processedPath = $derived(\r";
     script +=
       "\t\tassetsPath.replace(new RegExp('/([^/.]+)$'), '/$1/') || '/',\r";
@@ -5818,6 +6228,9 @@ export function main(settingsArg) {
     }
 
     var rootBindings = "";
+    var rootLanguageBinding = textTranslationsEnabled
+      ? "lang={" + translationRuntimeName("ResolvedLanguage") + "}"
+      : "lang={lang}";
 
     if (isTrue(settings.allow_overflow)) {
       html += "<svelte:window bind:innerWidth={screenWidth} />\r\r";
@@ -5853,6 +6266,8 @@ export function main(settingsArg) {
       ariaAttrs +
       " " +
       rootBindings +
+      " " +
+      rootLanguageBinding +
       (debugTaggedTextVariable ? " " + debugTaggedTextVariable : "") +
       (bgVars.length > 0 ? "\r\t" + bgVars.join("\r\t") + "\r" : "") +
       ">\r";

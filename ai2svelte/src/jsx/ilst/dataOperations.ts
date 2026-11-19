@@ -69,7 +69,7 @@ export function storeHiddenData(key: string, value: unknown) {
   }
 }
 
-export function getHiddenData(key: string) {
+export function getHiddenData(key: string, strict = false) {
   let raw: string | null = null;
   let xmpFile: XMPFileInstance | null = null;
   try {
@@ -99,13 +99,18 @@ export function getHiddenData(key: string) {
     }
   } catch (e) {
     $.writeln("Error retrieving data: " + (e as Error).description);
+    if (strict) throw e;
     return {};
   } finally {
     closeQuietly(xmpFile);
   }
 
-  // Parse outside the try: a corrupt stored value must surface as an error
-  // (the bridge turns a throw into a rejection), not read back as "no settings".
   if (raw === null) return {};
-  return JSON.parse(raw);
+  try {
+    return JSON.parse(raw);
+  } catch (e) {
+    $.writeln("Error parsing stored data: " + (e as Error).description);
+    if (strict) throw e;
+    return {};
+  }
 }

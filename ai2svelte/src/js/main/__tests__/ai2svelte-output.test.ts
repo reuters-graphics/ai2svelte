@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { execFileSync } from "node:child_process";
 import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { createHash } from "node:crypto";
 import path from "node:path";
@@ -47,6 +48,45 @@ describe("ai2svelte generated output (visual-test)", () => {
           expect(normalized).toMatchSnapshot();
         },
       );
+
+      if ("translationHarness" in fixture && fixture.translationHarness) {
+        const disabled =
+          "settings" in fixture &&
+          fixture.settings.include_translations === false;
+        const stale =
+          "translationFixture" in fixture &&
+          "stale" in fixture.translationFixture &&
+          fixture.translationFixture.stale === true;
+        it.skipIf(!existsSync(outputDir))(
+          `${label} renders actual generated translations in SSR`,
+          () => {
+            const svelteFile = readdirSync(outputDir).find(
+              (file) =>
+                file.endsWith(".svelte") &&
+                file !== "translation-wrapper.svelte",
+            );
+            const filename = path.join(outputDir, svelteFile as string);
+            const mode = disabled
+              ? "disabled"
+              : stale
+                ? "stale"
+                : "translations";
+            const result = execFileSync(
+              process.execPath,
+              [
+                path.resolve(
+                  __dirname,
+                  "../../../../scripts/visual-test/ssr-check.mjs",
+                ),
+                filename,
+                mode,
+              ],
+              { encoding: "utf8" },
+            );
+            expect(result).toContain("SSR generated component passed");
+          },
+        );
+      }
     }
   }
 });

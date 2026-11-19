@@ -30,9 +30,10 @@ try {
     `$.evalFile(${JSON.stringify(bundle)});
 (function () {
   var A = $["com.reuters-graphics.ai2svelte"];
-  var previous = app.documents.length ? app.activeDocument : null;
   var doc = app.documents.add(DocumentColorSpace.RGB, 500, 500);
   var assertions = 0;
+  var lastCheck = "";
+  var failure = "";
   try {
     doc.artboards.add([600, 500, 1100, 0]);
     doc.artboards.add([1200, 500, 1700, 0]);
@@ -43,6 +44,7 @@ try {
     var black = new RGBColor(); black.red = 0; black.green = 0; black.blue = 0;
 
     function check(condition, message) {
+      lastCheck = message;
       if (!condition) throw new Error(message);
       assertions++;
     }
@@ -63,11 +65,39 @@ try {
     }
     function group(data, plain) {
       for (var i = 0; i < data.groups.length; i++) {
-        if (data.groups[i].text.replace(/<\\/?\\d+>/g, "") === plain) {
+        if (plainText(data.groups[i].text) === plain) {
           return data.groups[i];
         }
       }
       return null;
+    }
+    function plainText(marked) {
+      var result = "";
+      for (var i = 0; i < marked.length; i++) {
+        var character = marked.charAt(i);
+        if (character == "\\\\" && marked.charAt(i + 1) == "<") {
+          result += "<";
+          i++;
+          continue;
+        }
+        if (character == "<") {
+          var end = marked.indexOf(">", i + 1);
+          if (end > i) {
+            var tag = marked.substring(i + 1, end);
+            var number = tag.charAt(0) == "/" ? tag.substring(1) : tag;
+            var digits = number.length > 0;
+            for (var j = 0; j < number.length; j++) {
+              if (number.charAt(j) < "0" || number.charAt(j) > "9") digits = false;
+            }
+            if (digits) {
+              i = end;
+              continue;
+            }
+          }
+        }
+        result += character;
+      }
+      return result;
     }
 
     add("Only here", 0, 450);
@@ -133,6 +163,29 @@ try {
     app.redraw();
 
     var data = A.fetchDocSelectors();
+    var allText = A.fetchDocSelectors(false, true);
+    check(group(allText, "Only here").count === 2,
+      "Show all text includes repeated text confined to one artboard");
+    check(group(allText, "One-off").count === 1,
+      "Show all text includes singleton text");
+    check(typeof group(allText, "Across boards").signature === "string",
+      "Text groups expose stable semantic signatures");
+    check(group(allText, "Across boards").styleKeys instanceof Array,
+      "Text groups expose semantic style keys");
+    check(A.revealDocText("Only here", 0, true),
+      "Show all text can reveal same-artboard-only groups");
+    var allTextResult = A.replaceDocText("One-off", "Singleton updated", true);
+    check(allTextResult.updated === 1,
+      "Show all text can replace singleton text");
+    var singletonVisible = false;
+    var refreshedAllText = A.fetchDocSelectors(false, true);
+    for (var allTextIndex = 0; allTextIndex < refreshedAllText.groups.length; allTextIndex++) {
+      if (refreshedAllText.groups[allTextIndex].text === "Singleton updated") {
+        singletonVisible = true;
+      }
+    }
+    check(singletonVisible,
+      "The singleton replacement is visible on the next all-text scan");
     check(JSON.stringify(A.fetchDocSelectors(true)) === JSON.stringify(data),
       "Showing native progress must not change groups or styles");
     var progressWindow = Window.find("palette", "Scanning Illustrator text");
@@ -208,12 +261,21 @@ try {
     check(result.updated === 2 && result.failed === 0, "Replace text using the first compacted style");
     check(otherStyled[0].textRange.characters[6].characterAttributes.fillColor.green === 255,
       "The compacted style ID must still apply the correct formatting");
+    var totalSignature = group(A.fetchDocSelectors(), "Total: $9").signature;
     otherStyled[0].contents = "No longer repeated";
     data = A.fetchDocSelectors();
     check(data.styles.length === 1 && data.styles[0].id === 1,
       "Refresh must remove a vanished style and renumber remaining styles");
-    check(group(data, "Total: $9").text === "Total: <1>$9</1>",
-      "Remaining text must use the renumbered style tag");
+    var remainingTotalGroup = null;
+    for (var remainingIndex = 0; remainingIndex < data.groups.length; remainingIndex++) {
+      if (data.groups[remainingIndex].text.indexOf("Total: ") === 0) {
+        remainingTotalGroup = data.groups[remainingIndex];
+      }
+    }
+    check(remainingTotalGroup && remainingTotalGroup.text === "Total: <1>$9</1>",
+      "Remaining text must use the renumbered style tag: " + JSON.stringify(data.groups));
+    check(remainingTotalGroup && remainingTotalGroup.signature === totalSignature,
+      "Semantic identity must survive compact style-ID renumbering");
     styled[0].contents = "Also no longer repeated";
     check(A.fetchDocSelectors().styles.length === 0,
       "No style chips should remain when no visible groups use styles");
@@ -250,11 +312,16 @@ try {
     check(literalFrames[0].contents === literalText.replace("ok", "yes") &&
       literalFrames[1].contents === literalText.replace("ok", "yes"),
       "Style compaction must preserve literal tags, backslashes and paragraph breaks");
-    return JSON.stringify({ assertions: assertions });
+  } catch (e) {
+    failure = lastCheck + ": " + (e && e.message ? e.message : String(e));
   } finally {
-    doc.close(SaveOptions.DONOTSAVECHANGES);
-    if (previous) previous.activate();
+    try {
+      doc.close(SaveOptions.DONOTSAVECHANGES);
+    } catch (closeError) {
+      failure = failure || "Could not close the temporary test document.";
+    }
   }
+  return JSON.stringify({ assertions: assertions, failure: failure });
 })();`,
   );
   const output = execFileSync(
@@ -268,6 +335,7 @@ end timeout`,
     { encoding: "utf8", timeout: 150_000 },
   );
   const result = JSON.parse(output.trim());
+  if (result.failure) throw new Error(result.failure);
   console.log(
     `Illustrator text regression: ${result.assertions} assertions passed.`,
   );

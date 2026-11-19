@@ -62,6 +62,71 @@
     }
   },
   {
+    "name": "translations",
+    "aiPath": "scripts/visual-test/fixtures/layers.ai",
+    "translationHarness": true,
+    "translationFixture": {
+      "sourceText": "Layers fixture",
+      "inlineStyleText": "fixture",
+      "languages": ["fr", "ar", "de"],
+      "translations": {
+        "fr": [
+          { "text": "Carte ", "styleKey": null },
+          { "text": "</script> & \u2028\n", "styleKey": "@inline" }
+        ],
+        "ar": [{ "text": "خريطة", "styleKey": null }]
+      }
+    },
+    "settings": {
+      "project_name": "translation",
+      "priority_fetch": true
+    }
+  },
+  {
+    "name": "translations-disabled",
+    "aiPath": "scripts/visual-test/fixtures/layers.ai",
+    "translationHarness": true,
+    "translationFixture": {
+      "sourceText": "Layers fixture",
+      "inlineStyleText": "fixture",
+      "languages": ["fr", "ar", "de"],
+      "translations": {
+        "fr": [
+          { "text": "Carte ", "styleKey": null },
+          { "text": "</script> & \u2028\n", "styleKey": "@inline" }
+        ],
+        "ar": [{ "text": "خريطة", "styleKey": null }]
+      }
+    },
+    "settings": {
+      "project_name": "translation",
+      "priority_fetch": true,
+      "include_translations": false
+    }
+  },
+  {
+    "name": "translations-stale",
+    "aiPath": "scripts/visual-test/fixtures/layers.ai",
+    "translationHarness": true,
+    "translationFixture": {
+      "sourceText": "Layers fixture",
+      "inlineStyleText": "fixture",
+      "languages": ["fr", "ar", "de"],
+      "stale": true,
+      "translations": {
+        "fr": [
+          { "text": "Carte ", "styleKey": null },
+          { "text": "</script> & \u2028\n", "styleKey": "@inline" }
+        ],
+        "ar": [{ "text": "خريطة", "styleKey": null }]
+      }
+    },
+    "settings": {
+      "project_name": "translation",
+      "priority_fetch": true
+    }
+  },
+  {
     "name": "layers-settings",
     "aiPath": "scripts/visual-test/fixtures/layers.ai",
     "settings": {

@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   canonicalizeLanguageTag,
   canonicalizeLanguageTags,
@@ -6,6 +6,10 @@ import {
 } from "../main/utils/languages";
 
 describe("language tags", () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
   it("canonicalizes language, script, and region subtags", () => {
     expect(canonicalizeLanguageTag(" EN-us ")).toBe("en-US");
     expect(canonicalizeLanguageTag("zh-hant-tw")).toBe("zh-Hant-TW");
@@ -26,6 +30,7 @@ describe("language tags", () => {
   });
 
   it("falls back to the canonical tag if display names are unavailable", () => {
-    expect(languageDisplayName("fr")).toBeTruthy();
+    vi.stubGlobal("Intl", { ...Intl, DisplayNames: undefined });
+    expect(languageDisplayName("fr")).toBe("fr");
   });
 });

@@ -7,10 +7,25 @@
   import { aiSettingsTokens } from "../../utils/settingsTokens";
   import { checkWebpSupport } from "../../utils/rasterJobs";
   import { convertStringToObject } from "./utils";
+  import { csi, evalTS } from "../../../lib/utils/bolt";
+  import { canonicalizeLanguageTags } from "../../utils/languages";
+  import { parseTextTranslationStore } from "../../../../shared/textTranslations";
 
   let { activeFormat = $bindable("UI"), defaultProfile } = $props();
 
   let codeContent: HTMLElement | undefined = $state();
+  let hasMultipleLanguages = $state(false);
+  let translationCountGeneration = 0;
+  const visibleSettingKeys = $derived(
+    Object.keys($settingsObject).filter(
+      (key) => key !== "include_translations" || hasMultipleLanguages,
+    ),
+  );
+  const visibleSettingsTokens = $derived(
+    aiSettingsTokens.filter(
+      (token) => token.label !== "include_translations" || hasMultipleLanguages,
+    ),
+  );
 
   // webp is hidden where the panel can't encode it, unless it's already the
   // saved value (other systems can still export it; here the images are kept
@@ -20,7 +35,7 @@
 
   // holds key-value pairs as string
   let yamlString: string = $derived.by(() => {
-    return Object.keys($settingsObject)
+    return visibleSettingKeys
       .filter((key) => $settingsObject[key] !== null)
       .map((key) => `${key}: ${$settingsObject[key]}`)
       .join("\n")
@@ -32,10 +47,50 @@
   // Sync the derived yamlString to the editable version when styles change
   let editableYamlString: string = $derived(yamlString);
 
+  async function refreshTranslationLanguageCount() {
+    const generation = ++translationCountGeneration;
+    try {
+      const result = (await evalTS("fetchTextTranslationDocument")) as
+        { data?: unknown } | undefined;
+      const store = parseTextTranslationStore(result?.data);
+      if (generation === translationCountGeneration) {
+        hasMultipleLanguages =
+          canonicalizeLanguageTags(store.languages).length > 1;
+      }
+    } catch (error) {
+      if (generation === translationCountGeneration) {
+        hasMultipleLanguages = false;
+      }
+    }
+  }
+
   onMount(() => {
+    void refreshTranslationLanguageCount();
+    const handleDocumentChange = () => {
+      void refreshTranslationLanguageCount();
+    };
+    csi.addEventListener("documentAfterActivate", handleDocumentChange);
+    const handleTranslationUpdate = (event: Event) => {
+      const count = (event as CustomEvent<{ languageCount?: number }>).detail
+        ?.languageCount;
+      if (typeof count === "number") hasMultipleLanguages = count > 1;
+      else void refreshTranslationLanguageCount();
+    };
+    window.addEventListener(
+      "text-translations-updated",
+      handleTranslationUpdate,
+    );
     if (Object.keys($settingsObject).length === 0) {
       $settingsObject = { ...defaultProfile };
     }
+    return () => {
+      window.removeEventListener(
+        "text-translations-updated",
+        handleTranslationUpdate,
+      );
+      translationCountGeneration++;
+      csi.removeEventListener("documentAfterActivate", handleDocumentChange);
+    };
   });
 </script>
 
@@ -51,7 +106,7 @@
     {#if activeFormat === "UI"}
       <div id="ui-form" class="options content-item">
         {#if $settingsObject && aiSettingsTokens}
-          {#each Object.keys($settingsObject) as key, index (key)}
+          {#each visibleSettingKeys as key, index (key)}
             {@const type =
               aiSettingsTokens.find((item) => item.label == key)?.inputType ||
               "text"}
@@ -110,9 +165,25 @@
             type="yaml"
             bind:textValue={editableYamlString}
             onUpdate={(e: string) => {
-              $settingsObject = convertStringToObject(e);
+              const next = convertStringToObject(e);
+              if (
+                !hasMultipleLanguages &&
+                Object.prototype.hasOwnProperty.call(
+                  $settingsObject,
+                  "include_translations",
+                ) &&
+                !Object.prototype.hasOwnProperty.call(
+                  next,
+                  "include_translations",
+                )
+              ) {
+                next.include_translations = String(
+                  $settingsObject.include_translations,
+                );
+              }
+              $settingsObject = next;
             }}
-            autoCompletionTokens={aiSettingsTokens}
+            autoCompletionTokens={visibleSettingsTokens}
           />
         {/if}
       </div>

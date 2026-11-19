@@ -159,6 +159,14 @@ export let aiSettingsTokens = [
     inputType: "text",
   },
   {
+    label: "include_translations",
+    type: "variable",
+    info: "Embed reviewed manual text translations when the document has multiple languages. Options: true, false",
+    default: "true",
+    inputType: "select",
+    options: ["true", "false"],
+  },
+  {
     label: "include_resizer_widths",
     type: "variable",
     info: "Add data-min/max-width to the artboard containers. Options: true, false",

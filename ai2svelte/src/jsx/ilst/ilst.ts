@@ -6,6 +6,10 @@ import {
 } from "./fetchSelectors";
 import { addSnippet } from "./addSnippet";
 import { storeHiddenData, getHiddenData } from "./dataOperations";
+import {
+  TEXT_TRANSLATIONS_KEY,
+  TextTranslationStore,
+} from "../../shared/textTranslations";
 import { main, exportProgress, finishExport } from "./ai2svelte/ai2svelte";
 import {
   getDocPath,
@@ -34,7 +38,9 @@ export const fetchDocSelectors = (
   includeAllText = false,
 ) => {
   if (app) {
-    return fetchSelectors(showProgress, includeAllText);
+    const data = fetchSelectors(showProgress, includeAllText);
+    data.identity = getSavedDocumentIdentity();
+    return data;
   }
 };
 
@@ -76,8 +82,62 @@ export const getVariable = (key: string) => {
   }
 };
 
-export const runAi2Svelte = (settings: Record<string, unknown>) => {
+function getSavedDocumentIdentity() {
+  try {
+    const doc = app.activeDocument;
+    return doc.saved ? String(doc.fullName.fsName) : "";
+  } catch (error) {
+    return "";
+  }
+}
+
+export const fetchTextTranslationDocument = () => {
+  if (!app) return undefined;
+  const identity = getSavedDocumentIdentity();
+  return {
+    identity,
+    saved: !!identity,
+    data: identity ? getHiddenData(TEXT_TRANSLATIONS_KEY, true) : {},
+  };
+};
+
+export const getActiveDocumentIdentity = () => {
+  if (!app) return "";
+  return getSavedDocumentIdentity();
+};
+
+export const saveTextTranslations = (
+  expectedIdentity: string,
+  value: TextTranslationStore,
+) => {
+  if (!app) return { ok: false, reason: "Illustrator is unavailable." };
+  const identity = getSavedDocumentIdentity();
+  if (!identity) {
+    return {
+      ok: false,
+      reason: "Save this Illustrator document before saving translations.",
+    };
+  }
+  if (identity !== expectedIdentity) {
+    return {
+      ok: false,
+      reason:
+        "The active Illustrator document changed. Refresh Text and retry.",
+    };
+  }
+  return { ok: storeHiddenData(TEXT_TRANSLATIONS_KEY, value), identity };
+};
+
+export const runAi2Svelte = (
+  settings: Record<string, unknown>,
+  expectedIdentity?: string,
+) => {
   if (app) {
+    if (expectedIdentity && getSavedDocumentIdentity() !== expectedIdentity) {
+      throw new Error(
+        "The active Illustrator document changed before export. Run export again.",
+      );
+    }
     return main(settings);
   }
 };

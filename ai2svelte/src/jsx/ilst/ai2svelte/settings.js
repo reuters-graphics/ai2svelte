@@ -20,6 +20,7 @@ export let defaultSettings = {
   image_chunk_height: 0, // split images taller than this many output px into tiles; 0 = off
   include_resizer_widths: true,
   include_resizer_css: true, // container-query resizing
+  include_translations: true,
   inline_svg: false, // Embed background image SVG in HTML instead of loading a file
   svg_id_prefix: "", // Prefix SVG ids with a string to disambiguate from other ids on the page
   svg_embed_images: false,
