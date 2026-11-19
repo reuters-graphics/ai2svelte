@@ -411,7 +411,9 @@ function compile(gl: WebGL2RenderingContext, type: number, src: string) {
   gl.shaderSource(sh, src);
   gl.compileShader(sh);
   if (!gl.getShaderParameter(sh, gl.COMPILE_STATUS)) {
-    throw new Error(`${type === gl.VERTEX_SHADER ? "vertex" : "fragment"} shader: ${gl.isContextLost() ? "context lost" : gl.getShaderInfoLog(sh)}`);
+    throw new Error(
+      `${type === gl.VERTEX_SHADER ? "vertex" : "fragment"} shader: ${gl.isContextLost() ? "context lost" : gl.getShaderInfoLog(sh)}`,
+    );
   }
   return sh;
 }
@@ -423,7 +425,8 @@ function program(gl: WebGL2RenderingContext, vs: string, fs: string) {
   gl.bindAttribLocation(p, 0, "aPos");
   gl.bindAttribLocation(p, 0, "aDot");
   gl.linkProgram(p);
-  if (!gl.getProgramParameter(p, gl.LINK_STATUS)) throw new Error(gl.getProgramInfoLog(p) || "link");
+  if (!gl.getProgramParameter(p, gl.LINK_STATUS))
+    throw new Error(gl.getProgramInfoLog(p) || "link");
   const cache = new Map<string, WebGLUniformLocation | null>();
   const loc = (name: string) => {
     if (!cache.has(name)) cache.set(name, gl.getUniformLocation(p, name));
@@ -501,7 +504,10 @@ export class WaveRenderer {
   private blur: ReturnType<typeof program>;
   private copy: ReturnType<typeof program>;
   private dot: ReturnType<typeof program>;
-  private screens: Record<ScreenSlot, Screen | null> = { content: null, revealed: null };
+  private screens: Record<ScreenSlot, Screen | null> = {
+    content: null,
+    revealed: null,
+  };
   private blank: WebGLTexture | null = null;
   private sizePt = { w: 1, h: 1 };
   private farBlur = -1;
@@ -515,7 +521,10 @@ export class WaveRenderer {
   private alpha: boolean;
   readonly ok: boolean;
 
-  constructor(private canvas: HTMLCanvasElement, options: RendererOptions = {}) {
+  constructor(
+    private canvas: HTMLCanvasElement,
+    options: RendererOptions = {},
+  ) {
     this.alpha = !!options.alpha;
     const gl = canvas.getContext("webgl2", {
       antialias: false,
@@ -529,7 +538,11 @@ export class WaveRenderer {
     this.gl = gl as WebGL2RenderingContext;
     if (!gl) {
       this.quad = this.dots = null as unknown as WebGLBuffer;
-      this.main = this.blur = this.copy = this.dot = null as unknown as ReturnType<typeof program>;
+      this.main =
+        this.blur =
+        this.copy =
+        this.dot =
+          null as unknown as ReturnType<typeof program>;
       return;
     }
     this.main = program(gl, VERT, MAIN_FRAG);
@@ -538,7 +551,11 @@ export class WaveRenderer {
     this.dot = program(gl, DOT_VERT, DOT_FRAG);
     this.quad = gl.createBuffer()!;
     gl.bindBuffer(gl.ARRAY_BUFFER, this.quad);
-    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]), gl.STATIC_DRAW);
+    gl.bufferData(
+      gl.ARRAY_BUFFER,
+      new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]),
+      gl.STATIC_DRAW,
+    );
     this.dots = gl.createBuffer()!;
   }
 
@@ -550,7 +567,9 @@ export class WaveRenderer {
 
   /** The largest picture a screen can hold, per side, in pixels. */
   get maxTextureSize(): number {
-    return this.ok ? (this.gl.getParameter(this.gl.MAX_TEXTURE_SIZE) as number) : 0;
+    return this.ok
+      ? (this.gl.getParameter(this.gl.MAX_TEXTURE_SIZE) as number)
+      : 0;
   }
 
   /** Whether a screen has been given for this slot. */
@@ -558,14 +577,42 @@ export class WaveRenderer {
     return !!this.screens[which];
   }
 
-  private texture(w: number, h: number, source?: TexImageSource, mip = false): WebGLTexture {
+  private texture(
+    w: number,
+    h: number,
+    source?: TexImageSource,
+    mip = false,
+  ): WebGLTexture {
     const gl = this.gl;
     const tex = gl.createTexture()!;
     gl.bindTexture(gl.TEXTURE_2D, tex);
     gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, false);
-    if (source) gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, source);
-    else gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, w, h, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, mip ? gl.LINEAR_MIPMAP_LINEAR : gl.LINEAR);
+    if (source)
+      gl.texImage2D(
+        gl.TEXTURE_2D,
+        0,
+        gl.RGBA,
+        gl.RGBA,
+        gl.UNSIGNED_BYTE,
+        source,
+      );
+    else
+      gl.texImage2D(
+        gl.TEXTURE_2D,
+        0,
+        gl.RGBA,
+        w,
+        h,
+        0,
+        gl.RGBA,
+        gl.UNSIGNED_BYTE,
+        null,
+      );
+    gl.texParameteri(
+      gl.TEXTURE_2D,
+      gl.TEXTURE_MIN_FILTER,
+      mip ? gl.LINEAR_MIPMAP_LINEAR : gl.LINEAR,
+    );
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
@@ -578,7 +625,13 @@ export class WaveRenderer {
     const tex = this.texture(w, h);
     const fb = gl.createFramebuffer()!;
     gl.bindFramebuffer(gl.FRAMEBUFFER, fb);
-    gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, tex, 0);
+    gl.framebufferTexture2D(
+      gl.FRAMEBUFFER,
+      gl.COLOR_ATTACHMENT0,
+      gl.TEXTURE_2D,
+      tex,
+      0,
+    );
     return { tex, fb, w, h };
   }
 
@@ -600,7 +653,13 @@ export class WaveRenderer {
   /** A blurred copy of `sharp` into `into` (made, or remade at a new size):
       downsampled so the kernel stays short, then blurred along x and y.
       `sigmaPt` is the blur radius in points. */
-  private blurred(sharp: WebGLTexture, w: number, h: number, sigmaPt: number, into: Target | null): Target {
+  private blurred(
+    sharp: WebGLTexture,
+    w: number,
+    h: number,
+    sigmaPt: number,
+    into: Target | null,
+  ): Target {
     const gl = this.gl;
     const pxPerPt = w / this.sizePt.w;
     const sigmaPx = sigmaPt * pxPerPt;
@@ -656,7 +715,13 @@ export class WaveRenderer {
       sides of the app's wave show the same morphing view; give the revealed
       screen too and the wave carries one into the other. Called again while
       a screen changes: the textures are refilled in place. */
-  setScreen(source: TexImageSource, widthPt: number, heightPt: number, blurPt: number, which: ScreenSlot = "content") {
+  setScreen(
+    source: TexImageSource,
+    widthPt: number,
+    heightPt: number,
+    blurPt: number,
+    which: ScreenSlot = "content",
+  ) {
     if (!this.ok) return;
     const gl = this.gl;
     const { w, h } = pixelSize(source);
@@ -668,11 +733,24 @@ export class WaveRenderer {
       s = null;
     }
     if (!s) {
-      s = { sharp: this.texture(w, h, source, true), near: null, far: null, w, h };
+      s = {
+        sharp: this.texture(w, h, source, true),
+        near: null,
+        far: null,
+        w,
+        h,
+      };
     } else {
       gl.bindTexture(gl.TEXTURE_2D, s.sharp);
       gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, false);
-      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, source);
+      gl.texImage2D(
+        gl.TEXTURE_2D,
+        0,
+        gl.RGBA,
+        gl.RGBA,
+        gl.UNSIGNED_BYTE,
+        source,
+      );
       gl.generateMipmap(gl.TEXTURE_2D);
     }
     s.near = this.blurred(s.sharp, s.w, s.h, NEAR, s.near);
@@ -726,7 +804,13 @@ export class WaveRenderer {
     const s = this.screens[which];
     if (!s) return;
     s.near = this.blurred(s.sharp, s.w, s.h, NEAR, s.near);
-    s.far = this.blurred(s.sharp, s.w, s.h, Math.max(this.farBlur, NEAR), s.far);
+    s.far = this.blurred(
+      s.sharp,
+      s.w,
+      s.h,
+      Math.max(this.farBlur, NEAR),
+      s.far,
+    );
   }
 
   /** Remake the far copies when the style's blur radius moves. */
@@ -734,7 +818,8 @@ export class WaveRenderer {
     if (!this.ok || blurPt === this.farBlur) return;
     this.farBlur = blurPt;
     for (const s of [this.screens.content, this.screens.revealed]) {
-      if (s) s.far = this.blurred(s.sharp, s.w, s.h, Math.max(blurPt, NEAR), s.far);
+      if (s)
+        s.far = this.blurred(s.sharp, s.w, s.h, Math.max(blurPt, NEAR), s.far);
     }
   }
 
@@ -754,7 +839,17 @@ export class WaveRenderer {
       const gl = this.gl;
       this.blank = gl.createTexture()!;
       gl.bindTexture(gl.TEXTURE_2D, this.blank);
-      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, new Uint8Array(4));
+      gl.texImage2D(
+        gl.TEXTURE_2D,
+        0,
+        gl.RGBA,
+        1,
+        1,
+        0,
+        gl.RGBA,
+        gl.UNSIGNED_BYTE,
+        new Uint8Array(4),
+      );
       gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
       gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
     }
@@ -766,7 +861,13 @@ export class WaveRenderer {
 
       Without a content screen an opaque renderer has nothing to draw; one
       over a page draws the colour, the rim and the dots alone. */
-  render(front: Front | null, style: WaveStyle, lumps: Float32Array, dots: DotBuffer | null, options: FrameOptions = {}) {
+  render(
+    front: Front | null,
+    style: WaveStyle,
+    lumps: Float32Array,
+    dots: DotBuffer | null,
+    options: FrameOptions = {},
+  ) {
     if (!this.ok) return;
     const content = this.screens.content;
     if (!content && !this.alpha) return;
@@ -774,7 +875,9 @@ export class WaveRenderer {
       this.clear();
       return;
     }
-    const revealed = options.same ? content : this.screens.revealed ?? content;
+    const revealed = options.same
+      ? content
+      : (this.screens.revealed ?? content);
     const gl = this.gl;
     const pw = this.canvas.width;
     const ph = this.canvas.height;
@@ -786,7 +889,13 @@ export class WaveRenderer {
     const blank = content ? null : this.blankTexture();
     for (let i = 0; i < 6; i++) {
       const s = i < 3 ? content : revealed;
-      const t = !s ? blank! : i % 3 === 0 ? s.sharp : i % 3 === 1 ? s.near!.tex : s.far!.tex;
+      const t = !s
+        ? blank!
+        : i % 3 === 0
+          ? s.sharp
+          : i % 3 === 1
+            ? s.near!.tex
+            : s.far!.tex;
       gl.activeTexture(gl.TEXTURE0 + i);
       gl.bindTexture(gl.TEXTURE_2D, t);
       gl.uniform1i(m.loc(SCREEN_UNIFORMS[i]), i);
@@ -804,10 +913,25 @@ export class WaveRenderer {
     const energy = front.energy * gain;
     const gravity = front.gravity * gain;
     const f = this.field;
-    f[0] = front.ox; f[1] = front.oy; f[2] = front.spine; f[3] = front.radius; f[4] = front.squash;
-    f[5] = front.time; f[6] = energy; f[7] = front.swell; f[8] = front.width; f[9] = front.height;
-    f[10] = gravity; f[11] = front.glow; f[12] = front.clearRadius; f[13] = front.rim; f[14] = front.tilt;
-    f[15] = front.ring ? 1 : 0; f[16] = front.hold; f[17] = front.launched ? 1 : 0; f[18] = front.hairClearRadius;
+    f[0] = front.ox;
+    f[1] = front.oy;
+    f[2] = front.spine;
+    f[3] = front.radius;
+    f[4] = front.squash;
+    f[5] = front.time;
+    f[6] = energy;
+    f[7] = front.swell;
+    f[8] = front.width;
+    f[9] = front.height;
+    f[10] = gravity;
+    f[11] = front.glow;
+    f[12] = front.clearRadius;
+    f[13] = front.rim;
+    f[14] = front.tilt;
+    f[15] = front.ring ? 1 : 0;
+    f[16] = front.hold;
+    f[17] = front.launched ? 1 : 0;
+    f[18] = front.hairClearRadius;
     gl.uniform1fv(m.loc("uF"), f);
     const acting = energy > 0;
     gl.uniform1i(m.loc("uContent"), front.hasCleared ? 0 : 1);
@@ -815,7 +939,10 @@ export class WaveRenderer {
     gl.uniform1i(m.loc("uLens"), acting || gravity > 0 ? 1 : 0);
     gl.uniform1i(m.loc("uSame"), options.same || revealed === content ? 1 : 0);
     gl.uniform1i(m.loc("uRound"), options.round ? 1 : 0);
-    gl.uniform1f(m.loc("uFloor"), Math.min(Math.max(options.floor ?? (this.alpha ? 0 : 1), 0), 1));
+    gl.uniform1f(
+      m.loc("uFloor"),
+      Math.min(Math.max(options.floor ?? (this.alpha ? 0 : 1), 0), 1),
+    );
     gl.uniform1f(m.loc("uAmplitude"), style.amplitude);
     gl.uniform1f(m.loc("uLensWidth"), style.lensWidth);
     gl.uniform1f(m.loc("uAberration"), style.aberration);
@@ -826,7 +953,8 @@ export class WaveRenderer {
     const colors = Math.min(style.palette.colors.length, 9);
     if (this.palKey !== style.palette) {
       this.palKey = style.palette;
-      for (let i = 0; i < colors; i++) this.pal.set(oklab(style.palette.colors[i]), i * 3);
+      for (let i = 0; i < colors; i++)
+        this.pal.set(oklab(style.palette.colors[i]), i * 3);
       this.ahead.set(oklab(style.palette.ahead));
       this.behind.set(oklab(style.palette.behind));
     }
@@ -857,7 +985,10 @@ export class WaveRenderer {
       const scale = pw / this.sizePt.w;
       gl.uniform1f(d.loc("uScale"), scale);
       // Big enough for the largest dot, with a pixel to spare for its edge.
-      gl.uniform1f(d.loc("uPoint"), Math.ceil((style.particleSize + 1) * scale) + 2);
+      gl.uniform1f(
+        d.loc("uPoint"),
+        Math.ceil((style.particleSize + 1) * scale) + 2,
+      );
       gl.bindBuffer(gl.ARRAY_BUFFER, this.dots);
       // Sized once for every dot, then refilled in place.
       if (this.dotsSize < dots.data.length) {
@@ -876,7 +1007,13 @@ export class WaveRenderer {
       program until it first draws with it, and that would otherwise land in
       the first frame of the first wave. Call it with the screens in, at
       rest: the canvas is left clear. */
-  prime(front: Front, style: WaveStyle, lumps: Float32Array, dots: DotBuffer | null, options: FrameOptions = {}) {
+  prime(
+    front: Front,
+    style: WaveStyle,
+    lumps: Float32Array,
+    dots: DotBuffer | null,
+    options: FrameOptions = {},
+  ) {
     if (!this.ok) return;
     const gl = this.gl;
     gl.enable(gl.SCISSOR_TEST);
@@ -899,7 +1036,8 @@ export class WaveRenderer {
     this.blank = null;
     for (const t of this.scratches.values()) this.drop(t);
     this.scratches.clear();
-    for (const p of [this.main, this.blur, this.copy, this.dot]) gl.deleteProgram(p.p);
+    for (const p of [this.main, this.blur, this.copy, this.dot])
+      gl.deleteProgram(p.p);
     gl.deleteBuffer(this.quad);
     gl.deleteBuffer(this.dots);
   }

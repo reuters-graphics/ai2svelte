@@ -43,7 +43,9 @@ export interface CaptureRequest {
 }
 
 /** Draws the element some other way. Whatever WebGL can read will do. */
-export type CaptureFunction = (request: CaptureRequest) => TexImageSource | Promise<TexImageSource>;
+export type CaptureFunction = (
+  request: CaptureRequest,
+) => TexImageSource | Promise<TexImageSource>;
 
 export interface SnapshotOptions {
   width: number;
@@ -74,19 +76,60 @@ export interface Snapshot {
 const DROP = new RegExp(
   "^(?:" +
     [
-      "animation", "transition", "view-timeline", "scroll-timeline", "timeline-scope", "view-transition",
-      "scroll-behavior", "scroll-snap", "scroll-margin", "scroll-padding", "scroll-marker", "scroll-target",
-      "overscroll-behavior", "anchor-", "position-anchor", "position-area", "position-try", "position-visibility",
-      "cursor$", "pointer-events$", "user-select$", "-webkit-user-", "-moz-user-", "touch-action$", "will-change$",
-      "resize$", "caret-", "interactivity$", "app-region$", "-webkit-app-region$", "-webkit-tap-highlight",
-      "orphans$", "widows$", "page", "break-", "speak", "interpolate-size$", "field-sizing$", "reading-flow$",
-      "reading-order$", "-moz-window", "-moz-force-broken", "-moz-context-properties$", "-moz-orient$",
-      "-webkit-line-grid", "-webkit-nbsp-mode", "-webkit-cursor", "-webkit-touch-callout",
+      "animation",
+      "transition",
+      "view-timeline",
+      "scroll-timeline",
+      "timeline-scope",
+      "view-transition",
+      "scroll-behavior",
+      "scroll-snap",
+      "scroll-margin",
+      "scroll-padding",
+      "scroll-marker",
+      "scroll-target",
+      "overscroll-behavior",
+      "anchor-",
+      "position-anchor",
+      "position-area",
+      "position-try",
+      "position-visibility",
+      "cursor$",
+      "pointer-events$",
+      "user-select$",
+      "-webkit-user-",
+      "-moz-user-",
+      "touch-action$",
+      "will-change$",
+      "resize$",
+      "caret-",
+      "interactivity$",
+      "app-region$",
+      "-webkit-app-region$",
+      "-webkit-tap-highlight",
+      "orphans$",
+      "widows$",
+      "page",
+      "break-",
+      "speak",
+      "interpolate-size$",
+      "field-sizing$",
+      "reading-flow$",
+      "reading-order$",
+      "-moz-window",
+      "-moz-force-broken",
+      "-moz-context-properties$",
+      "-moz-orient$",
+      "-webkit-line-grid",
+      "-webkit-nbsp-mode",
+      "-webkit-cursor",
+      "-webkit-touch-callout",
     ].join("|") +
     ")",
 );
 /* The flow-relative names of properties also listed by their physical ones. */
-const LOGICAL = /(?:^|-)(?:block|inline)(?:-|$)|^border-(?:start|end)-(?:start|end)-radius$/;
+const LOGICAL =
+  /(?:^|-)(?:block|inline)(?:-|$)|^border-(?:start|end)-(?:start|end)-radius$/;
 
 /* Properties a child takes from its parent. */
 const INHERITED = new Set(
@@ -120,19 +163,58 @@ const INHERITED = new Set(
 
 /* Properties that follow the text colour unless told otherwise. */
 const FOLLOWS_COLOR = new Set([
-  "border-top-color", "border-right-color", "border-bottom-color", "border-left-color", "outline-color",
-  "text-decoration-color", "column-rule-color", "-webkit-text-decoration-color",
+  "border-top-color",
+  "border-right-color",
+  "border-bottom-color",
+  "border-left-color",
+  "outline-color",
+  "text-decoration-color",
+  "column-rule-color",
+  "-webkit-text-decoration-color",
 ]);
 
-const SKIPPED_TAGS = new Set(["script", "style", "noscript", "template", "link", "meta", "title", "head", "base", "source", "track", "param", "datalist"]);
-const VOID_TAGS = new Set(["area", "br", "col", "embed", "hr", "img", "input", "wbr"]);
+const SKIPPED_TAGS = new Set([
+  "script",
+  "style",
+  "noscript",
+  "template",
+  "link",
+  "meta",
+  "title",
+  "head",
+  "base",
+  "source",
+  "track",
+  "param",
+  "datalist",
+]);
+const VOID_TAGS = new Set([
+  "area",
+  "br",
+  "col",
+  "embed",
+  "hr",
+  "img",
+  "input",
+  "wbr",
+]);
 const NAME = /^[A-Za-z_][\w.-]*$/;
 const SVG_ATTRIBUTE = /^(?:(?:xlink|xml):)?[A-Za-z_][\w.-]*$/;
 
 /* Attributes that change how an element draws, per tag ("*" for any). */
 const ATTRIBUTES: Record<string, string[]> = {
   "*": ["dir", "lang"],
-  input: ["type", "placeholder", "disabled", "min", "max", "step", "size", "multiple", "readonly"],
+  input: [
+    "type",
+    "placeholder",
+    "disabled",
+    "min",
+    "max",
+    "step",
+    "size",
+    "multiple",
+    "readonly",
+  ],
   textarea: ["placeholder", "rows", "cols", "disabled", "readonly"],
   select: ["multiple", "size", "disabled"],
   button: ["disabled", "type"],
@@ -183,7 +265,13 @@ let DIV: Base = { inh: [], non: [] };
 const bases = new Map<string, Base>();
 
 function setup(): boolean {
-  if (sandbox && sandbox.frame.isConnected && sandbox.frame.contentDocument === sandbox.doc && sandbox.hidden.isConnected) return true;
+  if (
+    sandbox &&
+    sandbox.frame.isConnected &&
+    sandbox.frame.contentDocument === sandbox.doc &&
+    sandbox.hidden.isConnected
+  )
+    return true;
   if (typeof document === "undefined") return false;
   sandbox?.frame.remove();
   sandbox = null;
@@ -192,7 +280,8 @@ function setup(): boolean {
   frame.setAttribute("aria-hidden", "true");
   frame.setAttribute("tabindex", "-1");
   frame.setAttribute("data-dw-skip", "");
-  frame.style.cssText = "position:fixed;left:0;top:0;width:0;height:0;border:0;margin:0;padding:0;visibility:hidden;pointer-events:none;";
+  frame.style.cssText =
+    "position:fixed;left:0;top:0;width:0;height:0;border:0;margin:0;padding:0;visibility:hidden;pointer-events:none;";
   (document.body ?? document.documentElement).appendChild(frame);
   const doc = frame.contentDocument;
   const win = frame.contentWindow;
@@ -202,14 +291,22 @@ function setup(): boolean {
   }
   // A doctype, so the defaults are the standards-mode ones an XML document gets.
   doc.open();
-  doc.write(`<!doctype html><html><head></head><body><div id="h" style="display:none"><svg xmlns="${SVG_NS}"></svg></div></body></html>`);
+  doc.write(
+    `<!doctype html><html><head></head><body><div id="h" style="display:none"><svg xmlns="${SVG_NS}"></svg></div></body></html>`,
+  );
   doc.close();
   const hidden = doc.getElementById("h");
   if (!hidden) {
     frame.remove();
     return false;
   }
-  sandbox = { frame, win: win as Window, doc, hidden, svg: hidden.firstElementChild! };
+  sandbox = {
+    frame,
+    win: win as Window,
+    doc,
+    hidden,
+    svg: hidden.firstElementChild!,
+  };
 
   if (!INH.length) {
     const probe = doc.createElement("div");
@@ -219,7 +316,8 @@ function setup(): boolean {
     const non: string[] = [];
     for (let i = 0; i < cs.length; i++) {
       const name = cs[i];
-      if (name.startsWith("--") || DROP.test(name) || LOGICAL.test(name)) continue;
+      if (name.startsWith("--") || DROP.test(name) || LOGICAL.test(name))
+        continue;
       (INHERITED.has(name) ? inh : non).push(name);
     }
     probe.remove();
@@ -237,7 +335,9 @@ function setup(): boolean {
     const fill = /^background-(?:color|image)$/;
     const pad = /^padding-(?:top|right|bottom|left)$/;
     IN_BOX = non.map((n) => edge.test(n) || fill.test(n) || pad.test(n));
-    STYLES_BOX = non.map((n, i) => (edge.test(n) || fill.test(n) ? i : -1)).filter((i) => i >= 0);
+    STYLES_BOX = non
+      .map((n, i) => (edge.test(n) || fill.test(n) ? i : -1))
+      .filter((i) => i >= 0);
   }
   DIV = base("div", XHTML_NS, "");
   return true;
@@ -261,7 +361,10 @@ function base(tag: string, ns: string | null, type: string): Base {
   if (type) el.setAttribute("type", type);
   (svg && tag !== "svg" ? sb.svg : sb.hidden).appendChild(el);
   const cs = sb.win.getComputedStyle(el);
-  const made: Base = { inh: INH.map((p) => cs.getPropertyValue(p)), non: NON.map((p) => cs.getPropertyValue(p)) };
+  const made: Base = {
+    inh: INH.map((p) => cs.getPropertyValue(p)),
+    non: NON.map((p) => cs.getPropertyValue(p)),
+  };
   el.remove();
   bases.set(key, made);
   return made;
@@ -285,7 +388,8 @@ function keep(key: string, value: string | null) {
 function blobToData(blob: Blob): Promise<string | null> {
   return new Promise((resolve) => {
     const reader = new FileReader();
-    reader.onload = () => resolve(typeof reader.result === "string" ? reader.result : null);
+    reader.onload = () =>
+      resolve(typeof reader.result === "string" ? reader.result : null);
     reader.onerror = () => resolve(null);
     reader.readAsDataURL(blob);
   });
@@ -318,7 +422,12 @@ async function fetchData(url: string): Promise<string | null> {
 
 /* A large image, redrawn at the size it shows at — so a photograph far
    bigger than its box does not travel, and get decoded, whole each time. */
-async function resample(img: HTMLImageElement, src: string, w: number, h: number): Promise<string | null> {
+async function resample(
+  img: HTMLImageElement,
+  src: string,
+  w: number,
+  h: number,
+): Promise<string | null> {
   try {
     const c = document.createElement("canvas");
     c.width = w;
@@ -327,7 +436,9 @@ async function resample(img: HTMLImageElement, src: string, w: number, h: number
     if (!x) return fetchData(src);
     x.imageSmoothingQuality = "high";
     x.drawImage(img, 0, 0, w, h);
-    const blob = await new Promise<Blob | null>((resolve) => c.toBlob(resolve, "image/webp", 0.96));
+    const blob = await new Promise<Blob | null>((resolve) =>
+      c.toBlob(resolve, "image/webp", 0.96),
+    );
     if (blob) return await blobToData(blob);
   } catch {
     // A cross-origin image taints the canvas; the bytes may still be had.
@@ -367,15 +478,32 @@ const sheetText = new Map<string, Promise<string | null>>();
 
 const unquote = (s: string) => s.trim().replace(/^(["'])(.*)\1$/, "$2");
 const familyKey = (s: string) => unquote(s).toLowerCase();
-const weightKey = (s: string) => s.trim().toLowerCase().replace(/\bnormal\b/g, "400").replace(/\bbold\b/g, "700") || "400";
+const weightKey = (s: string) =>
+  s
+    .trim()
+    .toLowerCase()
+    .replace(/\bnormal\b/g, "400")
+    .replace(/\bbold\b/g, "700") || "400";
 const rangeKey = (s: string) =>
   s
     .toLowerCase()
     .split(",")
-    .map((r) => r.trim().replace(/^u\+/, "").split("-").map((n) => n.replace(/^0+(?=.)/, "")).join("-"))
+    .map((r) =>
+      r
+        .trim()
+        .replace(/^u\+/, "")
+        .split("-")
+        .map((n) => n.replace(/^0+(?=.)/, ""))
+        .join("-"),
+    )
     .filter(Boolean)
     .join(",") || "0-10ffff";
-const faceKey = (family: string, style: string, weight: string, range: string) =>
+const faceKey = (
+  family: string,
+  style: string,
+  weight: string,
+  range: string,
+) =>
   `${familyKey(family)}|${style.trim().toLowerCase() || "normal"}|${weightKey(weight)}|${rangeKey(range)}`;
 
 /* `a: b; c: d` into pairs, minding the quotes and brackets a `src` holds. */
@@ -387,7 +515,10 @@ function declarations(body: string): Record<string, string> {
   const push = (end: number) => {
     const part = body.slice(start, end);
     const colon = part.indexOf(":");
-    if (colon > 0) out[part.slice(0, colon).trim().toLowerCase()] = part.slice(colon + 1).trim();
+    if (colon > 0)
+      out[part.slice(0, colon).trim().toLowerCase()] = part
+        .slice(colon + 1)
+        .trim();
   };
   for (let i = 0; i < body.length; i++) {
     const ch = body[i];
@@ -407,8 +538,17 @@ function declarations(body: string): Record<string, string> {
 }
 
 const KEPT_DESCRIPTORS = [
-  "font-style", "font-weight", "font-stretch", "font-width", "unicode-range", "font-feature-settings",
-  "font-variation-settings", "ascent-override", "descent-override", "line-gap-override", "size-adjust",
+  "font-style",
+  "font-weight",
+  "font-stretch",
+  "font-width",
+  "unicode-range",
+  "font-feature-settings",
+  "font-variation-settings",
+  "ascent-override",
+  "descent-override",
+  "line-gap-override",
+  "size-adjust",
 ];
 
 function facesIn(text: string, base: string, out: Face[]) {
@@ -420,10 +560,16 @@ function facesIn(text: string, base: string, out: Face[]) {
     const src = d.src;
     if (!family || !src) continue;
     let descriptors = `font-family:"${unquote(family).replace(/["\\]/g, "\\$&")}";`;
-    for (const name of KEPT_DESCRIPTORS) if (d[name]) descriptors += `${name}:${d[name]};`;
+    for (const name of KEPT_DESCRIPTORS)
+      if (d[name]) descriptors += `${name}:${d[name]};`;
     out.push({
       family: familyKey(family),
-      key: faceKey(family, d["font-style"] ?? "", d["font-weight"] ?? "", d["unicode-range"] ?? ""),
+      key: faceKey(
+        family,
+        d["font-style"] ?? "",
+        d["font-weight"] ?? "",
+        d["unicode-range"] ?? "",
+      ),
       descriptors,
       src,
       base,
@@ -433,7 +579,15 @@ function facesIn(text: string, base: string, out: Face[]) {
 
 async function collectFaces(): Promise<Face[]> {
   const sheets = Array.from(document.styleSheets);
-  const stamp = sheets.length + "|" + sheets.map((s) => s.href ?? (s.ownerNode as Element | null)?.textContent?.length ?? 0).join(",");
+  const stamp =
+    sheets.length +
+    "|" +
+    sheets
+      .map(
+        (s) =>
+          s.href ?? (s.ownerNode as Element | null)?.textContent?.length ?? 0,
+      )
+      .join(",");
   if (stamp === facesStamp) return faces;
   const out: Face[] = [];
   const pending: Promise<void>[] = [];
@@ -454,9 +608,17 @@ async function collectFaces(): Promise<Face[]> {
     }
     const each = (list: CSSRuleList) => {
       for (let i = 0; i < list.length; i++) {
-        const rule = list[i] as CSSRule & { styleSheet?: CSSStyleSheet; cssRules?: CSSRuleList };
-        if (rule.constructor.name === "CSSFontFaceRule" || rule.cssText.startsWith("@font-face")) facesIn(rule.cssText, base, out);
-        else if (rule.styleSheet && depth < 4) visit(rule.styleSheet, depth + 1);
+        const rule = list[i] as CSSRule & {
+          styleSheet?: CSSStyleSheet;
+          cssRules?: CSSRuleList;
+        };
+        if (
+          rule.constructor.name === "CSSFontFaceRule" ||
+          rule.cssText.startsWith("@font-face")
+        )
+          facesIn(rule.cssText, base, out);
+        else if (rule.styleSheet && depth < 4)
+          visit(rule.styleSheet, depth + 1);
         else if (rule.cssRules && !rule.cssText.startsWith("@keyframes")) {
           try {
             each(rule.cssRules);
@@ -469,7 +631,8 @@ async function collectFaces(): Promise<Face[]> {
     each(rules);
   };
   for (const sheet of sheets) visit(sheet, 0);
-  if (document.adoptedStyleSheets) for (const sheet of document.adoptedStyleSheets) visit(sheet, 0);
+  if (document.adoptedStyleSheets)
+    for (const sheet of document.adoptedStyleSheets) visit(sheet, 0);
   await Promise.all(pending);
   faces = out;
   facesStamp = stamp;
@@ -478,8 +641,12 @@ async function collectFaces(): Promise<Face[]> {
 
 /* The first source of a `src` list the browser can surely read: woff2 if
    there is one, else the first URL. */
-function pickSource(src: string, base: string): { url: string; format: string } | null {
-  const re = /url\(\s*(?:"([^"]*)"|'([^']*)'|([^)]*?))\s*\)(?:\s*format\(\s*["']?([\w-]+)["']?\s*\))?/g;
+function pickSource(
+  src: string,
+  base: string,
+): { url: string; format: string } | null {
+  const re =
+    /url\(\s*(?:"([^"]*)"|'([^']*)'|([^)]*?))\s*\)(?:\s*format\(\s*["']?([\w-]+)["']?\s*\))?/g;
   let first: { url: string; format: string } | null = null;
   let m: RegExpExecArray | null;
   while ((m = re.exec(src))) {
@@ -493,7 +660,8 @@ function pickSource(src: string, base: string): { url: string; format: string } 
       }
     }
     const format = (m[4] ?? "").toLowerCase();
-    if (format === "woff2" || /\.woff2(?:[?#]|$)/i.test(url)) return { url, format: "woff2" };
+    if (format === "woff2" || /\.woff2(?:[?#]|$)/i.test(url))
+      return { url, format: "woff2" };
     first ??= { url, format };
   }
   return first;
@@ -507,14 +675,23 @@ async function fontCSS(families: Set<string>): Promise<string> {
   if (!all.length) return "";
   const loaded = new Set<string>();
   document.fonts.forEach((f) => {
-    if (f.status === "loaded") loaded.add(faceKey(f.family, f.style, f.weight, f.unicodeRange));
+    if (f.status === "loaded")
+      loaded.add(faceKey(f.family, f.style, f.weight, f.unicodeRange));
   });
-  const wanted = all.filter((f) => families.has(f.family) && (loaded.has(f.key) || !/url\(/i.test(f.src)));
+  const wanted = all.filter(
+    (f) =>
+      families.has(f.family) && (loaded.has(f.key) || !/url\(/i.test(f.src)),
+  );
   const jobs: Promise<void>[] = [];
   const picked = wanted.map((f) => {
-    if (!/url\(/i.test(f.src)) return { f, source: null as { url: string; format: string } | null };
+    if (!/url\(/i.test(f.src))
+      return { f, source: null as { url: string; format: string } | null };
     const source = pickSource(f.src, f.base);
-    if (source && !source.url.startsWith("data:") && store.get("u:" + source.url) === undefined) {
+    if (
+      source &&
+      !source.url.startsWith("data:") &&
+      store.get("u:" + source.url) === undefined
+    ) {
       jobs.push(load("u:" + source.url, () => fetchData(source.url)));
     }
     return { f, source };
@@ -526,7 +703,9 @@ async function fontCSS(families: Set<string>): Promise<string> {
       css += `@font-face{${f.descriptors}src:${f.src};}`;
       continue;
     }
-    const data = source.url.startsWith("data:") ? source.url : store.get("u:" + source.url);
+    const data = source.url.startsWith("data:")
+      ? source.url
+      : store.get("u:" + source.url);
     if (!data) continue;
     css += `@font-face{${f.descriptors}src:url("${data}")${source.format ? ` format("${source.format}")` : ""};}`;
   }
@@ -549,9 +728,22 @@ interface Walk {
 // Characters XML will not carry.
 // eslint-disable-next-line no-control-regex
 const INVALID = /[\u0000-\u0008\u000B\u000C\u000E-\u001F\uFFFE\uFFFF]/g;
-const escapeText = (s: string) => (/[&<>\u0000-\u0008\u000B\u000C\u000E-\u001F\uFFFE\uFFFF]/.test(s) ? s.replace(INVALID, "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;") : s);
+const escapeText = (s: string) =>
+  /[&<>\u0000-\u0008\u000B\u000C\u000E-\u001F\uFFFE\uFFFF]/.test(s)
+    ? s
+        .replace(INVALID, "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+    : s;
 const escapeAttribute = (s: string) =>
-  /[&<"\u0000-\u0008\u000B\u000C\u000E-\u001F\uFFFE\uFFFF]/.test(s) ? s.replace(INVALID, "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/"/g, "&quot;") : s;
+  /[&<"\u0000-\u0008\u000B\u000C\u000E-\u001F\uFFFE\uFFFF]/.test(s)
+    ? s
+        .replace(INVALID, "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/"/g, "&quot;")
+    : s;
 
 function want(w: Walk, key: string, loader: Loader): string | null {
   const hit = store.get(key);
@@ -564,20 +756,24 @@ const URL_IN_CSS = /url\(\s*(?:"([^"]*)"|'([^']*)'|([^)]*?))\s*\)/g;
 
 /* `url(…)` in a value, turned into the data it points to. */
 function embedURLs(value: string, w: Walk): string {
-  return value.replace(URL_IN_CSS, (whole, a?: string, b?: string, c?: string) => {
-    const raw = a ?? b ?? c ?? "";
-    if (!raw || raw.startsWith("data:") || raw.startsWith("#")) return whole;
-    let abs: string;
-    try {
-      abs = new URL(raw, document.baseURI).href;
-    } catch {
-      return whole;
-    }
-    const hash = abs.indexOf("#");
-    if (hash >= 0 && abs.slice(0, hash) === location.href.split("#")[0]) return `url("${abs.slice(hash)}")`;
-    const data = want(w, "u:" + abs, () => fetchData(abs));
-    return data ? `url("${data}")` : "none";
-  });
+  return value.replace(
+    URL_IN_CSS,
+    (whole, a?: string, b?: string, c?: string) => {
+      const raw = a ?? b ?? c ?? "";
+      if (!raw || raw.startsWith("data:") || raw.startsWith("#")) return whole;
+      let abs: string;
+      try {
+        abs = new URL(raw, document.baseURI).href;
+      } catch {
+        return whole;
+      }
+      const hash = abs.indexOf("#");
+      if (hash >= 0 && abs.slice(0, hash) === location.href.split("#")[0])
+        return `url("${abs.slice(hash)}")`;
+      const data = want(w, "u:" + abs, () => fetchData(abs));
+      return data ? `url("${data}")` : "none";
+    },
+  );
 }
 
 function noteFamilies(value: string, w: Walk) {
@@ -595,7 +791,8 @@ function imageSource(img: HTMLImageElement, w: Walk): string | null {
   const bh = Math.max(img.clientHeight, 1) * w.o.scale;
   // Enough pixels to fill the box however it is fitted.
   const f = Math.min(1, Math.max(bw / nw, bh / nh));
-  if (f > 0.62 || nw * nh < 400_000 || /\.svg(?:[?#]|$)/i.test(src)) return want(w, "u:" + src, () => fetchData(src));
+  if (f > 0.62 || nw * nh < 400_000 || /\.svg(?:[?#]|$)/i.test(src))
+    return want(w, "u:" + src, () => fetchData(src));
   const tw = Math.max(1, Math.ceil((nw * f) / 16) * 16);
   const th = Math.max(1, Math.round((tw * nh) / nw));
   return want(w, `i:${src}|${tw}`, () => resample(img, src, tw, th));
@@ -603,7 +800,8 @@ function imageSource(img: HTMLImageElement, w: Walk): string | null {
 
 function frameOf(el: HTMLCanvasElement | HTMLVideoElement): string | null {
   try {
-    if (el instanceof HTMLCanvasElement) return el.width && el.height ? el.toDataURL() : null;
+    if (el instanceof HTMLCanvasElement)
+      return el.width && el.height ? el.toDataURL() : null;
     if (!el.videoWidth || el.readyState < 2) return null;
     const c = document.createElement("canvas");
     c.width = el.videoWidth;
@@ -623,10 +821,21 @@ function declare(record: Record<string, string> | undefined): string {
 }
 
 /* One pseudo-element, as a class rule: there is no other way to style one. */
-function pseudo(el: Element, which: "::before" | "::after", mine: string[], w: Walk): string {
+function pseudo(
+  el: Element,
+  which: "::before" | "::after",
+  mine: string[],
+  w: Walk,
+): string {
   const ps = getComputedStyle(el, which);
   const content = ps.getPropertyValue("content");
-  if (!content || content === "none" || content === "normal" || content === "-moz-alt-content") return "";
+  if (
+    !content ||
+    content === "none" ||
+    content === "normal" ||
+    content === "-moz-alt-content"
+  )
+    return "";
   if (ps.getPropertyValue("display") === "none") return "";
   let css = "";
   let color = "";
@@ -648,7 +857,13 @@ function pseudo(el: Element, which: "::before" | "::after", mine: string[], w: W
   return name;
 }
 
-function element(el: Element, parent: string[] | null, parentNS: string | null, shift: string, w: Walk) {
+function element(
+  el: Element,
+  parent: string[] | null,
+  parentNS: string | null,
+  shift: string,
+  w: Walk,
+) {
   const isRoot = el === w.root;
   if (!isRoot && w.o.skip?.(el)) return;
   const ns = el.namespaceURI;
@@ -673,20 +888,29 @@ function element(el: Element, parent: string[] | null, parentNS: string | null, 
       const src = frameOf(el as HTMLCanvasElement | HTMLVideoElement);
       tag = "img";
       if (src) attributes += ` src="${escapeAttribute(src)}"`;
-    } else if (tag === "iframe" || tag === "object" || tag === "embed" || tag === "audio") {
+    } else if (
+      tag === "iframe" ||
+      tag === "object" ||
+      tag === "embed" ||
+      tag === "audio"
+    ) {
       tag = "div";
       childless = true;
     } else if (tag === "textarea") {
       text = (el as HTMLTextAreaElement).value;
     } else if (tag === "input") {
       const input = el as HTMLInputElement;
-      if (input.type !== "file") attributes += ` value="${escapeAttribute(input.value)}"`;
+      if (input.type !== "file")
+        attributes += ` value="${escapeAttribute(input.value)}"`;
       if (input.checked) attributes += ` checked=""`;
     } else if (tag === "option") {
       if ((el as HTMLOptionElement).selected) attributes += ` selected=""`;
     }
   }
-  const type = !svg && (tag === "input" || tag === "button") ? (el.getAttribute("type") ?? "").toLowerCase() : "";
+  const type =
+    !svg && (tag === "input" || tag === "button")
+      ? (el.getAttribute("type") ?? "").toLowerCase()
+      : "";
   const tb = base(tag, ns, type);
   const db = svg ? tb : DIV;
 
@@ -699,10 +923,12 @@ function element(el: Element, parent: string[] | null, parentNS: string | null, 
   for (let i = 0; i < INH.length; i++) {
     const v = cs.getPropertyValue(INH[i]);
     mine[i] = v;
-    if (parent === null || tI[i] !== dI[i] || v !== parent[i]) css += `${INH[i]}:${v};`;
+    if (parent === null || tI[i] !== dI[i] || v !== parent[i])
+      css += `${INH[i]}:${v};`;
   }
   const color = mine[COLOR];
-  if (parent === null || mine[FAMILY] !== parent[FAMILY]) noteFamilies(mine[FAMILY], w);
+  if (parent === null || mine[FAMILY] !== parent[FAMILY])
+    noteFamilies(mine[FAMILY], w);
 
   // The rest: written where they part from the initial value, or where the
   // browser styles this tag itself.
@@ -740,7 +966,11 @@ function element(el: Element, parent: string[] | null, parentNS: string | null, 
       if (v === d) continue;
       if (FOLLOWS[i] && v === color) continue;
       if (i === TRANSFORM_ORIGIN && flat) continue;
-      if (i === PERSPECTIVE_ORIGIN && cs.getPropertyValue("perspective") === "none") continue;
+      if (
+        i === PERSPECTIVE_ORIGIN &&
+        cs.getPropertyValue("perspective") === "none"
+      )
+        continue;
     }
     if (v.indexOf("url(") >= 0) v = embedURLs(v, w);
     css += `${NON[i]}:${v};`;
@@ -754,9 +984,22 @@ function element(el: Element, parent: string[] | null, parentNS: string | null, 
     const list = el.attributes;
     for (let i = 0; i < list.length; i++) {
       const { name, value } = list[i];
-      if (name === "style" || name === "class" || name === "xmlns" || name.startsWith("on") || name.startsWith("xmlns:") || !SVG_ATTRIBUTE.test(name)) continue;
+      if (
+        name === "style" ||
+        name === "class" ||
+        name === "xmlns" ||
+        name.startsWith("on") ||
+        name.startsWith("xmlns:") ||
+        !SVG_ATTRIBUTE.test(name)
+      )
+        continue;
       let v = value;
-      if ((name === "href" || name === "xlink:href") && v && !v.startsWith("#") && !v.startsWith("data:")) {
+      if (
+        (name === "href" || name === "xlink:href") &&
+        v &&
+        !v.startsWith("#") &&
+        !v.startsWith("data:")
+      ) {
         let abs = v;
         try {
           abs = new URL(v, document.baseURI).href;
@@ -810,28 +1053,50 @@ function element(el: Element, parent: string[] | null, parentNS: string | null, 
 }
 
 function write(root: Element, o: SnapshotOptions): Walk {
-  const w: Walk = { o, root, out: [], rules: [], classes: 0, nodes: 0, missing: new Map(), families: new Set() };
+  const w: Walk = {
+    o,
+    root,
+    out: [],
+    rules: [],
+    classes: 0,
+    nodes: 0,
+    missing: new Map(),
+    families: new Set(),
+  };
   element(root, null, XHTML_NS, "", w);
   return w;
 }
 
 // ─── From tree to picture ───
 
-const PERCENT: Record<string, string> = { "%": "%25", "#": "%23", "\n": "%0A", "\r": "%0D", "\t": "%09" };
+const PERCENT: Record<string, string> = {
+  "%": "%25",
+  "#": "%23",
+  "\n": "%0A",
+  "\r": "%0D",
+  "\t": "%09",
+};
 
 function loadImage(svg: string): Promise<HTMLImageElement> {
   return new Promise((resolve, reject) => {
     const img = new Image();
     img.onload = () => resolve(img);
-    img.onerror = () => reject(new Error("distortion-waves: the snapshot would not load"));
+    img.onerror = () =>
+      reject(new Error("distortion-waves: the snapshot would not load"));
     // A data URL, not a blob: a canvas stays readable after drawing it.
-    img.src = "data:image/svg+xml;charset=utf-8," + svg.replace(/[%#\n\r\t]/g, (c) => PERCENT[c]);
+    img.src =
+      "data:image/svg+xml;charset=utf-8," +
+      svg.replace(/[%#\n\r\t]/g, (c) => PERCENT[c]);
   });
 }
 
 /** True for a colour that shows nothing. */
 function clear(color: string): boolean {
-  return !color || color === "transparent" || /(?:,|\/)\s*0(?:\.0+)?%?\s*\)$/.test(color);
+  return (
+    !color ||
+    color === "transparent" ||
+    /(?:,|\/)\s*0(?:\.0+)?%?\s*\)$/.test(color)
+  );
 }
 
 /** The colour behind an element: its nearest ancestor's that has one. */
@@ -845,7 +1110,10 @@ export function backgroundOf(el: Element): string {
 
 /* WebKit lays out a picture's embedded images and fonts a beat after it
    reports the picture loaded: the first draw can come out without them. */
-const SETTLES = typeof navigator !== "undefined" && /AppleWebKit/.test(navigator.userAgent) && !/Chrome|Chromium|Edg\//.test(navigator.userAgent);
+const SETTLES =
+  typeof navigator !== "undefined" &&
+  /AppleWebKit/.test(navigator.userAgent) &&
+  !/Chrome|Chromium|Edg\//.test(navigator.userAgent);
 
 /* Chromium and WebKit lay a picture out at the backing scale with CSS zoom.
    Firefox's zoom inside a <foreignObject> rounds text widths up and wraps
@@ -858,13 +1126,19 @@ const ZOOMS =
 
 /** A picture of `root` as it is now, `width × scale` by `height × scale`
     pixels, with the root's padding box at the origin. */
-export async function snapshot(root: HTMLElement, o: SnapshotOptions): Promise<Snapshot> {
-  if (!setup()) throw new Error("distortion-waves: no document to read styles in");
+export async function snapshot(
+  root: HTMLElement,
+  o: SnapshotOptions,
+): Promise<Snapshot> {
+  if (!setup())
+    throw new Error("distortion-waves: no document to read styles in");
   const t0 = performance.now();
   let w = write(root, o);
   let walk = performance.now() - t0;
   if (w.missing.size) {
-    await Promise.all(Array.from(w.missing, ([key, loader]) => load(key, loader)));
+    await Promise.all(
+      Array.from(w.missing, ([key, loader]) => load(key, loader)),
+    );
     const t = performance.now();
     w = write(root, o);
     walk += performance.now() - t;
@@ -875,8 +1149,10 @@ export async function snapshot(root: HTMLElement, o: SnapshotOptions): Promise<S
   const ch = +o.height.toFixed(3);
   const W = Math.max(1, Math.round(o.width * o.scale));
   const H = Math.max(1, Math.round(o.height * o.scale));
-  const embedded = fonts.length > 0 || w.out.some((s) => s.indexOf("data:") >= 0);
-  const body = `<style>${escapeText(fonts + w.rules.join(""))}</style>` + w.out.join("");
+  const embedded =
+    fonts.length > 0 || w.out.some((s) => s.indexOf("data:") >= 0);
+  const body =
+    `<style>${escapeText(fonts + w.rules.join(""))}</style>` + w.out.join("");
   // The picture is laid out at the backing scale, as the page is on screen:
   // text on a half CSS pixel (common in centred rows) then snaps to the same
   // device pixel as the live text. Laid out at 1× and scaled as it draws, it
@@ -885,31 +1161,35 @@ export async function snapshot(root: HTMLElement, o: SnapshotOptions): Promise<S
   // CSS zoom does the scaling inside the <foreignObject>; a viewBox would not,
   // since WebKit does not carry a viewBox's scale into a <foreignObject>'s
   // layers and draws them at 1× in a corner.
-  const svg = ZOOMS && o.scale !== 1
-    ? `<svg xmlns="${SVG_NS}" xmlns:xlink="http://www.w3.org/1999/xlink" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">` +
-      `<foreignObject x="0" y="0" width="${W}" height="${H}">` +
-      `<div xmlns="${XHTML_NS}" style="position:relative;width:${W}px;height:${H}px;overflow:hidden;">` +
-      `<div style="position:relative;width:${cw}px;height:${ch}px;overflow:hidden;zoom:${+o.scale.toFixed(4)};">` +
-      body +
-      `</div></div></foreignObject></svg>`
-    : `<svg xmlns="${SVG_NS}" xmlns:xlink="http://www.w3.org/1999/xlink" width="${cw}" height="${ch}" viewBox="0 0 ${cw} ${ch}">` +
-      `<foreignObject x="0" y="0" width="${cw}" height="${ch}">` +
-      `<div xmlns="${XHTML_NS}" style="position:relative;width:${cw}px;height:${ch}px;overflow:hidden;">` +
-      body +
-      `</div></foreignObject></svg>`;
+  const svg =
+    ZOOMS && o.scale !== 1
+      ? `<svg xmlns="${SVG_NS}" xmlns:xlink="http://www.w3.org/1999/xlink" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">` +
+        `<foreignObject x="0" y="0" width="${W}" height="${H}">` +
+        `<div xmlns="${XHTML_NS}" style="position:relative;width:${W}px;height:${H}px;overflow:hidden;">` +
+        `<div style="position:relative;width:${cw}px;height:${ch}px;overflow:hidden;zoom:${+o.scale.toFixed(4)};">` +
+        body +
+        `</div></div></foreignObject></svg>`
+      : `<svg xmlns="${SVG_NS}" xmlns:xlink="http://www.w3.org/1999/xlink" width="${cw}" height="${ch}" viewBox="0 0 ${cw} ${ch}">` +
+        `<foreignObject x="0" y="0" width="${cw}" height="${ch}">` +
+        `<div xmlns="${XHTML_NS}" style="position:relative;width:${cw}px;height:${ch}px;overflow:hidden;">` +
+        body +
+        `</div></foreignObject></svg>`;
   const img = await loadImage(svg);
   try {
     await img.decode();
   } catch {
     // Loaded is enough where decode() will not take an SVG.
   }
-  if (SETTLES && embedded) await new Promise((resolve) => setTimeout(resolve, 60));
+  if (SETTLES && embedded)
+    await new Promise((resolve) => setTimeout(resolve, 60));
   const canvas = o.into ?? document.createElement("canvas");
   if (canvas.width !== W || canvas.height !== H) {
     canvas.width = W;
     canvas.height = H;
   }
-  const x = canvas.getContext("2d", { alpha: false }) as CanvasRenderingContext2D | null;
+  const x = canvas.getContext("2d", {
+    alpha: false,
+  }) as CanvasRenderingContext2D | null;
   if (!x) throw new Error("distortion-waves: no 2D canvas");
   x.setTransform(1, 0, 0, 1, 0, 0);
   x.fillStyle = "#fff";
@@ -917,7 +1197,13 @@ export async function snapshot(root: HTMLElement, o: SnapshotOptions): Promise<S
   x.fillStyle = o.background;
   x.fillRect(0, 0, W, H);
   x.drawImage(img, 0, 0, W, H);
-  return { canvas, walk, raster: performance.now() - t1, nodes: w.nodes, size: svg.length };
+  return {
+    canvas,
+    walk,
+    raster: performance.now() - t1,
+    nodes: w.nodes,
+    size: svg.length,
+  };
 }
 
 /** Forget the fonts worked out so far — after the page loads another. */
