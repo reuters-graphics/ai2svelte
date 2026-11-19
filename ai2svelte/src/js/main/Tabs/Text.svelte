@@ -12,6 +12,7 @@
   } from "../utils/textHistory";
   import { csi, evalTS } from "../../lib/utils/bolt";
   import {
+    escapeStyledText,
     parseStyledText,
     styleCloseTag,
     styleOpenTag,
@@ -19,6 +20,7 @@
   } from "../../../shared/styledText";
   import {
     allocateTranslationMessage,
+    canonicalizeTextTranslationStore,
     cloneTextTranslationStore,
     createDefaultTextTranslationStore,
     findMessageBySignature,
@@ -29,7 +31,6 @@
   } from "../../../shared/textTranslations";
   import {
     canonicalizeLanguageTag,
-    canonicalizeLanguageTags,
     languageDisplayName,
   } from "../utils/languages";
   import { settingsObject } from "../stores";
@@ -39,6 +40,7 @@
     count: number;
     signature: string;
     styleKeys: string[];
+    hasStableIdentity?: boolean;
     inconsistent?: boolean;
   }
 
@@ -146,6 +148,10 @@
   const parsedReplacement = $derived(parseStyledText(replacementText));
   // Every style found in the document can be applied to any text.
   const rowStyles = $derived(styles);
+  const translationRowStyles = $derived.by(() => {
+    const allowed = new Set(selectedRow?.styleKeys || []);
+    return styles.filter((style) => allowed.has(style.key));
+  });
   const targetLanguages = $derived(
     translationStore.languages.filter(
       (language) => language !== translationStore.sourceLanguage,
@@ -159,9 +165,11 @@
   }
   const currentSignatures = $derived(new Set(rows.map((row) => row.signature)));
   const orphanMessages = $derived(
-    translationStore.messages.filter(
-      (message) => !currentSignatures.has(message.signature),
-    ),
+    includeAllText
+      ? translationStore.messages.filter(
+          (message) => !currentSignatures.has(message.signature),
+        )
+      : [],
   );
   const replacementError = $derived.by(() => {
     if (parsedReplacement.error) return parsedReplacement.error;
@@ -270,12 +278,7 @@
 
   function canonicalStore(value: unknown): TextTranslationStore {
     const parsed = parseTextTranslationStore(value);
-    const languages = canonicalizeLanguageTags(parsed.languages);
-    const sourceLanguage = canonicalizeLanguageTag(parsed.sourceLanguage);
-    if (!languages.includes(sourceLanguage)) {
-      throw new Error("The source language must be in the document languages.");
-    }
-    return { ...parsed, languages, sourceLanguage };
+    return canonicalizeTextTranslationStore(parsed, canonicalizeLanguageTag);
   }
 
   async function loadTranslationStore(expectedGeneration: number) {
@@ -385,14 +388,19 @@
   ) {
     return segments
       .map((segment) => {
-        if (segment.styleKey === null) return segment.text;
+        if (segment.styleKey === null) return escapeStyledText(segment.text);
+        if (!selectedRow?.styleKeys.includes(segment.styleKey)) {
+          throw new Error(
+            "A saved translation uses a style that is not present in this source. Reassign or review it before exporting.",
+          );
+        }
         const style = styles.find((item) => item.key === segment.styleKey);
         if (!style) {
           throw new Error(
             "A saved translation uses a style that is no longer available. Reassign or review it before editing.",
           );
         }
-        return `${styleOpenTag(style.id)}${segment.text}${styleCloseTag(style.id)}`;
+        return `${styleOpenTag(style.id)}${escapeStyledText(segment.text)}${styleCloseTag(style.id)}`;
       })
       .join("");
   }
@@ -410,8 +418,34 @@
           `Style ${segment.styleId} is no longer available. Review the translation's style marks.`,
         );
       }
+      if (!selectedRow?.styleKeys.includes(styleKey)) {
+        throw new Error(
+          `Style ${segment.styleId} is not used by this source text.`,
+        );
+      }
       return { text: segment.text, styleKey };
     });
+  }
+
+  function hasUnsupportedTranslationStyles(
+    message: TranslationMessage,
+    allowedStyleKeys: string[],
+  ) {
+    for (const language in message.translations) {
+      if (!Object.prototype.hasOwnProperty.call(message.translations, language))
+        continue;
+      const segments = message.translations[language];
+      for (let i = 0; i < segments.length; i++) {
+        const styleKey = segments[i].styleKey;
+        if (
+          typeof styleKey === "string" &&
+          !allowedStyleKeys.includes(styleKey)
+        ) {
+          return true;
+        }
+      }
+    }
+    return false;
   }
 
   async function refreshText(clearFeedback = true): Promise<boolean> {
@@ -477,6 +511,9 @@
           ...group,
           signature: group.signature || `legacy-scan-${index}-${group.text}`,
           styleKeys: group.styleKeys || [],
+          hasStableIdentity:
+            typeof group.signature === "string" &&
+            Array.isArray(group.styleKeys),
         }));
       styles = Array.isArray(data.styles) ? data.styles : [];
       return true;
@@ -531,7 +568,7 @@
 
   async function addLanguage() {
     languageError = "";
-    if (translationDataInvalid) return;
+    if (translationDataInvalid || saving) return;
     let tag: string;
     try {
       tag = canonicalizeLanguageTag(newLanguageTag);
@@ -568,7 +605,7 @@
   }
 
   async function changeSourceLanguage(tag: string) {
-    if (translationDataInvalid) return;
+    if (translationDataInvalid || saving) return;
     if (tag === translationStore.sourceLanguage) return;
     if (
       !window.confirm(
@@ -586,7 +623,7 @@
   }
 
   function beginRemoveLanguage(tag: string) {
-    if (translationDataInvalid) return;
+    if (translationDataInvalid || saving) return;
     if (tag !== translationStore.sourceLanguage) {
       void removeLanguage(tag);
       return;
@@ -601,6 +638,7 @@
   }
 
   async function removeLanguage(tag: string, nextSource?: string) {
+    if (saving || translationDataInvalid) return;
     const next = cloneTextTranslationStore(translationStore);
     next.languages = next.languages.filter((language) => language !== tag);
     if (nextSource) {
@@ -614,6 +652,7 @@
   }
 
   async function useNewSourceLanguage() {
+    if (saving) return;
     try {
       const tag = canonicalizeLanguageTag(promptedNewSource);
       if (
@@ -634,7 +673,7 @@
   }
 
   async function confirmSourceRemoval() {
-    if (!pendingRemoval || !promptedSourceLanguage) return;
+    if (saving || !pendingRemoval || !promptedSourceLanguage) return;
     const nextSource = promptedSourceLanguage;
     const next = cloneTextTranslationStore(translationStore);
     if (next.languages.indexOf(nextSource) < 0) next.languages.push(nextSource);
@@ -677,14 +716,9 @@
 
   async function saveTranslations() {
     const row = selectedRow;
-    if (
-      !row ||
-      !targetLanguage ||
-      applying ||
-      dialogErrorMessage ||
-      translationDataInvalid
-    )
+    if (!row || !targetLanguage || applying || saving || translationDataInvalid)
       return;
+    dialogErrorMessage = "";
     drafts[targetLanguage] = translationText;
     dirtyLanguages[targetLanguage] = true;
     const next = cloneTextTranslationStore(translationStore);
@@ -700,7 +734,16 @@
     if (!changed.length) return;
     try {
       for (let i = 0; i < changed.length; i++) {
-        editorToTranslation(drafts[changed[i]] || "");
+        try {
+          editorToTranslation(drafts[changed[i]] || "");
+        } catch (error) {
+          targetLanguage = changed[i];
+          translationText = drafts[changed[i]] || "";
+          dialogErrorMessage = getErrorMessage(error);
+          await tick();
+          translationInput?.focus();
+          return;
+        }
       }
       if (!message) {
         message = allocateTranslationMessage(
@@ -749,6 +792,11 @@
         row.styleKeys,
       );
     }
+    if (hasUnsupportedTranslationStyles(message, row.styleKeys)) {
+      dialogErrorMessage =
+        "Some saved translations use styles that are not present in this source. Reassign or clear those marks before reviewing.";
+      return;
+    }
     message.sourceText = row.text;
     message.reviewedSignature = row.signature;
     message.styleKeys = row.styleKeys.slice(0);
@@ -780,15 +828,53 @@
     );
     if (!row || !orphan) return;
     const next = cloneTextTranslationStore(translationStore);
-    const message = allocateTranslationMessage(
-      next,
-      row.signature,
-      row.text,
-      row.styleKeys,
-    );
-    message.translations = JSON.parse(JSON.stringify(orphan.translations));
+    if (hasUnsupportedTranslationStyles(orphan, row.styleKeys)) {
+      dialogErrorMessage =
+        "The unmatched translation uses styles not present in this source. Reassign or clear those style marks first.";
+      return;
+    }
+    let message = findMessageBySignature(next, row.signature);
+    if (message) {
+      for (const language in orphan.translations) {
+        if (
+          !Object.prototype.hasOwnProperty.call(orphan.translations, language)
+        )
+          continue;
+        const incoming = orphan.translations[language];
+        const existing = message.translations[language];
+        if (
+          existing?.length &&
+          incoming?.length &&
+          JSON.stringify(existing) !== JSON.stringify(incoming)
+        ) {
+          dialogErrorMessage = `The current source already has a different ${language} translation. Remove or resolve that translation before reassigning.`;
+          return;
+        }
+      }
+    } else {
+      message = allocateTranslationMessage(
+        next,
+        row.signature,
+        row.text,
+        row.styleKeys,
+      );
+    }
+    for (const language in orphan.translations) {
+      if (!Object.prototype.hasOwnProperty.call(orphan.translations, language))
+        continue;
+      if (!message.translations[language]?.length) {
+        message.translations[language] = JSON.parse(
+          JSON.stringify(orphan.translations[language]),
+        );
+      }
+    }
+    message.sourceText = row.text;
+    message.styleKeys = row.styleKeys.slice(0);
     message.reviewedSignature = "";
-    if (await saveTranslationStore(next)) selectedOrphanId = "";
+    if (await saveTranslationStore(next)) {
+      selectedOrphanId = "";
+      dialogErrorMessage = "";
+    }
   }
 
   const replacementHistory = new TextHistory();
@@ -850,7 +936,27 @@
     const row = selectedRow;
     if (!row || !window.cep) return;
     try {
-      if (includeAllText) {
+      if (row.hasStableIdentity && includeAllText) {
+        await evalTS(
+          "revealDocText",
+          row.text,
+          revealCount++,
+          true,
+          documentIdentity,
+          row.signature,
+          styles.map(({ id, key }) => ({ id, key })),
+        );
+      } else if (row.hasStableIdentity) {
+        await evalTS(
+          "revealDocText",
+          row.text,
+          revealCount++,
+          false,
+          documentIdentity,
+          row.signature,
+          styles.map(({ id, key }) => ({ id, key })),
+        );
+      } else if (includeAllText) {
         await evalTS("revealDocText", row.text, revealCount++, true);
       } else {
         await evalTS("revealDocText", row.text, revealCount++);
@@ -924,9 +1030,30 @@
     drafts = {};
     dirtyLanguages = {};
     try {
+      const hasSnapshot = row.hasStableIdentity === true;
       const result = (await (includeAllText
-        ? evalTS("replaceDocText", row.text, replacementText, true)
-        : evalTS("replaceDocText", row.text, replacementText))) as
+        ? hasSnapshot
+          ? evalTS(
+              "replaceDocText",
+              row.text,
+              replacementText,
+              true,
+              documentIdentity,
+              row.signature,
+              styles.map(({ id, key }) => ({ id, key })),
+            )
+          : evalTS("replaceDocText", row.text, replacementText, true)
+        : hasSnapshot
+          ? evalTS(
+              "replaceDocText",
+              row.text,
+              replacementText,
+              false,
+              documentIdentity,
+              row.signature,
+              styles.map(({ id, key }) => ({ id, key })),
+            )
+          : evalTS("replaceDocText", row.text, replacementText))) as
         TextReplacementResult | undefined;
       if (
         !result ||
@@ -1217,7 +1344,7 @@
   title="Edit text"
   titleId="replacement-title"
   bind:element={replacementDialog}
-  busy={applying}
+  busy={applying || saving}
   onclose={handleEditClose}
 >
   {#if selectedRow}
@@ -1429,7 +1556,7 @@
             role="group"
             aria-label="Apply style to translation"
           >
-            {#each rowStyles as style (style.id)}
+            {#each translationRowStyles as style (style.id)}
               <button
                 class="style-chip"
                 type="button"
@@ -1496,6 +1623,7 @@
   title="Document languages"
   titleId="source-language-title"
   bind:element={languageDialog}
+  busy={saving}
   onclose={() => {
     pendingRemoval = "";
     promptedNewSource = "";
@@ -1514,6 +1642,7 @@
       class="translation-select"
       id="new-source-language"
       bind:value={promptedSourceLanguage}
+      disabled={saving}
     >
       {#each translationStore.languages.filter((language) => language !== pendingRemoval) as language (language)}
         <option value={language}
@@ -1532,9 +1661,13 @@
         id="add-source-language"
         bind:value={promptedNewSource}
         placeholder="e.g. fr-CA"
+        disabled={saving}
       />
-      <button class="inline-action" type="button" onclick={useNewSourceLanguage}
-        >Use tag</button
+      <button
+        class="inline-action"
+        type="button"
+        onclick={useNewSourceLanguage}
+        disabled={saving}>Use tag</button
       >
     </div>
     {#if promptedNewSourceError}
@@ -1608,13 +1741,15 @@
       <button
         class="dialog-button"
         type="button"
-        onclick={() => languageDialog?.close()}>Cancel</button
+        onclick={() => languageDialog?.close()}
+        disabled={saving}>Cancel</button
       >
       <button
         class="dialog-button primary"
         type="button"
         onclick={confirmSourceRemoval}
-        disabled={!promptedSourceLanguage ||
+        disabled={saving ||
+          !promptedSourceLanguage ||
           promptedSourceLanguage === pendingRemoval}
         >Remove {pendingRemoval}</button
       >
@@ -1622,7 +1757,8 @@
       <button
         class="dialog-button primary"
         type="button"
-        onclick={() => languageDialog?.close()}>Done</button
+        onclick={() => languageDialog?.close()}
+        disabled={saving}>Done</button
       >
     {/if}
   {/snippet}

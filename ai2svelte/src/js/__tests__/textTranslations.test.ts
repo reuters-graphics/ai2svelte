@@ -1,17 +1,25 @@
 import { describe, expect, it } from "vitest";
 import {
   allocateTranslationMessage,
+  canonicalizeTextTranslationStore,
   createDefaultTextTranslationStore,
   isTranslationMessageReviewed,
   parseTextTranslationStore,
   resolveTranslationLanguage,
+  translationLanguageResolverSource,
 } from "../../shared/textTranslations";
+import { parseStoredJson } from "../../shared/storedJson";
 
 describe("text translation model", () => {
   it("defaults missing metadata to English without allocating an ID", () => {
     expect(parseTextTranslationStore({})).toEqual(
       createDefaultTextTranslationStore(),
     );
+  });
+
+  it("propagates corrupt JSON instead of treating saved data as absent", () => {
+    expect(() => parseStoredJson("{broken")).toThrow(SyntaxError);
+    expect(parseStoredJson(null)).toEqual({});
   });
 
   it("rejects unknown schemas and malformed messages instead of erasing them", () => {
@@ -58,6 +66,38 @@ describe("text translation model", () => {
     );
   });
 
+  it("rejects stored translation marks not present in the message's style registry", () => {
+    const store = createDefaultTextTranslationStore();
+    const message = allocateTranslationMessage(store, "sig", "Source", [
+      "bold",
+    ]);
+    message.translations.fr = [{ text: "Texte", styleKey: "unknown" }];
+    store.languages.push("fr");
+    expect(() => parseTextTranslationStore(store)).toThrow(
+      "text translations data is malformed",
+    );
+  });
+
+  it("canonicalizes stored language keys and rejects conflicting equivalent tags", () => {
+    const store = createDefaultTextTranslationStore();
+    store.languages.push("fr");
+    const message = allocateTranslationMessage(store, "sig", "Source", []);
+    message.translations.FR = [{ text: "Texte", styleKey: null }];
+    expect(
+      canonicalizeTextTranslationStore(
+        store,
+        (tag) => Intl.getCanonicalLocales(tag)[0],
+      ).messages[0].translations,
+    ).toEqual({ fr: [{ text: "Texte", styleKey: null }] });
+    message.translations.fr = [{ text: "Autre", styleKey: null }];
+    expect(() =>
+      canonicalizeTextTranslationStore(
+        store,
+        (tag) => Intl.getCanonicalLocales(tag)[0],
+      ),
+    ).toThrow("Conflicting translations");
+  });
+
   it("allocates monotonic IDs by exact semantic signature", () => {
     const store = createDefaultTextTranslationStore();
     const first = allocateTranslationMessage(store, "semantic-a", "one", []);
@@ -84,8 +124,22 @@ describe("text translation model", () => {
   it("uses exact, then configured base, then source language fallback", () => {
     expect(resolveTranslationLanguage("fr-CA", ["en", "fr"], "en")).toBe("fr");
     expect(resolveTranslationLanguage("fr", ["en", "fr"], "en")).toBe("fr");
+    expect(resolveTranslationLanguage("FR", ["en", "fr"], "en")).toBe("fr");
+    expect(resolveTranslationLanguage("fr-@", ["en", "fr"], "en")).toBe("en");
     expect(resolveTranslationLanguage("de-AT", ["en", "de-CH"], "en")).toBe(
       "en",
     );
+  });
+
+  it("emits the same canonical exact/base/source language resolver for Svelte", () => {
+    const source = translationLanguageResolverSource(
+      "resolve",
+      "source",
+      "langs",
+    );
+    expect(source).toContain("Intl.getCanonicalLocales");
+    expect(source).toContain("catch (e)");
+    expect(source).toContain("langs.indexOf(canonical)");
+    expect(source).toContain("return source");
   });
 });

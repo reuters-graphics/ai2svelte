@@ -22,8 +22,11 @@
 
   import { version } from "../../../../shared/shared";
   import { tooltip } from "svooltip";
-  import { parseTextTranslationStore } from "../../../../shared/textTranslations";
-  import { canonicalizeLanguageTags } from "../../utils/languages";
+  import {
+    canonicalizeTextTranslationStore,
+    parseTextTranslationStore,
+  } from "../../../../shared/textTranslations";
+  import { canonicalizeLanguageTag } from "../../utils/languages";
 
   let { refreshSettings = () => {}, minimal = false } = $props();
 
@@ -117,11 +120,9 @@
                   "Save the active Illustrator document before exporting translations.",
                 );
               }
-              const textTranslations = parseTextTranslationStore(
-                translationDocument.data,
-              );
-              textTranslations.languages = canonicalizeLanguageTags(
-                textTranslations.languages,
+              const textTranslations = canonicalizeTextTranslationStore(
+                parseTextTranslationStore(translationDocument.data),
+                canonicalizeLanguageTag,
               );
               return await evalTS(
                 "runAi2Svelte",

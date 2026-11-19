@@ -2,14 +2,7 @@
 // Local-only regression test for the real Illustrator text scan/edit path.
 // Requires pnpm build. Only the temporary document created here is changed.
 import { execFileSync } from "node:child_process";
-import {
-  existsSync,
-  mkdtempSync,
-  realpathSync,
-  rmSync,
-  writeFileSync,
-} from "node:fs";
-import os from "node:os";
+import { existsSync, mkdirSync, rmSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -20,16 +13,26 @@ if (!existsSync(bundle)) {
   process.exit(1);
 }
 
-const work = mkdtempSync(
-  path.join(realpathSync(os.tmpdir()), "ai2svelte-text-"),
+const work = path.join(
+  root,
+  "scripts/visual-test/.output",
+  `text-test-${process.pid}`,
 );
+if (existsSync(work)) {
+  throw new Error(`Refusing to overwrite an existing test directory: ${work}`);
+}
+mkdirSync(work, { recursive: true });
 const script = path.join(work, "test.jsx");
+let cleanupSafe = false;
 try {
   writeFileSync(
     script,
     `$.evalFile(${JSON.stringify(bundle)});
 (function () {
   var A = $["com.reuters-graphics.ai2svelte"];
+  var priorDocCount = app.documents.length;
+  var priorDocPath = "";
+  if (priorDocCount > 0) priorDocPath = String(app.activeDocument.fullName.fsName);
   var doc = app.documents.add(DocumentColorSpace.RGB, 500, 500);
   var assertions = 0;
   var lastCheck = "";
@@ -276,6 +279,45 @@ try {
       "Remaining text must use the renumbered style tag: " + JSON.stringify(data.groups));
     check(remainingTotalGroup && remainingTotalGroup.signature === totalSignature,
       "Semantic identity must survive compact style-ID renumbering");
+    var capturedStyleRegistry = [];
+    var beforeRenumber = A.fetchDocSelectors();
+    for (var registryIndex = 0; registryIndex < beforeRenumber.styles.length; registryIndex++) {
+      capturedStyleRegistry.push({
+        id: beforeRenumber.styles[registryIndex].id,
+        key: beforeRenumber.styles[registryIndex].key,
+      });
+    }
+    var beforeRenumberTotal = group(beforeRenumber, "Total: $9");
+    result = A.replaceDocText(
+      beforeRenumberTotal.text,
+      beforeRenumberTotal.text.replace("$9", "$10"),
+      false,
+      A.getActiveDocumentIdentity(),
+      beforeRenumberTotal.signature,
+      capturedStyleRegistry,
+    );
+    check(result.updated === 2 && result.failed === 0,
+      "A captured source snapshot remaps replacement styles after compact-ID renumbering");
+    check(styled[0].textRange.characters[8].characterAttributes.fillColor.red === 255 &&
+      styled[1].textRange.characters[8].characterAttributes.fillColor.red === 255,
+      "Style remapping preserves semantic formatting after ID renumbering");
+    var staleRow = group(A.fetchDocSelectors(), "Total: $10");
+    styled[0].contents = "Source edited after scan";
+    var staleRejected = false;
+    try {
+      A.replaceDocText(
+        staleRow.text,
+        "Must not overwrite",
+        false,
+        A.getActiveDocumentIdentity(),
+        staleRow.signature,
+        capturedStyleRegistry,
+      );
+    } catch (staleError) {
+      staleRejected = true;
+    }
+    check(staleRejected && styled[1].contents === "Total: $10",
+      "A source edit after scanning is rejected before any frame is mutated");
     styled[0].contents = "Also no longer repeated";
     check(A.fetchDocSelectors().styles.length === 0,
       "No style chips should remain when no visible groups use styles");
@@ -312,17 +354,97 @@ try {
     check(literalFrames[0].contents === literalText.replace("ok", "yes") &&
       literalFrames[1].contents === literalText.replace("ok", "yes"),
       "Style compaction must preserve literal tags, backslashes and paragraph breaks");
+
+    var translationFrames = [
+      add("Persistence source", 0, 60),
+      add("Persistence source", 1, 60),
+    ];
+    var persistenceScan = A.fetchDocSelectors(false, true);
+    var persistenceGroup = group(persistenceScan, "Persistence source");
+    var saveOptions = new IllustratorSaveOptions();
+    saveOptions.pdfCompatible = false;
+    var persistencePath = %%PERSISTENCE_PATH%%;
+    doc.saveAs(new File(persistencePath), saveOptions);
+    var identityBeforeSave = A.getActiveDocumentIdentity();
+    check(!!identityBeforeSave, "A saved, clean document has an identity");
+    var translationStore = {
+      schemaVersion: 1,
+      sourceLanguage: "en",
+      languages: ["en", "fr"],
+      nextMessageId: 2,
+      messages: [{
+        id: "m1",
+        signature: persistenceGroup.signature,
+        sourceText: persistenceGroup.text,
+        reviewedSignature: persistenceGroup.signature,
+        styleKeys: persistenceGroup.styleKeys,
+        translations: { fr: [{ text: "Première", styleKey: null }] },
+      }],
+    };
+    var firstTranslationSave = A.saveTextTranslations(identityBeforeSave, translationStore);
+    check(firstTranslationSave.ok,
+      "The first document translation save succeeds: " + JSON.stringify(firstTranslationSave));
+    var firstStoredTranslations = A.fetchTextTranslationDocument().data;
+    check(firstStoredTranslations.messages.length === 1,
+      "The first translation save is immediately readable: " +
+        JSON.stringify(firstStoredTranslations));
+    translationFrames[0].contents = "Persistence source edited";
+    check(doc.saved === false, "The test document is dirty after its edit");
+    check(A.getActiveDocumentIdentity() === identityBeforeSave,
+      "A dirty, previously saved document keeps the same document identity");
+    translationStore.messages[0].translations.fr[0].text = "Seconde";
+    var secondTranslationSave = A.saveTextTranslations(identityBeforeSave, translationStore);
+    check(secondTranslationSave.ok,
+      "A second translation save succeeds while the document is dirty: " + JSON.stringify(secondTranslationSave));
+    var secondStoredTranslations = A.fetchTextTranslationDocument().data;
+    check(secondStoredTranslations.messages[0].translations.fr[0].text === "Seconde",
+      "The dirty-document translation update is immediately readable: " +
+        JSON.stringify(secondStoredTranslations));
+    doc.save();
+    doc.close(SaveOptions.SAVECHANGES);
+    doc = app.open(new File(persistencePath));
+    var identityAfterReopen = A.getActiveDocumentIdentity();
+    check(identityAfterReopen !== identityBeforeSave,
+      "Closing and reopening the same path creates a new session identity: " +
+        String(identityBeforeSave) + " -> " + String(identityAfterReopen));
+    var reopenedTranslationDocument = A.fetchTextTranslationDocument();
+    check(!!reopenedTranslationDocument,
+      "Reopened translation metadata is readable: " +
+        String(app.documents.length) + " documents, " + String(app.activeDocument.fullName.fsName));
+    var persistedTranslations = reopenedTranslationDocument.data;
+    check(!!persistedTranslations && !!persistedTranslations.messages,
+      "Reopened translation metadata contains messages: " +
+        JSON.stringify(persistedTranslations));
+    check(persistedTranslations.messages.length === 1,
+      "Reopened translation metadata contains one message: " +
+        JSON.stringify(persistedTranslations));
+    check(persistedTranslations.messages[0].translations.fr[0].text === "Seconde",
+      "The second translation edit survives save, close and reopen: " +
+        JSON.stringify(persistedTranslations));
+    doc.close(SaveOptions.DONOTSAVECHANGES);
+    doc = null;
   } catch (e) {
     failure = lastCheck + ": " + (e && e.message ? e.message : String(e));
   } finally {
     try {
-      doc.close(SaveOptions.DONOTSAVECHANGES);
+      if (doc) doc.close(SaveOptions.DONOTSAVECHANGES);
     } catch (closeError) {
       failure = failure || "Could not close the temporary test document.";
     }
   }
-  return JSON.stringify({ assertions: assertions, failure: failure });
-})();`,
+  var activePathAfterTest = "";
+  if (app.documents.length > 0) {
+    try { activePathAfterTest = String(app.activeDocument.fullName.fsName); } catch (e) {}
+  }
+  var cleanupSafe =
+    app.documents.length === priorDocCount &&
+    activePathAfterTest === priorDocPath;
+  if (!cleanupSafe) failure = failure || "The pre-existing Illustrator document state was not restored.";
+  return JSON.stringify({ assertions: assertions, failure: failure, cleanupSafe: cleanupSafe });
+})()`.replace(
+      "%%PERSISTENCE_PATH%%",
+      JSON.stringify(path.join(work, "translation-test.ai")),
+    ),
   );
   const output = execFileSync(
     "osascript",
@@ -335,10 +457,12 @@ end timeout`,
     { encoding: "utf8", timeout: 150_000 },
   );
   const result = JSON.parse(output.trim());
+  cleanupSafe = result.cleanupSafe === true;
   if (result.failure) throw new Error(result.failure);
   console.log(
     `Illustrator text regression: ${result.assertions} assertions passed.`,
   );
 } finally {
-  rmSync(work, { recursive: true, force: true });
+  if (cleanupSafe) rmSync(work, { recursive: true, force: true });
+  else console.error(`Preserved test files for safety at ${work}`);
 }

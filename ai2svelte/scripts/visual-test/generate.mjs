@@ -13,7 +13,6 @@ import {
   readdirSync,
   writeFileSync,
 } from "node:fs";
-import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { buildStylesString, closeStyles } from "./styles.mjs";
@@ -43,6 +42,8 @@ const translationWrapperTemplate = readFileSync(
   "utf8",
 );
 const serverScript = path.join(rootDir, "src/server.cjs");
+const generatedWorkDir = path.join(__dirname, ".output");
+mkdirSync(generatedWorkDir, { recursive: true });
 
 // optional names: `pnpm test:visual:generate presets layers` runs just those
 const only = process.argv.slice(2);
@@ -90,7 +91,13 @@ for (const fixture of fixtures) {
     .replace("%%AI_FILE_PATH%%", aiPath)
     .replace("%%SETTINGS_JSON%%", settingsJson);
 
-  const tmpJsx = path.join(os.tmpdir(), `ai2svelte-visual-${fixture.name}.jsx`);
+  const tmpJsx = path.join(
+    generatedWorkDir,
+    `.run-${fixture.name}-${process.pid}.jsx`,
+  );
+  if (existsSync(tmpJsx)) {
+    throw new Error(`Refusing to overwrite an existing run script: ${tmpJsx}`);
+  }
   writeFileSync(tmpJsx, jsx);
 
   console.log(`[${fixture.name}] running ai2svelte via Illustrator...`);
@@ -110,6 +117,8 @@ for (const fixture of fixtures) {
       `[${fixture.name}] Illustrator run failed. Is Illustrator installed?`,
     );
     throw err;
+  } finally {
+    if (existsSync(tmpJsx)) rmSync(tmpJsx);
   }
 
   const svelteFiles = readdirSync(outputDir)

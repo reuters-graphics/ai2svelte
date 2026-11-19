@@ -29,7 +29,12 @@ describe("ai2svelte generated output (visual-test)", () => {
         () => {
           const svelteFile = file
             ? `${file}.svelte`
-            : readdirSync(outputDir).find((f) => f.endsWith(".svelte"));
+            : readdirSync(outputDir)
+                .filter(
+                  (f) =>
+                    f.endsWith(".svelte") && f !== "translation-wrapper.svelte",
+                )
+                .sort()[0];
           const content = readFileSync(
             path.join(outputDir, svelteFile as string),
             "utf8",
@@ -70,7 +75,9 @@ describe("ai2svelte generated output (visual-test)", () => {
               ? "disabled"
               : stale
                 ? "stale"
-                : "translations";
+                : fixture.translationFixture.sourceLanguage === "fr"
+                  ? "source-language"
+                  : "translations";
             const result = execFileSync(
               process.execPath,
               [

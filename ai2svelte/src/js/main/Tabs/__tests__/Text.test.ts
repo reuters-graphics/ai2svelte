@@ -930,10 +930,11 @@ describe("Text tab", () => {
     );
   });
 
-  it("retains translation drafts and keeps the editor open when document saving fails", async () => {
+  it("retains drafts after a failed save and retries unchanged data", async () => {
     const consoleError = vi
       .spyOn(console, "error")
       .mockImplementation(() => {});
+    let saveCount = 0;
     evalTS.mockImplementation(async (functionName: string) => {
       if (functionName === "fetchDocSelectors") {
         return {
@@ -961,7 +962,10 @@ describe("Text tab", () => {
         return "/project/map.ai";
       }
       if (functionName === "saveTextTranslations") {
-        return { ok: false, reason: "Document could not be saved." };
+        saveCount++;
+        return saveCount === 1
+          ? { ok: false, reason: "Document could not be saved." }
+          : { ok: true, identity: "/project/map.ai" };
       }
       return undefined;
     });
@@ -992,7 +996,260 @@ describe("Text tab", () => {
       expect.anything(),
       expect.anything(),
     );
+    await userEvent.click(
+      screen.getByRole("button", { name: "Save translations" }),
+    );
+    await waitFor(() => {
+      expect(saveCount).toBe(2);
+      expect(
+        screen.queryByRole("dialog", { name: "Edit text" }),
+      ).not.toBeInTheDocument();
+    });
     consoleError.mockRestore();
+  });
+
+  it("round-trips literal style-like text and limits translation styles to the source", async () => {
+    const literal = "literal <1> and \\<1> and \\\\ path";
+    const store = {
+      schemaVersion: 1,
+      sourceLanguage: "en",
+      languages: ["en", "fr"],
+      nextMessageId: 2,
+      messages: [
+        {
+          id: "m1",
+          signature: "source",
+          sourceText: "Label",
+          reviewedSignature: "source",
+          styleKeys: ["bold"],
+          translations: {
+            fr: [{ text: literal, styleKey: null }],
+          },
+        },
+      ],
+    };
+    let savedStore: unknown;
+    evalTS.mockImplementation(
+      async (functionName: string, ...args: unknown[]) => {
+        if (functionName === "fetchDocSelectors") {
+          return {
+            groups: [
+              {
+                text: "Label",
+                count: 2,
+                signature: "source",
+                styleKeys: ["bold"],
+              },
+            ],
+            styles: [
+              { id: 1, key: "bold", font: "Arial-BoldMT", size: 12 },
+              { id: 2, key: "other", font: "Arial-ItalicMT", size: 12 },
+            ],
+            identity: "/project/map.ai",
+          };
+        }
+        if (functionName === "fetchTextTranslationDocument") {
+          return { identity: "/project/map.ai", saved: true, data: store };
+        }
+        if (functionName === "getActiveDocumentIdentity") {
+          return "/project/map.ai";
+        }
+        if (functionName === "saveTextTranslations") {
+          savedStore = args[1];
+          return { ok: true, identity: "/project/map.ai" };
+        }
+        return undefined;
+      },
+    );
+
+    render(Text);
+    await userEvent.click(
+      await screen.findByRole("button", { name: "Edit text: Label" }),
+    );
+    await userEvent.click(screen.getByRole("tab", { name: "Translations" }));
+    const editor = screen.getByRole("textbox", {
+      name: "Translation in fr",
+    }) as HTMLTextAreaElement;
+    expect(editor.value).toContain("\\<1>");
+    expect(
+      screen.queryByRole("button", {
+        name: /Apply Style 2.*to translation/,
+      }),
+    ).not.toBeInTheDocument();
+
+    await userEvent.type(editor, "!");
+    await userEvent.keyboard("{Backspace}");
+    await userEvent.click(
+      screen.getByRole("button", { name: "Save translations" }),
+    );
+    await waitFor(() => expect(savedStore).toBeDefined());
+    expect((savedStore as typeof store).messages[0].translations.fr).toEqual([
+      { text: literal, styleKey: null },
+    ]);
+
+    await userEvent.click(
+      await screen.findByRole("button", { name: "Edit text: Label" }),
+    );
+    await userEvent.click(screen.getByRole("tab", { name: "Translations" }));
+    const invalidEditor = screen.getByRole("textbox", {
+      name: "Translation in fr",
+    });
+    await userEvent.clear(invalidEditor);
+    await userEvent.type(invalidEditor, "<2>not source-styled</2>");
+    await userEvent.click(
+      screen.getByRole("button", { name: "Save translations" }),
+    );
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+      "not used by this source text",
+    );
+    expect(invalidEditor).toHaveFocus();
+  });
+
+  it("does not call hidden singletons orphaned in repeated-only scope", async () => {
+    const store = {
+      schemaVersion: 1,
+      sourceLanguage: "en",
+      languages: ["en", "fr"],
+      nextMessageId: 2,
+      messages: [
+        {
+          id: "m1",
+          signature: "singleton",
+          sourceText: "Only here",
+          reviewedSignature: "singleton",
+          styleKeys: [],
+          translations: { fr: [{ text: "Ici", styleKey: null }] },
+        },
+      ],
+    };
+    evalTS.mockImplementation(
+      async (functionName: string, ...args: unknown[]) => {
+        if (functionName === "fetchDocSelectors") {
+          return {
+            groups:
+              args[1] === true
+                ? [
+                    {
+                      text: "Repeated",
+                      count: 2,
+                      signature: "repeated",
+                      styleKeys: [],
+                    },
+                    {
+                      text: "Only here",
+                      count: 1,
+                      signature: "singleton",
+                      styleKeys: [],
+                    },
+                  ]
+                : [
+                    {
+                      text: "Repeated",
+                      count: 2,
+                      signature: "repeated",
+                      styleKeys: [],
+                    },
+                  ],
+            styles: [],
+            identity: "/project/map.ai",
+          };
+        }
+        if (functionName === "fetchTextTranslationDocument") {
+          return { identity: "/project/map.ai", saved: true, data: store };
+        }
+        if (functionName === "getActiveDocumentIdentity") {
+          return "/project/map.ai";
+        }
+        return undefined;
+      },
+    );
+
+    render(Text);
+    await screen.findByText("Repeated");
+    expect(
+      screen.queryByText(/saved translation group\(s\) no longer match/),
+    ).not.toBeInTheDocument();
+    await userEvent.click(
+      screen.getByRole("checkbox", { name: "Show all text" }),
+    );
+    await screen.findByText("Only here");
+    expect(
+      screen.queryByText(/saved translation group\(s\) no longer match/),
+    ).not.toBeInTheDocument();
+  });
+
+  it("preserves current translations when an orphan conflicts during reassignment", async () => {
+    const store = {
+      schemaVersion: 1,
+      sourceLanguage: "en",
+      languages: ["en", "fr"],
+      nextMessageId: 3,
+      messages: [
+        {
+          id: "m1",
+          signature: "current",
+          sourceText: "Label",
+          reviewedSignature: "current",
+          styleKeys: [],
+          translations: { fr: [{ text: "Current", styleKey: null }] },
+        },
+        {
+          id: "m2",
+          signature: "orphan",
+          sourceText: "Old label",
+          reviewedSignature: "orphan",
+          styleKeys: [],
+          translations: { fr: [{ text: "Old translation", styleKey: null }] },
+        },
+      ],
+    };
+    evalTS.mockImplementation(
+      async (functionName: string, ...args: unknown[]) => {
+        if (functionName === "fetchDocSelectors") {
+          return {
+            groups: [
+              { text: "Label", count: 1, signature: "current", styleKeys: [] },
+            ],
+            styles: [],
+            identity: "/project/map.ai",
+          };
+        }
+        if (functionName === "fetchTextTranslationDocument") {
+          return { identity: "/project/map.ai", saved: true, data: store };
+        }
+        if (functionName === "getActiveDocumentIdentity") {
+          return "/project/map.ai";
+        }
+        if (functionName === "saveTextTranslations") {
+          return { ok: true, identity: args[0] };
+        }
+        return undefined;
+      },
+    );
+
+    render(Text);
+    await userEvent.click(
+      await screen.findByRole("checkbox", { name: "Show all text" }),
+    );
+    await userEvent.click(
+      await screen.findByRole("button", { name: "Edit text: Label" }),
+    );
+    await userEvent.click(screen.getByRole("tab", { name: "Translations" }));
+    await userEvent.selectOptions(
+      screen.getByLabelText("Reassign saved translations"),
+      "m2",
+    );
+    await userEvent.click(
+      screen.getByRole("button", { name: "Reassign; review required" }),
+    );
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+      "already has a different fr translation",
+    );
+    expect(evalTS).not.toHaveBeenCalledWith(
+      "saveTextTranslations",
+      expect.anything(),
+      expect.anything(),
+    );
   });
 
   it("isolates translation metadata between same-named Illustrator documents", async () => {

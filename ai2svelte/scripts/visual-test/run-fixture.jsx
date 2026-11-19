@@ -93,7 +93,7 @@
       }
       settingsArg.textTranslations = {
         schemaVersion: 1,
-        sourceLanguage: "en",
+        sourceLanguage: testCase.sourceLanguage || "en",
         languages: languages,
         nextMessageId: 2,
         messages: [

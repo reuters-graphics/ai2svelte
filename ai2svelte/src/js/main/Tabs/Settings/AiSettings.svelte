@@ -15,17 +15,14 @@
 
   let codeContent: HTMLElement | undefined = $state();
   let hasMultipleLanguages = $state(false);
+  let translationSettingsError = $state("");
   let translationCountGeneration = 0;
   const visibleSettingKeys = $derived(
     Object.keys($settingsObject).filter(
       (key) => key !== "include_translations" || hasMultipleLanguages,
     ),
   );
-  const visibleSettingsTokens = $derived(
-    aiSettingsTokens.filter(
-      (token) => token.label !== "include_translations" || hasMultipleLanguages,
-    ),
-  );
+  const codeSettingKeys = $derived(Object.keys($settingsObject));
 
   // webp is hidden where the panel can't encode it, unless it's already the
   // saved value (other systems can still export it; here the images are kept
@@ -42,10 +39,20 @@
       .trim();
   });
 
+  let codeYamlString: string = $derived.by(() => {
+    return codeSettingKeys
+      .filter((key) => $settingsObject[key] !== null)
+      .map((key) => `${key}: ${$settingsObject[key]}`)
+      .join("\n")
+      .trim();
+  });
+
   // same as yamlString but used actively
   // by the text editor
   // Sync the derived yamlString to the editable version when styles change
-  let editableYamlString: string = $derived(yamlString);
+  let editableYamlString: string = $derived(
+    activeFormat === "Code" ? codeYamlString : yamlString,
+  );
 
   async function refreshTranslationLanguageCount() {
     const generation = ++translationCountGeneration;
@@ -56,15 +63,34 @@
       if (generation === translationCountGeneration) {
         hasMultipleLanguages =
           canonicalizeLanguageTags(store.languages).length > 1;
+        translationSettingsError = "";
+        if (
+          hasMultipleLanguages &&
+          !Object.prototype.hasOwnProperty.call(
+            $settingsObject,
+            "include_translations",
+          )
+        ) {
+          $settingsObject = { ...$settingsObject, include_translations: true };
+        }
       }
     } catch (error) {
       if (generation === translationCountGeneration) {
         hasMultipleLanguages = false;
+        translationSettingsError =
+          error instanceof Error ? error.message : String(error);
+        console.error(
+          "[ai2svelte] could not read document translation languages:",
+          error,
+        );
       }
     }
   }
 
   onMount(() => {
+    if (Object.keys($settingsObject).length === 0) {
+      $settingsObject = { ...defaultProfile };
+    }
     void refreshTranslationLanguageCount();
     const handleDocumentChange = () => {
       void refreshTranslationLanguageCount();
@@ -73,16 +99,23 @@
     const handleTranslationUpdate = (event: Event) => {
       const count = (event as CustomEvent<{ languageCount?: number }>).detail
         ?.languageCount;
-      if (typeof count === "number") hasMultipleLanguages = count > 1;
-      else void refreshTranslationLanguageCount();
+      if (typeof count === "number") {
+        hasMultipleLanguages = count > 1;
+        if (
+          hasMultipleLanguages &&
+          !Object.prototype.hasOwnProperty.call(
+            $settingsObject,
+            "include_translations",
+          )
+        ) {
+          $settingsObject = { ...$settingsObject, include_translations: true };
+        }
+      } else void refreshTranslationLanguageCount();
     };
     window.addEventListener(
       "text-translations-updated",
       handleTranslationUpdate,
     );
-    if (Object.keys($settingsObject).length === 0) {
-      $settingsObject = { ...defaultProfile };
-    }
     return () => {
       window.removeEventListener(
         "text-translations-updated",
@@ -102,6 +135,9 @@
     bind:activeValue={activeFormat}
   />
 
+  {#if translationSettingsError}
+    <p class="feedback error" role="alert">{translationSettingsError}</p>
+  {/if}
   <div class="content">
     {#if activeFormat === "UI"}
       <div id="ui-form" class="options content-item">
@@ -166,24 +202,9 @@
             bind:textValue={editableYamlString}
             onUpdate={(e: string) => {
               const next = convertStringToObject(e);
-              if (
-                !hasMultipleLanguages &&
-                Object.prototype.hasOwnProperty.call(
-                  $settingsObject,
-                  "include_translations",
-                ) &&
-                !Object.prototype.hasOwnProperty.call(
-                  next,
-                  "include_translations",
-                )
-              ) {
-                next.include_translations = String(
-                  $settingsObject.include_translations,
-                );
-              }
               $settingsObject = next;
             }}
-            autoCompletionTokens={visibleSettingsTokens}
+            autoCompletionTokens={aiSettingsTokens}
           />
         {/if}
       </div>

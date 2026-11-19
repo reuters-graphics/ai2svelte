@@ -4,12 +4,15 @@ import {
   replaceTextFrames,
   revealStyledText,
 } from "./fetchSelectors";
+import type { ExpectedTextStyle } from "./fetchSelectors";
 import { addSnippet } from "./addSnippet";
 import { storeHiddenData, getHiddenData } from "./dataOperations";
 import {
+  isSupportedLanguageTagShape,
   TEXT_TRANSLATIONS_KEY,
-  TextTranslationStore,
+  parseTextTranslationStore,
 } from "../../shared/textTranslations";
+import type { TextTranslationStore } from "../../shared/textTranslations";
 import { main, exportProgress, finishExport } from "./ai2svelte/ai2svelte";
 import {
   getDocPath,
@@ -20,6 +23,9 @@ import {
 // Preview disabled until the UXP migration; see CLAUDE.md "Dormant: Preview".
 // import { wrapper } from "./previewWrapper";
 // (runPreview also needs deleteFolderRecursive from ./ilstUtils)
+
+const documentSessionTokens: Array<{ document: Document; token: string }> = [];
+let nextDocumentSessionToken = 1;
 
 export const updateAiSettings = (settingsObj: string, str: string) => {
   if (app) {
@@ -48,9 +54,20 @@ export const replaceDocText = (
   originalText: string,
   replacementText: string,
   includeAllText = false,
+  expectedIdentity?: string,
+  expectedSignature?: string,
+  expectedStyles?: ExpectedTextStyle[],
 ) => {
   if (app) {
-    return replaceTextFrames(originalText, replacementText, includeAllText);
+    assertExpectedDocument(expectedIdentity);
+    return replaceTextFrames(
+      originalText,
+      replacementText,
+      includeAllText,
+      expectedSignature,
+      expectedStyles,
+      () => assertExpectedDocument(expectedIdentity),
+    );
   }
 };
 
@@ -58,9 +75,20 @@ export const revealDocText = (
   originalText: string,
   frameIndex: number,
   includeAllText = false,
+  expectedIdentity?: string,
+  expectedSignature?: string,
+  expectedStyles?: ExpectedTextStyle[],
 ) => {
   if (app) {
-    return revealStyledText(originalText, frameIndex, includeAllText);
+    assertExpectedDocument(expectedIdentity);
+    return revealStyledText(
+      originalText,
+      frameIndex,
+      includeAllText,
+      expectedSignature,
+      expectedStyles,
+      () => assertExpectedDocument(expectedIdentity),
+    );
   }
 };
 
@@ -85,9 +113,44 @@ export const getVariable = (key: string) => {
 function getSavedDocumentIdentity() {
   try {
     const doc = app.activeDocument;
-    return doc.saved ? String(doc.fullName.fsName) : "";
+    const path = String(doc.fullName.fsName);
+    if (!path) return "";
+    for (let i = documentSessionTokens.length - 1; i >= 0; i--) {
+      let isOpen = false;
+      try {
+        for (let j = 0; j < app.documents.length; j++) {
+          if (documentSessionTokens[i].document === app.documents[j]) {
+            isOpen = true;
+            break;
+          }
+        }
+      } catch (error) {
+        isOpen = false;
+      }
+      if (!isOpen) documentSessionTokens.splice(i, 1);
+    }
+    let token = "";
+    for (let i = 0; i < documentSessionTokens.length; i++) {
+      if (documentSessionTokens[i].document === doc) {
+        token = documentSessionTokens[i].token;
+        break;
+      }
+    }
+    if (!token) {
+      token = "session-" + nextDocumentSessionToken++;
+      documentSessionTokens.push({ document: doc, token });
+    }
+    return path + "#" + token;
   } catch (error) {
     return "";
+  }
+}
+
+function assertExpectedDocument(expectedIdentity?: string) {
+  if (expectedIdentity && getSavedDocumentIdentity() !== expectedIdentity) {
+    throw new Error(
+      "The active Illustrator document changed. Refresh the Text tab before continuing.",
+    );
   }
 }
 
@@ -111,6 +174,19 @@ export const saveTextTranslations = (
   value: TextTranslationStore,
 ) => {
   if (!app) return { ok: false, reason: "Illustrator is unavailable." };
+  try {
+    const parsed = parseTextTranslationStore(value);
+    for (let i = 0; i < parsed.languages.length; i++) {
+      if (!isSupportedLanguageTagShape(parsed.languages[i])) {
+        throw new Error("A document language tag is malformed.");
+      }
+    }
+  } catch (error) {
+    return {
+      ok: false,
+      reason: String(error),
+    };
+  }
   const identity = getSavedDocumentIdentity();
   if (!identity) {
     return {

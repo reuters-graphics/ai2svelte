@@ -76,6 +76,11 @@ interface StyleEntry {
   style: CapturedStyle;
 }
 
+export interface ExpectedTextStyle {
+  id: number;
+  key: string;
+}
+
 interface DocScan {
   frames: ScannedFrame[];
   styles: StyleEntry[];
@@ -334,6 +339,129 @@ function nearKey(text: string): string {
       .replace(/[\s\u00A0\u2000-\u200A\u202F\u205F\u3000]+/g, " ")
       .replace(/^ +| +$/g, "")
   );
+}
+
+function plainStyledText(text: string): string {
+  const parsed = parseStyledText(text);
+  if (parsed.error) throw new Error(parsed.error);
+  let plain = "";
+  for (let i = 0; i < parsed.segments.length; i++) {
+    plain += parsed.segments[i].text;
+  }
+  return plain;
+}
+
+function verifyExpectedGroup(
+  frames: ScannedFrame[],
+  originalText: string,
+  expectedSignature?: string,
+) {
+  if (!expectedSignature) {
+    const key = nearKey(originalText);
+    const legacyMatches: ScannedFrame[] = [];
+    for (let i = 0; i < frames.length; i++) {
+      if (nearKey(frames[i].text) === key) legacyMatches.push(frames[i]);
+    }
+    return legacyMatches;
+  }
+  const key = nearKey(plainStyledText(originalText));
+  const plainMatches: ScannedFrame[] = [];
+  for (let i = 0; i < frames.length; i++) {
+    if (nearKey(plainStyledText(frames[i].text)) === key) {
+      plainMatches.push(frames[i]);
+    }
+  }
+  const buckets: Record<string, ScannedFrame[]> = {};
+  for (let i = 0; i < plainMatches.length; i++) {
+    const bucketKey = "$" + nearKey(plainMatches[i].text);
+    if (!buckets[bucketKey]) buckets[bucketKey] = [];
+    buckets[bucketKey].push(plainMatches[i]);
+  }
+  let expected: string[];
+  try {
+    expected = JSON.parse(expectedSignature) as string[];
+  } catch {
+    throw new Error(
+      "The selected text snapshot is invalid. Refresh and retry.",
+    );
+  }
+  if (Object.prototype.toString.call(expected) !== "[object Array]") {
+    throw new Error(
+      "The selected text snapshot is invalid. Refresh and retry.",
+    );
+  }
+  expected.sort();
+  let matches: ScannedFrame[] | undefined;
+  for (const bucketKey in buckets) {
+    if (!Object.prototype.hasOwnProperty.call(buckets, bucketKey)) continue;
+    const signatures: Record<string, boolean> = {};
+    for (let i = 0; i < buckets[bucketKey].length; i++) {
+      signatures["$" + buckets[bucketKey][i].signature] = true;
+    }
+    const currentSignature: string[] = [];
+    for (const signature in signatures) {
+      if (Object.prototype.hasOwnProperty.call(signatures, signature)) {
+        currentSignature.push(signature.slice(1));
+      }
+    }
+    currentSignature.sort();
+    if (JSON.stringify(expected) === JSON.stringify(currentSignature)) {
+      if (matches) {
+        throw new Error(
+          "The selected text is ambiguous after editing. Refresh the Text tab before continuing.",
+        );
+      }
+      matches = buckets[bucketKey];
+    }
+  }
+  if (!matches) {
+    throw new Error(
+      "The selected text or its character styles changed. Refresh the Text tab before continuing.",
+    );
+  }
+  return matches;
+}
+
+function remapReplacementStyles(
+  segments: StyledSegment[],
+  expectedStyles: ExpectedTextStyle[] | undefined,
+  currentStyles: StyleEntry[],
+): StyledSegment[] {
+  if (!expectedStyles) return segments;
+  const remapped: StyledSegment[] = [];
+  for (let i = 0; i < segments.length; i++) {
+    const segment = segments[i];
+    if (segment.styleId === null) {
+      remapped.push(segment);
+      continue;
+    }
+    let captured: ExpectedTextStyle | undefined;
+    for (let j = 0; j < expectedStyles.length; j++) {
+      if (expectedStyles[j].id === segment.styleId) {
+        captured = expectedStyles[j];
+        break;
+      }
+    }
+    if (!captured) {
+      throw new Error(
+        "A replacement style is missing from the scanned document snapshot.",
+      );
+    }
+    let current: StyleEntry | undefined;
+    for (let j = 0; j < currentStyles.length; j++) {
+      if (currentStyles[j].style.key === captured.key) {
+        current = currentStyles[j];
+        break;
+      }
+    }
+    if (!current) {
+      throw new Error(
+        "A replacement style changed since this text was scanned. Refresh and retry.",
+      );
+    }
+    remapped.push({ text: segment.text, styleId: current.id });
+  }
+  return remapped;
 }
 
 function repeatedAcrossArtboards(
@@ -725,6 +853,9 @@ export function replaceTextFrames(
   originalText: string,
   replacementText: string,
   includeAllText = false,
+  expectedSignature?: string,
+  expectedStyles?: ExpectedTextStyle[],
+  assertIdentity?: () => void,
 ): TextReplacementResult {
   const result: TextReplacementResult = {
     updated: 0,
@@ -739,21 +870,30 @@ export function replaceTextFrames(
   }
 
   const scan = scanDocument(undefined, includeAllText);
+  const targetFrames = verifyExpectedGroup(
+    scan.frames,
+    originalText,
+    expectedSignature,
+  );
+  const mappedSegments = remapReplacementStyles(
+    parsed.segments,
+    expectedStyles,
+    scan.styles,
+  );
   for (let i = 0; i < parsed.segments.length; i++) {
-    const styleId = parsed.segments[i].styleId;
+    const styleId = mappedSegments[i].styleId;
     if (styleId !== null && (styleId < 1 || styleId > scan.styles.length)) {
       throw new Error("Style " + styleId + " doesn't exist in this document.");
     }
   }
 
   const overflowed: TextFrame[] = [];
-  for (let i = 0; i < scan.frames.length; i++) {
-    // Near-matches are one group; copies already identical are left alone.
-    if (nearKey(scan.frames[i].text) !== nearKey(originalText)) continue;
-    if (scan.frames[i].text === replacementText) continue;
-    const frame = scan.frames[i].frame;
+  if (assertIdentity) assertIdentity();
+  for (let i = 0; i < targetFrames.length; i++) {
+    if (targetFrames[i].text === replacementText) continue;
+    const frame = targetFrames[i].frame;
     try {
-      replaceFrameText(scan.frames[i], parsed.segments, scan.styles);
+      replaceFrameText(targetFrames[i], mappedSegments, scan.styles);
       result.updated++;
     } catch (error) {
       result.failed++;
@@ -796,16 +936,19 @@ export function revealStyledText(
   originalText: string,
   frameIndex: number,
   includeAllText = false,
+  expectedSignature?: string,
+  expectedStyles?: ExpectedTextStyle[],
+  assertIdentity?: () => void,
 ): boolean {
   const scan = scanDocument(undefined, includeAllText);
-  const matches: ScannedFrame[] = [];
-  for (let i = 0; i < scan.frames.length; i++) {
-    if (nearKey(scan.frames[i].text) === nearKey(originalText)) {
-      matches.push(scan.frames[i]);
-    }
-  }
+  const matches = verifyExpectedGroup(
+    scan.frames,
+    originalText,
+    expectedSignature,
+  );
   if (matches.length === 0) return false;
 
+  if (assertIdentity) assertIdentity();
   const frame = matches[frameIndex % matches.length].frame;
   const doc = app.activeDocument;
   try {

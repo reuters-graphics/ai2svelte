@@ -11,6 +11,10 @@ for (const fixture of fixtures) {
       "translationFixture" in fixture &&
       "stale" in fixture.translationFixture &&
       fixture.translationFixture.stale === true;
+    const sourceLanguage =
+      "translationFixture" in fixture
+        ? fixture.translationFixture.sourceLanguage
+        : undefined;
     test(`${fixture.name}: generated component ${disabled ? "keeps source-only output" : "switches language and falls back safely"}`, async ({
       page,
     }) => {
@@ -34,6 +38,17 @@ for (const fixture of fixtures) {
         return;
       }
 
+      if (sourceLanguage === "fr") {
+        await page.getByRole("button", { name: "French", exact: true }).click();
+        await expect(content.locator("#g-translation-box")).toHaveAttribute(
+          "lang",
+          "fr",
+        );
+        await expect(content).toContainText("Layers fixture");
+        await expect(content).not.toContainText("Ancienne traduction");
+        return;
+      }
+
       if (disabled) {
         await page.getByRole("button", { name: "French", exact: true }).click();
         await expect(content.locator("#g-translation-box")).toHaveAttribute(
@@ -49,6 +64,17 @@ for (const fixture of fixtures) {
       const french = content.locator('p[lang="fr"]');
       await expect(french.first()).toContainText("Carte </script> &");
       await expect(french).toHaveCount(2);
+      await page.getByRole("button", { name: "French uppercase" }).click();
+      await expect(content.locator('p[lang="fr"]')).toHaveCount(2);
+      await expect(content.locator('p[lang="fr"]').first()).toContainText(
+        "Carte </script> &",
+      );
+      await page
+        .getByRole("button", { name: "Malformed French tag" })
+        .click();
+      await expect(content.locator('p[lang="fr"]')).toHaveCount(0);
+      await expect(content).toContainText("Layers fixture");
+      await page.getByRole("button", { name: "French", exact: true }).click();
       const baseStyleTranslation = french.first().locator("span");
       await expect(baseStyleTranslation).toContainText("Carte");
       await expect(baseStyleTranslation).toHaveAttribute("class", /cstyle/);

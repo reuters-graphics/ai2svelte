@@ -11,7 +11,7 @@ const mode = process.argv[3];
 if (
   !filename ||
   !existsSync(filename) ||
-  !["disabled", "stale", "translations"].includes(mode)
+  !["disabled", "stale", "translations", "source-language"].includes(mode)
 ) {
   throw new Error("Usage: node ssr-check.mjs <generated .svelte> <mode>");
 }
@@ -36,7 +36,10 @@ try {
   ).default;
   const french = render(Component, { props: { lang: "fr" } }).body;
   assert.match(french, /lang="fr"/);
-  if (mode === "disabled" || mode === "stale") {
+  if (mode === "source-language") {
+    assert.ok(french.includes("Layers") && french.includes("fixture"));
+    assert.doesNotMatch(french, /Ancienne traduction/);
+  } else if (mode === "disabled" || mode === "stale") {
     assert.ok(french.includes("Layers") && french.includes("fixture"));
     assert.doesNotMatch(french, /Carte/);
   } else {
@@ -45,6 +48,11 @@ try {
     const fallback = render(Component, { props: { lang: "it" } }).body;
     assert.ok(fallback.includes("Layers") && fallback.includes("fixture"));
     assert.doesNotMatch(fallback, /Carte/);
+    const uppercaseFrench = render(Component, { props: { lang: "FR" } }).body;
+    assert.match(uppercaseFrench, /Carte/);
+    const malformed = render(Component, { props: { lang: "fr-@" } }).body;
+    assert.ok(malformed.includes("Layers") && malformed.includes("fixture"));
+    assert.doesNotMatch(malformed, /Carte/);
   }
   console.log("SSR generated component passed");
 } finally {

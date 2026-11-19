@@ -40,6 +40,10 @@ import {
   getTextFrameSemanticSignature,
   getTextFrameStyleRuns,
 } from "../fetchSelectors";
+import {
+  isSupportedLanguageTagShape,
+  translationLanguageResolverSource,
+} from "../../../shared/textTranslations";
 
 import {
   caps,
@@ -260,16 +264,12 @@ export function main(settingsArg) {
     textBlockData = initSettings(settingsArg);
 
     docSettings = initDocumentSettings(textBlockData.settings);
-    while (
-      containsPrefix(docSettings.snippetProps || [], translationRuntimePrefix)
-    ) {
-      translationRuntimePrefix += "_";
-    }
     docSlug =
       docSettings.project_name || makeDocumentSlug(getRawDocumentName());
     nameSpace = docSettings.namespace || nameSpace;
     textTranslationStore =
       settingsArg.textTranslations || defaultTextTranslationStore();
+    validateTextTranslationStore(textTranslationStore);
     sourceLanguage =
       typeof textTranslationStore.sourceLanguage == "string"
         ? textTranslationStore.sourceLanguage
@@ -279,14 +279,6 @@ export function main(settingsArg) {
       textTranslationStore.schemaVersion == 1 &&
       textTranslationStore.languages &&
       textTranslationStore.languages.length > 1;
-    if (
-      textTranslationsEnabled &&
-      contains(docSettings.snippetProps || [], "lang")
-    ) {
-      error(
-        'The snippet prop "lang" conflicts with ai2svelte text translations. Rename the snippet prop or disable include_translations.',
-      );
-    }
     if (textTranslationsEnabled) {
       try {
         frameGroupSignatures = getDocumentFrameGroupSignatures();
@@ -425,6 +417,148 @@ export function main(settingsArg) {
     };
   }
 
+  function isSupportedLanguageTag(tag) {
+    return isSupportedLanguageTagShape(tag);
+  }
+
+  function validateTextTranslationStore(store) {
+    if (
+      !store ||
+      store.schemaVersion !== 1 ||
+      !isSupportedLanguageTag(store.sourceLanguage) ||
+      !store.languages ||
+      Object.prototype.toString.call(store.languages) != "[object Array]" ||
+      !store.languages.length ||
+      !store.messages ||
+      Object.prototype.toString.call(store.messages) != "[object Array]" ||
+      typeof store.nextMessageId != "number" ||
+      store.nextMessageId < 1 ||
+      Math.floor(store.nextMessageId) != store.nextMessageId
+    ) {
+      error("The document text translations data is malformed or unsupported.");
+    }
+
+    var languages = {};
+    for (var i = 0; i < store.languages.length; i++) {
+      var language = store.languages[i];
+      if (!isSupportedLanguageTag(language) || languages["$" + language]) {
+        error("The document text translations contain an invalid language.");
+      }
+      languages["$" + language] = true;
+    }
+    if (!languages["$" + store.sourceLanguage]) {
+      error("The source language is not configured in document translations.");
+    }
+
+    var ids = {};
+    var signatures = {};
+    var maxMessageNumber = 0;
+    for (
+      var messageIndex = 0;
+      messageIndex < store.messages.length;
+      messageIndex++
+    ) {
+      var message = store.messages[messageIndex];
+      if (
+        !message ||
+        typeof message.id != "string" ||
+        !/^m[1-9]\d*$/.test(message.id) ||
+        ids["$" + message.id] ||
+        typeof message.signature != "string" ||
+        !message.signature ||
+        signatures["$" + message.signature] ||
+        typeof message.sourceText != "string" ||
+        typeof message.reviewedSignature != "string" ||
+        !message.styleKeys ||
+        !message.translations ||
+        Object.prototype.toString.call(message.translations) !=
+          "[object Object]"
+      ) {
+        error("The document text translations contain a malformed message.");
+      }
+      ids["$" + message.id] = true;
+      signatures["$" + message.signature] = true;
+      maxMessageNumber = Math.max(
+        maxMessageNumber,
+        Number(message.id.slice(1)),
+      );
+
+      var styleKeys = {};
+      if (
+        Object.prototype.toString.call(message.styleKeys) != "[object Array]"
+      ) {
+        error("The document text translations contain invalid style keys.");
+      }
+      for (
+        var styleIndex = 0;
+        styleIndex < message.styleKeys.length;
+        styleIndex++
+      ) {
+        var styleKey = message.styleKeys[styleIndex];
+        if (
+          typeof styleKey != "string" ||
+          !styleKey ||
+          styleKeys["$" + styleKey]
+        ) {
+          error("The document text translations contain an invalid style key.");
+        }
+        styleKeys["$" + styleKey] = true;
+      }
+
+      for (var targetLanguage in message.translations) {
+        if (
+          !Object.prototype.hasOwnProperty.call(
+            message.translations,
+            targetLanguage,
+          )
+        )
+          continue;
+        if (!languages["$" + targetLanguage]) {
+          error("The document text translations contain an unknown language.");
+        }
+        var segments = message.translations[targetLanguage];
+        if (
+          !segments ||
+          Object.prototype.toString.call(segments) != "[object Array]"
+        ) {
+          error("The document text translations contain malformed segments.");
+        }
+        for (
+          var segmentIndex = 0;
+          segmentIndex < segments.length;
+          segmentIndex++
+        ) {
+          var segment = segments[segmentIndex];
+          if (!segment) {
+            error(
+              "The document text translations contain an unsupported style mark.",
+            );
+          }
+          if (typeof segment.text != "string") {
+            error(
+              "The document text translations contain an unsupported style mark.",
+            );
+          }
+          if (segment.styleKey !== null) {
+            if (
+              typeof segment.styleKey != "string" ||
+              !styleKeys["$" + segment.styleKey]
+            ) {
+              error(
+                "The document text translations contain an unsupported style mark.",
+              );
+            }
+          }
+        }
+        if (store.nextMessageId <= maxMessageNumber) {
+          error(
+            "The document text translations contain non-monotonic message IDs.",
+          );
+        }
+      }
+    }
+  }
+
   function containsPrefix(values, prefix) {
     for (var i = 0; i < values.length; i++) {
       if (String(values[i]).indexOf(prefix) === 0) return true;
@@ -440,6 +574,7 @@ export function main(settingsArg) {
     if (!message || !message.translations) return false;
     for (var i = 0; i < textTranslationStore.languages.length; i++) {
       var language = textTranslationStore.languages[i];
+      if (language === sourceLanguage) continue;
       if (
         message.translations[language] &&
         message.translations[language].length > 0
@@ -463,7 +598,7 @@ export function main(settingsArg) {
 
   function translationMessageForFrame(frame) {
     if (!textTranslationsEnabled) return null;
-    var frameSignature, groupSignature, messages, message;
+    var frameSignature, groupSignature, messages, message, frameStyleKeys;
     try {
       frameSignature = getTextFrameSemanticSignature(frame);
     } catch (e) {
@@ -472,6 +607,12 @@ export function main(settingsArg) {
 
     groupSignature = frameGroupSignatures[frameSignature];
     if (!groupSignature) return null;
+    frameStyleKeys = { __base__: true };
+    var styleRuns = getTextFrameStyleRuns(frame);
+    for (var styleIndex = 0; styleIndex < styleRuns.length; styleIndex++) {
+      frameStyleKeys["$" + (styleRuns[styleIndex].styleKey || "__base__")] =
+        true;
+    }
     messages = textTranslationStore.messages || [];
     for (var i = 0; i < messages.length; i++) {
       message = messages[i];
@@ -480,6 +621,35 @@ export function main(settingsArg) {
         message.reviewedSignature === groupSignature &&
         hasSavedTranslations(message)
       ) {
+        for (var targetLanguage in message.translations) {
+          if (
+            !Object.prototype.hasOwnProperty.call(
+              message.translations,
+              targetLanguage,
+            ) ||
+            targetLanguage === sourceLanguage
+          ) {
+            continue;
+          }
+          var translatedSegments = message.translations[targetLanguage];
+          for (
+            var segmentIndex = 0;
+            segmentIndex < translatedSegments.length;
+            segmentIndex++
+          ) {
+            var translatedStyle = translatedSegments[segmentIndex].styleKey;
+            if (
+              translatedStyle !== null &&
+              !frameStyleKeys["$" + translatedStyle]
+            ) {
+              warnOnce(
+                "A saved translation uses an inline style that is unavailable on one or more source frames; those frames keep the source text.",
+                "unsupported-translation-style-" + message.id,
+              );
+              return null;
+            }
+          }
+        }
         return message;
       }
     }
@@ -2481,32 +2651,22 @@ export function main(settingsArg) {
       var translationStyleMap = {};
       var sourceHtml = "";
 
-      if (isTagged && objName) {
+      if (isTagged && objName && isTrue(settings.override_text)) {
         if (translationMessage) {
           warnOnce(
             "A translated text group is tagged. Its taggedText value takes precedence; the Illustrator text stays as the source language.",
             "tagged-translation-" + translationMessage.id,
           );
         }
-        if (isTrue(settings.override_text)) {
-          html += "\r\t\t\t";
-          html += generateTaggedTextFrameHtml(
-            obj.paragraphs,
-            objName,
-            baseStyle,
-            pgStyles,
-            tagType,
-            propName,
-          );
-        } else {
-          html += generateTextFrameHtml(
-            obj.paragraphs,
-            baseStyle,
-            pgStyles,
-            charStyles,
-            translationStyleMap,
-          );
-        }
+        html += "\r\t\t\t";
+        html += generateTaggedTextFrameHtml(
+          obj.paragraphs,
+          objName,
+          baseStyle,
+          pgStyles,
+          tagType,
+          propName,
+        );
       } else {
         sourceHtml = generateTextFrameHtml(
           obj.paragraphs,
@@ -4008,6 +4168,12 @@ export function main(settingsArg) {
 
         hiddenItems = hiddenItems.concat(obj.items);
       });
+
+      while (
+        containsPrefix(docSettings.snippetProps, translationRuntimePrefix)
+      ) {
+        translationRuntimePrefix += "_";
+      }
 
       // base artboard image at z = -1
       progressBar.setTitle(
@@ -5896,10 +6062,61 @@ export function main(settingsArg) {
     return count;
   }
 
+  function warnSkippedTranslationSummary() {
+    if (!textTranslationsEnabled) return;
+    var stale = 0;
+    var unmatched = 0;
+    var notEmitted = 0;
+    var messages = textTranslationStore.messages || [];
+    for (var i = 0; i < messages.length; i++) {
+      var message = messages[i];
+      if (!hasSavedTranslations(message)) continue;
+      var found = false;
+      for (var signature in frameGroupSignatures) {
+        if (
+          Object.prototype.hasOwnProperty.call(
+            frameGroupSignatures,
+            signature,
+          ) &&
+          frameGroupSignatures[signature] === message.signature
+        ) {
+          found = true;
+          break;
+        }
+      }
+      if (!found) {
+        unmatched++;
+      } else if (message.reviewedSignature !== message.signature) {
+        stale++;
+      } else if (!usedTranslationMessages[message.id]) {
+        notEmitted++;
+      }
+    }
+    if (stale || unmatched || notEmitted) {
+      var reasons = [];
+      if (stale) reasons.push(stale + " changed or unreviewed");
+      if (unmatched) reasons.push(unmatched + " unmatched or rotated");
+      if (notEmitted) {
+        reasons.push(
+          notEmitted +
+            " not emitted as editable text (for example SVG, raster or image-only output)",
+        );
+      }
+      warnOnce(
+        "Some saved translations were not included: " +
+          reasons.join(", ") +
+          ". Review them in the Text tab and check the output-layer type.",
+        "translation-groups-skipped",
+      );
+    }
+  }
+
   function getOutputTranslationDictionary() {
+    warnSkippedTranslationSummary();
     var dictionary = {};
     for (var i = 0; i < textTranslationStore.languages.length; i++) {
       var language = textTranslationStore.languages[i];
+      if (language === sourceLanguage) continue;
       dictionary[language] = {};
       for (var id in usedTranslationMessages) {
         if (!Object.prototype.hasOwnProperty.call(usedTranslationMessages, id))
@@ -5915,6 +6132,11 @@ export function main(settingsArg) {
 
   // generates <script> code
   function generateSvelteScript(group, settings) {
+    if (contains(docSettings.snippetProps || [], "lang")) {
+      error(
+        'The snippet prop "lang" conflicts with ai2svelte\'s generated lang prop. Rename the snippet prop before exporting.',
+      );
+    }
     var script = "<script>\r";
 
     script +=
@@ -5922,19 +6144,7 @@ export function main(settingsArg) {
       safeJsonLiteral(sourceLanguage);
 
     if (getObjectKeyCount(docSettings.snippetProps) > 0) {
-      var snippetProps = [];
-      for (
-        var propIndex = 0;
-        propIndex < docSettings.snippetProps.length;
-        propIndex++
-      ) {
-        if (docSettings.snippetProps[propIndex] !== "lang") {
-          snippetProps.push(docSettings.snippetProps[propIndex]);
-        }
-      }
-      if (snippetProps.length > 0) {
-        script += ", " + snippetProps.join(", ");
-      }
+      script += ", " + docSettings.snippetProps.join(", ");
     }
 
     if (
@@ -5990,26 +6200,13 @@ export function main(settingsArg) {
         safeJsonLiteral(textTranslationStore.languages) +
         ";\r";
       script +=
-        "\tfunction " +
-        resolveLanguageName +
-        "(requested) {\r" +
-        "\t\tconst exact = String(requested || " +
-        sourceLanguageName +
-        ");\r" +
-        "\t\tif (" +
-        configuredLanguagesName +
-        ".indexOf(exact) >= 0) return exact;\r" +
-        "\t\tconst dash = exact.indexOf('-');\r" +
-        "\t\tif (dash > 0) {\r" +
-        "\t\t\tconst base = exact.slice(0, dash);\r" +
-        "\t\t\tif (" +
-        configuredLanguagesName +
-        ".indexOf(base) >= 0) return base;\r" +
-        "\t\t}\r" +
-        "\t\treturn " +
-        sourceLanguageName +
-        ";\r" +
-        "\t}\r" +
+        "\t" +
+        translationLanguageResolverSource(
+          resolveLanguageName,
+          sourceLanguageName,
+          configuredLanguagesName,
+        ) +
+        "\r" +
         "\tlet " +
         resolvedLanguageName +
         " = $derived(" +

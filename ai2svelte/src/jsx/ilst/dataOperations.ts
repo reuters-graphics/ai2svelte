@@ -1,3 +1,5 @@
+import { parseStoredJson } from "../../shared/storedJson";
+
 if (ExternalObject.AdobeXMPScript == undefined) {
   ExternalObject.AdobeXMPScript = new ExternalObject("lib:AdobeXMPScript");
 }
@@ -105,12 +107,5 @@ export function getHiddenData(key: string, strict = false) {
     closeQuietly(xmpFile);
   }
 
-  if (raw === null) return {};
-  try {
-    return JSON.parse(raw);
-  } catch (e) {
-    $.writeln("Error parsing stored data: " + (e as Error).description);
-    if (strict) throw e;
-    return {};
-  }
+  return parseStoredJson(raw);
 }

@@ -127,6 +127,25 @@
     }
   },
   {
+    "name": "translations-source-language",
+    "aiPath": "scripts/visual-test/fixtures/layers.ai",
+    "translationHarness": true,
+    "translationFixture": {
+      "sourceText": "Layers fixture",
+      "inlineStyleText": "fixture",
+      "sourceLanguage": "fr",
+      "languages": ["fr", "ar", "de"],
+      "translations": {
+        "fr": [{ "text": "Ancienne traduction", "styleKey": null }],
+        "ar": [{ "text": "خريطة", "styleKey": null }]
+      }
+    },
+    "settings": {
+      "project_name": "translation",
+      "priority_fetch": true
+    }
+  },
+  {
     "name": "layers-settings",
     "aiPath": "scripts/visual-test/fixtures/layers.ai",
     "settings": {
