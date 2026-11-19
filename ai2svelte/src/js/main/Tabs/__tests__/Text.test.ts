@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { render, screen, waitFor } from "@testing-library/svelte";
 import userEvent from "@testing-library/user-event";
+import { tick } from "svelte";
 import { evalTS } from "../../../__mocks__/bolt";
 import Text from "../Text.svelte";
 
@@ -146,7 +147,9 @@ describe("Text tab", () => {
     render(Text);
 
     expect(
-      await screen.findByText("No repeated text found in the active document."),
+      await screen.findByText(
+        "No matching text found across multiple artboards.",
+      ),
     ).toBeInTheDocument();
     expect(screen.queryByText("One-off text")).not.toBeInTheDocument();
   });
@@ -189,6 +192,146 @@ describe("Text tab", () => {
       screen.queryByText("No text matches your search."),
     ).not.toBeInTheDocument();
     expect(evalTS).toHaveBeenCalledTimes(1);
+  });
+
+  it("highlights search matches across styles and line breaks", async () => {
+    evalTS.mockResolvedValueOnce({
+      groups: [{ text: "River <1>bank</1>\nFlood alert", count: 2 }],
+      styles: [{ id: 1, font: "Arial-BoldMT", size: 12 }],
+    });
+
+    render(Text);
+    await screen.findByRole("list", { name: "Repeated text" });
+    expect(document.querySelectorAll("mark")).toHaveLength(0);
+
+    await userEvent.type(
+      screen.getByRole("searchbox", { name: "Search repeated text" }),
+      "river BANK flood",
+    );
+    const marks = [...document.querySelectorAll("mark")];
+    expect(marks.map((mark) => mark.textContent)).toEqual([
+      "River ",
+      "bank",
+      "\nFlood",
+    ]);
+    expect(marks[1].closest(".styled")).not.toBeNull();
+  });
+
+  it("sorts cards by document order, copies, or text", async () => {
+    evalTS.mockResolvedValueOnce({
+      groups: [
+        { text: "Beta", count: 2 },
+        { text: "alpha", count: 4 },
+        { text: "Gamma", count: 3 },
+      ],
+      styles: [],
+    });
+
+    render(Text);
+    await screen.findByRole("list", { name: "Repeated text" });
+    const cardTexts = () =>
+      [...document.querySelectorAll(".card-text")].map(
+        (item) => item.textContent,
+      );
+    expect(cardTexts()).toEqual(["Beta", "alpha", "Gamma"]);
+
+    const sort = screen.getByRole("combobox");
+    await userEvent.click(sort);
+    await userEvent.click(await screen.findByText("Most copies"));
+    await waitFor(() =>
+      expect(cardTexts()).toEqual(["alpha", "Gamma", "Beta"]),
+    );
+
+    await userEvent.click(sort);
+    await userEvent.click(await screen.findByText("A–Z"));
+    await waitFor(() =>
+      expect(cardTexts()).toEqual(["alpha", "Beta", "Gamma"]),
+    );
+  });
+
+  it("warns when replaced text no longer fits its text box", async () => {
+    evalTS.mockImplementation(async (functionName: string) => {
+      if (functionName === "fetchDocSelectors") {
+        return { groups: [{ text: "Label", count: 3 }], styles: [] };
+      }
+      return { updated: 3, failed: 0, firstError: "", overflowed: 2 };
+    });
+
+    render(Text);
+    await userEvent.click(
+      await screen.findByRole("button", {
+        name: "Replace repeated text: Label",
+      }),
+    );
+    const replacement = screen.getByRole("textbox", {
+      name: "Replacement text",
+    });
+    await userEvent.type(replacement, " that is much longer");
+    await userEvent.click(
+      screen.getByRole("button", { name: "Apply to 3 frames" }),
+    );
+
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+      "Updated 3 text frame(s). 2 frames no longer fit their text box. They are selected in Illustrator.",
+    );
+  });
+
+  it("flags near-matching copies and lets them be unified unchanged", async () => {
+    evalTS.mockImplementation(async (functionName: string) => {
+      if (functionName === "fetchDocSelectors") {
+        return {
+          groups: [
+            { text: "Rock ‘n’ roll", count: 3, inconsistent: true },
+            { text: "Same everywhere", count: 2, inconsistent: false },
+          ],
+          styles: [],
+        };
+      }
+      return { updated: 1, failed: 0, firstError: "", overflowed: 0 };
+    });
+
+    render(Text);
+    const card = await screen.findByRole("button", {
+      name: "Replace repeated text: Rock ‘n’ roll",
+    });
+    expect(card).toHaveAccessibleDescription(
+      "3 matches. Copies differ slightly",
+    );
+    expect(
+      screen.getByRole("button", {
+        name: "Replace repeated text: Same everywhere",
+      }),
+    ).toHaveAccessibleDescription("2 matches");
+    const warning = card.querySelector(".inconsistent-icon") as HTMLElement;
+    expect(document.querySelectorAll(".inconsistent-icon")).toHaveLength(1);
+    await userEvent.hover(warning);
+    const tooltip = await screen.findByRole("tooltip");
+    expect(tooltip).toHaveTextContent(
+      "Applying makes all 3 copies match the replacement text.",
+    );
+    tooltip.dispatchEvent(new Event("animationend"));
+    await userEvent.unhover(warning);
+    tooltip.dispatchEvent(new Event("animationend"));
+    await waitFor(() =>
+      expect(screen.queryByRole("tooltip")).not.toBeInTheDocument(),
+    );
+
+    await userEvent.click(card);
+    expect(
+      screen.getByRole("button", {
+        name: /Copies differ slightly\. .*Applying makes all 3 copies match/,
+      }),
+    ).toBeInTheDocument();
+    await userEvent.click(
+      screen.getByRole("button", { name: "Apply to 3 frames" }),
+    );
+    await waitFor(() =>
+      expect(evalTS).toHaveBeenCalledWith(
+        "replaceDocText",
+        "Rock ‘n’ roll",
+        "Rock ‘n’ roll",
+      ),
+    );
   });
 
   it("keeps the dialog open when Escape is pressed during replacement", async () => {
@@ -330,6 +473,96 @@ describe("Text tab", () => {
     });
   });
 
+  it("keeps white style numbers above 7:1 contrast across the palette", async () => {
+    const styles = Array.from({ length: 13 }, (_, index) => ({
+      id: index + 1,
+      font: "Arial",
+      size: 12,
+    }));
+    const text = styles.map(({ id }) => `<${id}>Sample</${id}>`).join(" ");
+    evalTS.mockResolvedValueOnce({
+      groups: [{ text, count: 2 }],
+      styles,
+    });
+
+    render(Text);
+    const trigger = await screen.findByRole("button", {
+      name: `Replace repeated text: ${text}`,
+    });
+    const colors = Array.from(
+      trigger.querySelectorAll<HTMLElement>(".styled"),
+      (highlight) => highlight.style.getPropertyValue("--style-color"),
+    );
+    for (const color of colors) {
+      const channels = [1, 3, 5].map((offset) => {
+        const channel = parseInt(color.slice(offset, offset + 2), 16) / 255;
+        return channel <= 0.04045
+          ? channel / 12.92
+          : ((channel + 0.055) / 1.055) ** 2.4;
+      });
+      const luminance =
+        0.2126 * channels[0] + 0.7152 * channels[1] + 0.0722 * channels[2];
+      expect(1.05 / (luminance + 0.05)).toBeGreaterThanOrEqual(7);
+    }
+    expect(colors[12]).toBe(colors[0]);
+
+    await userEvent.click(trigger);
+    for (const style of styles) {
+      const chip = screen.getByRole("button", {
+        name: `Apply Style ${style.id}: Arial, 12pt`,
+      });
+      expect(chip.style.getPropertyValue("--style-color")).toBe(
+        colors[style.id - 1],
+      );
+    }
+  });
+
+  it("undoes and redoes replacement edits without passing the shortcut on", async () => {
+    evalTS.mockResolvedValue({
+      groups: [{ text: "Total", count: 2 }],
+      styles: [{ id: 1, font: "Arial-BoldMT", size: 12 }],
+    });
+    const windowKeydown = vi.fn();
+    window.addEventListener("keydown", windowKeydown);
+
+    render(Text);
+    await userEvent.click(
+      await screen.findByRole("button", {
+        name: "Replace repeated text: Total",
+      }),
+    );
+    const replacement = screen.getByRole("textbox", {
+      name: "Replacement text",
+    }) as HTMLTextAreaElement;
+    await userEvent.type(replacement, " due now", {
+      initialSelectionStart: 5,
+      initialSelectionEnd: 5,
+    });
+    await userEvent.click(
+      screen.getByRole("button", { name: /^Apply Style 1/ }),
+    );
+    expect(replacement).toHaveValue("Total due now<1></1>");
+
+    await userEvent.keyboard("{Control>}z{/Control}");
+    expect(replacement).toHaveValue("Total due now");
+    await userEvent.keyboard("{Control>}z{/Control}");
+    expect(replacement).toHaveValue("Total due ");
+    await userEvent.keyboard("{Control>}z{/Control}");
+    expect(replacement).toHaveValue("Total");
+    await userEvent.keyboard("{Control>}z{/Control}");
+    expect(replacement).toHaveValue("Total");
+    await userEvent.keyboard("{Control>}{Shift>}z{/Shift}{/Control}");
+    expect(replacement).toHaveValue("Total due ");
+    await userEvent.keyboard("{Control>}y{/Control}");
+    expect(replacement).toHaveValue("Total due now");
+
+    const historyKeys = windowKeydown.mock.calls.filter(([event]) =>
+      ["z", "Z", "y"].includes((event as KeyboardEvent).key),
+    );
+    expect(historyKeys).toHaveLength(0);
+    window.removeEventListener("keydown", windowKeydown);
+  });
+
   it("blocks applying malformed or unknown style tags", async () => {
     evalTS.mockResolvedValueOnce({
       groups: [{ text: "Repeated label", count: 2 }],
@@ -362,6 +595,62 @@ describe("Text tab", () => {
     expect(apply).toBeDisabled();
   });
 
+  it("allows a paint between showing the loading state and starting the scan", async () => {
+    const frames: FrameRequestCallback[] = [];
+    vi.stubGlobal(
+      "requestAnimationFrame",
+      vi.fn((callback: FrameRequestCallback) => frames.push(callback)),
+    );
+    evalTS.mockResolvedValueOnce({ groups: [], styles: [] });
+
+    render(Text);
+    await waitFor(() => expect(frames).toHaveLength(1));
+
+    expect(screen.getByRole("status")).toHaveTextContent(
+      "Scanning Illustrator text…",
+    );
+    expect(
+      screen.queryByRole("button", { name: "Refresh" }),
+    ).not.toBeInTheDocument();
+    expect(evalTS).not.toHaveBeenCalled();
+    expect(frames).toHaveLength(1);
+
+    frames[0](0);
+    await tick();
+
+    expect(evalTS).not.toHaveBeenCalled();
+    expect(frames).toHaveLength(2);
+    frames[1](16);
+
+    await waitFor(() =>
+      expect(evalTS).toHaveBeenCalledWith("fetchDocSelectors", true),
+    );
+    expect(evalTS).toHaveBeenCalledTimes(1);
+    expect(
+      await screen.findByText(
+        "No matching text found across multiple artboards.",
+      ),
+    ).toBeInTheDocument();
+  });
+
+  it("does not start a deferred scan after leaving the tab", async () => {
+    const frames: FrameRequestCallback[] = [];
+    vi.stubGlobal(
+      "requestAnimationFrame",
+      vi.fn((callback: FrameRequestCallback) => frames.push(callback)),
+    );
+    const { unmount } = render(Text);
+    await waitFor(() => expect(frames).toHaveLength(1));
+
+    await unmount();
+    frames[0](0);
+    expect(frames).toHaveLength(2);
+    frames[1](16);
+    await tick();
+
+    expect(evalTS).not.toHaveBeenCalled();
+  });
+
   it("shows a loading message until the text has loaded", async () => {
     let resolveLoad: (value: unknown) => void = () => {};
     evalTS.mockImplementation(
@@ -371,10 +660,13 @@ describe("Text tab", () => {
     render(Text);
 
     expect(await screen.findByRole("status")).toHaveTextContent(
-      "Finding all texts…",
+      "Scanning Illustrator text…",
     );
+    expect(document.querySelector(".spinner")).not.toBeInTheDocument();
+    expect(screen.queryByRole("searchbox")).not.toBeInTheDocument();
+    expect(screen.queryByRole("list")).not.toBeInTheDocument();
     expect(
-      screen.queryByText("No repeated text found in the active document."),
+      screen.queryByText("No matching text found across multiple artboards."),
     ).not.toBeInTheDocument();
 
     await waitFor(() => expect(evalTS).toHaveBeenCalled());
@@ -384,7 +676,10 @@ describe("Text tab", () => {
         name: "Replace repeated text: Label",
       }),
     ).toBeInTheDocument();
-    expect(screen.queryByText("Finding all texts…")).not.toBeInTheDocument();
+    expect(
+      screen.queryByText("Scanning Illustrator text…"),
+    ).not.toBeInTheDocument();
+    expect(screen.getByRole("searchbox")).toBeInTheDocument();
   });
 
   it("pans Illustrator to the text when styled original text is clicked", async () => {
