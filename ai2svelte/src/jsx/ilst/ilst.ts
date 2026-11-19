@@ -29,24 +29,32 @@ export const fetchAiSettings = (settingsObj: string) => {
   }
 };
 
-export const fetchDocSelectors = (showProgress = false) => {
+export const fetchDocSelectors = (
+  showProgress = false,
+  includeAllText = false,
+) => {
   if (app) {
-    return fetchSelectors(showProgress);
+    return fetchSelectors(showProgress, includeAllText);
   }
 };
 
 export const replaceDocText = (
   originalText: string,
   replacementText: string,
+  includeAllText = false,
 ) => {
   if (app) {
-    return replaceTextFrames(originalText, replacementText);
+    return replaceTextFrames(originalText, replacementText, includeAllText);
   }
 };
 
-export const revealDocText = (originalText: string, frameIndex: number) => {
+export const revealDocText = (
+  originalText: string,
+  frameIndex: number,
+  includeAllText = false,
+) => {
   if (app) {
-    return revealStyledText(originalText, frameIndex);
+    return revealStyledText(originalText, frameIndex, includeAllText);
   }
 };
 

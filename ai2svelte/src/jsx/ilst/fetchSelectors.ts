@@ -339,7 +339,10 @@ function compactStyles(
 
 // Ids are assigned in document order, so re-scanning an unchanged document
 // gives the same ids the panel was shown.
-function scanDocument(progress?: ScanProgress): DocScan {
+function scanDocument(
+  progress?: ScanProgress,
+  includeAllText = false,
+): DocScan {
   const doc = app.activeDocument;
   const docTextFrames = doc.textFrames;
   const total = docTextFrames.length;
@@ -367,14 +370,15 @@ function scanDocument(progress?: ScanProgress): DocScan {
   const plainRepeated = repeatedAcrossArtboards(candidates);
   let analyzed = total - candidates.length;
   for (let i = 0; i < candidates.length; i++) {
-    if (!plainRepeated[nearKey(candidates[i].text)]) analyzed++;
+    if (includeAllText || !plainRepeated[nearKey(candidates[i].text)])
+      analyzed++;
   }
   if (progress) progress("analyze", analyzed, total);
 
   for (let i = 0; i < candidates.length; i++) {
     const scanned = candidates[i];
     // Skip the slow per-character scan unless the plain text spans artboards.
-    if (!plainRepeated[nearKey(scanned.text)]) continue;
+    if (!includeAllText && !plainRepeated[nearKey(scanned.text)]) continue;
 
     const frame = scanned.frame;
     const contents = String(frame.contents);
@@ -417,7 +421,8 @@ function scanDocument(progress?: ScanProgress): DocScan {
   const styledRepeated = repeatedAcrossArtboards(frames);
   const repeatedFrames: ScannedFrame[] = [];
   for (let i = 0; i < frames.length; i++) {
-    if (styledRepeated[nearKey(frames[i].text)]) repeatedFrames.push(frames[i]);
+    if (includeAllText || styledRepeated[nearKey(frames[i].text)])
+      repeatedFrames.push(frames[i]);
   }
   // Hidden groups must not leave unused chips or gaps in visible tag numbers.
   return {
@@ -426,8 +431,11 @@ function scanDocument(progress?: ScanProgress): DocScan {
   };
 }
 
-function collectSelectors(progress?: ScanProgress): DocTextData {
-  const scan = scanDocument(progress);
+function collectSelectors(
+  progress?: ScanProgress,
+  includeAllText = false,
+): DocTextData {
+  const scan = scanDocument(progress, includeAllText);
   const groups: TextFrameGroup[] = [];
   const groupIndexes: Record<string, number> = {};
 
@@ -487,7 +495,10 @@ function collectSelectors(progress?: ScanProgress): DocTextData {
   return { groups, styles };
 }
 
-export function fetchSelectors(showProgress = false): DocTextData {
+export function fetchSelectors(
+  showProgress = false,
+  includeAllText = false,
+): DocTextData {
   const ui = showProgress
     ? createProgressWindow("Scanning Illustrator text")
     : null;
@@ -504,7 +515,9 @@ export function fetchSelectors(showProgress = false): DocTextData {
         const fraction = total > 0 ? done / total : 1;
         ui.panel.text =
           phase === "collect"
-            ? "Finding repeated text"
+            ? includeAllText
+              ? "Finding text"
+              : "Finding repeated text"
             : "Analyzing text styles";
         ui.label.text =
           (phase === "collect" ? "Checked " : "Analyzed ") +
@@ -517,7 +530,7 @@ export function fetchSelectors(showProgress = false): DocTextData {
       }
     : undefined;
   try {
-    return collectSelectors(report);
+    return collectSelectors(report, includeAllText);
   } finally {
     if (ui) ui.window.close();
   }
@@ -580,6 +593,7 @@ function isOverflowing(frame: TextFrame): boolean {
 export function replaceTextFrames(
   originalText: string,
   replacementText: string,
+  includeAllText = false,
 ): TextReplacementResult {
   const result: TextReplacementResult = {
     updated: 0,
@@ -593,7 +607,7 @@ export function replaceTextFrames(
     throw new Error(parsed.error);
   }
 
-  const scan = scanDocument();
+  const scan = scanDocument(undefined, includeAllText);
   for (let i = 0; i < parsed.segments.length; i++) {
     const styleId = parsed.segments[i].styleId;
     if (styleId !== null && (styleId < 1 || styleId > scan.styles.length)) {
@@ -650,8 +664,9 @@ export function replaceTextFrames(
 export function revealStyledText(
   originalText: string,
   frameIndex: number,
+  includeAllText = false,
 ): boolean {
-  const scan = scanDocument();
+  const scan = scanDocument(undefined, includeAllText);
   const matches: ScannedFrame[] = [];
   for (let i = 0; i < scan.frames.length; i++) {
     if (nearKey(scan.frames[i].text) === nearKey(originalText)) {

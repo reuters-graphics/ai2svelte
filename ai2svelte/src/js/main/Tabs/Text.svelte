@@ -54,6 +54,7 @@
 
   let rows = $state<TextFrameGroup[]>([]);
   let searchText = $state("");
+  let includeAllText = $state(false);
   let styles = $state<TextStyleInfo[]>([]);
   const SORT_DOCUMENT = "Document order";
   const SORT_COPIES = "Most copies";
@@ -230,14 +231,15 @@
       return false;
     }
     try {
-      const data = (await evalTS("fetchDocSelectors", true)) as
-        DocTextData | undefined;
+      const data = (await (includeAllText
+        ? evalTS("fetchDocSelectors", true, true)
+        : evalTS("fetchDocSelectors", true))) as DocTextData | undefined;
       if (unmounted) return false;
       if (!data || !Array.isArray(data.groups)) {
         throw new Error("No active Illustrator document is available.");
       }
       rows = data.groups
-        .filter((group) => group.count > 1)
+        .filter((group) => includeAllText || group.count > 1)
         .map((group) => ({ ...group }));
       styles = Array.isArray(data.styles) ? data.styles : [];
       return true;
@@ -335,7 +337,11 @@
     const row = selectedRow;
     if (!row || !window.cep) return;
     try {
-      await evalTS("revealDocText", row.text, revealCount++);
+      if (includeAllText) {
+        await evalTS("revealDocText", row.text, revealCount++, true);
+      } else {
+        await evalTS("revealDocText", row.text, revealCount++);
+      }
     } catch (error) {
       console.error("[ai2svelte] revealDocText failed:", error);
     }
@@ -372,11 +378,10 @@
     applying = true;
     dialogErrorMessage = "";
     try {
-      const result = (await evalTS(
-        "replaceDocText",
-        row.text,
-        replacementText,
-      )) as TextReplacementResult | undefined;
+      const result = (await (includeAllText
+        ? evalTS("replaceDocText", row.text, replacementText, true)
+        : evalTS("replaceDocText", row.text, replacementText))) as
+        TextReplacementResult | undefined;
       if (
         !result ||
         typeof result.updated !== "number" ||
@@ -505,6 +510,16 @@
       </button>
     </div>
 
+    <label class="all-text-control">
+      <input
+        type="checkbox"
+        bind:checked={includeAllText}
+        onchange={() => refreshText()}
+        disabled={loading || applying || !window.cep}
+      />
+      <span>Show all text</span>
+    </label>
+
     <div class="toolbar">
       <div class="search-field">
         <svg
@@ -524,7 +539,7 @@
           class="search-input"
           type="search"
           name="text-search"
-          aria-label="Search repeated text"
+          aria-label="Search text"
           placeholder="Search text…"
           autocomplete="off"
           bind:value={searchText}
@@ -541,7 +556,11 @@
     </div>
 
     {#if rows.length === 0 && !errorMessage}
-      <p class="feedback">No matching text found across multiple artboards.</p>
+      <p class="feedback">
+        {includeAllText
+          ? "No text found in this document."
+          : "No matching text found across multiple artboards."}
+      </p>
     {:else if filteredRows.length === 0 && !errorMessage}
       <p class="feedback" role="status">No text matches your search.</p>
     {/if}
@@ -553,7 +572,10 @@
     {/if}
 
     {#if filteredRows.length > 0}
-      <ul class="text-list" aria-label="Repeated text">
+      <ul
+        class="text-list"
+        aria-label={includeAllText ? "All text" : "Repeated text"}
+      >
         {#each filteredRows as row, index (row.text)}
           <li>
             <button
@@ -786,6 +808,18 @@
     border: 1px solid var(--color-field-border);
     border-radius: var(--space-s);
     background: var(--color-primary);
+  }
+
+  .all-text-control {
+    display: flex;
+    align-items: center;
+    gap: var(--space-xs);
+    color: var(--color-text-secondary);
+    font-size: var(--font-size-sm);
+  }
+
+  .all-text-control input {
+    accent-color: var(--color-accent-primary);
   }
 
   /* Fits the longest option, so the trigger and its menu keep one width. */

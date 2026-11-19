@@ -117,6 +117,56 @@ describe("Text tab", () => {
     );
   });
 
+  it("shows singletons only when all-text scope is enabled", async () => {
+    evalTS.mockImplementation(async (functionName: string) => {
+      if (functionName === "fetchDocSelectors") {
+        return {
+          groups: [
+            { text: "One-off text", count: 1 },
+            { text: "Repeated label", count: 2 },
+          ],
+          styles: [],
+        };
+      }
+      if (functionName === "replaceDocText") {
+        return { updated: 1, failed: 0, firstError: "" };
+      }
+      return undefined;
+    });
+
+    render(Text);
+    await screen.findByText("Repeated label");
+    const showAll = screen.getByRole("checkbox", { name: "Show all text" });
+    expect(screen.queryByText("One-off text")).not.toBeInTheDocument();
+
+    await userEvent.click(showAll);
+    expect(await screen.findByText("One-off text")).toBeInTheDocument();
+    expect(screen.getByRole("list", { name: "All text" })).toBeInTheDocument();
+    expect(evalTS).toHaveBeenCalledWith("fetchDocSelectors", true, true);
+
+    await userEvent.click(
+      screen.getByRole("button", {
+        name: "Replace repeated text: One-off text",
+      }),
+    );
+    const replacement = screen.getByRole("textbox", {
+      name: "Replacement text",
+    });
+    await userEvent.clear(replacement);
+    await userEvent.type(replacement, "Updated one-off");
+    await userEvent.click(
+      screen.getByRole("button", { name: "Apply to 1 frames" }),
+    );
+    await waitFor(() =>
+      expect(evalTS).toHaveBeenCalledWith(
+        "replaceDocText",
+        "One-off text",
+        "Updated one-off",
+        true,
+      ),
+    );
+  });
+
   it("closes the dialog without changing text when cancelled", async () => {
     evalTS.mockResolvedValueOnce({
       groups: [{ text: "Repeated label", count: 2 }],
@@ -169,7 +219,7 @@ describe("Text tab", () => {
       name: "Replace repeated text: Bridge destroyed",
     });
     const search = screen.getByRole("searchbox", {
-      name: "Search repeated text",
+      name: "Search text",
     });
     await userEvent.type(search, "  RIVER bank FLOOD  ");
     expect(
@@ -205,7 +255,7 @@ describe("Text tab", () => {
     expect(document.querySelectorAll("mark")).toHaveLength(0);
 
     await userEvent.type(
-      screen.getByRole("searchbox", { name: "Search repeated text" }),
+      screen.getByRole("searchbox", { name: "Search text" }),
       "river BANK flood",
     );
     const marks = [...document.querySelectorAll("mark")];
