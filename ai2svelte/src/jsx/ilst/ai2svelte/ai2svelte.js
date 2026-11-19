@@ -34,6 +34,7 @@
 // These are base settings used in the script
 import { defaultSettings, placeholderSettings } from "./settings";
 import { LAZY_SCRIPT } from "./lazyScript";
+import { createProgressWindow } from "../progressWindow";
 
 import {
   caps,
@@ -1343,22 +1344,10 @@ export function main(settingsArg) {
     var step = 0;
     var pctText = "0%";
     var detail = ""; // e.g. "tile 3 of 7", shown after the percentage
-    var win = new Window(
-      "palette",
-      opts.name || "Progress",
-      [150, 150, 600, 260],
-    );
-    win.pnl = win.add("panel", [10, 10, 440, 100], "Progress");
-    win.pnl.progBar = win.pnl.add("progressbar", [20, 35, 410, 60], 0, 100);
-    win.pnl.progBarLabel = win.pnl.add("statictext", [20, 20, 410, 35], "0%");
-    win.show();
-
-    // function getProgress() {
-    //   return win.pnl.progBar.value/win.pnl.progBar.maxvalue;
-    // }
+    var ui = createProgressWindow(opts.name || "Progress");
 
     function update() {
-      win.update();
+      ui.window.update();
       checkAbort();
     }
 
@@ -1368,29 +1357,27 @@ export function main(settingsArg) {
     };
 
     this.setProgress = function (progress) {
-      var max = win.pnl.progBar.maxvalue;
+      var max = ui.bar.maxvalue;
       // progress is always 0.0 to 1.0
       var pct = progress * max;
-      win.pnl.progBar.value = pct;
+      ui.bar.value = pct;
       pctText = Math.round(pct) + "%";
       this.setDetail(detail);
     };
 
     this.setDetail = function (text) {
       detail = text || "";
-      win.pnl.progBarLabel.text = detail
-        ? pctText + "  \u00b7  " + detail
-        : pctText;
+      ui.label.text = detail ? pctText + "  \u00b7  " + detail : pctText;
       update();
     };
 
     this.setTitle = function (title) {
-      win.pnl.text = title;
+      ui.panel.text = title;
       this.setDetail("");
     };
 
     this.close = function () {
-      win.close();
+      ui.window.close();
     };
   }
 
