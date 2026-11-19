@@ -4,11 +4,12 @@ import userEvent from "@testing-library/user-event";
 import TabBar from "../TabBar.svelte";
 
 describe("TabBar", () => {
-  it("renders the three static tab buttons", () => {
+  it("renders the four static tab buttons", () => {
     render(TabBar, { activeLabel: "HOME" });
     expect(screen.getByRole("tab", { name: "Home" })).toBeInTheDocument();
     expect(screen.getByRole("tab", { name: "Settings" })).toBeInTheDocument();
     expect(screen.getByRole("tab", { name: "Styles" })).toBeInTheDocument();
+    expect(screen.getByRole("tab", { name: "Text" })).toBeInTheDocument();
   });
 
   it("does not render the Inspect tab when inspectMode is false", () => {
@@ -43,6 +44,10 @@ describe("TabBar", () => {
       "inactive",
     );
     expect(screen.getByRole("tab", { name: "Styles" })).toHaveAttribute(
+      "data-state",
+      "inactive",
+    );
+    expect(screen.getByRole("tab", { name: "Text" })).toHaveAttribute(
       "data-state",
       "inactive",
     );

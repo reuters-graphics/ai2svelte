@@ -1,5 +1,9 @@
 import { updateSettings, fetchSettings } from "./updateSettings";
-import { fetchSelectors } from "./fetchSelectors";
+import {
+  fetchSelectors,
+  replaceTextFrames,
+  revealStyledText,
+} from "./fetchSelectors";
 import { addSnippet } from "./addSnippet";
 import { storeHiddenData, getHiddenData } from "./dataOperations";
 import { main, exportProgress, finishExport } from "./ai2svelte/ai2svelte";
@@ -28,6 +32,21 @@ export const fetchAiSettings = (settingsObj: string) => {
 export const fetchDocSelectors = () => {
   if (app) {
     return fetchSelectors();
+  }
+};
+
+export const replaceDocText = (
+  originalText: string,
+  replacementText: string,
+) => {
+  if (app) {
+    return replaceTextFrames(originalText, replacementText);
+  }
+};
+
+export const revealDocText = (originalText: string, frameIndex: number) => {
+  if (app) {
+    return revealStyledText(originalText, frameIndex);
   }
 };
 

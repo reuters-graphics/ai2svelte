@@ -49,6 +49,7 @@
   import Styles from "./Tabs/Styles/Styles.svelte";
   import Home from "./Tabs/Home/Home.svelte";
   import Inspect from "./Tabs/Inspect.svelte";
+  import Text from "./Tabs/Text.svelte";
   import Alert from "./Components/Alert.svelte";
   import Wave from "./Components/Wave.svelte";
 
@@ -295,6 +296,8 @@
       <Settings />
     {:else if activeTab === "INSPECT"}
       <Inspect />
+    {:else if activeTab === "TEXT"}
+      <Text />
     {/if}
   </Wave>
 {/if}

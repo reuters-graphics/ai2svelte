@@ -29,7 +29,7 @@
   let theme = $derived(userData.theme || "dark");
 
   // The three static tabs are always visible; Inspect is conditional on inspectMode.
-  const staticTabs = ["Home", "Settings", "Styles"] as const;
+  const staticTabs = ["Home", "Settings", "Styles", "Text"] as const;
 
   // Sync accent color CSS variable and persist it whenever accentColor changes
   $effect(() => {
