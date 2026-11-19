@@ -29,9 +29,9 @@ export const fetchAiSettings = (settingsObj: string) => {
   }
 };
 
-export const fetchDocSelectors = () => {
+export const fetchDocSelectors = (showProgress = false) => {
   if (app) {
-    return fetchSelectors();
+    return fetchSelectors(showProgress);
   }
 };
 

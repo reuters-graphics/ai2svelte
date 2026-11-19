@@ -26,6 +26,7 @@
     "format": "prettier --write src",
     "format:check": "prettier --check src",
     "test": "vitest run",
+    "test:text": "node scripts/text-test.mjs",
     "test:visual:generate": "node scripts/visual-test/generate.mjs",
     "test:visual:build-fixtures": "node scripts/visual-test/build-ai-fixtures.mjs",
     "test:visual:preview": "node scripts/visual-test/serve.mjs",

@@ -64,6 +64,7 @@ pnpm format     # Prettier --write over src/ (format:check to verify only)
 
 pnpm test:visual  # Visual regression test — see Visual Regression Testing below
 pnpm test:persistence  # Styles/settings survive close+reopen — see Persistence Testing below
+pnpm test:text   # Text tab scan/replace against real Illustrator (local-only, needs pnpm build)
 ```
 
 Docs site (root):

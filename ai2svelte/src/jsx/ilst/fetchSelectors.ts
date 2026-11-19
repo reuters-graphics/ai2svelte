@@ -4,10 +4,15 @@ import {
   StyledSegment,
   wrapStyledText,
 } from "../../shared/styledText";
+import { createProgressWindow } from "./progressWindow";
 
 export interface TextFrameGroup {
+  // The most common variant when copies differ slightly.
   text: string;
   count: number;
+  // True when copies differ in case, line breaks, spacing, quotes, dashes
+  // or ellipses.
+  inconsistent: boolean;
 }
 
 export interface TextStyleInfo {
@@ -25,59 +30,24 @@ export interface TextReplacementResult {
   updated: number;
   failed: number;
   firstError: string;
+  // Updated area/path text that no longer fits; these frames are left selected.
+  overflowed: number;
 }
 
-// Every character attribute counts towards a "style": setting contents spreads
-// the first character's attributes over the frame, so anything left out here
-// (e.g. leading) would be silently lost on replacement. Kerning is left out
-// because it describes a character pair, not the character. Order matters when
-// applying: font first, and autoLeading after leading (setting leading turns
-// auto leading off).
+// Only these attributes distinguish inline styles. Anything else (tracking,
+// leading, OpenType features...) is not compared per character, so on
+// replacement it takes the value of the frame's first character. Font goes
+// first so later attributes apply to the final font.
 const STYLE_ATTRIBUTES = [
   "textFont",
   "size",
-  "horizontalScale",
-  "verticalScale",
-  "tracking",
-  "leading",
-  "autoLeading",
-  "kerningMethod",
-  "baselineShift",
-  "baselinePosition",
-  "baselineDirection",
-  "rotation",
   "capitalization",
   "underline",
   "strikeThrough",
   "fillColor",
   "strokeColor",
   "strokeWeight",
-  "overprintFill",
-  "overprintStroke",
-  "language",
-  "noBreak",
-  "ligature",
-  "discretionaryLigature",
-  "contextualLigature",
-  "alternateGlyphs",
-  "figureStyle",
-  "fractions",
-  "ordinals",
-  "ornaments",
-  "swash",
-  "titling",
-  "stylisticAlternates",
-  "openTypePosition",
-  "proportionalMetrics",
   "italics",
-  "alignment",
-  "akiLeft",
-  "akiRight",
-  "Tsume",
-  "connectionForms",
-  "tateChuYokoHorizontal",
-  "tateChuYokoVertical",
-  "wariChuEnabled",
 ];
 
 type StyleValues = Record<string, unknown>;
@@ -89,6 +59,7 @@ interface CapturedStyle {
 
 interface ScannedFrame {
   frame: TextFrame;
+  artboard: number;
   text: string;
   base: CapturedStyle | null;
 }
@@ -107,6 +78,12 @@ interface StyleRun {
   text: string;
   style: CapturedStyle;
 }
+
+type ScanProgress = (
+  phase: "collect" | "analyze",
+  done: number,
+  total: number,
+) => void;
 
 interface ColorLike {
   typename?: string;
@@ -220,9 +197,10 @@ function toIllustratorText(text: string): string {
 
 function readStyleRuns(frame: TextFrame, contents: string): StyleRun[] | null {
   const characters = frame.textRange.characters;
+  const count = characters.length;
   const runs: StyleRun[] = [];
   let joined = "";
-  for (let i = 0; i < characters.length; i++) {
+  for (let i = 0; i < count; i++) {
     const character = characters[i];
     const text = String(character.contents);
     const style = captureStyle(character.characterAttributes);
@@ -269,36 +247,149 @@ function wrapRunText(text: string, styleId: number | null): string {
   return wrapped;
 }
 
+// Assign straddling frames to one artboard, using the largest overlap.
+// Pasteboard text must not qualify a group or be changed with that group.
+function findArtboard(frame: TextFrame, artboards: Artboards): number {
+  const bounds = frame.geometricBounds;
+  let best = -1;
+  let bestArea = 0;
+  for (let i = 0; i < artboards.length; i++) {
+    const rect = artboards[i].artboardRect;
+    const width = Math.min(bounds[2], rect[2]) - Math.max(bounds[0], rect[0]);
+    const height = Math.min(bounds[1], rect[1]) - Math.max(bounds[3], rect[3]);
+    const area = width > 0 && height > 0 ? width * height : 0;
+    if (area > bestArea) {
+      best = i;
+      bestArea = area;
+    }
+  }
+  return best;
+}
+
+// Copies whose text differs only in case, line breaks or typographic details
+// (quotes, dashes, ellipses, spacing) are grouped as one.
+function nearKey(text: string): string {
+  return (
+    "$" +
+    text
+      .toLowerCase()
+      .replace(/[\u2018\u2019\u201A\u201B\u2032]/g, "'")
+      .replace(/[\u201C\u201D\u201E\u201F\u2033]/g, '"')
+      .replace(/[\u2010-\u2015\u2212]/g, "-")
+      .replace(/\u2026/g, "...")
+      .split(String.fromCharCode(3)) // forced line break
+      .join(" ")
+      .replace(/[\s\u00A0\u2000-\u200A\u202F\u205F\u3000]+/g, " ")
+      .replace(/^ +| +$/g, "")
+  );
+}
+
+function repeatedAcrossArtboards(
+  frames: ScannedFrame[],
+): Record<string, boolean> {
+  const firstArtboards: Record<string, number> = {};
+  const repeated: Record<string, boolean> = {};
+  for (let i = 0; i < frames.length; i++) {
+    const key = nearKey(frames[i].text);
+    if (typeof firstArtboards[key] !== "number") {
+      firstArtboards[key] = frames[i].artboard;
+    } else if (firstArtboards[key] !== frames[i].artboard) {
+      repeated[key] = true;
+    }
+  }
+  return repeated;
+}
+
+function compactStyles(
+  frames: ScannedFrame[],
+  styles: StyleEntry[],
+): StyleEntry[] {
+  const segments: StyledSegment[][] = [];
+  const used: Record<string, boolean> = {};
+  for (let i = 0; i < frames.length; i++) {
+    const parsed = parseStyledText(frames[i].text);
+    if (parsed.error) throw new Error(parsed.error);
+    segments.push(parsed.segments);
+    for (let j = 0; j < parsed.segments.length; j++) {
+      const id = parsed.segments[j].styleId;
+      if (id !== null) used[id] = true;
+    }
+  }
+
+  const visibleStyles: StyleEntry[] = [];
+  const ids: Record<string, number> = {};
+  for (let i = 0; i < styles.length; i++) {
+    if (!used[styles[i].id]) continue;
+    const id = visibleStyles.length + 1;
+    ids[styles[i].id] = id;
+    visibleStyles.push({ id, style: styles[i].style });
+  }
+
+  for (let i = 0; i < frames.length; i++) {
+    let text = "";
+    for (let j = 0; j < segments[i].length; j++) {
+      const segment = segments[i][j];
+      const id = segment.styleId === null ? null : ids[segment.styleId];
+      text += wrapStyledText(escapeStyledText(segment.text), id);
+    }
+    frames[i].text = text;
+  }
+  return visibleStyles;
+}
+
 // Ids are assigned in document order, so re-scanning an unchanged document
 // gives the same ids the panel was shown.
-function scanDocument(): DocScan {
-  const docTextFrames = app.activeDocument.textFrames;
-  const plainCounts: Record<string, number> = {};
+function scanDocument(progress?: ScanProgress): DocScan {
+  const doc = app.activeDocument;
+  const docTextFrames = doc.textFrames;
+  const total = docTextFrames.length;
+  const candidates: ScannedFrame[] = [];
   const frames: ScannedFrame[] = [];
   const styles: StyleEntry[] = [];
   const styleIds: Record<string, number> = {};
 
-  for (let i = 0; i < docTextFrames.length; i++) {
-    const key = "$" + String(docTextFrames[i].contents);
-    plainCounts[key] = (plainCounts[key] || 0) + 1;
-  }
-
-  for (let i = 0; i < docTextFrames.length; i++) {
+  for (let i = 0; i < total; i++) {
+    if (progress) progress("collect", i, total);
     const frame = docTextFrames[i];
     const contents = String(frame.contents);
-    const scanned: ScannedFrame = {
+    if (contents.length === 0) continue;
+    const artboard = findArtboard(frame, doc.artboards);
+    if (artboard < 0) continue;
+    candidates.push({
       frame,
+      artboard,
       text: toPanelText(contents),
       base: null,
-    };
+    });
+  }
+  if (progress) progress("collect", total, total);
+
+  const plainRepeated = repeatedAcrossArtboards(candidates);
+  let analyzed = total - candidates.length;
+  for (let i = 0; i < candidates.length; i++) {
+    if (!plainRepeated[nearKey(candidates[i].text)]) analyzed++;
+  }
+  if (progress) progress("analyze", analyzed, total);
+
+  for (let i = 0; i < candidates.length; i++) {
+    const scanned = candidates[i];
+    // Skip the slow per-character scan unless the plain text spans artboards.
+    if (!plainRepeated[nearKey(scanned.text)]) continue;
+
+    const frame = scanned.frame;
+    const contents = String(frame.contents);
     frames.push(scanned);
 
-    // Only repeated text can form a group, so skip the slow per-character
-    // scan for everything else.
-    if (plainCounts["$" + contents] < 2 || contents.length === 0) continue;
-
     const runs = readStyleRuns(frame, contents);
-    if (!runs || runs.length === 0) continue;
+    if (!runs || runs.length === 0) {
+      throw new Error(
+        'Could not read character styles for "' +
+          scanned.text +
+          '". Text with unreadable styles cannot be grouped safely.',
+      );
+    }
+    analyzed++;
+    if (progress) progress("analyze", analyzed, total);
 
     const base = findBaseStyle(runs);
     scanned.base = base;
@@ -321,25 +412,64 @@ function scanDocument(): DocScan {
     scanned.text = text;
   }
 
-  return { frames, styles };
+  // Test again after marking style runs: plain-text repetition alone must
+  // never merge styled text with an unstyled copy (or another style pattern).
+  const styledRepeated = repeatedAcrossArtboards(frames);
+  const repeatedFrames: ScannedFrame[] = [];
+  for (let i = 0; i < frames.length; i++) {
+    if (styledRepeated[nearKey(frames[i].text)]) repeatedFrames.push(frames[i]);
+  }
+  // Hidden groups must not leave unused chips or gaps in visible tag numbers.
+  return {
+    frames: repeatedFrames,
+    styles: compactStyles(repeatedFrames, styles),
+  };
 }
 
-export function fetchSelectors(): DocTextData {
-  const scan = scanDocument();
+function collectSelectors(progress?: ScanProgress): DocTextData {
+  const scan = scanDocument(progress);
   const groups: TextFrameGroup[] = [];
   const groupIndexes: Record<string, number> = {};
 
+  const variants: Array<{ texts: string[]; counts: Record<string, number> }> =
+    [];
+
   for (let i = 0; i < scan.frames.length; i++) {
     const text = scan.frames[i].text;
-    const key = "$" + text;
+    const key = nearKey(text);
     const groupIndex = groupIndexes[key];
 
+    let group: TextFrameGroup;
+    let variant: { texts: string[]; counts: Record<string, number> };
     if (typeof groupIndex === "number") {
-      groups[groupIndex].count++;
+      group = groups[groupIndex];
+      variant = variants[groupIndex];
+      group.count++;
     } else {
       groupIndexes[key] = groups.length;
-      groups.push({ text, count: 1 });
+      group = { text, count: 1, inconsistent: false };
+      variant = { texts: [], counts: {} };
+      groups.push(group);
+      variants.push(variant);
     }
+    const variantKey = "$" + text;
+    if (!variant.counts[variantKey]) {
+      variant.counts[variantKey] = 0;
+      variant.texts.push(text);
+    }
+    variant.counts[variantKey]++;
+  }
+  for (let i = 0; i < groups.length; i++) {
+    // Show the most common variant; ties keep document order.
+    const texts = variants[i].texts;
+    let best = texts[0];
+    for (let j = 1; j < texts.length; j++) {
+      if (variants[i].counts["$" + texts[j]] > variants[i].counts["$" + best]) {
+        best = texts[j];
+      }
+    }
+    groups[i].text = best;
+    groups[i].inconsistent = texts.length > 1;
   }
 
   const styles: TextStyleInfo[] = [];
@@ -355,6 +485,42 @@ export function fetchSelectors(): DocTextData {
   }
 
   return { groups, styles };
+}
+
+export function fetchSelectors(showProgress = false): DocTextData {
+  const ui = showProgress
+    ? createProgressWindow("Scanning Illustrator text")
+    : null;
+  let lastUpdate = 0;
+  let lastPhase = "";
+  const report: ScanProgress | undefined = ui
+    ? (phase, done, total) => {
+        const now = new Date().getTime();
+        if (phase === lastPhase && done !== total && now - lastUpdate < 250) {
+          return;
+        }
+        lastUpdate = now;
+        lastPhase = phase;
+        const fraction = total > 0 ? done / total : 1;
+        ui.panel.text =
+          phase === "collect"
+            ? "Finding repeated text"
+            : "Analyzing text styles";
+        ui.label.text =
+          (phase === "collect" ? "Checked " : "Analyzed ") +
+          done +
+          " of " +
+          total +
+          " text elements";
+        ui.bar.value = phase === "collect" ? fraction * 20 : 20 + fraction * 80;
+        ui.window.update();
+      }
+    : undefined;
+  try {
+    return collectSelectors(report);
+  } finally {
+    if (ui) ui.window.close();
+  }
 }
 
 function replaceFrameText(
@@ -390,6 +556,27 @@ function replaceFrameText(
   }
 }
 
+// Lines only hold the characters Illustrator could lay out, excluding
+// paragraph breaks, so fewer laid-out characters than text means overflow.
+// Threaded frames are measured as one story.
+function isOverflowing(frame: TextFrame): boolean {
+  if (frame.kind === TextType.POINTTEXT) return false;
+  const story = frame.story;
+  const frames = story.textFrames;
+  let shown = 0;
+  for (let i = 0; i < frames.length; i++) {
+    const lines = frames[i].lines;
+    for (let j = 0; j < lines.length; j++) {
+      shown += lines[j].characters.length;
+    }
+  }
+  const text = String(story.textRange.contents)
+    .replace(/[\r\n]/g, "")
+    .split(String.fromCharCode(3)) // forced line break
+    .join("");
+  return shown < text.length;
+}
+
 export function replaceTextFrames(
   originalText: string,
   replacementText: string,
@@ -398,11 +585,8 @@ export function replaceTextFrames(
     updated: 0,
     failed: 0,
     firstError: "",
+    overflowed: 0,
   };
-
-  if (originalText === replacementText) {
-    return result;
-  }
 
   const parsed = parseStyledText(replacementText);
   if (parsed.error) {
@@ -417,8 +601,12 @@ export function replaceTextFrames(
     }
   }
 
+  const overflowed: TextFrame[] = [];
   for (let i = 0; i < scan.frames.length; i++) {
-    if (scan.frames[i].text !== originalText) continue;
+    // Near-matches are one group; copies already identical are left alone.
+    if (nearKey(scan.frames[i].text) !== nearKey(originalText)) continue;
+    if (scan.frames[i].text === replacementText) continue;
+    const frame = scan.frames[i].frame;
     try {
       replaceFrameText(scan.frames[i], parsed.segments, scan.styles);
       result.updated++;
@@ -427,13 +615,37 @@ export function replaceTextFrames(
       if (!result.firstError) {
         result.firstError = String(error);
       }
+      continue;
+    }
+    try {
+      if (isOverflowing(frame)) overflowed.push(frame);
+    } catch (error) {
+      // Measuring is best-effort; the replacement itself succeeded.
+    }
+  }
+
+  result.overflowed = overflowed.length;
+  if (overflowed.length > 0) {
+    try {
+      // Without a redraw, earlier selections made in this script can linger.
+      app.redraw();
+      app.activeDocument.selection = null;
+      for (let i = 0; i < overflowed.length; i++) {
+        try {
+          overflowed[i].selected = true;
+        } catch (error) {
+          // Locked or hidden frames can't be selected.
+        }
+      }
+    } catch (error) {
+      // Selection is only a convenience.
     }
   }
 
   return result;
 }
 
-// Selects the frameIndex-th frame (wrapping) whose text is
+// Selects the frameIndex-th frame (wrapping) whose text near-matches
 // originalText and pans the view to centre on it.
 export function revealStyledText(
   originalText: string,
@@ -442,7 +654,9 @@ export function revealStyledText(
   const scan = scanDocument();
   const matches: ScannedFrame[] = [];
   for (let i = 0; i < scan.frames.length; i++) {
-    if (scan.frames[i].text === originalText) matches.push(scan.frames[i]);
+    if (nearKey(scan.frames[i].text) === nearKey(originalText)) {
+      matches.push(scan.frames[i]);
+    }
   }
   if (matches.length === 0) return false;
 
