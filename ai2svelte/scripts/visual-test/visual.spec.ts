@@ -29,7 +29,11 @@ for (const fixture of fixtures) {
       );
       await page.waitForFunction(() => (window as any).__aiMounted === true);
       const content = page.locator("#frameContent");
-      await expect(content).toContainText("Layers fixture");
+      if (sourceLanguage === "fr") {
+        await expect(content).not.toContainText("Layers fixture");
+      } else {
+        await expect(content).toContainText("Layers fixture");
+      }
 
       if (legacyReviewMarker) {
         await page.getByRole("button", { name: "French", exact: true }).click();
@@ -99,7 +103,7 @@ for (const fixture of fixtures) {
         "de",
       );
       await expect(content.locator('p[lang="de"]')).toHaveCount(0);
-      await expect(content).toContainText("Layers fixture");
+      await expect(content).not.toContainText("Layers fixture");
 
       await page.getByRole("button", { name: "Unknown language" }).click();
       await expect(content.locator('p[lang="ar"], p[lang="fr"]')).toHaveCount(

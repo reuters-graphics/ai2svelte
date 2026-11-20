@@ -186,6 +186,8 @@ export function main(settingsArg) {
   let frameGroupSignatures = {};
   let usedTranslationMessages = {};
   let translationStyleMaps = [];
+  let usesPlainTextSnippet = false;
+  let usesStyledTextSnippet = false;
   let imgVars = {};
   let hasChunkedImages = false; // emit the tile CSS rule only when needed
   let hasLazyImages = false; // emit the lazy attachment only when needed
@@ -667,6 +669,34 @@ export function main(settingsArg) {
       .replace(/\u2029/g, "\\u2029");
   }
 
+  // One language per block and one message per line, so the data diffs well
+  function prettyTranslationData(dictionary) {
+    var languages = [];
+    for (var language in dictionary) {
+      if (!Object.prototype.hasOwnProperty.call(dictionary, language)) continue;
+      var messages = [];
+      for (var id in dictionary[language]) {
+        if (!Object.prototype.hasOwnProperty.call(dictionary[language], id))
+          continue;
+        messages.push(
+          "\t\t\t" +
+            safeJsonLiteral(id) +
+            ": " +
+            safeJsonLiteral(dictionary[language][id]),
+        );
+      }
+      languages.push(
+        "\t\t" +
+          safeJsonLiteral(language) +
+          ": {" +
+          (messages.length ? "\r" + messages.join(",\r") + ",\r\t\t" : "") +
+          "}",
+      );
+    }
+    if (!languages.length) return "{}";
+    return "{\r" + languages.join(",\r") + ",\r\t}";
+  }
+
   // =================================
   // ai2svelte render function
   // =================================
@@ -712,6 +742,8 @@ export function main(settingsArg) {
     var output = { html: "", js: "", css: "" };
     usedTranslationMessages = {};
     translationStyleMaps = [];
+    usesPlainTextSnippet = false;
+    usesStyledTextSnippet = false;
 
     forEach(group.artboards, function (activeArtboard) {
       var abIndex = findArtboardIndex(activeArtboard);
@@ -2428,49 +2460,99 @@ export function main(settingsArg) {
     return "";
   }
 
+  function translationStyleMapHasStyles(styleMap) {
+    for (var key in styleMap) {
+      if (Object.prototype.hasOwnProperty.call(styleMap, key) && styleMap[key])
+        return true;
+    }
+    return false;
+  }
+
   function makeTranslationStyleMapName(styleMap) {
+    var key = safeJsonLiteral(styleMap);
+    for (var i = 0; i < translationStyleMaps.length; i++) {
+      if (translationStyleMaps[i].key === key)
+        return translationStyleMaps[i].name;
+    }
     var name = translationRuntimeName("Styles") + translationStyleMaps.length;
-    translationStyleMaps.push({ name: name, map: styleMap });
+    translationStyleMaps.push({ name: name, key: key, map: styleMap });
     return name;
   }
 
   function generateTranslatedTextHtml(message, styleMapName, paragraphClass) {
     var translationFunction = translationRuntimeName("GetTextTranslation");
-    var linesFunction = translationRuntimeName("TranslationLines");
     var resolvedLanguage = translationRuntimeName("ResolvedLanguage");
-    var segmentStyleKey = "(segment.styleKey || '__base__')";
-    var html =
+    var sourceLanguage = translationRuntimeName("SourceLanguage");
+    var snippetName = translationRuntimeName(
+      styleMapName ? "StyledText" : "Text",
+    );
+    if (styleMapName) usesStyledTextSnippet = true;
+    else usesPlainTextSnippet = true;
+    return (
       "{#if " +
       translationFunction +
       '("' +
       message.id +
-      '")}\r{#each ' +
-      linesFunction +
-      "(" +
-      translationFunction +
+      '")}{@render ' +
+      snippetName +
       '("' +
       message.id +
-      '")) as line}\r\t<p' +
-      (paragraphClass ? ' class="' + paragraphClass + '"' : "") +
-      " lang={" +
+      '", "' +
+      (paragraphClass || "") +
+      '"' +
+      (styleMapName ? ", " + styleMapName : "") +
+      ")}{:else}{#if " +
       resolvedLanguage +
-      '} dir="auto" style="white-space: pre-wrap;">';
-    html +=
-      "{#if line.length === 0}&nbsp;{:else}{#each line as segment}{#if " +
-      styleMapName +
-      "[" +
-      segmentStyleKey +
-      "] && " +
-      styleMapName +
-      "[" +
-      segmentStyleKey +
-      "].length}<span class={" +
-      styleMapName +
-      "[" +
-      segmentStyleKey +
-      "]}>{segment.text}</span>{:else}{segment.text}{/if}{/each}{/if}";
-    html += "</p>\r{/each}\r{:else}\r";
-    return html;
+      " === " +
+      sourceLanguage +
+      "}\r"
+    );
+  }
+
+  // Shared markup for every translated text frame, rendered via {@render}
+  function generateTranslationSnippets() {
+    var translationFunction = translationRuntimeName("GetTextTranslation");
+    var linesFunction = translationRuntimeName("Lines");
+    var resolvedLanguage = translationRuntimeName("ResolvedLanguage");
+    var out = "";
+    function snippet(name, params, inner) {
+      return (
+        "{#snippet " +
+        name +
+        "(" +
+        params +
+        ")}\r{#each " +
+        linesFunction +
+        "(" +
+        translationFunction +
+        "(id)) as line}\r\t<p class={paragraphClass || undefined} lang={" +
+        resolvedLanguage +
+        '} dir="auto" style="white-space: pre-wrap;">' +
+        "{#if line.length === 0}&nbsp;{:else}{#each line as segment}" +
+        inner +
+        "{/each}{/if}</p>\r{/each}\r{/snippet}\r"
+      );
+    }
+    if (usesPlainTextSnippet) {
+      out += snippet(
+        translationRuntimeName("Text"),
+        "id, paragraphClass",
+        "{segment.text}",
+      );
+    }
+    if (usesStyledTextSnippet) {
+      var styleClass = "styles[segment.styleKey || '__base__']";
+      out += snippet(
+        translationRuntimeName("StyledText"),
+        "id, paragraphClass, styles",
+        "{#if " +
+          styleClass +
+          "}<span class={" +
+          styleClass +
+          "}>{segment.text}</span>{:else}{segment.text}{/if}",
+      );
+    }
+    return out ? "<!-- Translated text templates -->\r" + out + "\r" : "";
   }
 
   function generateTaggedTextFrameHtml(
@@ -2687,7 +2769,9 @@ export function main(settingsArg) {
         );
         if (translationMessage) {
           usedTranslationMessages[translationMessage.id] = translationMessage;
-          var styleMapName = makeTranslationStyleMapName(translationStyleMap);
+          var styleMapName = translationStyleMapHasStyles(translationStyleMap)
+            ? makeTranslationStyleMapName(translationStyleMap)
+            : null;
           html =
             generateTranslatedTextHtml(
               translationMessage,
@@ -2695,7 +2779,7 @@ export function main(settingsArg) {
               firstParagraphStyleClass(obj.paragraphs, baseStyle, pgStyles),
             ) +
             sourceHtml +
-            "{/if}";
+            "{/if}{/if}";
         } else {
           html = sourceHtml;
         }
@@ -2706,9 +2790,7 @@ export function main(settingsArg) {
           '\t\t<div id="' +
           divId +
           '" ' +
-          (textTranslationsEnabled
-            ? 'lang="' + sourceLanguage + '" dir="auto" '
-            : "") +
+          (textTranslationsEnabled ? 'dir="auto" ' : "") +
           getNoteDataAttributes(frame.note) +
           positionCss +
           ">" +
@@ -6210,6 +6292,7 @@ export function main(settingsArg) {
 
     script += "\timport { onMount, untrack } from 'svelte';\r\r";
     if (textTranslationsEnabled) {
+      script += "\t// Text translations\r";
       var sourceLanguageName = translationRuntimeName("SourceLanguage");
       var translationDataName = translationRuntimeName("Data");
       var configuredLanguagesName = translationRuntimeName(
@@ -6218,7 +6301,7 @@ export function main(settingsArg) {
       var resolveLanguageName = translationRuntimeName("ResolveLanguage");
       var resolvedLanguageName = translationRuntimeName("ResolvedLanguage");
       var getTranslationName = translationRuntimeName("GetTextTranslation");
-      var translationLinesName = translationRuntimeName("TranslationLines");
+      var translationLinesName = translationRuntimeName("Lines");
       script +=
         "\tconst " +
         sourceLanguageName +
@@ -6229,7 +6312,7 @@ export function main(settingsArg) {
         "\tconst " +
         translationDataName +
         " = " +
-        safeJsonLiteral(getOutputTranslationDictionary()) +
+        prettyTranslationData(getOutputTranslationDictionary()) +
         ";\r";
       script +=
         "\tconst " +
@@ -6466,6 +6549,8 @@ export function main(settingsArg) {
     var rootLanguageBinding = textTranslationsEnabled
       ? "lang={" + translationRuntimeName("ResolvedLanguage") + "}"
       : "lang={lang}";
+
+    html += generateTranslationSnippets();
 
     if (isTrue(settings.allow_overflow)) {
       html += "<svelte:window bind:innerWidth={screenWidth} />\r\r";

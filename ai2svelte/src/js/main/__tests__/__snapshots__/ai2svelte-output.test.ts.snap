@@ -3959,10 +3959,17 @@ exports[`ai2svelte generated output (visual-test) > translations matches last-ap
 
 	import { onMount, untrack } from 'svelte';
 
+	// Text translations
 	const __a2sTranslationSourceLanguage = "en";
-	const __a2sTranslationData = {"fr":{"m1":[{"text":"Carte ","styleKey":null},{"text":"\\u003c/script> & \\u2028\\n","styleKey":"[\\"ArialMT\\",\\"12\\",\\"FontCapsOption.NORMALCAPS\\",\\"false\\",\\"false\\",\\"rgb:220,38,38\\",\\"NoColor\\",\\"1\\",\\"false\\"]"}]},"ar":{"m1":[{"text":"خريطة","styleKey":null}]},"de":{
-
-}};
+	const __a2sTranslationData = {
+		"fr": {
+			"m1": [{"text":"Carte ","styleKey":null},{"text":"\\u003c/script> & \\u2028\\n","styleKey":"[\\"ArialMT\\",\\"12\\",\\"FontCapsOption.NORMALCAPS\\",\\"false\\",\\"false\\",\\"rgb:220,38,38\\",\\"NoColor\\",\\"1\\",\\"false\\"]"}],
+		},
+		"ar": {
+			"m1": [{"text":"خريطة","styleKey":null}],
+		},
+		"de": {},
+	};
 	const __a2sTranslationConfiguredLanguages = ["en","fr","ar","de"];
 	function __a2sTranslationResolveLanguage(requested) {
 	var canonical;
@@ -3986,7 +3993,7 @@ exports[`ai2svelte generated output (visual-test) > translations matches last-ap
 		const language = __a2sTranslationData[__a2sTranslationResolvedLanguage];
 		return language && language[id] && language[id].length ? language[id] : null;
 	}
-	function __a2sTranslationTranslationLines(segments) {
+	function __a2sTranslationLines(segments) {
 		const lines = [[]];
 		for (let i = 0; i < segments.length; i++) {
 			const segment = segments[i];
@@ -4041,6 +4048,13 @@ exports[`ai2svelte generated output (visual-test) > translations matches last-ap
 	<link rel="preload" as="image" fetchpriority="high" media="(min-width: 0px) and (max-width: 599px)" href="{processedPath}/translation-narrow.png"/>
 </svelte:head>
 
+<!-- Translated text templates -->
+{#snippet __a2sTranslationStyledText(id, paragraphClass, styles)}
+{#each __a2sTranslationLines(__a2sTranslationGetTextTranslation(id)) as line}
+	<p class={paragraphClass || undefined} lang={__a2sTranslationResolvedLanguage} dir="auto" style="white-space: pre-wrap;">{#if line.length === 0}&nbsp;{:else}{#each line as segment}{#if styles[segment.styleKey || '__base__']}<span class={styles[segment.styleKey || '__base__']}>{segment.text}</span>{:else}{segment.text}{/if}{/each}{/if}</p>
+{/each}
+{/snippet}
+
 <div id="g-translation-box" class="ai2svelte" bind:this={aiBox} bind:clientWidth={aiBoxWidth} lang={__a2sTranslationResolvedLanguage}
 	style:--g-png-layer-raster-wide={\`url("\${processedPath}/tagged/translation/layer-raster-wide.png")\`}
 	style:--g-translation-wide-img={\`url("\${processedPath}/translation-wide.png")\`}
@@ -4072,19 +4086,15 @@ exports[`ai2svelte generated output (visual-test) > translations matches last-ap
 				{@render slot?.()}
 			</div>
 		</div>
-		<div id="g-caption" lang="en" dir="auto" class="g-label g-aiAbs g-aiPointText" style="top:90.1926%;margin-top:-11px;left:5.0015%;width:207px;">
+		<div id="g-caption" dir="auto" class="g-label g-aiAbs g-aiPointText" style="top:90.1926%;margin-top:-11px;left:5.0015%;width:207px;">
 			<p class="g-pstyle1">Tags, notes and artboards</p>
 		</div>
-		<div id="g-my_label" lang="en" dir="auto" class="g-label g-aiAbs g-aiPointText" style="top:95.8194%;margin-top:-8.1px;left:5%;width:113px;">
+		<div id="g-my_label" dir="auto" class="g-label g-aiAbs g-aiPointText" style="top:95.8194%;margin-top:-8.1px;left:5%;width:113px;">
 			<p class="g-pstyle2">Braces &#123;a&#125; & &lt;b&gt;</p>
 		</div>
-		<div id="g-title" lang="en" dir="auto" data-role="title" class="g-label g-aiAbs g-aiPointText" style="top:80.512%;margin-top:-27.6px;left:5%;width:146px;">{#if __a2sTranslationGetTextTranslation("m1")}
-{#each __a2sTranslationTranslationLines(__a2sTranslationGetTextTranslation("m1")) as line}
-	<p class="g-pstyle0" lang={__a2sTranslationResolvedLanguage} dir="auto" style="white-space: pre-wrap;">{#if line.length === 0}&nbsp;{:else}{#each line as segment}{#if __a2sTranslationStyles0[(segment.styleKey || '__base__')] && __a2sTranslationStyles0[(segment.styleKey || '__base__')].length}<span class={__a2sTranslationStyles0[(segment.styleKey || '__base__')]}>{segment.text}</span>{:else}{segment.text}{/if}{/each}{/if}</p>
-{/each}
-{:else}
+		<div id="g-title" dir="auto" data-role="title" class="g-label g-aiAbs g-aiPointText" style="top:80.512%;margin-top:-27.6px;left:5%;width:146px;">{#if __a2sTranslationGetTextTranslation("m1")}{@render __a2sTranslationStyledText("m1", "g-pstyle0", __a2sTranslationStyles0)}{:else}{#if __a2sTranslationResolvedLanguage === __a2sTranslationSourceLanguage}
 
-			<p class="g-pstyle0"><span class="g-cstyle0">Layers&nbsp;</span>fixture</p>{/if}
+			<p class="g-pstyle0"><span class="g-cstyle0">Layers&nbsp;</span>fixture</p>{/if}{/if}
 		</div>
 	</div>
 	<!-- Artboard: narrow:image_only -->
@@ -4457,12 +4467,15 @@ exports[`ai2svelte generated output (visual-test) > translations-source-language
 
 	import { onMount, untrack } from 'svelte';
 
+	// Text translations
 	const __a2sTranslationSourceLanguage = "fr";
-	const __a2sTranslationData = {"en":{
-
-},"ar":{"m1":[{"text":"خريطة","styleKey":null}]},"de":{
-
-}};
+	const __a2sTranslationData = {
+		"en": {},
+		"ar": {
+			"m1": [{"text":"خريطة","styleKey":null}],
+		},
+		"de": {},
+	};
 	const __a2sTranslationConfiguredLanguages = ["en","fr","ar","de"];
 	function __a2sTranslationResolveLanguage(requested) {
 	var canonical;
@@ -4486,7 +4499,7 @@ exports[`ai2svelte generated output (visual-test) > translations-source-language
 		const language = __a2sTranslationData[__a2sTranslationResolvedLanguage];
 		return language && language[id] && language[id].length ? language[id] : null;
 	}
-	function __a2sTranslationTranslationLines(segments) {
+	function __a2sTranslationLines(segments) {
 		const lines = [[]];
 		for (let i = 0; i < segments.length; i++) {
 			const segment = segments[i];
@@ -4541,6 +4554,13 @@ exports[`ai2svelte generated output (visual-test) > translations-source-language
 	<link rel="preload" as="image" fetchpriority="high" media="(min-width: 0px) and (max-width: 599px)" href="{processedPath}/translation-narrow.png"/>
 </svelte:head>
 
+<!-- Translated text templates -->
+{#snippet __a2sTranslationStyledText(id, paragraphClass, styles)}
+{#each __a2sTranslationLines(__a2sTranslationGetTextTranslation(id)) as line}
+	<p class={paragraphClass || undefined} lang={__a2sTranslationResolvedLanguage} dir="auto" style="white-space: pre-wrap;">{#if line.length === 0}&nbsp;{:else}{#each line as segment}{#if styles[segment.styleKey || '__base__']}<span class={styles[segment.styleKey || '__base__']}>{segment.text}</span>{:else}{segment.text}{/if}{/each}{/if}</p>
+{/each}
+{/snippet}
+
 <div id="g-translation-box" class="ai2svelte" bind:this={aiBox} bind:clientWidth={aiBoxWidth} lang={__a2sTranslationResolvedLanguage}
 	style:--g-png-layer-raster-wide={\`url("\${processedPath}/tagged/translation/layer-raster-wide.png")\`}
 	style:--g-translation-wide-img={\`url("\${processedPath}/translation-wide.png")\`}
@@ -4572,19 +4592,15 @@ exports[`ai2svelte generated output (visual-test) > translations-source-language
 				{@render slot?.()}
 			</div>
 		</div>
-		<div id="g-caption" lang="fr" dir="auto" class="g-label g-aiAbs g-aiPointText" style="top:90.1926%;margin-top:-11px;left:5.0015%;width:207px;">
+		<div id="g-caption" dir="auto" class="g-label g-aiAbs g-aiPointText" style="top:90.1926%;margin-top:-11px;left:5.0015%;width:207px;">
 			<p class="g-pstyle1">Tags, notes and artboards</p>
 		</div>
-		<div id="g-my_label" lang="fr" dir="auto" class="g-label g-aiAbs g-aiPointText" style="top:95.8194%;margin-top:-8.1px;left:5%;width:113px;">
+		<div id="g-my_label" dir="auto" class="g-label g-aiAbs g-aiPointText" style="top:95.8194%;margin-top:-8.1px;left:5%;width:113px;">
 			<p class="g-pstyle2">Braces &#123;a&#125; & &lt;b&gt;</p>
 		</div>
-		<div id="g-title" lang="fr" dir="auto" data-role="title" class="g-label g-aiAbs g-aiPointText" style="top:80.512%;margin-top:-27.6px;left:5%;width:146px;">{#if __a2sTranslationGetTextTranslation("m1")}
-{#each __a2sTranslationTranslationLines(__a2sTranslationGetTextTranslation("m1")) as line}
-	<p class="g-pstyle0" lang={__a2sTranslationResolvedLanguage} dir="auto" style="white-space: pre-wrap;">{#if line.length === 0}&nbsp;{:else}{#each line as segment}{#if __a2sTranslationStyles0[(segment.styleKey || '__base__')] && __a2sTranslationStyles0[(segment.styleKey || '__base__')].length}<span class={__a2sTranslationStyles0[(segment.styleKey || '__base__')]}>{segment.text}</span>{:else}{segment.text}{/if}{/each}{/if}</p>
-{/each}
-{:else}
+		<div id="g-title" dir="auto" data-role="title" class="g-label g-aiAbs g-aiPointText" style="top:80.512%;margin-top:-27.6px;left:5%;width:146px;">{#if __a2sTranslationGetTextTranslation("m1")}{@render __a2sTranslationStyledText("m1", "g-pstyle0", __a2sTranslationStyles0)}{:else}{#if __a2sTranslationResolvedLanguage === __a2sTranslationSourceLanguage}
 
-			<p class="g-pstyle0"><span class="g-cstyle0">Layers&nbsp;</span>fixture</p>{/if}
+			<p class="g-pstyle0"><span class="g-cstyle0">Layers&nbsp;</span>fixture</p>{/if}{/if}
 		</div>
 	</div>
 	<!-- Artboard: narrow:image_only -->
@@ -4733,10 +4749,17 @@ exports[`ai2svelte generated output (visual-test) > translations-stale matches l
 
 	import { onMount, untrack } from 'svelte';
 
+	// Text translations
 	const __a2sTranslationSourceLanguage = "en";
-	const __a2sTranslationData = {"fr":{"m1":[{"text":"Carte ","styleKey":null},{"text":"\\u003c/script> & \\u2028\\n","styleKey":"[\\"ArialMT\\",\\"12\\",\\"FontCapsOption.NORMALCAPS\\",\\"false\\",\\"false\\",\\"rgb:220,38,38\\",\\"NoColor\\",\\"1\\",\\"false\\"]"}]},"ar":{"m1":[{"text":"خريطة","styleKey":null}]},"de":{
-
-}};
+	const __a2sTranslationData = {
+		"fr": {
+			"m1": [{"text":"Carte ","styleKey":null},{"text":"\\u003c/script> & \\u2028\\n","styleKey":"[\\"ArialMT\\",\\"12\\",\\"FontCapsOption.NORMALCAPS\\",\\"false\\",\\"false\\",\\"rgb:220,38,38\\",\\"NoColor\\",\\"1\\",\\"false\\"]"}],
+		},
+		"ar": {
+			"m1": [{"text":"خريطة","styleKey":null}],
+		},
+		"de": {},
+	};
 	const __a2sTranslationConfiguredLanguages = ["en","fr","ar","de"];
 	function __a2sTranslationResolveLanguage(requested) {
 	var canonical;
@@ -4760,7 +4783,7 @@ exports[`ai2svelte generated output (visual-test) > translations-stale matches l
 		const language = __a2sTranslationData[__a2sTranslationResolvedLanguage];
 		return language && language[id] && language[id].length ? language[id] : null;
 	}
-	function __a2sTranslationTranslationLines(segments) {
+	function __a2sTranslationLines(segments) {
 		const lines = [[]];
 		for (let i = 0; i < segments.length; i++) {
 			const segment = segments[i];
@@ -4815,6 +4838,13 @@ exports[`ai2svelte generated output (visual-test) > translations-stale matches l
 	<link rel="preload" as="image" fetchpriority="high" media="(min-width: 0px) and (max-width: 599px)" href="{processedPath}/translation-narrow.png"/>
 </svelte:head>
 
+<!-- Translated text templates -->
+{#snippet __a2sTranslationStyledText(id, paragraphClass, styles)}
+{#each __a2sTranslationLines(__a2sTranslationGetTextTranslation(id)) as line}
+	<p class={paragraphClass || undefined} lang={__a2sTranslationResolvedLanguage} dir="auto" style="white-space: pre-wrap;">{#if line.length === 0}&nbsp;{:else}{#each line as segment}{#if styles[segment.styleKey || '__base__']}<span class={styles[segment.styleKey || '__base__']}>{segment.text}</span>{:else}{segment.text}{/if}{/each}{/if}</p>
+{/each}
+{/snippet}
+
 <div id="g-translation-box" class="ai2svelte" bind:this={aiBox} bind:clientWidth={aiBoxWidth} lang={__a2sTranslationResolvedLanguage}
 	style:--g-png-layer-raster-wide={\`url("\${processedPath}/tagged/translation/layer-raster-wide.png")\`}
 	style:--g-translation-wide-img={\`url("\${processedPath}/translation-wide.png")\`}
@@ -4846,19 +4876,15 @@ exports[`ai2svelte generated output (visual-test) > translations-stale matches l
 				{@render slot?.()}
 			</div>
 		</div>
-		<div id="g-caption" lang="en" dir="auto" class="g-label g-aiAbs g-aiPointText" style="top:90.1926%;margin-top:-11px;left:5.0015%;width:207px;">
+		<div id="g-caption" dir="auto" class="g-label g-aiAbs g-aiPointText" style="top:90.1926%;margin-top:-11px;left:5.0015%;width:207px;">
 			<p class="g-pstyle1">Tags, notes and artboards</p>
 		</div>
-		<div id="g-my_label" lang="en" dir="auto" class="g-label g-aiAbs g-aiPointText" style="top:95.8194%;margin-top:-8.1px;left:5%;width:113px;">
+		<div id="g-my_label" dir="auto" class="g-label g-aiAbs g-aiPointText" style="top:95.8194%;margin-top:-8.1px;left:5%;width:113px;">
 			<p class="g-pstyle2">Braces &#123;a&#125; & &lt;b&gt;</p>
 		</div>
-		<div id="g-title" lang="en" dir="auto" data-role="title" class="g-label g-aiAbs g-aiPointText" style="top:80.512%;margin-top:-27.6px;left:5%;width:146px;">{#if __a2sTranslationGetTextTranslation("m1")}
-{#each __a2sTranslationTranslationLines(__a2sTranslationGetTextTranslation("m1")) as line}
-	<p class="g-pstyle0" lang={__a2sTranslationResolvedLanguage} dir="auto" style="white-space: pre-wrap;">{#if line.length === 0}&nbsp;{:else}{#each line as segment}{#if __a2sTranslationStyles0[(segment.styleKey || '__base__')] && __a2sTranslationStyles0[(segment.styleKey || '__base__')].length}<span class={__a2sTranslationStyles0[(segment.styleKey || '__base__')]}>{segment.text}</span>{:else}{segment.text}{/if}{/each}{/if}</p>
-{/each}
-{:else}
+		<div id="g-title" dir="auto" data-role="title" class="g-label g-aiAbs g-aiPointText" style="top:80.512%;margin-top:-27.6px;left:5%;width:146px;">{#if __a2sTranslationGetTextTranslation("m1")}{@render __a2sTranslationStyledText("m1", "g-pstyle0", __a2sTranslationStyles0)}{:else}{#if __a2sTranslationResolvedLanguage === __a2sTranslationSourceLanguage}
 
-			<p class="g-pstyle0"><span class="g-cstyle0">Layers&nbsp;</span>fixture</p>{/if}
+			<p class="g-pstyle0"><span class="g-cstyle0">Layers&nbsp;</span>fixture</p>{/if}{/if}
 		</div>
 	</div>
 	<!-- Artboard: narrow:image_only -->

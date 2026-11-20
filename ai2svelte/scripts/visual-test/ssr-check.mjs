@@ -39,12 +39,16 @@ try {
   if (mode === "source-language") {
     assert.ok(french.includes("Layers") && french.includes("fixture"));
     assert.doesNotMatch(french, /Ancienne traduction/);
+    const missing = render(Component, { props: { lang: "de" } }).body;
+    assert.doesNotMatch(missing, /Layers fixture/);
   } else if (mode === "disabled") {
     assert.ok(french.includes("Layers") && french.includes("fixture"));
     assert.doesNotMatch(french, /Carte/);
   } else {
     assert.match(french, /Carte/);
     assert.match(french, /&lt;\/script> &amp;/);
+    const missing = render(Component, { props: { lang: "de" } }).body;
+    assert.doesNotMatch(missing, /Layers fixture/);
     const fallback = render(Component, { props: { lang: "it" } }).body;
     assert.ok(fallback.includes("Layers") && fallback.includes("fixture"));
     assert.doesNotMatch(fallback, /Carte/);
