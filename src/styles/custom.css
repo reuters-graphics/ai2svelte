@@ -5,6 +5,33 @@
   --sl-sidebar-item-padding-inline: 0.7rem;
 }
 
+.experimental-badge {
+  --sl-color-bg-badge: rgb(184 115 51 / 18%);
+  --sl-color-border-badge: #b87333;
+  --sl-color-text-badge: var(--sl-color-white);
+}
+
+[data-theme="light"] .experimental-badge {
+  --sl-color-bg-badge: rgb(140 79 42 / 12%);
+  --sl-color-border-badge: #8c4f2a;
+  --sl-color-text-badge: var(--sl-color-white);
+}
+
+.sidebar-content a[aria-current="page"] > .experimental-badge {
+  color: var(--sl-color-white);
+  border-color: #b87333;
+  background-color: rgb(184 115 51 / 18%);
+}
+
+[data-theme="light"]
+  .sidebar-content
+  a[aria-current="page"]
+  > .experimental-badge {
+  color: var(--sl-color-white);
+  border-color: #8c4f2a;
+  background-color: rgb(140 79 42 / 12%);
+}
+
 .sl-heading-wrapper.level-h2 {
   h2 {
     --sl-text-h2: var(--sl-text-3xl) !important;
