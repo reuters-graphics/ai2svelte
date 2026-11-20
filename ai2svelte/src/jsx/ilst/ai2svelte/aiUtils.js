@@ -17,6 +17,19 @@ function shiftBounds(bnds, dx, dy) {
   return [bnds[0] + dx, bnds[1] + dy, bnds[2] + dx, bnds[3] + dy];
 }
 
+function getRasterTileBounds(rect, pixels, scale) {
+  // Rounded pixel totals are for the grid, not the outer crop: converting
+  // them back to points can include artwork beyond a fractional artboard.
+  var width = Math.round((rect[2] - rect[0]) * scale);
+  var height = Math.round((rect[1] - rect[3]) * scale);
+  return [
+    rect[0] + pixels[0] / scale,
+    rect[1] - pixels[1] / scale,
+    pixels[2] == width ? rect[2] : rect[0] + pixels[2] / scale,
+    pixels[3] == height ? rect[3] : rect[1] - pixels[3] / scale,
+  ];
+}
+
 function clearMatrixShift(m) {
   return app.concatenateTranslationMatrix(m, -m.mValueTX, -m.mValueTY);
 }
@@ -148,6 +161,7 @@ function saveTextFile(dest, contents) {
 export {
   testBoundsIntersection,
   shiftBounds,
+  getRasterTileBounds,
   clearMatrixShift,
   folderExists,
   fileExists,

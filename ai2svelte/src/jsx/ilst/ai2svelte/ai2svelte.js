@@ -56,6 +56,7 @@ import {
 import {
   testBoundsIntersection,
   shiftBounds,
+  getRasterTileBounds,
   clearMatrixShift,
   folderExists,
   deleteFile,
@@ -5157,8 +5158,6 @@ export function main(settingsArg) {
     deleteFile(outputPath); // stale unchunked image
     deleteFile(at2x(outputPath));
 
-    var L = rect[0],
-      T = rect[1];
     var isBase = !isTaggedRasterPrefix(settings.tagPrefix);
     var html = "";
     var count = 0;
@@ -5168,13 +5167,9 @@ export function main(settingsArg) {
         var x1 = Math.min(wPx, edge(c + 1, cols, wPx) + bleed);
         var y0 = edge(r, rows, hPx);
         var y1 = Math.min(hPx, edge(r + 1, rows, hPx) + bleed);
+        var tileRect = getRasterTileBounds(rect, [x0, y0, x1, y1], s);
         if (transparent) {
-          var b = unionBoundsInRect(boundsList, [
-            L + x0 / s,
-            T - y0 / s,
-            L + x1 / s,
-            T - y1 / s,
-          ]);
+          var b = unionBoundsInRect(boundsList, tileRect);
           // nothing here: no file, no element. A sliver touching the cell's
           // edge (zero area) is nothing too. Plain ifs: ExtendScript evaluates
           // the right side of a || (b && c) even when a is true.
@@ -5187,14 +5182,10 @@ export function main(settingsArg) {
         progressBar.setDetail(
           "tile " + (r * cols + c + 1) + " of " + rows * cols,
         );
-        exportRasterDensities(
-          tilePath,
-          ab,
-          format,
-          settings,
-          [L + x0 / s, T - y0 / s, L + x1 / s, T - y1 / s],
-          { id: tileId, varKey: getImgVarKey(tileId, ab, settings) },
-        );
+        exportRasterDensities(tilePath, ab, format, settings, tileRect, {
+          id: tileId,
+          varKey: getImgVarKey(tileId, ab, settings),
+        });
         count++;
         hasChunkedImages = true;
         html +=
