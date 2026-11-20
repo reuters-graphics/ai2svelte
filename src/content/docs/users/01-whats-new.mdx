@@ -8,7 +8,10 @@ sidebar:
 
 ### v1.0.10
 
-- Adds Illustrator 2027 (v31) to the tested versions
+- Adds a Text tab to batch edit text and manually set translations by configured language. See [Manual text translations](../text-translations/)
+- Adds document-scoped manual translations and temporary Illustrator language previews
+- Adds `lazyMargin`, `lazyRoot`, `check()`, `getLazyTiles()` and `reveal()` controls for images inside clipping containers. See [Lazy image settings](../ai2svelte-settings-reference/#use_lazy_loader)
+- Illustrator 2027 (v31) is now tested and supported
 - Adds WebP support, via `image_format: webp` or `:webp` tagged layers, and makes it the default for new documents
 - Renames `jpg_quality` to `image_quality`, which now also sets WebP quality
 - Adds `image_chunk_width` and `image_chunk_height`, which split very wide or long images into tiles that decode faster. See [Chunked images](../chunked-images/)
