@@ -84,7 +84,14 @@
       {#key $lastSaved}
         <p in:fly={{ y: 20, duration: 200 }}>
           {$lastSaved !== "Never" && $lastSaved.time
-            ? new Date($lastSaved.time).toString()
+            ? new Date($lastSaved.time).toLocaleString("en-IN", {
+                month: "short",
+                day: "numeric",
+                year: "numeric",
+                hour: "numeric",
+                minute: "2-digit",
+                timeZoneName: "short",
+              })
             : "Never"}
         </p>
       {/key}
