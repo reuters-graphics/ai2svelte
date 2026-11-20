@@ -6,15 +6,47 @@
     options?: Array<string>;
     value: string;
     id?: string;
+    ariaLabel?: string;
+    disabled?: boolean;
+    optionLabels?: Record<string, string>;
+    onValueChange?: (value: string) => void;
+    badge?: string | number;
+    actionLabel?: string;
+    actionDisabled?: boolean;
+    onAction?: () => void;
     portalTarget?: HTMLElement;
+    menuAnchor?: HTMLElement;
   }
 
   let {
     options = [],
     value = $bindable("Select some option"),
     id,
+    ariaLabel,
+    disabled = false,
+    optionLabels = {},
+    onValueChange,
+    badge,
+    actionLabel,
+    actionDisabled = false,
+    onAction,
     portalTarget,
+    menuAnchor,
   }: DropdownProps = $props();
+
+  const ACTION_VALUE = "__dropdown-action__";
+
+  function dropdownTransitionDuration() {
+    return typeof window !== "undefined" &&
+      typeof window.matchMedia === "function" &&
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches
+      ? 0
+      : 400;
+  }
+
+  function optionLabel(option: string) {
+    return optionLabels[option] ?? option;
+  }
 
   // DOM refs for the chaser hover-highlight animation
   let parentContainer: HTMLElement | undefined = $state();
@@ -71,29 +103,43 @@
 <div class="dropdown-container">
   <Select.Root
     type="single"
-    bind:value
-    onOpenChange={(open) => {
-      menuOpen = open;
+    {value}
+    bind:open={menuOpen}
+    {disabled}
+    onValueChange={(nextValue) => {
+      if (nextValue === ACTION_VALUE) {
+        menuOpen = false;
+        onAction?.();
+        return;
+      }
+      value = nextValue;
+      onValueChange?.(nextValue);
     }}
   >
     <!--
       Select.Trigger renders as a button with aria-expanded and aria-haspopup.
       The child snippet lets us keep our custom value display and chevron layout.
     -->
-    <Select.Trigger {id}>
+    <Select.Trigger {id} aria-label={ariaLabel}>
       {#snippet child({ props })}
         <button {...props} class="selected-option">
           <div class="value-display">
-            <p class="dropdown-value hidden">{value}</p>
+            <p class="dropdown-value hidden">{optionLabel(value)}</p>
             {#key value}
               <p
                 class="dropdown-value"
-                transition:fly={{ duration: 400, y: 40 }}
+                transition:fly={{
+                  duration: dropdownTransitionDuration(),
+                  y: 40,
+                }}
               >
-                {value}
+                {optionLabel(value)}
               </p>
             {/key}
           </div>
+          {#if badge !== undefined}
+            <span class="dropdown-badge">{badge}</span>
+          {/if}
           <p class="chevron" style="rotate:{menuOpen ? '180deg' : '0deg'};">
             ▼
           </p>
@@ -111,15 +157,11 @@
       Without rendering this wrapper div, the content lands in normal flow and
       shifts the card layout. props goes on our styled inner div.
     -->
-    <Select.Portal to={portalTarget} disabled={!portalTarget}>
-      <Select.Content>
+    <Select.Portal to={portalTarget}>
+      <Select.Content sideOffset={4} customAnchor={menuAnchor}>
         {#snippet child({ props, wrapperProps })}
           <div {...wrapperProps}>
-            <div
-              {...props}
-              class="dropdown-menu"
-              class:portalled={!!portalTarget}
-            >
+            <div {...props} class="dropdown-menu portalled">
               <ul bind:this={parentContainer}>
                 <!-- Chaser: absolute highlight that slides to the hovered item -->
                 <li
@@ -127,11 +169,11 @@
                   bind:this={chaserElement}
                   aria-hidden="true"
                 >
-                  <button tabindex="-1">{value}</button>
+                  <button tabindex="-1">{optionLabel(value)}</button>
                 </li>
 
                 {#each options as opt (opt)}
-                  <Select.Item value={opt} label={opt}>
+                  <Select.Item value={opt} label={optionLabel(opt)}>
                     {#snippet child({ props: itemProps })}
                       <li
                         {...itemProps}
@@ -143,11 +185,32 @@
                               ? e.currentTarget
                               : undefined)}
                       >
-                        <span>{opt}</span>
+                        <span>{optionLabel(opt)}</span>
                       </li>
                     {/snippet}
                   </Select.Item>
                 {/each}
+                {#if actionLabel}
+                  <Select.Item
+                    value={ACTION_VALUE}
+                    label={actionLabel}
+                    disabled={actionDisabled}
+                  >
+                    {#snippet child({ props: itemProps })}
+                      <li
+                        {...itemProps}
+                        class="li-item li-action"
+                        onmouseenter={(e: MouseEvent) =>
+                          (hoveredElement =
+                            e.currentTarget instanceof HTMLElement
+                              ? e.currentTarget
+                              : undefined)}
+                      >
+                        <span>{actionLabel}</span>
+                      </li>
+                    {/snippet}
+                  </Select.Item>
+                {/if}
               </ul>
             </div>
           </div>
@@ -166,9 +229,49 @@
 
   .dropdown-value {
     position: absolute;
+    max-width: 100%;
+    overflow: hidden;
     color: var(--color-text-secondary);
+    text-overflow: ellipsis;
     top: 0px;
+    white-space: nowrap;
     @include animation-default;
+  }
+
+  .value-display {
+    position: relative;
+    flex: 1;
+    min-width: 0;
+  }
+
+  .dropdown-badge {
+    flex-shrink: 0;
+    box-sizing: border-box;
+    width: 1.5rem;
+    height: 1.5rem;
+    border-radius: 50%;
+    background: var(--color-text-muted);
+    color: var(--color-text);
+    font-size: var(--font-size-base);
+    font-weight: 600;
+    line-height: 1.5rem;
+    text-align: center;
+  }
+
+  .li-action {
+    margin-top: var(--space-2xs);
+    padding-top: var(--space-2xs);
+    border-top: 1px solid var(--color-field-border);
+
+    span {
+      color: var(--color-text);
+      font-weight: 600;
+    }
+
+    &[data-disabled] {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
   }
 
   .hidden {
@@ -177,15 +280,21 @@
   }
 
   .chevron {
+    align-self: center;
+    flex: 0 0 auto;
+    line-height: 1;
     color: var(--color-text-muted);
+    transform: translateY(0.15em);
     @include animation-default;
   }
 
   .selected-option {
     width: 100%;
     display: flex;
+    align-items: center;
     flex-direction: row;
     justify-content: space-between;
+    gap: var(--space-xs);
     border: unset;
     background-color: transparent;
     color: var(--color-text);
@@ -207,11 +316,25 @@
     }
   }
 
+  .selected-option:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+  }
+
+  .selected-option:disabled:hover {
+    .dropdown-value,
+    .chevron {
+      color: var(--color-text-secondary);
+    }
+  }
+
   .dropdown-menu {
     /* Floating UI handles absolute positioning — we provide only visual styles */
+    box-sizing: border-box;
     background-color: var(--color-secondary);
     backdrop-filter: blur(4px);
     padding: var(--space-2xs);
+    border: 0.5px solid var(--color-tertiary);
     border-radius: var(--space-xs);
     z-index: 3;
     box-shadow:
@@ -237,7 +360,7 @@
     position: relative;
     display: block;
     padding: 0px;
-    transition: 0.2s ease;
+    transition: color 0.2s ease;
     z-index: 4;
     cursor: pointer;
 
@@ -245,7 +368,7 @@
       display: block;
       width: 100%;
       color: var(--color-text-secondary);
-      padding: var(--space-2xs);
+      padding: var(--space-xs) var(--space-2xs);
       @include animation-default;
     }
   }
@@ -279,7 +402,18 @@
     button {
       all: unset;
       display: block;
-      padding: var(--space-2xs);
+      padding: var(--space-xs) var(--space-2xs);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .dropdown-value,
+    .chevron,
+    .selected-option,
+    .li-item,
+    .li-item span,
+    .li-selector {
+      transition: none;
     }
   }
 </style>

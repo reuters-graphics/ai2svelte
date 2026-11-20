@@ -5,6 +5,7 @@ import {
   wrapStyledText,
 } from "../../shared/styledText";
 import { createProgressWindow } from "./progressWindow";
+import type { TextTranslationStore } from "../../shared/textTranslations";
 
 export interface TextFrameGroup {
   // The most common variant when copies differ slightly.
@@ -171,7 +172,11 @@ function captureStyle(attributes: CharacterAttributes): CapturedStyle {
   return { key: JSON.stringify(keyParts), values };
 }
 
-function applyStyle(attributes: CharacterAttributes, style: CapturedStyle) {
+function applyStyle(
+  attributes: CharacterAttributes,
+  style: CapturedStyle,
+  strict = false,
+) {
   for (let i = 0; i < STYLE_ATTRIBUTES.length; i++) {
     const name = STYLE_ATTRIBUTES[i];
     const value = style.values[name];
@@ -193,6 +198,7 @@ function applyStyle(attributes: CharacterAttributes, style: CapturedStyle) {
           : value;
       (attributes as unknown as AttributeBag)[name] = next;
     } catch (error) {
+      if (strict) throw error;
       // Some attributes can't be set on every frame type; keep the rest.
     }
   }
@@ -332,7 +338,7 @@ function nearKey(text: string): string {
       .toLowerCase()
       .replace(/[\u2018\u2019\u201A\u201B\u2032]/g, "'")
       .replace(/[\u201C\u201D\u201E\u201F\u2033]/g, '"')
-      .replace(/[\u2010-\u2015\u2212]/g, "-")
+      .replace(/[\u2010-\u2015\u2212-]/g, " ")
       .replace(/\u2026/g, "...")
       .split(String.fromCharCode(3)) // forced line break
       .join(" ")
@@ -522,8 +528,8 @@ function compactStyles(
 function scanDocument(
   progress?: ScanProgress,
   includeAllText = false,
+  doc = app.activeDocument,
 ): DocScan {
-  const doc = app.activeDocument;
   const docTextFrames = doc.textFrames;
   const total = docTextFrames.length;
   const candidates: ScannedFrame[] = [];
@@ -615,8 +621,9 @@ function scanDocument(
 function collectSelectors(
   progress?: ScanProgress,
   includeAllText = false,
+  doc = app.activeDocument,
 ): DocTextData {
-  const scan = scanDocument(progress, includeAllText);
+  const scan = scanDocument(progress, includeAllText, doc);
   const groups: TextFrameGroup[] = [];
   const groupIndexes: Record<string, number> = {};
 
@@ -724,7 +731,10 @@ function collectSelectors(
 }
 
 export function getDocumentFrameGroupSignatures(): Record<string, string> {
-  const scan = scanDocument(undefined, true);
+  return frameGroupSignatures(scanDocument(undefined, true));
+}
+
+function frameGroupSignatures(scan: DocScan): Record<string, string> {
   const groupSignatures: Record<
     string,
     { seen: Record<string, boolean>; variants: string[] }
@@ -756,6 +766,7 @@ export function getDocumentFrameGroupSignatures(): Record<string, string> {
 export function fetchSelectors(
   showProgress = false,
   includeAllText = false,
+  doc = app.activeDocument,
 ): DocTextData {
   const ui = showProgress
     ? createProgressWindow("Scanning Illustrator text")
@@ -789,7 +800,7 @@ export function fetchSelectors(
       }
     : undefined;
   try {
-    return collectSelectors(report, includeAllText);
+    return collectSelectors(report, includeAllText, doc);
   } finally {
     if (ui) ui.window.close();
   }
@@ -799,6 +810,7 @@ function replaceFrameText(
   scanned: ScannedFrame,
   segments: StyledSegment[],
   styles: StyleEntry[],
+  strict = false,
 ) {
   let plain = "";
   for (let i = 0; i < segments.length; i++) {
@@ -807,11 +819,11 @@ function replaceFrameText(
 
   const frame = scanned.frame;
   frame.contents = plain;
-  if (!scanned.base) return;
+  if (!scanned.base || !plain) return;
 
   // Setting contents spreads the first character's style over everything, so
   // reset to the frame's normal style before restoring marked runs.
-  applyStyle(frame.textRange.characterAttributes, scanned.base);
+  applyStyle(frame.textRange.characterAttributes, scanned.base, strict);
 
   const characters = frame.textRange.characters;
   let offset = 0;
@@ -821,11 +833,97 @@ function replaceFrameText(
     if (styleId !== null) {
       const style = styles[styleId - 1].style;
       for (let j = offset; j < offset + length; j++) {
-        applyStyle(characters[j].characterAttributes, style);
+        applyStyle(characters[j].characterAttributes, style, strict);
       }
     }
     offset += length;
   }
+}
+
+function markUntranslated(frame: TextFrame) {
+  const red = new RGBColor();
+  red.red = 255;
+  red.green = 0;
+  red.blue = 0;
+  const attributes = frame.textRange.characterAttributes;
+  attributes.fillColor = red;
+  attributes.strokeColor = new NoColor();
+  attributes.underline = true;
+}
+
+export function renderTextPreview(
+  store: TextTranslationStore,
+  language: string,
+) {
+  const scan = scanDocument(undefined, true);
+  const signatures = frameGroupSignatures(scan);
+  const plan: Array<{ scanned: ScannedFrame; segments: StyledSegment[] }> = [];
+  let translated = 0;
+  let untranslated = 0;
+  let overflowed = 0;
+  for (let i = 0; i < scan.frames.length; i++) {
+    const scanned = scan.frames[i];
+    if (scanned.frame.story.textFrames.length > 1) {
+      throw new Error("Threaded text is not supported in language previews.");
+    }
+    if (!scanned.frame.editable) {
+      throw new Error(
+        "Unlock and show text layers before previewing languages.",
+      );
+    }
+    const segments: StyledSegment[] = [];
+    for (let j = 0; j < store.messages.length; j++) {
+      const message = store.messages[j];
+      if (message.signature !== signatures[scanned.signature]) continue;
+      const translation = message.translations[language] || [];
+      for (let k = 0; k < translation.length; k++) {
+        const segment = translation[k];
+        let styleId: number | null = null;
+        if (segment.styleKey !== null) {
+          const runs = JSON.parse(scanned.signature) as Array<{
+            styleKey: string | null;
+          }>;
+          let available = false;
+          for (let r = 0; r < runs.length; r++) {
+            if (runs[r].styleKey === segment.styleKey) available = true;
+          }
+          if (!available) {
+            throw new Error(
+              "A translation uses an inline style unavailable on a source frame.",
+            );
+          }
+          for (let s = 0; s < scan.styles.length; s++) {
+            if (scan.styles[s].style.key === segment.styleKey) {
+              styleId = scan.styles[s].id;
+              break;
+            }
+          }
+          if (styleId === null) {
+            throw new Error("A translation uses an unavailable inline style.");
+          }
+        }
+        segments.push({ text: segment.text, styleId });
+      }
+      break;
+    }
+    if (segments.length) translated++;
+    else untranslated++;
+    plan.push({ scanned, segments });
+  }
+  for (let i = 0; i < plan.length; i++) {
+    // Untranslated frames keep their source text, flagged in the disposable
+    // copy only; the next preview is rebuilt from the original document.
+    if (plan[i].segments.length) {
+      replaceFrameText(plan[i].scanned, plan[i].segments, scan.styles, true);
+    } else {
+      markUntranslated(plan[i].scanned.frame);
+    }
+  }
+  app.redraw();
+  for (let i = 0; i < plan.length; i++) {
+    if (isOverflowing(plan[i].scanned.frame)) overflowed++;
+  }
+  return { translated, untranslated, overflowed };
 }
 
 // Lines only hold the characters Illustrator could lay out, excluding

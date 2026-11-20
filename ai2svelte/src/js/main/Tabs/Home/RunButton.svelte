@@ -27,6 +27,7 @@
     parseTextTranslationStore,
   } from "../../../../shared/textTranslations";
   import { canonicalizeLanguageTag } from "../../utils/languages";
+  import { textPreview } from "../../utils/textPreview.svelte";
 
   let { refreshSettings = () => {}, minimal = false } = $props();
 
@@ -68,7 +69,14 @@
   async function runAi2Svelte(
     event: MouseEvent & { currentTarget: HTMLButtonElement },
   ) {
-    if ($ai2svelteInProgress || starting) return;
+    if (
+      $ai2svelteInProgress ||
+      starting ||
+      textPreview.active ||
+      textPreview.busy ||
+      textPreview.blocked
+    )
+      return;
     starting = true;
     try {
       await runExport(event.currentTarget);
@@ -263,7 +271,13 @@
 <button
   class="cta-button"
   class:minimal
-  disabled={$updateInProgress || $ai2svelteInProgress || starting}
+  class:running={$ai2svelteInProgress || starting}
+  disabled={$updateInProgress ||
+    $ai2svelteInProgress ||
+    starting ||
+    textPreview.active ||
+    textPreview.busy ||
+    textPreview.blocked}
   onclick={runAi2Svelte}
   use:tooltip={{
     ...tooltipSettings,
@@ -294,10 +308,15 @@
   }
 
   .cta-button:disabled {
-    $primary-clr: var(--color-accent-primary);
-    $secondary-clr: rgba(0, 0, 0, 0.25);
     cursor: not-allowed;
     opacity: 0.5;
+    color: var(--color-text-secondary);
+    background: var(--color-primary);
+  }
+
+  .cta-button:disabled.running {
+    $primary-clr: var(--color-accent-primary);
+    $secondary-clr: rgba(0, 0, 0, 0.25);
     color: var(--color-white);
     background:
       repeating-linear-gradient(

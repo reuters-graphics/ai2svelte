@@ -7,6 +7,17 @@ import {
 import type { ExpectedTextStyle } from "./fetchSelectors";
 import { addSnippet } from "./addSnippet";
 import { storeHiddenData, getHiddenData } from "./dataOperations";
+import { documentIdentity as getSavedDocumentIdentity } from "./documentIdentity";
+import {
+  assertNotTextPreview,
+  previewSourceDocument,
+  savePreviewTranslations,
+} from "./textPreview";
+export {
+  beginTextPreview,
+  endTextPreview,
+  getTextPreviewStatus,
+} from "./textPreview";
 import {
   isSupportedLanguageTagShape,
   TEXT_TRANSLATIONS_KEY,
@@ -24,11 +35,9 @@ import {
 // import { wrapper } from "./previewWrapper";
 // (runPreview also needs deleteFolderRecursive from ./ilstUtils)
 
-const documentSessionTokens: Array<{ document: Document; token: string }> = [];
-let nextDocumentSessionToken = 1;
-
 export const updateAiSettings = (settingsObj: string, str: string) => {
   if (app) {
+    assertNotTextPreview();
     updateSettings(settingsObj, str);
   }
 };
@@ -44,8 +53,9 @@ export const fetchDocSelectors = (
   includeAllText = false,
 ) => {
   if (app) {
-    const data = fetchSelectors(showProgress, includeAllText);
-    data.identity = getSavedDocumentIdentity();
+    const doc = previewSourceDocument() || app.activeDocument;
+    const data = fetchSelectors(showProgress, includeAllText, doc);
+    data.identity = getSavedDocumentIdentity(doc);
     return data;
   }
 };
@@ -59,6 +69,7 @@ export const replaceDocText = (
   expectedStyles?: ExpectedTextStyle[],
 ) => {
   if (app) {
+    assertNotTextPreview();
     assertExpectedDocument(expectedIdentity);
     return replaceTextFrames(
       originalText,
@@ -94,12 +105,14 @@ export const revealDocText = (
 
 export const addSnippetLayer = () => {
   if (app) {
+    assertNotTextPreview();
     return addSnippet();
   }
 };
 
 export const setVariable = (key: string, value: unknown) => {
   if (app) {
+    assertNotTextPreview();
     return storeHiddenData(key, value);
   }
 };
@@ -109,42 +122,6 @@ export const getVariable = (key: string) => {
     return getHiddenData(key);
   }
 };
-
-function getSavedDocumentIdentity() {
-  try {
-    const doc = app.activeDocument;
-    const path = String(doc.fullName.fsName);
-    if (!path) return "";
-    for (let i = documentSessionTokens.length - 1; i >= 0; i--) {
-      let isOpen = false;
-      try {
-        for (let j = 0; j < app.documents.length; j++) {
-          if (documentSessionTokens[i].document === app.documents[j]) {
-            isOpen = true;
-            break;
-          }
-        }
-      } catch (error) {
-        isOpen = false;
-      }
-      if (!isOpen) documentSessionTokens.splice(i, 1);
-    }
-    let token = "";
-    for (let i = 0; i < documentSessionTokens.length; i++) {
-      if (documentSessionTokens[i].document === doc) {
-        token = documentSessionTokens[i].token;
-        break;
-      }
-    }
-    if (!token) {
-      token = "session-" + nextDocumentSessionToken++;
-      documentSessionTokens.push({ document: doc, token });
-    }
-    return path + "#" + token;
-  } catch (error) {
-    return "";
-  }
-}
 
 function assertExpectedDocument(expectedIdentity?: string) {
   if (expectedIdentity && getSavedDocumentIdentity() !== expectedIdentity) {
@@ -156,11 +133,12 @@ function assertExpectedDocument(expectedIdentity?: string) {
 
 export const fetchTextTranslationDocument = () => {
   if (!app) return undefined;
-  const identity = getSavedDocumentIdentity();
+  const doc = previewSourceDocument() || app.activeDocument;
+  const identity = getSavedDocumentIdentity(doc);
   return {
     identity,
     saved: !!identity,
-    data: identity ? getHiddenData(TEXT_TRANSLATIONS_KEY, true) : {},
+    data: identity ? getHiddenData(TEXT_TRANSLATIONS_KEY, true, doc) : {},
   };
 };
 
@@ -174,6 +152,10 @@ export const saveTextTranslations = (
   value: TextTranslationStore,
 ) => {
   if (!app) return { ok: false, reason: "Illustrator is unavailable." };
+  if (previewSourceDocument()) {
+    return savePreviewTranslations(expectedIdentity, value);
+  }
+  assertNotTextPreview();
   try {
     const parsed = parseTextTranslationStore(value);
     for (let i = 0; i < parsed.languages.length; i++) {
@@ -209,6 +191,7 @@ export const runAi2Svelte = (
   expectedIdentity?: string,
 ) => {
   if (app) {
+    assertNotTextPreview();
     if (expectedIdentity && getSavedDocumentIdentity() !== expectedIdentity) {
       throw new Error(
         "The active Illustrator document changed before export. Run export again.",
@@ -243,6 +226,7 @@ export const finishAi2Svelte = (summary: {
 // file to pathPrefix + doc name. Same save options as main()'s save.
 export const saveAndSnapshotDocument = (pathPrefix: string) => {
   if (app) {
+    assertNotTextPreview();
     const doc = app.activeDocument;
     const hadUnsavedEdits = !doc.saved;
     // only native .ai: saveAs on a .pdf/.eps would overwrite it with an AI file

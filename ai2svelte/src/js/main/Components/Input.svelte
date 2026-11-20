@@ -30,6 +30,7 @@
   }: Props = $props();
 
   let mounted = $state(false);
+  let fieldElement = $state<HTMLDivElement>();
 
   let dragging = $state(false);
 
@@ -39,7 +40,11 @@
 </script>
 
 {#if mounted}
-  <div class="option-container" in:fly={{ y: 20, duration: 150, delay: delay }}>
+  <div
+    class="option-container"
+    bind:this={fieldElement}
+    in:fly={{ y: 20, duration: 150, delay: delay }}
+  >
     <div class="label-container">
       {#if type == "range"}
         <label
@@ -67,6 +72,7 @@
         options={options || []}
         bind:value={value as string}
         {portalTarget}
+        menuAnchor={fieldElement}
       />
     {:else if type == "text"}
       <InputText {label} bind:value={value as string} />

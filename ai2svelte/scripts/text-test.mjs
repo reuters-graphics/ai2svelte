@@ -161,6 +161,11 @@ try {
       add("Rock 'n' roll ", 1, 20),
       add("Rock \\u2018n\\u2019 roll", 2, 20)
     ];
+    var dashCopies = [
+      add("Temp-1", 0, 180),
+      add("Temp-1", 1, 180),
+      add("Temp 1", 2, 180)
+    ];
     add("Line\\rbreak", 0, 10);
     add("LINE break", 1, 10);
     app.redraw();
@@ -194,7 +199,7 @@ try {
     var progressWindow = Window.find("palette", "Scanning Illustrator text");
     check(!progressWindow || !progressWindow.visible,
       "The native progress window must close after scanning");
-    check(data.groups.length === 6, "Expected only six cross-artboard groups: " + JSON.stringify(data.groups));
+    check(data.groups.length === 7, "Expected only seven cross-artboard groups: " + JSON.stringify(data.groups));
     check(data.styles.length === 2, "Only styles used by visible groups should be offered");
     check(data.styles[0].id === 1 && data.styles[1].id === 2,
       "Visible style IDs must start at one with no gaps");
@@ -213,6 +218,9 @@ try {
     var lineGroup = group(data, "Line\\nbreak") || group(data, "LINE break");
     check(lineGroup && lineGroup.count === 2 && lineGroup.inconsistent,
       "Line break and case variants are near-matches");
+    var dashGroup = group(data, "Temp-1");
+    check(dashGroup && dashGroup.count === 3 && dashGroup.inconsistent,
+      "A hyphen and a space are near-matches");
     check(group(data, "Across boards").inconsistent === false,
       "Identical copies are consistent");
     var styledGroup = group(data, "Total: $5");
@@ -232,6 +240,13 @@ try {
       "The differing copy now matches");
     check(group(A.fetchDocSelectors(), "Rock \\u2018n\\u2019 roll").inconsistent === false,
       "The group is consistent after unifying");
+    result = A.replaceDocText(dashGroup.text, dashGroup.text);
+    check(result.updated === 1 && result.failed === 0,
+      "Re-applying the shown text unifies dash and space variants");
+    check(dashCopies[2].contents === "Temp-1",
+      "The space variant now matches the hyphenated copies");
+    check(group(A.fetchDocSelectors(), "Temp-1").inconsistent === false,
+      "The dash/space group is consistent after unifying");
     check(A.revealDocText("Rock 'n' roll", 0), "Reveal finds near-matching text");
     result = A.replaceDocText("Only here", "Do not replace");
     check(result.updated === 0, "Ineligible groups must not be replaced");

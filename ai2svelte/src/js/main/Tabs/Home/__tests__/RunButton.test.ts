@@ -8,6 +8,7 @@ import postcss from "postcss";
 import { triggerWave, ai2svelteInProgress, styles } from "../../../stores";
 import RunButton from "../RunButton.svelte";
 import { evalTS } from "../../../../__mocks__/bolt";
+import { textPreview } from "../../../utils/textPreview.svelte";
 
 // RunButton calls evalTS only when window.cep is truthy.
 // These tests stub window.cep to a minimal object so the CEP-path runs with
@@ -38,6 +39,7 @@ function translationDocument() {
 describe("RunButton", () => {
   beforeEach(async () => {
     vi.clearAllMocks();
+    Object.assign(textPreview, { active: false, busy: false, blocked: false });
     triggerWave.set(null);
     ai2svelteInProgress.set(false);
     // stylesString derived store reads `styles.root.toString()`.
@@ -45,6 +47,22 @@ describe("RunButton", () => {
     const emptyResult = await postcss().process("", { parser: safeParser });
     styles.set(emptyResult);
   });
+  afterEach(() => {
+    Object.assign(textPreview, { active: false, busy: false, blocked: false });
+  });
+
+  it.each(["active", "busy", "blocked"] as const)(
+    "blocks export before snapshot work when preview is %s",
+    async (state) => {
+      textPreview[state] = true;
+      render(RunButton);
+      const button = screen.getByRole("button");
+      expect(button).toBeDisabled();
+      expect(button).not.toHaveClass("running");
+      await userEvent.click(button);
+      expect(evalTS).not.toHaveBeenCalled();
+    },
+  );
 
   describe("without CEP (non-Illustrator environment)", () => {
     it("renders the Run AI2SVELTE button", () => {
@@ -133,6 +151,7 @@ describe("RunButton", () => {
 
       // Button is disabled synchronously by the onclick handler before any await
       expect(btn).toBeDisabled();
+      expect(btn).toHaveClass("running");
 
       // Resolve to let the test clean up
       resolve([]);

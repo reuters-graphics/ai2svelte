@@ -32,7 +32,17 @@
     canonicalizeLanguageTag,
     languageDisplayName,
   } from "../utils/languages";
-  import { settingsObject } from "../stores";
+  import {
+    settingsObject,
+    ai2svelteInProgress,
+    updateInProgress,
+  } from "../stores";
+  import {
+    textPreview,
+    reconcileTextPreview,
+    returnToOriginal,
+    selectPreviewLanguage,
+  } from "../utils/textPreview.svelte";
 
   interface TextFrameGroup {
     text: string;
@@ -80,7 +90,13 @@
   const SORT_DOCUMENT = "Document order";
   const SORT_COPIES = "Most copies";
   const SORT_ALPHABETICAL = "A–Z";
-  const sortOptions = [SORT_DOCUMENT, SORT_COPIES, SORT_ALPHABETICAL];
+  const SORT_UNTRANSLATED = "Most untranslated";
+  const sortOptions = [
+    SORT_DOCUMENT,
+    SORT_COPIES,
+    SORT_ALPHABETICAL,
+    SORT_UNTRANSLATED,
+  ];
   const CUSTOM_LANGUAGE_TAG = "__custom__";
   const commonLanguages = [
     { tag: "ar", name: "Arabic" },
@@ -133,10 +149,14 @@
   let replacementInput = $state<HTMLTextAreaElement>();
   let translationInput = $state<HTMLTextAreaElement>();
   let languageDialog = $state<HTMLDialogElement>();
+  let previewLanguageField = $state<HTMLDivElement>();
   let documentIdentity = $state("");
   let loadGeneration = 0;
   let translationStore = $state<TextTranslationStore>(
     createDefaultTextTranslationStore(),
+  );
+  let selectedPreviewLanguage = $derived(
+    textPreview.active ? textPreview.language : translationStore.sourceLanguage,
   );
   let translationDataInvalid = $state(false);
   let stableIdentityAvailable = $state(true);
@@ -158,6 +178,45 @@
   let saveQueue: Promise<unknown> = Promise.resolve();
   let pendingSaves = $state(0);
   const saving = $derived(pendingSaves > 0);
+  const previewLanguageLabels = $derived.by(() => {
+    const labels: Record<string, string> = {};
+    for (const language of translationStore.languages) {
+      labels[language] =
+        `${languageDisplayName(language)} (${language})` +
+        (language === translationStore.sourceLanguage ? " · Source" : "");
+    }
+    return labels;
+  });
+
+  export function confirmLeave() {
+    const dirty = Object.keys(dirtyLanguages).some(
+      (key) => dirtyLanguages[key],
+    );
+    return !dirty || window.confirm("Discard unsaved translation drafts?");
+  }
+
+  async function changePreview(language: string) {
+    const currentLanguage = textPreview.active
+      ? textPreview.language
+      : translationStore.sourceLanguage;
+    if ($updateInProgress || $ai2svelteInProgress) {
+      selectedPreviewLanguage = currentLanguage;
+      return;
+    }
+    if (language === currentLanguage) return;
+    if (language === translationStore.sourceLanguage) {
+      if (!confirmLeave()) {
+        selectedPreviewLanguage = currentLanguage;
+        return;
+      }
+      await returnToOriginal();
+    } else {
+      await selectPreviewLanguage(documentIdentity, language);
+    }
+    selectedPreviewLanguage = textPreview.active
+      ? textPreview.language
+      : translationStore.sourceLanguage;
+  }
 
   const searchableRows = $derived(
     rows.map((row) => ({
@@ -180,6 +239,12 @@
       entries.sort((a, b) => b.row.count - a.row.count);
     } else if (sortBy === SORT_ALPHABETICAL) {
       entries.sort((a, b) => a.text.localeCompare(b.text));
+    } else if (sortBy === SORT_UNTRANSLATED) {
+      entries.sort(
+        (a, b) =>
+          translationCompletionCount(messageForRow(a.row)) -
+          translationCompletionCount(messageForRow(b.row)),
+      );
     }
     return entries.map((entry) => entry.row);
   });
@@ -500,6 +565,7 @@
   }
 
   async function refreshText(clearFeedback = true): Promise<boolean> {
+    if (textPreview.busy || textPreview.blocked) return false;
     if (clearFeedback) {
       errorMessage = "";
       statusMessage = "";
@@ -549,6 +615,7 @@
         string | undefined;
       if (generation !== loadGeneration) return false;
       if (
+        !textPreview.active &&
         typeof currentIdentity === "string" &&
         (currentIdentity !== documentIdentity ||
           (typeof data.identity === "string" &&
@@ -591,7 +658,9 @@
   function openReplacement(row: TextFrameGroup) {
     if (applying || loading) return;
     selectedRow = row;
-    editingLanguage = translationStore.sourceLanguage;
+    editingLanguage = textPreview.active
+      ? textPreview.language
+      : translationStore.sourceLanguage;
     revealCount = 0;
     replacementText = row.text;
     historyGroup = createHistoryGrouper();
@@ -603,7 +672,9 @@
     drafts = {};
     dirtyLanguages = {};
     dialogErrorMessage = "";
-    targetLanguage = targetLanguages[0] || "";
+    targetLanguage = textPreview.active
+      ? textPreview.language
+      : targetLanguages[0] || "";
     translationText = targetLanguage
       ? loadTranslationDraft(targetLanguage)
       : "";
@@ -612,6 +683,7 @@
   }
 
   async function addLanguage() {
+    if (textPreview.active || textPreview.busy) return;
     languageError = "";
     if (translationDataInvalid || saving) return;
     let tag: string;
@@ -655,6 +727,7 @@
   }
 
   async function changeSourceLanguage(tag: string) {
+    if (textPreview.active || textPreview.busy) return;
     if (translationDataInvalid || saving) return;
     if (tag === translationStore.sourceLanguage) return;
     if (
@@ -713,6 +786,7 @@
   }
 
   async function removeLanguage(tag: string, nextSource?: string) {
+    if (textPreview.active || textPreview.busy) return;
     if (saving || translationDataInvalid) return;
     const next = cloneTextTranslationStore(translationStore);
     deleteLanguageData(next, tag);
@@ -723,7 +797,7 @@
       return;
     }
     clearLanguageEditorState(tag);
-    translationStatus = `${languageDisplayName(tag)} and its saved translations removed.`;
+    translationStatus = "";
   }
 
   async function useNewSourceLanguage() {
@@ -763,7 +837,7 @@
     pendingRemoval = "";
     clearLanguageEditorState(removed);
     clearLanguageEditorState(nextSource);
-    translationStatus = `${languageDisplayName(removed)} and its saved translations removed.`;
+    translationStatus = "";
   }
 
   function loadTranslationDraft(language: string) {
@@ -869,8 +943,20 @@
       if (saved) {
         dirtyLanguages = {};
         drafts = {};
-        translationStatus = "Translations saved to this document.";
+        translationStatus = textPreview.active
+          ? "Translations saved to the original document."
+          : "Translations saved to this document.";
         replacementDialog?.close();
+        if (textPreview.active) {
+          const refreshed = await selectPreviewLanguage(
+            documentIdentity,
+            textPreview.language,
+          );
+          if (!refreshed) {
+            translationStatus =
+              "Translations saved to the original; preview refresh failed.";
+          }
+        }
       } else {
         dialogErrorMessage = translationError;
       }
@@ -895,6 +981,7 @@
   }
 
   async function reassignOrphan() {
+    if (textPreview.active || textPreview.busy) return;
     const row = selectedRow;
     const orphan = translationStore.messages.find(
       (message) => message.id === selectedOrphanId,
@@ -1010,6 +1097,7 @@
   let revealCount = 0;
 
   async function revealInDocument() {
+    if (textPreview.active || textPreview.busy) return;
     const row = selectedRow;
     if (!row || !window.cep) return;
     try {
@@ -1087,6 +1175,7 @@
   }
 
   async function applyReplacement() {
+    if (textPreview.active || textPreview.busy) return;
     const row = selectedRow;
     if (
       !row ||
@@ -1184,7 +1273,29 @@
       return;
     }
 
-    const handleDocumentChange = () => {
+    const handleDocumentChange = async () => {
+      const generation = loadGeneration;
+      if (
+        textPreview.busy ||
+        ((textPreview.active || textPreview.blocked) &&
+          (await reconcileTextPreview()))
+      )
+        return;
+      try {
+        const identity = await evalTS("getActiveDocumentIdentity");
+        if (unmounted || generation !== loadGeneration || textPreview.busy)
+          return;
+        if (
+          identity &&
+          identity === documentIdentity &&
+          !translationDataInvalid
+        )
+          return;
+      } catch (error) {
+        console.error("[ai2svelte] document identity check failed:", error);
+        errorMessage = `Could not check the active document: ${getErrorMessage(error)}`;
+        return;
+      }
       loadGeneration++;
       drafts = {};
       dirtyLanguages = {};
@@ -1270,31 +1381,87 @@
       <button
         class="refresh-button"
         type="button"
-        onclick={() => refreshText()}
-        disabled={loading || applying || saving || !window.cep}
+        onclick={() =>
+          textPreview.active
+            ? selectPreviewLanguage(documentIdentity, textPreview.language)
+            : refreshText()}
+        disabled={loading ||
+          applying ||
+          saving ||
+          textPreview.busy ||
+          textPreview.blocked ||
+          !window.cep}
       >
         Refresh
       </button>
     </div>
 
-    <div class="language-toolbar">
-      <span class="source-language">
-        Source: {languageDisplayName(translationStore.sourceLanguage)}
-        ({translationStore.sourceLanguage}) · {translationStore.languages
-          .length}
-        language(s)
-      </span>
-      <button
-        class="refresh-button"
-        type="button"
-        onclick={() => {
-          pendingRemoval = "";
-          languageDialog?.showModal();
-        }}
-        disabled={translationDataInvalid || loading || applying || saving}
-        >Manage</button
-      >
+    <div class="preview-language-control" bind:this={previewLanguageField}>
+      <div class="preview-language-header">
+        <span class="preview-language-label">Preview language</span>
+      </div>
+      <div class="preview-language-picker">
+        <Dropdown
+          id="preview-language"
+          ariaLabel="Preview language"
+          menuAnchor={previewLanguageField}
+          options={translationStore.languages}
+          optionLabels={previewLanguageLabels}
+          badge={translationStore.languages.length}
+          actionLabel="Manage languages"
+          actionDisabled={translationDataInvalid ||
+            loading ||
+            applying ||
+            saving ||
+            textPreview.active ||
+            textPreview.busy ||
+            textPreview.blocked}
+          onAction={() => {
+            pendingRemoval = "";
+            languageDialog?.showModal();
+          }}
+          bind:value={selectedPreviewLanguage}
+          disabled={loading ||
+            applying ||
+            saving ||
+            textPreview.busy ||
+            textPreview.blocked ||
+            $updateInProgress ||
+            $ai2svelteInProgress ||
+            !documentIdentity}
+          onValueChange={changePreview}
+        />
+      </div>
     </div>
+    {#if textPreview.active}
+      <div class="preview-warning" role="status">
+        <span class="preview-warning-icon">{@render warningIcon()}</span>
+        <p class="preview-explanation">
+          Temporary preview: switching languages, saving translations, or
+          leaving Text discards canvas edits. Missing translations show source
+          text in red with a white outline. Export fonts remain from the
+          original document; set a language-specific font in export CSS, e.g.
+          <code
+            >.ai2svelte[lang="hi"], .ai2svelte [lang="hi"] &#123; font-family: …
+            &#125;</code
+          >.
+        </p>
+        <p class="preview-counts">
+          {textPreview.translated} translated · {textPreview.untranslated}
+          untranslated · {textPreview.overflowed} overflowing
+        </p>
+      </div>
+      <button
+        type="button"
+        disabled={textPreview.busy || saving}
+        onclick={async () => {
+          if (confirmLeave()) await returnToOriginal();
+        }}>Return to original</button
+      >
+    {/if}
+    {#if textPreview.error}
+      <p class="feedback error" role="alert">{textPreview.error}</p>
+    {/if}
     {#if translationError}
       <p class="feedback error" role="alert">{translationError}</p>
     {:else if translationStatus}
@@ -1343,10 +1510,17 @@
       {#if rows.length > 0}
         <div class="sort-control">
           <span class="control-label">Sort</span>
-          <Dropdown id="text-sort" options={sortOptions} bind:value={sortBy} />
+          <Dropdown
+            id="text-sort"
+            ariaLabel="Sort text"
+            options={sortOptions}
+            bind:value={sortBy}
+          />
         </div>
       {/if}
     </div>
+
+    <hr class="section-divider" />
 
     {#if rows.length === 0 && !errorMessage}
       <p class="feedback">
@@ -1424,7 +1598,12 @@
           includeAllText = !includeAllText;
           refreshText();
         }}
-        disabled={loading || applying || saving || !window.cep}
+        disabled={loading ||
+          applying ||
+          saving ||
+          textPreview.busy ||
+          textPreview.blocked ||
+          !window.cep}
       >
         {includeAllText ? "Show repeated text only" : "Show all text"}
       </button>
@@ -1478,7 +1657,11 @@
             disabled={applying || saving}
           >
             {#each translationStore.languages as language (language)}
-              <option value={language}>
+              <option
+                value={language}
+                disabled={textPreview.active &&
+                  language === translationStore.sourceLanguage}
+              >
                 {languageDisplayName(language)} ({language}){language ===
                 translationStore.sourceLanguage
                   ? " — Source"
@@ -1630,7 +1813,9 @@
             class="inline-action"
             type="button"
             onclick={reassignOrphan}
-            disabled={!selectedOrphanId}>Reassign</button
+            disabled={!selectedOrphanId ||
+              textPreview.active ||
+              textPreview.busy}>Reassign</button
           >
         </div>
       {/if}
@@ -1654,7 +1839,9 @@
           class="dialog-button primary"
           type="button"
           onclick={applyReplacement}
-          disabled={applying ||
+          disabled={textPreview.active ||
+            textPreview.busy ||
+            applying ||
             saving ||
             !!replacementError ||
             !canApply(selectedRow)}
@@ -1719,8 +1906,11 @@
     <div class="language-add-row">
       <input
         id="add-source-language"
+        name="source-language-tag"
+        type="text"
+        autocomplete="off"
         bind:value={promptedNewSource}
-        placeholder="e.g. fr-CA"
+        placeholder="e.g. fr-CA…"
         disabled={saving}
       />
       <button
@@ -1792,7 +1982,10 @@
       {#if newLanguageTag === CUSTOM_LANGUAGE_TAG}
         <input
           aria-label="Custom language tag"
-          placeholder="e.g. fr-CA"
+          name="custom-language-tag"
+          type="text"
+          autocomplete="off"
+          placeholder="e.g. fr-CA…"
           bind:value={customLanguageTag}
           disabled={translationDataInvalid || loading || applying || saving}
         />
@@ -1852,6 +2045,15 @@
     min-height: 0;
   }
 
+  .section-divider {
+    flex-shrink: 0;
+    width: 100%;
+    height: 0;
+    margin: 0;
+    border: 0;
+    border-top: 1px solid var(--color-field-border);
+  }
+
   .toolbar {
     display: flex;
     align-items: center;
@@ -1903,17 +2105,60 @@
     background: var(--color-primary);
   }
 
-  .language-toolbar {
+  .preview-language-control {
+    box-sizing: border-box;
     display: flex;
-    align-items: center;
-    justify-content: space-between;
+    flex-direction: column;
+    width: 100%;
+    min-width: 0;
+    border: 1px solid var(--color-field-border);
+    border-radius: var(--space-s);
+    background: var(--color-primary);
+  }
+
+  .preview-language-header {
+    display: flex;
+    align-items: baseline;
     gap: var(--space-s);
+    min-width: 0;
+    padding: var(--space-xs) var(--space-m) 0;
+  }
+
+  .preview-language-label {
+    min-width: 0;
+    overflow: hidden;
+    color: var(--color-text-muted);
+    font-size: var(--font-size-sm);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .preview-language-picker {
+    min-width: 0;
+    padding: 0 var(--space-m) var(--space-xs);
+  }
+
+  .preview-language-picker :global(.dropdown-container),
+  .preview-language-picker :global(.selected-option) {
+    width: 100%;
     min-width: 0;
   }
 
+  .preview-language-picker :global(.selected-option) {
+    min-height: 2rem;
+  }
+
+  .preview-language-picker :global(.dropdown-value) {
+    color: var(--color-text);
+  }
+
   .source-language {
+    min-width: 0;
+    overflow: hidden;
     color: var(--color-text-secondary);
     font-size: var(--font-size-sm);
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 
   .language-list {
@@ -2125,6 +2370,40 @@
     font-size: var(--font-size-sm);
   }
 
+  .preview-warning {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-s);
+    padding: var(--space-m);
+    border: 1px solid var(--color-warning);
+    border-radius: var(--space-s);
+    background: var(--color-secondary);
+    color: var(--color-text);
+    font-size: var(--font-size-base);
+  }
+
+  .preview-warning p {
+    margin: 0;
+  }
+
+  .preview-counts {
+    font-variant-numeric: tabular-nums;
+  }
+
+  .preview-warning-icon {
+    display: inline-flex;
+    flex-shrink: 0;
+    width: 1.25em;
+    height: 1.25em;
+    color: var(--color-warning);
+  }
+
+  .preview-warning-icon svg {
+    width: 100%;
+    height: 100%;
+  }
+
   .language-guidance {
     color: var(--color-text-secondary);
     font-size: var(--font-size-base);
@@ -2241,9 +2520,8 @@
   .dialog-label {
     margin: 0;
     color: var(--color-text);
-    opacity: 0.75;
-    font-size: var(--font-size-sm);
-    text-transform: uppercase;
+    font-size: var(--font-size-base);
+    font-weight: 600;
   }
 
   .original-text {

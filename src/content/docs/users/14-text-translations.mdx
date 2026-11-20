@@ -1,33 +1,55 @@
 ---
 title: Manual text translations
-description: Manage document languages and add translations to repeated Illustrator text.
+description: Translate Illustrator text once and switch languages in your exported component.
 slug: users/text-translations
 sidebar:
   order: 114
 ---
 
-The Text tab can store manual translations in an Illustrator document and include them in exported Svelte components. Translation data is document-specific; it is not part of a user profile. The default Text list shows repeated text across artboards. Turn on **Show all text** to include singletons and text that only occurs on one artboard.
+Need a French version of a graphic? Translate each text object once in the Text tab, then choose a language in the exported component to render a particular language. Translations are stored in the Illustrator document itself.
 
-## Set up languages
+## Add languages
 
-Open **Manage** in the Text tab to add canonical BCP 47 language tags such as `fr`, `fr-CA`, or `zh-Hant-TW`, and select the language the Illustrator text is written in. English (`en`) is the default source language. A document always has one source language and at least one configured language.
+In the Text tab, select "Preview language" and choose **Manage languages** to add a new target language. Use a BCP 47 language tag such as `fr`, `fr-CA` or `zh-Hant-TW`. English (`en`) is the default source language; change it if your Illustrator text is in another language.
 
-Removing the source language requires you to choose its replacement, or add a new language first. Changing the source language changes only the document's language declaration; it does not rewrite Illustrator text. Existing translations need review after a source-language change. Removing a language asks for confirmation and permanently deletes all saved translations in that language from the document, including unmatched ones. Adding the language again starts empty; the deleted text cannot be recovered. Illustrator text is never changed.
+The exported component defaults to the source language. When a configured non-source language is selected, text without a saved translation renders blank. Changing the source language changes the declaration, not the text, so review existing translations afterward. Removing a language also deletes its translations.
 
-Save an untitled Illustrator document before adding languages or saving translations. Text editing and translation saving do not alter artwork unless you use **Apply** in the Source text mode.
+## Translate the text
 
-## Edit translations
+The Text tab groups repeated text across artboards. Open a text card, choose a target in **Language**, enter the translation and select **Save translation**. One translation is used for every copy in the group. Choose **Show all text** to include text that appears only once.
 
-Choose a text card, switch to **Translations**, select one target language, and enter its translation. Drafts remain when switching targets in the dialog. Numbered style marks can be applied to selected text with the style chips; malformed or unavailable marks must be corrected before saving. Use **Clear translation** to remove the current target's saved value.
+Use the numbered style marks to keep inline formatting, or **Clear translation** to remove the translation for that language. If you change the source wording or formatting in Illustrator, make sure you change the translation as well. It's suggested to review all translations after making source changes.
 
-Translations are shared by all copies represented by a text card. If the Illustrator source text or its inline-style pattern changes, its prior translation is kept as an unmatched record rather than guessed onto the changed text. Review the current source before translating it again, or explicitly reassign an unmatched record and review it. Review means confirming that the translation still corresponds to the current source; it does not edit the artwork.
+## Preview a language
 
-The component keeps the original text's layout and styling. A translation can be longer than its text box. It may not fit. Arbitrary paragraph-style remapping, font downloading, per-occurrence translation overrides, and translation of snippets or custom HTML/JavaScript are not supported. Text rendered as raster or SVG, and text controlled by a `taggedText` override, stays in the source language; the exporter warns when a saved translation cannot be applied there.
+Choose a target language in **Preview language** to see it on the Illustrator canvas. The preview is a temporary copy of a saved `.ai` document; pending changes are saved before it opens. Text without a translation stays in the source language (for the preview only) and is marked red and underlined making it easy to identify missing translations.
 
-## Use the exported component
+You can still edit and save translations in the extension. Saving updates the original document and refreshes the preview. Canvas edits to the temporary copy are discarded when you switch languages, save translations or leave the Text tab. Choose **Source** in the picker or **Return to original** to close it. Export is unavailable during preview.
 
-With more than one document language, the component exposes a reactive `lang` prop, for example `<Graphic lang="fr-CA" />`. It defaults to the document's source language. An exact configured tag is preferred; otherwise a configured base language is used, then the source. When a translation is missing or stale, the original Illustrator text and its formatting are shown.
+The preview uses Illustrator's text layout, so it may differ from the exported component. Long translations can overflow their text boxes. Threaded or noneditable text cannot be previewed; unlock and show it first. The preview renders texts in the default language font and the export will still use the font specified for the target language. However, the preview notes the CSS declaration for the target language font that you can use to set custom font for the target language in your component.
 
-The `include_translations` export setting defaults to `true` and appears in Settings when the document has multiple languages. Set it to `false` to export original source text only. In that mode there is no embedded translation dictionary or translation lookup logic. The `lang` prop still labels the component, but changing it does not translate text.
+## Use translations in your component
 
-Translations are stored as structured text and style segments, not HTML. The extension escapes text through Svelte's normal text rendering. Source and translation strings are not interpreted as markup.
+With multiple languages configured, set the component's `lang` prop to switch languages:
+
+```svelte
+<Graphic lang="fr-CA" />
+```
+
+ai2svelte uses an exact configured tag when possible, then a configured base language, then the source. If that resolves to the source language, the original text is shown; a missing translation for a configured non-source language renders blank. A `lang` value with no configured exact or base language continues to resolve to the source language. For example, fr-CA uses fr-CA if configured, falls back to fr if only that is configured, and otherwise resolves to the source language.
+
+Translations keep the source text's font and inline styles. For a language that needs a different font, add CSS in the Styles tab. The component sets `lang` on its root and translated paragraphs:
+
+```scss
+.ai2svelte [lang="hi"] {
+  font-family: "Noto Sans Devanagari", sans-serif;
+}
+
+// or
+
+#g-big-map-box [lang="hi"] {
+  font-family: "Noto Sans Devanagari", sans-serif;
+}
+```
+
+When the document has multiple languages, the `include_translations` setting defaults to `true`. Set it to `false` to export source text only; `lang` still labels the component but does not change its text. Text in raster or SVG output, `taggedText` overrides, snippets and custom HTML is not translated.

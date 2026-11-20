@@ -21,9 +21,16 @@
   interface Props {
     activeLabel: string;
     inspectMode?: boolean;
+    onChange?: (value: string) => void;
   }
 
-  let { activeLabel = $bindable(), inspectMode = false }: Props = $props();
+  let {
+    activeLabel = $bindable(),
+    inspectMode = false,
+    onChange = (value: string) => {
+      activeLabel = value;
+    },
+  }: Props = $props();
 
   let accentColor: string = $derived(userData.accentColor || "#dc4300");
   let theme = $derived(userData.theme || "dark");
@@ -69,7 +76,10 @@
   click #label-Home and #label-Inspect to switch between tabs.
 -->
 <div class="tabs">
-  <Tabs.Root bind:value={activeLabel} activationMode="automatic">
+  <Tabs.Root
+    bind:value={() => activeLabel, onChange}
+    activationMode="automatic"
+  >
     <div class="container">
       <Tabs.List>
         {#snippet child({ props })}

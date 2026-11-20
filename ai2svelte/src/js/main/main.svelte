@@ -52,6 +52,11 @@
   import Text from "./Tabs/Text.svelte";
   import Alert from "./Components/Alert.svelte";
   import Wave from "./Components/Wave.svelte";
+  import {
+    textPreview,
+    reconcileTextPreview,
+    returnToOriginal,
+  } from "./utils/textPreview.svelte";
 
   // --- state ---
 
@@ -59,6 +64,16 @@
   let activeTab: string = $state("HOME");
   let previousSettings: SettingsObject | undefined = $state();
   let inspectMode: boolean = $state(false);
+  let textTab = $state<{ confirmLeave: () => boolean }>();
+
+  async function changeTab(value: string) {
+    if (textPreview.busy) return;
+    if (activeTab === "TEXT" && value !== "TEXT") {
+      if (textTab && !textTab.confirmLeave()) return;
+      if (textPreview.active && !(await returnToOriginal())) return;
+    }
+    activeTab = value;
+  }
 
   /**
    * Loads user-authored JSON data (animations, shadows, specimens) from disk.
@@ -176,6 +191,13 @@
   }
 
   async function performPrecheck() {
+    if (await reconcileTextPreview()) {
+      activeTab = "TEXT";
+      $updateInProgress = false;
+      fetchStyleJSONs();
+      splashScreen = true;
+      return;
+    }
     // Must be awaited before handleCache(): precheck() -> checkVersion() reads
     // the document's hidden XMP data (getVariable "version"). handleCache() ->
     // fetchSettings() reads the same file's XMP (getVariable "ai-settings").
@@ -196,6 +218,15 @@
   }
 
   onMount(() => {
+    const handlePreviewEnd = async () => {
+      $updateInProgress = true;
+      try {
+        await handleCache();
+      } finally {
+        $updateInProgress = false;
+      }
+    };
+    window.addEventListener("text-preview-ended", handlePreviewEnd);
     if (window.cep) {
       $updateInProgress = true;
 
@@ -216,11 +247,20 @@
 
     return () => {
       window.removeEventListener("keydown", keyboardListener);
+      window.removeEventListener("text-preview-ended", handlePreviewEnd);
+      if (window.cep && textPreview.active && !textPreview.busy) {
+        void returnToOriginal();
+      }
 
       // Save settings on panel unload if they changed.
       // Note: in a CEP runtime the panel is rarely truly unloaded,
       // but this acts as a safety net for browser testing.
-      if (window.cep) {
+      if (
+        window.cep &&
+        !textPreview.active &&
+        !textPreview.busy &&
+        !textPreview.blocked
+      ) {
         if (
           JSON.stringify(previousSettings) !== JSON.stringify($settingsObject)
         ) {
@@ -260,6 +300,7 @@
         csi.addEventListener("documentAfterActivate", async () => {
           // Skip if ai2svelte is mid-run — the window may focus in/out during that
           if ($ai2svelteInProgress) return;
+          if (await reconcileTextPreview()) return;
 
           // Gate the run button while the new document's settings load, same as
           // performPrecheck. Without this, running right after a doc switch fires
@@ -286,7 +327,10 @@
     {#if $alertObject.flag}
       <Alert message={$alertObject.message} action={$alertObject.action} />
     {/if}
-    <TabBar bind:activeLabel={activeTab} {inspectMode} />
+    {#if textPreview.blocked}
+      <Alert message={textPreview.error} />
+    {/if}
+    <TabBar activeLabel={activeTab} onChange={changeTab} {inspectMode} />
 
     {#if activeTab === "HOME"}
       <Home refreshSettings={fetchSettings} />
@@ -297,7 +341,7 @@
     {:else if activeTab === "INSPECT"}
       <Inspect />
     {:else if activeTab === "TEXT"}
-      <Text />
+      <Text bind:this={textTab} />
     {/if}
   </Wave>
 {/if}

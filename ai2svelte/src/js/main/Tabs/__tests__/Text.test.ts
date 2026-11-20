@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { render, screen, waitFor } from "@testing-library/svelte";
 import userEvent from "@testing-library/user-event";
 import { tick } from "svelte";
-import { evalTS } from "../../../__mocks__/bolt";
+import { csi, evalTS } from "../../../__mocks__/bolt";
 import Text from "../Text.svelte";
 import {
   canonicalizeTextTranslationStore,
@@ -10,6 +10,7 @@ import {
   type TextTranslationStore,
 } from "../../../../shared/textTranslations";
 import { canonicalizeLanguageTag } from "../../utils/languages";
+import { textPreview } from "../../utils/textPreview.svelte";
 
 const nativeDialogMethods = {
   showModal: Object.getOwnPropertyDescriptor(
@@ -22,6 +23,17 @@ const nativeDialogMethods = {
 describe("Text tab", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    Object.assign(textPreview, {
+      active: false,
+      busy: false,
+      blocked: false,
+      error: "",
+      language: "",
+      sourceIdentity: "",
+      translated: 0,
+      untranslated: 0,
+      overflowed: 0,
+    });
     vi.stubGlobal("cep", { fs: {} });
     Object.defineProperty(HTMLDialogElement.prototype, "showModal", {
       configurable: true,
@@ -39,6 +51,12 @@ describe("Text tab", () => {
   });
 
   afterEach(() => {
+    Object.assign(textPreview, {
+      active: false,
+      busy: false,
+      blocked: false,
+      error: "",
+    });
     vi.unstubAllGlobals();
     vi.restoreAllMocks();
     for (const [method, descriptor] of Object.entries(nativeDialogMethods)) {
@@ -48,6 +66,270 @@ describe("Text tab", () => {
         Reflect.deleteProperty(HTMLDialogElement.prototype, method);
       }
     }
+  });
+
+  function mockPreviewDocument() {
+    let store: TextTranslationStore = {
+      schemaVersion: 1,
+      sourceLanguage: "en",
+      languages: ["en", "fr"],
+      nextMessageId: 2,
+      messages: [
+        {
+          id: "m1",
+          signature: "source",
+          sourceText: "Label",
+          styleKeys: [],
+          translations: { fr: [{ text: "Etiquette", styleKey: null }] },
+        },
+      ],
+    };
+    const inactive = {
+      active: false,
+      sourceIdentity: "",
+      language: "",
+      translated: 0,
+      untranslated: 0,
+      overflowed: 0,
+    };
+    let status = inactive;
+    evalTS.mockImplementation(async (name: string, ...args: unknown[]) => {
+      if (name === "fetchDocSelectors")
+        return {
+          groups: [
+            { text: "Label", count: 2, signature: "source", styleKeys: [] },
+          ],
+          styles: [],
+          identity: "/project/map.ai",
+        };
+      if (name === "fetchTextTranslationDocument")
+        return {
+          identity: "/project/map.ai",
+          saved: true,
+          data: store,
+        };
+      if (name === "getActiveDocumentIdentity") return "/project/map.ai";
+      if (name === "getTextPreviewStatus") return status;
+      if (name === "beginTextPreview") {
+        status = {
+          active: true,
+          sourceIdentity: "/project/map.ai",
+          language: String(args[1]),
+          translated: 1,
+          untranslated: 3,
+          overflowed: 0,
+        };
+        return status;
+      }
+      if (name === "endTextPreview") {
+        status = inactive;
+        return status;
+      }
+      if (name === "saveTextTranslations") {
+        store = args[1] as TextTranslationStore;
+        return { ok: true, identity: "/project/map.ai" };
+      }
+      return undefined;
+    });
+  }
+
+  async function choosePreviewLanguage(language: string) {
+    await userEvent.click(
+      await screen.findByRole("combobox", { name: "Preview language" }),
+    );
+    const option = document.querySelector<HTMLElement>(
+      `[data-value="${language}"]`,
+    );
+    if (!option) throw new Error(`Missing preview option for ${language}`);
+    await userEvent.click(option);
+  }
+
+  const manageOption = () => document.querySelector<HTMLElement>(".li-action")!;
+
+  async function clickManage() {
+    await userEvent.click(
+      await screen.findByRole("combobox", { name: "Preview language" }),
+    );
+    await userEvent.click(manageOption());
+  }
+
+  it("shows an integrated preview picker and switches without passing display filters", async () => {
+    mockPreviewDocument();
+    render(Text);
+    const picker = await screen.findByRole("combobox", {
+      name: "Preview language",
+    });
+    expect(
+      await screen.findByRole("combobox", { name: "Sort text" }),
+    ).toBeInTheDocument();
+    expect(picker).toHaveTextContent(/English \(en\).*Source/);
+    expect(picker).toHaveTextContent("2");
+    await userEvent.click(picker);
+    expect(manageOption()).not.toHaveAttribute("data-disabled");
+    await userEvent.keyboard("{Escape}");
+    await choosePreviewLanguage("fr");
+    await screen.findByText(/Temporary preview/);
+    expect(evalTS).toHaveBeenCalledWith(
+      "beginTextPreview",
+      "/project/map.ai",
+      "fr",
+    );
+    await userEvent.click(picker);
+    expect(manageOption()).toHaveAttribute("data-disabled");
+    await userEvent.keyboard("{Escape}");
+    await choosePreviewLanguage("en");
+    await waitFor(() => expect(textPreview.active).toBe(false));
+    expect(evalTS).toHaveBeenCalledWith("endTextPreview");
+  });
+
+  it("allows saving translations during preview and refreshes only after Save", async () => {
+    mockPreviewDocument();
+    render(Text);
+    await choosePreviewLanguage("fr");
+    await screen.findByText(/Temporary preview/);
+    await userEvent.click(
+      screen.getByRole("button", { name: "Edit text: Label" }),
+    );
+    const input = screen.getByRole("textbox", { name: "New text" });
+    expect(input).toHaveValue("Etiquette");
+    await userEvent.clear(input);
+    await userEvent.type(input, "Nouveau");
+    expect(
+      evalTS.mock.calls.filter(([name]) => name === "beginTextPreview"),
+    ).toHaveLength(1);
+    await userEvent.click(
+      screen.getByRole("button", { name: "Save translation" }),
+    );
+    await waitFor(() =>
+      expect(
+        evalTS.mock.calls.filter(([name]) => name === "beginTextPreview"),
+      ).toHaveLength(2),
+    );
+    expect(evalTS).toHaveBeenCalledWith(
+      "saveTextTranslations",
+      "/project/map.ai",
+      expect.objectContaining({
+        messages: [
+          expect.objectContaining({
+            translations: { fr: [{ text: "Nouveau", styleKey: null }] },
+          }),
+        ],
+      }),
+    );
+    expect(evalTS.mock.calls.some(([name]) => name === "replaceDocText")).toBe(
+      false,
+    );
+  });
+
+  it.each(["picker", "button"])(
+    "keeps source rows without rescanning when returning through the %s",
+    async (control) => {
+      mockPreviewDocument();
+      render(Text);
+      await screen.findByRole("combobox", { name: "Preview language" });
+      await choosePreviewLanguage("fr");
+      await screen.findByText(/Temporary preview/);
+      const scans = evalTS.mock.calls.filter(
+        ([name]) => name === "fetchDocSelectors",
+      ).length;
+      if (control === "picker") await choosePreviewLanguage("en");
+      else
+        await userEvent.click(
+          screen.getByRole("button", { name: "Return to original" }),
+        );
+      await waitFor(() => expect(textPreview.active).toBe(false));
+      const [, activate] = csi.addEventListener.mock.calls.find(
+        ([name]) => name === "documentAfterActivate",
+      )!;
+      await activate();
+      await tick();
+      expect(
+        evalTS.mock.calls.filter(([name]) => name === "fetchDocSelectors"),
+      ).toHaveLength(scans);
+      expect(
+        screen.getByRole("button", { name: "Edit text: Label" }),
+      ).toBeInTheDocument();
+
+      await userEvent.click(screen.getByRole("button", { name: "Refresh" }));
+      await screen.findByRole("button", { name: "Edit text: Label" });
+      expect(
+        evalTS.mock.calls.filter(([name]) => name === "fetchDocSelectors"),
+      ).toHaveLength(scans + 1);
+    },
+  );
+
+  it("still scans after switching to a different document session", async () => {
+    mockPreviewDocument();
+    render(Text);
+    await screen.findByRole("button", { name: "Edit text: Label" });
+    const previous = evalTS.getMockImplementation()!;
+    evalTS.mockImplementation((name: string, ...args: unknown[]) => {
+      if (name === "getActiveDocumentIdentity")
+        return Promise.resolve("/other.ai#session-2");
+      if (name === "fetchDocSelectors")
+        return Promise.resolve({
+          groups: [
+            {
+              text: "Other document",
+              count: 2,
+              signature: "other",
+              styleKeys: [],
+            },
+          ],
+          styles: [],
+          identity: "/other.ai#session-2",
+        });
+      if (name === "fetchTextTranslationDocument")
+        return Promise.resolve({
+          identity: "/other.ai#session-2",
+          data: {
+            schemaVersion: 1,
+            sourceLanguage: "en",
+            languages: ["en"],
+            nextMessageId: 1,
+            messages: [],
+          },
+        });
+      return previous(name, ...args);
+    });
+    const [, activate] = csi.addEventListener.mock.calls.find(
+      ([name]) => name === "documentAfterActivate",
+    )!;
+    await activate();
+    expect(
+      await screen.findByRole("button", { name: "Edit text: Other document" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "Edit text: Label" }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("shows a disabled preview picker and count for a one-language document", async () => {
+    evalTS.mockImplementation(async (name: string) => {
+      if (name === "fetchDocSelectors")
+        return { groups: [], styles: [], identity: "/project/map.ai" };
+      if (name === "getActiveDocumentIdentity") return "/project/map.ai";
+      if (name === "fetchTextTranslationDocument")
+        return {
+          identity: "/project/map.ai",
+          data: {
+            schemaVersion: 1,
+            sourceLanguage: "en",
+            languages: ["en"],
+            nextMessageId: 1,
+            messages: [],
+          },
+        };
+    });
+    render(Text);
+    const picker = await screen.findByRole("combobox", {
+      name: "Preview language",
+    });
+    expect(picker).toBeEnabled();
+    expect(picker).toHaveTextContent(/English \(en\).*Source/);
+    expect(picker).toHaveTextContent("1");
+    await userEvent.click(picker);
+    expect(manageOption()).not.toHaveAttribute("data-disabled");
   });
 
   it("lists repeated text and applies a replacement from the dialog", async () => {
@@ -396,7 +678,7 @@ describe("Text tab", () => {
       );
     expect(cardTexts()).toEqual(["Beta", "alpha", "Gamma"]);
 
-    const sort = screen.getByRole("combobox");
+    const sort = document.getElementById("text-sort")!;
     await userEvent.click(sort);
     await userEvent.click(await screen.findByText("Most copies"));
     await waitFor(() =>
@@ -407,6 +689,72 @@ describe("Text tab", () => {
     await userEvent.click(await screen.findByText("A–Z"));
     await waitFor(() =>
       expect(cardTexts()).toEqual(["alpha", "Beta", "Gamma"]),
+    );
+  });
+
+  it("sorts by missing target translations and preserves document order for ties", async () => {
+    const rows = [
+      { text: "Complete", count: 2, signature: "complete", styleKeys: [] },
+      { text: "Partial", count: 3, signature: "partial", styleKeys: [] },
+      { text: "Missing", count: 2, signature: "missing", styleKeys: [] },
+      {
+        text: "Also missing",
+        count: 4,
+        signature: "also-missing",
+        styleKeys: [],
+      },
+    ];
+    evalTS.mockImplementation(async (name: string) => {
+      if (name === "fetchDocSelectors") {
+        return { groups: rows, styles: [], identity: "/project/map.ai" };
+      }
+      if (name === "getActiveDocumentIdentity") return "/project/map.ai";
+      if (name === "fetchTextTranslationDocument") {
+        return {
+          identity: "/project/map.ai",
+          saved: true,
+          data: {
+            schemaVersion: 1,
+            sourceLanguage: "en",
+            languages: ["en", "fr", "de"],
+            nextMessageId: 4,
+            messages: rows.slice(0, 3).map((row, index) => ({
+              id: `m${index + 1}`,
+              signature: row.signature,
+              sourceText: row.text,
+              styleKeys: [],
+              translations:
+                index === 0
+                  ? {
+                      fr: [{ text: "Complet", styleKey: null }],
+                      de: [{ text: "Komplett", styleKey: null }],
+                    }
+                  : index === 1
+                    ? { fr: [{ text: "Partiel", styleKey: null }] }
+                    : { fr: [] },
+            })),
+          },
+        };
+      }
+      return undefined;
+    });
+
+    render(Text);
+    await userEvent.click(
+      await screen.findByRole("combobox", { name: "Sort text" }),
+    );
+    await userEvent.click(await screen.findByText("Most untranslated"));
+    const cardTexts = () =>
+      [...document.querySelectorAll(".card-text")].map(
+        (item) => item.textContent,
+      );
+    await waitFor(() =>
+      expect(cardTexts()).toEqual([
+        "Missing",
+        "Also missing",
+        "Partial",
+        "Complete",
+      ]),
     );
   });
 
@@ -934,7 +1282,7 @@ describe("Text tab", () => {
 
     render(Text);
     await screen.findByRole("button", { name: "Edit text: Label" });
-    await userEvent.click(screen.getByRole("button", { name: "Manage" }));
+    await clickManage();
     const languagePicker = screen.getByRole("combobox", {
       name: "Add document language",
     });
@@ -1453,7 +1801,7 @@ describe("Text tab", () => {
       screen.queryByRole("button", { name: "Edit text: First document" }),
     ).not.toBeInTheDocument();
 
-    await userEvent.click(screen.getByRole("button", { name: "Manage" }));
+    await clickManage();
     await userEvent.selectOptions(
       screen.getByRole("combobox", { name: "Add document language" }),
       "fr",
@@ -1554,7 +1902,7 @@ describe("Text tab", () => {
     async function openManage() {
       render(Text);
       await screen.findByRole("button", { name: "Edit text: Label" });
-      await userEvent.click(screen.getByRole("button", { name: "Manage" }));
+      await clickManage();
     }
 
     it("removes a target from every message, keeps others, and re-add starts empty", async () => {

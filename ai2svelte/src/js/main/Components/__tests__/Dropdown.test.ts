@@ -41,6 +41,17 @@ describe("Dropdown", () => {
     }
   });
 
+  it("portals the menu outside its trigger container by default", async () => {
+    render(Dropdown, { options, value: "Helvetica" });
+    const trigger = screen.getByRole("combobox");
+    const triggerContainer = trigger.closest(".dropdown-container");
+    await userEvent.click(trigger);
+    const listbox = await screen.findByRole("listbox", { hidden: true });
+
+    expect(triggerContainer).not.toContainElement(listbox);
+    expect(document.body).toContainElement(listbox);
+  });
+
   it("marks the current value as active via data-active", async () => {
     render(Dropdown, { options, value: "Arial" });
     await userEvent.click(screen.getByRole("combobox"));

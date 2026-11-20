@@ -15,7 +15,11 @@ function closeQuietly(f: XMPFileInstance | null) {
 }
 
 // Corrected XMP implementation
-export function storeHiddenData(key: string, value: unknown) {
+export function storeHiddenData(
+  key: string,
+  value: unknown,
+  doc = app.activeDocument,
+) {
   let xmpFile: XMPFileInstance | null = null;
   let readBack: XMPFileInstance | null = null;
   try {
@@ -24,7 +28,6 @@ export function storeHiddenData(key: string, value: unknown) {
       ExternalObject.AdobeXMPScript = new ExternalObject("lib:AdobeXMPScript");
     }
 
-    const doc = app.activeDocument;
     const filePath = doc.fullName.fsName; // Full path to the .ai file
 
     // Open the file for update
@@ -71,7 +74,11 @@ export function storeHiddenData(key: string, value: unknown) {
   }
 }
 
-export function getHiddenData(key: string, strict = false) {
+export function getHiddenData(
+  key: string,
+  strict = false,
+  doc = app.activeDocument,
+) {
   let raw: string | null = null;
   let xmpFile: XMPFileInstance | null = null;
   try {
@@ -80,7 +87,6 @@ export function getHiddenData(key: string, strict = false) {
       ExternalObject.AdobeXMPScript = new ExternalObject("lib:AdobeXMPScript");
     }
 
-    const doc = app.activeDocument;
     const filePath = doc.fullName.fsName; // Full path to the .ai file
 
     // Open the file for reading
