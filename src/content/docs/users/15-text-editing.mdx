@@ -1,0 +1,39 @@
+---
+title: Batch edit text
+description: Find and edit repeated Illustrator text while preserving inline styles.
+slug: users/text-editing
+sidebar:
+  order: 115
+---
+
+import StyledTextDemo from "../../../../public/images/text-editing-styles.gif";
+
+Use the Text tab to find text across artboards and edit repeated text in one place. A source text edit applies to every occurrence in the group.
+
+## Find text
+
+The Text tab groups repeated text across artboards. Each result shows how many matches it contains. A warning means some copies differ slightly in capitalization, line breaks, spacing, quotes, dashes or ellipses; applying a replacement makes all copies match.
+
+Use **Show all text** to include text that appears only once, or **Show repeated text only** to return to repeated text. Search with **Search text…** to filter the results.
+
+Select a result to open **Edit text**. Choose **Source** in **Language** to update the Illustrator text. To enter a translation instead, choose a target language; see [Manual text translations](../text-translations/).
+
+## Preserve inline styles
+
+Numbered style marks keep the corresponding highlighted inline style around the text between them:
+
+```text
+<1>styled words</1>
+```
+
+You can keep or move the marks while editing. To apply a style to new text, select the text and choose its numbered style chip. Remove the marks to use the normal style. Styles cannot be nested. To type a literal tag such as `<1>`, escape its opening angle bracket with a backslash: `\<1>`.
+
+<img
+  src={StyledTextDemo.src}
+  width={StyledTextDemo.width}
+  height={StyledTextDemo.height}
+  loading="lazy"
+  alt="Animation: the artwork text 'Rents rose 12% in March' has two styled words, shown in the panel as 'Rents rose <1>12%</1> in <2>March</2>' with style chips 1 and 2. Editing the text inside the marks to 18% and April updates the artwork with the styles kept. Switching the language to Spanish, the user types the translation, selects '18%' and 'abril', and applies style chips 1 and 2, so the translation keeps the same styles."
+/>
+
+When you change source text, review its translations too. They may need updating to reflect changes to the wording or formatting.
