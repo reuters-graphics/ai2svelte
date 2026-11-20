@@ -4734,11 +4734,7 @@ exports[`ai2svelte generated output (visual-test) > translations-stale matches l
 	import { onMount, untrack } from 'svelte';
 
 	const __a2sTranslationSourceLanguage = "en";
-	const __a2sTranslationData = {"fr":{
-
-},"ar":{
-
-},"de":{
+	const __a2sTranslationData = {"fr":{"m1":[{"text":"Carte ","styleKey":null},{"text":"\\u003c/script> & \\u2028\\n","styleKey":"[\\"ArialMT\\",\\"12\\",\\"FontCapsOption.NORMALCAPS\\",\\"false\\",\\"false\\",\\"rgb:220,38,38\\",\\"NoColor\\",\\"1\\",\\"false\\"]"}]},"ar":{"m1":[{"text":"خريطة","styleKey":null}]},"de":{
 
 }};
 	const __a2sTranslationConfiguredLanguages = ["en","fr","ar","de"];
@@ -4781,6 +4777,7 @@ exports[`ai2svelte generated output (visual-test) > translations-stale matches l
 		}
 		return lines;
 	}
+	const __a2sTranslationStyles0 = {"__base__":"g-cstyle0","[\\"ArialMT\\",\\"12\\",\\"FontCapsOption.NORMALCAPS\\",\\"false\\",\\"false\\",\\"rgb:220,38,38\\",\\"NoColor\\",\\"1\\",\\"false\\"]":""};
 
 	let processedPath = $derived(
 		assetsPath.replace(new RegExp('/([^/.]+)$'), '/$1/') || '/',
@@ -4855,8 +4852,13 @@ exports[`ai2svelte generated output (visual-test) > translations-stale matches l
 		<div id="g-my_label" lang="en" dir="auto" class="g-label g-aiAbs g-aiPointText" style="top:95.8194%;margin-top:-8.1px;left:5%;width:113px;">
 			<p class="g-pstyle2">Braces &#123;a&#125; & &lt;b&gt;</p>
 		</div>
-		<div id="g-title" lang="en" dir="auto" data-role="title" class="g-label g-aiAbs g-aiPointText" style="top:80.512%;margin-top:-27.6px;left:5%;width:146px;">
-			<p class="g-pstyle0"><span class="g-cstyle0">Layers&nbsp;</span>fixture</p>
+		<div id="g-title" lang="en" dir="auto" data-role="title" class="g-label g-aiAbs g-aiPointText" style="top:80.512%;margin-top:-27.6px;left:5%;width:146px;">{#if __a2sTranslationGetTextTranslation("m1")}
+{#each __a2sTranslationTranslationLines(__a2sTranslationGetTextTranslation("m1")) as line}
+	<p class="g-pstyle0" lang={__a2sTranslationResolvedLanguage} dir="auto" style="white-space: pre-wrap;">{#if line.length === 0}&nbsp;{:else}{#each line as segment}{#if __a2sTranslationStyles0[(segment.styleKey || '__base__')] && __a2sTranslationStyles0[(segment.styleKey || '__base__')].length}<span class={__a2sTranslationStyles0[(segment.styleKey || '__base__')]}>{segment.text}</span>{:else}{segment.text}{/if}{/each}{/if}</p>
+{/each}
+{:else}
+
+			<p class="g-pstyle0"><span class="g-cstyle0">Layers&nbsp;</span>fixture</p>{/if}
 		</div>
 	</div>
 	<!-- Artboard: narrow:image_only -->

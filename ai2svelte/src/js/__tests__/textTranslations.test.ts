@@ -3,7 +3,6 @@ import {
   allocateTranslationMessage,
   canonicalizeTextTranslationStore,
   createDefaultTextTranslationStore,
-  isTranslationMessageReviewed,
   parseTextTranslationStore,
   resolveTranslationLanguage,
   translationLanguageResolverSource,
@@ -36,7 +35,6 @@ describe("text translation model", () => {
         id: "m1",
         signature: "source",
         sourceText: "Source",
-        reviewedSignature: "source",
         styleKeys: [],
         translations: {
           fr: [{ text: "Nested", styleKey: 10 as unknown as string }],
@@ -110,15 +108,18 @@ describe("text translation model", () => {
     expect(store.nextMessageId).toBe(3);
   });
 
-  it("marks changed source signatures for review", () => {
-    const message = allocateTranslationMessage(
-      createDefaultTextTranslationStore(),
-      "before",
-      "Source",
-      [],
+  it("removes the legacy review marker when canonicalizing saved metadata", () => {
+    const store = createDefaultTextTranslationStore();
+    const message = allocateTranslationMessage(store, "source", "Source", []);
+    (
+      message as typeof message & { reviewedSignature?: string }
+    ).reviewedSignature = "";
+
+    const canonical = canonicalizeTextTranslationStore(
+      parseTextTranslationStore(store),
+      (tag) => tag,
     );
-    expect(isTranslationMessageReviewed(message, "before")).toBe(true);
-    expect(isTranslationMessageReviewed(message, "after")).toBe(false);
+    expect(canonical.messages[0]).not.toHaveProperty("reviewedSignature");
   });
 
   it("uses exact, then configured base, then source language fallback", () => {

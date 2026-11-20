@@ -39,7 +39,7 @@ try {
   if (mode === "source-language") {
     assert.ok(french.includes("Layers") && french.includes("fixture"));
     assert.doesNotMatch(french, /Ancienne traduction/);
-  } else if (mode === "disabled" || mode === "stale") {
+  } else if (mode === "disabled") {
     assert.ok(french.includes("Layers") && french.includes("fixture"));
     assert.doesNotMatch(french, /Carte/);
   } else {

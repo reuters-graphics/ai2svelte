@@ -24,7 +24,6 @@
     cloneTextTranslationStore,
     createDefaultTextTranslationStore,
     findMessageBySignature,
-    isTranslationMessageReviewed,
     parseTextTranslationStore,
     type TextTranslationStore,
     type TranslationMessage,
@@ -82,6 +81,45 @@
   const SORT_COPIES = "Most copies";
   const SORT_ALPHABETICAL = "A–Z";
   const sortOptions = [SORT_DOCUMENT, SORT_COPIES, SORT_ALPHABETICAL];
+  const CUSTOM_LANGUAGE_TAG = "__custom__";
+  const commonLanguages = [
+    { tag: "ar", name: "Arabic" },
+    { tag: "bn", name: "Bengali" },
+    { tag: "zh-Hans", name: "Chinese (Simplified)" },
+    { tag: "zh-Hant", name: "Chinese (Traditional)" },
+    { tag: "cs", name: "Czech" },
+    { tag: "da", name: "Danish" },
+    { tag: "nl", name: "Dutch" },
+    { tag: "en", name: "English" },
+    { tag: "fi", name: "Finnish" },
+    { tag: "fr", name: "French" },
+    { tag: "de", name: "German" },
+    { tag: "el", name: "Greek" },
+    { tag: "he", name: "Hebrew" },
+    { tag: "hi", name: "Hindi" },
+    { tag: "hu", name: "Hungarian" },
+    { tag: "id", name: "Indonesian" },
+    { tag: "it", name: "Italian" },
+    { tag: "ja", name: "Japanese" },
+    { tag: "ko", name: "Korean" },
+    { tag: "ms", name: "Malay" },
+    { tag: "no", name: "Norwegian" },
+    { tag: "fa", name: "Persian" },
+    { tag: "pl", name: "Polish" },
+    { tag: "pt-BR", name: "Portuguese (Brazil)" },
+    { tag: "pt-PT", name: "Portuguese (Portugal)" },
+    { tag: "ro", name: "Romanian" },
+    { tag: "ru", name: "Russian" },
+    { tag: "sr", name: "Serbian" },
+    { tag: "es", name: "Spanish" },
+    { tag: "sw", name: "Swahili" },
+    { tag: "sv", name: "Swedish" },
+    { tag: "th", name: "Thai" },
+    { tag: "tr", name: "Turkish" },
+    { tag: "uk", name: "Ukrainian" },
+    { tag: "ur", name: "Urdu" },
+    { tag: "vi", name: "Vietnamese" },
+  ];
   let sortBy = $state(SORT_DOCUMENT);
   let loading = $state(false);
   let unmounted = false;
@@ -104,12 +142,13 @@
   let stableIdentityAvailable = $state(true);
   let translationError = $state("");
   let translationStatus = $state("");
+  let editingLanguage = $state("");
   let targetLanguage = $state("");
   let translationText = $state("");
-  let editMode = $state<"source" | "translations">("source");
   let drafts = $state<Record<string, string>>({});
   let dirtyLanguages = $state<Record<string, boolean>>({});
   let newLanguageTag = $state("");
+  let customLanguageTag = $state("");
   let languageError = $state("");
   let pendingRemoval = $state("");
   let promptedSourceLanguage = $state("");
@@ -148,14 +187,13 @@
   const parsedReplacement = $derived(parseStyledText(replacementText));
   // Every style found in the document can be applied to any text.
   const rowStyles = $derived(styles);
-  const translationRowStyles = $derived.by(() => {
-    const allowed = new Set(selectedRow?.styleKeys || []);
-    return styles.filter((style) => allowed.has(style.key));
-  });
   const targetLanguages = $derived(
     translationStore.languages.filter(
       (language) => language !== translationStore.sourceLanguage,
     ),
+  );
+  const isEditingSource = $derived(
+    editingLanguage === translationStore.sourceLanguage,
   );
   function translationCompletionCount(message: TranslationMessage | undefined) {
     if (!message) return 0;
@@ -375,6 +413,16 @@
     return findMessageBySignature(translationStore, row.signature);
   }
 
+  function rowHasTranslations(row: TextFrameGroup) {
+    const message = messageForRow(row);
+    return (
+      !!message &&
+      targetLanguages.some(
+        (language) => (message.translations[language]?.length || 0) > 0,
+      )
+    );
+  }
+
   function currentStyleKey(id: number): string | undefined {
     return styles.find((style) => style.id === id)?.key;
   }
@@ -389,15 +437,10 @@
     return segments
       .map((segment) => {
         if (segment.styleKey === null) return escapeStyledText(segment.text);
-        if (!selectedRow?.styleKeys.includes(segment.styleKey)) {
-          throw new Error(
-            "A saved translation uses a style that is not present in this source. Reassign or review it before exporting.",
-          );
-        }
         const style = styles.find((item) => item.key === segment.styleKey);
         if (!style) {
           throw new Error(
-            "A saved translation uses a style that is no longer available. Reassign or review it before editing.",
+            "A saved translation uses a style that is no longer available. Remove or replace the style mark before editing.",
           );
         }
         return `${styleOpenTag(style.id)}${escapeStyledText(segment.text)}${styleCloseTag(style.id)}`;
@@ -415,12 +458,7 @@
       const styleKey = currentStyleKey(segment.styleId);
       if (!styleKey) {
         throw new Error(
-          `Style ${segment.styleId} is no longer available. Review the translation's style marks.`,
-        );
-      }
-      if (!selectedRow?.styleKeys.includes(styleKey)) {
-        throw new Error(
-          `Style ${segment.styleId} is not used by this source text.`,
+          `Style ${segment.styleId} is not available in this document.`,
         );
       }
       return { text: segment.text, styleKey };
@@ -429,7 +467,7 @@
 
   function hasUnsupportedTranslationStyles(
     message: TranslationMessage,
-    allowedStyleKeys: string[],
+    availableStyleKeys: string[],
   ) {
     for (const language in message.translations) {
       if (!Object.prototype.hasOwnProperty.call(message.translations, language))
@@ -439,13 +477,26 @@
         const styleKey = segments[i].styleKey;
         if (
           typeof styleKey === "string" &&
-          !allowedStyleKeys.includes(styleKey)
+          !availableStyleKeys.includes(styleKey)
         ) {
           return true;
         }
       }
     }
     return false;
+  }
+
+  function registerAvailableTranslationStyles(
+    message: TranslationMessage,
+    row: TextFrameGroup,
+  ) {
+    message.styleKeys = Array.from(
+      new Set([
+        ...message.styleKeys,
+        ...row.styleKeys,
+        ...styles.map((style) => style.key),
+      ]),
+    );
   }
 
   async function refreshText(clearFeedback = true): Promise<boolean> {
@@ -540,7 +591,7 @@
   function openReplacement(row: TextFrameGroup) {
     if (applying || loading) return;
     selectedRow = row;
-    editMode = "source";
+    editingLanguage = translationStore.sourceLanguage;
     revealCount = 0;
     replacementText = row.text;
     historyGroup = createHistoryGrouper();
@@ -552,16 +603,10 @@
     drafts = {};
     dirtyLanguages = {};
     dialogErrorMessage = "";
-    const message = messageForRow(row);
     targetLanguage = targetLanguages[0] || "";
-    try {
-      translationText = message?.translations[targetLanguage]
-        ? translationToEditor(message.translations[targetLanguage])
-        : "";
-    } catch (error) {
-      dialogErrorMessage = getErrorMessage(error);
-      translationText = "";
-    }
+    translationText = targetLanguage
+      ? loadTranslationDraft(targetLanguage)
+      : "";
     selectedOrphanId = "";
     replacementDialog?.showModal();
   }
@@ -571,7 +616,11 @@
     if (translationDataInvalid || saving) return;
     let tag: string;
     try {
-      tag = canonicalizeLanguageTag(newLanguageTag);
+      tag = canonicalizeLanguageTag(
+        newLanguageTag === CUSTOM_LANGUAGE_TAG
+          ? customLanguageTag
+          : newLanguageTag,
+      );
     } catch (error) {
       languageError = getErrorMessage(error);
       return;
@@ -598,6 +647,7 @@
     const saved = await saveTranslationStore(next);
     if (saved) {
       newLanguageTag = "";
+      customLanguageTag = "";
       translationStatus = `${languageDisplayName(tag)} added.`;
     } else {
       languageError = translationError;
@@ -609,16 +659,13 @@
     if (tag === translationStore.sourceLanguage) return;
     if (
       !window.confirm(
-        `Declare ${tag} as the language the document is written in? Existing translations will need review. Illustrator text will not be changed.`,
+        `Declare ${tag} as the language the document is written in? Illustrator text will not be changed.`,
       )
     ) {
       return;
     }
     const next = cloneTextTranslationStore(translationStore);
     next.sourceLanguage = tag;
-    for (let i = 0; i < next.messages.length; i++) {
-      next.messages[i].reviewedSignature = "";
-    }
     if (!(await saveTranslationStore(next))) languageError = translationError;
   }
 
@@ -654,25 +701,22 @@
   function clearLanguageEditorState(tag: string) {
     delete drafts[tag];
     delete dirtyLanguages[tag];
-    if (targetLanguage !== tag && targetLanguages.includes(targetLanguage)) {
-      return;
+    if (editingLanguage === tag) {
+      editingLanguage = translationStore.sourceLanguage;
     }
-    targetLanguage = targetLanguages[0] || "";
-    translationText = targetLanguage
-      ? loadTranslationDraft(targetLanguage)
-      : "";
+    if (targetLanguage === tag || !targetLanguages.includes(targetLanguage)) {
+      targetLanguage = targetLanguages[0] || "";
+      translationText = targetLanguage
+        ? loadTranslationDraft(targetLanguage)
+        : "";
+    }
   }
 
   async function removeLanguage(tag: string, nextSource?: string) {
     if (saving || translationDataInvalid) return;
     const next = cloneTextTranslationStore(translationStore);
     deleteLanguageData(next, tag);
-    if (nextSource) {
-      next.sourceLanguage = nextSource;
-      for (let i = 0; i < next.messages.length; i++) {
-        next.messages[i].reviewedSignature = "";
-      }
-    }
+    if (nextSource) next.sourceLanguage = nextSource;
     if (next.languages.length === 0) return;
     if (!(await saveTranslationStore(next))) {
       languageError = translationError;
@@ -710,9 +754,6 @@
     if (next.languages.indexOf(nextSource) < 0) next.languages.push(nextSource);
     deleteLanguageData(next, pendingRemoval);
     next.sourceLanguage = nextSource;
-    for (let i = 0; i < next.messages.length; i++) {
-      next.messages[i].reviewedSignature = "";
-    }
     if (!(await saveTranslationStore(next))) {
       languageError = translationError;
       return;
@@ -741,36 +782,63 @@
     }
   }
 
-  function switchTargetLanguage(event: Event) {
-    if (targetLanguage) drafts[targetLanguage] = translationText;
-    targetLanguage = (event.currentTarget as HTMLSelectElement).value;
-    translationText = loadTranslationDraft(targetLanguage);
+  function switchEditingLanguage(event: Event) {
+    const language = (event.currentTarget as HTMLSelectElement).value;
+    if (!language || language === editingLanguage) return;
+    if (
+      language !== translationStore.sourceLanguage &&
+      !stableIdentityAvailable
+    ) {
+      (event.currentTarget as HTMLSelectElement).value = editingLanguage;
+      dialogErrorMessage =
+        "Translation identity is unavailable for this scan. Refresh with the current extension build.";
+      return;
+    }
+    if (targetLanguage && targetLanguages.includes(targetLanguage)) {
+      drafts[targetLanguage] = translationText;
+    }
+    editingLanguage = language;
+    dialogErrorMessage = "";
+    if (language === translationStore.sourceLanguage) return;
+    targetLanguage = language;
+    translationText = loadTranslationDraft(language);
   }
 
   async function saveTranslations() {
     const row = selectedRow;
-    if (!row || !targetLanguage || applying || saving || translationDataInvalid)
+    if (
+      !row ||
+      isEditingSource ||
+      !targetLanguage ||
+      applying ||
+      saving ||
+      translationDataInvalid
+    )
       return;
     dialogErrorMessage = "";
     drafts[targetLanguage] = translationText;
     dirtyLanguages[targetLanguage] = true;
     const next = cloneTextTranslationStore(translationStore);
     let message = findMessageBySignature(next, row.signature);
-    if (message && !isTranslationMessageReviewed(message, row.signature)) {
-      dialogErrorMessage =
-        "Review this source text before saving translations for it.";
-      return;
-    }
     const changed = Object.keys(dirtyLanguages).filter(
       (language) => dirtyLanguages[language],
     );
     if (!changed.length) return;
+    if (
+      replacementText !== row.text &&
+      !window.confirm(
+        "Saving this translation will discard the unsaved source text change. Continue?",
+      )
+    ) {
+      return;
+    }
     try {
       for (let i = 0; i < changed.length; i++) {
         try {
           editorToTranslation(drafts[changed[i]] || "");
         } catch (error) {
           targetLanguage = changed[i];
+          editingLanguage = changed[i];
           translationText = drafts[changed[i]] || "";
           dialogErrorMessage = getErrorMessage(error);
           await tick();
@@ -787,8 +855,7 @@
         );
       }
       message.sourceText = sourceTextForMessage(row);
-      message.reviewedSignature = row.signature;
-      message.styleKeys = row.styleKeys.slice(0);
+      registerAvailableTranslationStyles(message, row);
       for (let i = 0; i < changed.length; i++) {
         const language = changed[i];
         const text = drafts[language] || "";
@@ -812,33 +879,6 @@
     }
   }
 
-  async function reviewCurrentSource() {
-    const row = selectedRow;
-    if (!row) return;
-    const next = cloneTextTranslationStore(translationStore);
-    let message = findMessageBySignature(next, row.signature);
-    if (!message) {
-      message = allocateTranslationMessage(
-        next,
-        row.signature,
-        row.text,
-        row.styleKeys,
-      );
-    }
-    if (hasUnsupportedTranslationStyles(message, row.styleKeys)) {
-      dialogErrorMessage =
-        "Some saved translations use styles that are not present in this source. Reassign or clear those marks before reviewing.";
-      return;
-    }
-    message.sourceText = row.text;
-    message.reviewedSignature = row.signature;
-    message.styleKeys = row.styleKeys.slice(0);
-    if (!(await saveTranslationStore(next))) {
-      dialogErrorMessage = translationError;
-      return;
-    }
-  }
-
   function handleEditClose() {
     const hasDrafts = Object.keys(dirtyLanguages).some(
       (language) => dirtyLanguages[language],
@@ -851,7 +891,7 @@
     dialogErrorMessage = "";
     drafts = {};
     dirtyLanguages = {};
-    editMode = "source";
+    editingLanguage = translationStore.sourceLanguage;
   }
 
   async function reassignOrphan() {
@@ -861,9 +901,14 @@
     );
     if (!row || !orphan) return;
     const next = cloneTextTranslationStore(translationStore);
-    if (hasUnsupportedTranslationStyles(orphan, row.styleKeys)) {
+    if (
+      hasUnsupportedTranslationStyles(
+        orphan,
+        rowStyles.map((style) => style.key),
+      )
+    ) {
       dialogErrorMessage =
-        "The unmatched translation uses styles not present in this source. Reassign or clear those style marks first.";
+        "The unmatched translation uses styles no longer available in this document. Clear those style marks first.";
       return;
     }
     let message = findMessageBySignature(next, row.signature);
@@ -902,8 +947,7 @@
       }
     }
     message.sourceText = row.text;
-    message.styleKeys = row.styleKeys.slice(0);
-    message.reviewedSignature = "";
+    registerAvailableTranslationStyles(message, row);
     if (await saveTranslationStore(next)) {
       selectedOrphanId = "";
       dialogErrorMessage = "";
@@ -1044,9 +1088,17 @@
 
   async function applyReplacement() {
     const row = selectedRow;
-    if (!row || applying || loading || replacementError || !canApply(row)) {
+    if (
+      !row ||
+      !isEditingSource ||
+      applying ||
+      loading ||
+      replacementError ||
+      !canApply(row)
+    ) {
       return;
     }
+    const hasTranslations = rowHasTranslations(row);
     if (
       Object.keys(dirtyLanguages).some(
         (language) => dirtyLanguages[language],
@@ -1060,8 +1112,6 @@
 
     applying = true;
     dialogErrorMessage = "";
-    drafts = {};
-    dirtyLanguages = {};
     try {
       const hasSnapshot = row.hasStableIdentity === true;
       const result = (await (includeAllText
@@ -1096,6 +1146,8 @@
         throw new Error("Illustrator returned an invalid replacement result.");
       }
 
+      drafts = {};
+      dirtyLanguages = {};
       replacementDialog?.close();
       if (!(await refreshText(false))) return;
 
@@ -1105,6 +1157,11 @@
         statusMessage = "No matching text frames remained to update.";
       } else {
         statusMessage = `Updated ${result.updated} text frame(s).`;
+      }
+      if (result.updated > 0 && hasTranslations) {
+        const warning = "Saved translations may need updating.";
+        if (errorMessage) errorMessage += ` ${warning}`;
+        else statusMessage += ` ${warning}`;
       }
       const overflowed = result.overflowed ?? 0;
       if (overflowed > 0) {
@@ -1252,19 +1309,9 @@
     {#if orphanMessages.length > 0}
       <p class="feedback warning" role="status">
         {orphanMessages.length} saved translation group(s) no longer match current
-        text. Reassign or review them explicitly.
+        text. Reassign them to matching text, or leave them unused.
       </p>
     {/if}
-
-    <label class="all-text-control">
-      <input
-        type="checkbox"
-        bind:checked={includeAllText}
-        onchange={() => refreshText()}
-        disabled={loading || applying || saving || !window.cep}
-      />
-      <span>Show all text</span>
-    </label>
 
     <div class="toolbar">
       <div class="search-field">
@@ -1317,59 +1364,71 @@
       <p class="feedback" role="status">{statusMessage}</p>
     {/if}
 
-    {#if filteredRows.length > 0}
-      <ul
-        class="text-list"
-        aria-label={includeAllText ? "All text" : "Repeated text"}
-      >
-        {#each filteredRows as row, index (row.signature)}
-          {@const message = messageForRow(row)}
-          <li>
-            <button
-              class="text-card"
-              type="button"
-              aria-label={`Edit text: ${row.text}`}
-              aria-describedby={`text-matches-${index}`}
-              onclick={() => openReplacement(row)}
-              disabled={applying || loading || saving}
-            >
-              <span
-                class="count-badge"
-                aria-hidden="true"
-                title={`${row.count} matches`}>{row.count}</span
+    <div class="text-results">
+      {#if filteredRows.length > 0}
+        <ul
+          class="text-list"
+          aria-label={includeAllText ? "All text" : "Repeated text"}
+        >
+          {#each filteredRows as row, index (row.signature)}
+            {@const message = messageForRow(row)}
+            <li>
+              <button
+                class="text-card"
+                type="button"
+                aria-label={`Edit text: ${row.text}`}
+                aria-describedby={`text-matches-${index}`}
+                onclick={() => openReplacement(row)}
+                disabled={applying || loading || saving}
               >
-              {#if row.inconsistent}
                 <span
-                  class="inconsistent-icon"
+                  class="count-badge"
                   aria-hidden="true"
-                  use:tooltip={{
-                    ...tooltipSettings,
-                    content: inconsistencyNote(row.count),
-                    placement: "bottom-end",
-                    delay: 0,
-                  }}>{@render warningIcon()}</span
+                  title={`${row.count} matches`}>{row.count}</span
                 >
-              {/if}
-              <span id={`text-matches-${index}`} hidden
-                >{row.count} matches{row.inconsistent
-                  ? `. ${inconsistentTitle}`
-                  : ""}</span
-              >
-              <span class="card-text"
-                >{@render styledText(row.text, false, true)}</span
-              >
-              {#if targetLanguages.length > 0}
-                <span class="translation-status">
-                  {message && message.reviewedSignature === row.signature
-                    ? `${translationCompletionCount(message)} of ${targetLanguages.length} translations`
-                    : "Needs translation review"}
-                </span>
-              {/if}
-            </button>
-          </li>
-        {/each}
-      </ul>
-    {/if}
+                {#if row.inconsistent}
+                  <span
+                    class="inconsistent-icon"
+                    aria-hidden="true"
+                    use:tooltip={{
+                      ...tooltipSettings,
+                      content: inconsistencyNote(row.count),
+                      placement: "bottom-end",
+                      delay: 0,
+                    }}>{@render warningIcon()}</span
+                  >
+                {/if}
+                <span id={`text-matches-${index}`} hidden
+                  >{row.count} matches{row.inconsistent
+                    ? `. ${inconsistentTitle}`
+                    : ""}</span
+                >
+                <span class="card-text"
+                  >{@render styledText(row.text, false, true)}</span
+                >
+                {#if targetLanguages.length > 0}
+                  <span class="translation-status">
+                    {translationCompletionCount(message)} of {targetLanguages.length}
+                    translations
+                  </span>
+                {/if}
+              </button>
+            </li>
+          {/each}
+        </ul>
+      {/if}
+      <button
+        class="refresh-button all-text-button"
+        type="button"
+        onclick={() => {
+          includeAllText = !includeAllText;
+          refreshText();
+        }}
+        disabled={loading || applying || saving || !window.cep}
+      >
+        {includeAllText ? "Show repeated text only" : "Show all text"}
+      </button>
+    </div>
   {/if}
 </section>
 
@@ -1381,149 +1440,184 @@
   onclose={handleEditClose}
 >
   {#if selectedRow}
-    <div class="mode-tabs" role="tablist" aria-label="Text editing mode">
-      <button
-        class:active={editMode === "source"}
-        role="tab"
-        aria-selected={editMode === "source"}
-        type="button"
-        onclick={() => (editMode = "source")}
-        disabled={saving}>Source text</button
-      >
-      <button
-        class:active={editMode === "translations"}
-        role="tab"
-        aria-selected={editMode === "translations"}
-        type="button"
-        disabled={saving}
-        onclick={() => {
-          if (targetLanguages.length === 0) {
-            dialogErrorMessage = "Add a target language before translating.";
-            return;
-          }
-          if (!stableIdentityAvailable) {
-            dialogErrorMessage =
-              "Translation identity is unavailable for this scan. Refresh with the current extension build.";
-            return;
-          }
-          editMode = "translations";
-          if (!targetLanguage) targetLanguage = targetLanguages[0];
-          translationText = loadTranslationDraft(targetLanguage);
-          dialogErrorMessage = "";
-        }}>Translations</button
-      >
-    </div>
-    {#if editMode === "source"}
-      <div class="label-row">
-        <p class="dialog-label">Original text</p>
-        {#if selectedRow.inconsistent}
-          <button
-            class="label-icon inconsistency-help"
-            type="button"
-            aria-label="{inconsistentTitle}. {inconsistencyNote(
-              selectedRow.count,
-            )}"
-            use:tooltip={{
-              ...tooltipSettings,
-              content: inconsistencyNote(selectedRow.count),
-              target: 'dialog[aria-labelledby="replacement-title"]',
-              placement: "bottom-end",
-              delay: 0,
-            }}
-          >
-            {@render warningIcon()}
-          </button>
-        {/if}
-      </div>
-      <p class="original-text">{@render styledText(selectedRow.text, true)}</p>
-      <div class="label-row replacement-label">
-        <label class="dialog-label" for="replacement-text">Source text</label>
-        {#if rowStyles.length > 0}
-          <button
-            class="label-icon style-help"
-            type="button"
-            aria-label="How to use styles"
-            use:tooltip={{
-              ...tooltipSettings,
-              content: `Numbered marks preserve the highlighted styles. Keep ${styleOpenTag(rowStyles[0].id)}…${styleCloseTag(rowStyles[0].id)} around text to preserve its style. Remove the marks to use the normal style, or select text and choose a style below. To type a literal tag such as \\<1>, put a backslash before the <.`,
-              target: 'dialog[aria-labelledby="replacement-title"]',
-              placement: "bottom-end",
-              delay: 0,
-            }}
-          >
-            <svg
-              width="18"
-              height="18"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="1.5"
-              aria-hidden="true"
-            >
-              <circle cx="12" cy="12" r="9" />
-              <path d="M12 11v6M12 7v2" />
-            </svg>
-          </button>
-        {/if}
-      </div>
-      <textarea
-        id="replacement-text"
-        aria-label="Source text"
-        bind:this={replacementInput}
-        bind:value={replacementText}
-        onkeydown={handleReplacementKeydown}
-        onbeforeinput={handleReplacementBeforeInput}
-        oninput={(event) =>
-          recordReplacement(
-            event instanceof InputEvent
-              ? historyGroup(event.inputType, event.data)
-              : null,
-          )}
-        rows="4"
-        disabled={applying || saving}></textarea>
-      {#if rowStyles.length > 0}
-        <div class="style-chips" role="group" aria-label="Apply style">
-          {#each rowStyles as style (style.id)}
+    <div class="edit-content">
+      <div class="editor-group">
+        <div class="label-row original-label">
+          <p class="dialog-label">Original text</p>
+          {#if isEditingSource && selectedRow.inconsistent}
             <button
-              class="style-chip"
+              class="label-icon inconsistency-help"
               type="button"
-              style:--style-hue={styleColor(style.id).hue}
-              style:--style-color={styleColor(style.id).background}
-              title={styleTitle(style.id)}
-              aria-label={`Apply ${styleTitle(style.id)}`}
-              onclick={() => wrapSelection(style.id)}
-              disabled={applying || saving}
+              aria-label="{inconsistentTitle}. {inconsistencyNote(
+                selectedRow.count,
+              )}"
+              use:tooltip={{
+                ...tooltipSettings,
+                content: inconsistencyNote(selectedRow.count),
+                target: 'dialog[aria-labelledby="replacement-title"]',
+                placement: "bottom-end",
+                delay: 0,
+              }}
             >
-              {style.id}
+              {@render warningIcon()}
             </button>
-          {/each}
+          {/if}
         </div>
-      {/if}
-      {#if replacementError}
-        <p class="feedback error" role="alert">{replacementError}</p>
-      {:else if replacementText !== selectedRow.text}
-        <p class="dialog-label">Preview</p>
-        <p class="original-text preview">
-          {@render styledText(replacementText)}
+        <p class="original-text">
+          {@render styledText(selectedRow.text, isEditingSource)}
         </p>
-      {/if}
-    {:else}
-      <p class="dialog-label">Original text</p>
-      <p class="original-text">{@render styledText(selectedRow.text)}</p>
-      {#if !messageForRow(selectedRow) || !isTranslationMessageReviewed(messageForRow(selectedRow)!, selectedRow.signature)}
-        <div class="review-warning" role="status">
-          This source has changed or needs review. Review it before exporting
-          translations.
-          <button
-            type="button"
-            class="inline-action"
-            onclick={reviewCurrentSource}
+      </div>
+      <div class="editor-group">
+        <label class="dialog-label" for="edit-language">Language</label>
+        <div class="language-select">
+          <select
+            class="translation-select language-picker"
+            id="edit-language"
+            value={editingLanguage}
+            onchange={switchEditingLanguage}
+            disabled={applying || saving}
           >
-            Review source
-          </button>
+            {#each translationStore.languages as language (language)}
+              <option value={language}>
+                {languageDisplayName(language)} ({language}){language ===
+                translationStore.sourceLanguage
+                  ? " — Source"
+                  : " — Translation"}
+              </option>
+            {/each}
+          </select>
         </div>
-      {/if}
-      {#if orphanMessages.length > 0}
+      </div>
+      <div class="editor-group">
+        <div class="label-row editor-label">
+          <label class="dialog-label" for="edit-text">New text</label>
+          {#if rowStyles.length > 0}
+            <button
+              class="label-icon style-help"
+              type="button"
+              aria-label="How to use styles"
+              use:tooltip={{
+                ...tooltipSettings,
+                content: `Numbered marks preserve the highlighted styles. Keep ${styleOpenTag(rowStyles[0].id)}…${styleCloseTag(rowStyles[0].id)} around text to preserve its style. Remove the marks to use the normal style, or select text and choose a style below. To type a literal tag such as \\<1>, put a backslash before the <.`,
+                target: 'dialog[aria-labelledby="replacement-title"]',
+                placement: "bottom-end",
+                delay: 0,
+              }}
+            >
+              <svg
+                width="18"
+                height="18"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.5"
+                aria-hidden="true"
+              >
+                <circle cx="12" cy="12" r="9" />
+                <path d="M12 11v6M12 7v2" />
+              </svg>
+            </button>
+          {/if}
+        </div>
+        {#if isEditingSource}
+          <textarea
+            id="edit-text"
+            aria-label="New text"
+            bind:this={replacementInput}
+            bind:value={replacementText}
+            onkeydown={handleReplacementKeydown}
+            onbeforeinput={handleReplacementBeforeInput}
+            oninput={(event) =>
+              recordReplacement(
+                event instanceof InputEvent
+                  ? historyGroup(event.inputType, event.data)
+                  : null,
+              )}
+            rows="4"
+            disabled={applying || saving}></textarea>
+          {#if replacementText !== selectedRow.text && rowHasTranslations(selectedRow)}
+            <div class="source-change-warning" role="status">
+              Saved translations may need updating.
+            </div>
+          {/if}
+          {#if rowStyles.length > 0}
+            <div class="style-chips" role="group" aria-label="Apply style">
+              {#each rowStyles as style (style.id)}
+                <button
+                  class="style-chip"
+                  type="button"
+                  style:--style-hue={styleColor(style.id).hue}
+                  style:--style-color={styleColor(style.id).background}
+                  title={styleTitle(style.id)}
+                  aria-label={`Apply ${styleTitle(style.id)}`}
+                  onclick={() => wrapSelection(style.id)}
+                  disabled={applying || saving}
+                >
+                  {style.id}
+                </button>
+              {/each}
+            </div>
+          {/if}
+          {#if replacementError}
+            <p class="feedback error" role="alert">{replacementError}</p>
+          {:else if replacementText !== selectedRow.text}
+            <div class="preview-section">
+              <p class="dialog-label">Preview</p>
+              <p class="original-text preview">
+                {@render styledText(replacementText)}
+              </p>
+            </div>
+          {/if}
+        {:else}
+          <textarea
+            id="edit-text"
+            aria-label="New text"
+            bind:this={translationInput}
+            bind:value={translationText}
+            oninput={() => {
+              dialogErrorMessage = "";
+              if (targetLanguage) {
+                drafts[targetLanguage] = translationText;
+                dirtyLanguages[targetLanguage] = true;
+              }
+            }}
+            rows="4"
+            disabled={applying || saving}></textarea>
+          <button
+            class="inline-action clear-translation"
+            type="button"
+            onclick={() => {
+              translationText = "";
+              drafts[targetLanguage] = "";
+              dirtyLanguages[targetLanguage] = true;
+              dialogErrorMessage = "";
+            }}
+            disabled={applying || saving || !targetLanguage}
+            >Clear translation</button
+          >
+          {#if rowStyles.length > 0}
+            <div
+              class="style-chips"
+              role="group"
+              aria-label="Apply style to translation"
+            >
+              {#each rowStyles as style (style.id)}
+                <button
+                  class="style-chip"
+                  type="button"
+                  style:--style-hue={styleColor(style.id).hue}
+                  style:--style-color={styleColor(style.id).background}
+                  title={styleTitle(style.id)}
+                  aria-label={`Apply ${styleTitle(style.id)} to translation`}
+                  onclick={() => wrapTranslationSelection(style.id)}
+                  disabled={applying || saving}>{style.id}</button
+                >
+              {/each}
+            </div>
+          {/if}
+        {/if}
+      </div>
+      {#if !isEditingSource && orphanMessages.length > 0}
         <div class="orphan-reassign">
           <label for="orphan-message">Reassign saved translations</label>
           <select id="orphan-message" bind:value={selectedOrphanId}>
@@ -1536,82 +1630,14 @@
             class="inline-action"
             type="button"
             onclick={reassignOrphan}
-            disabled={!selectedOrphanId}>Reassign; review required</button
+            disabled={!selectedOrphanId}>Reassign</button
           >
         </div>
       {/if}
-      {#if targetLanguages.length > 0}
-        <p class="feedback">
-          Translations use the original layout and may not fit their text boxes.
-        </p>
-        <label class="dialog-label" for="target-language">Target language</label
-        >
-        <select
-          class="translation-select"
-          id="target-language"
-          value={targetLanguage}
-          onchange={switchTargetLanguage}
-        >
-          {#each targetLanguages as language (language)}
-            <option value={language}
-              >{languageDisplayName(language)} ({language})</option
-            >
-          {/each}
-        </select>
-        <textarea
-          aria-label={`Translation in ${targetLanguage}`}
-          bind:this={translationInput}
-          bind:value={translationText}
-          oninput={() => {
-            dialogErrorMessage = "";
-            if (targetLanguage) {
-              drafts[targetLanguage] = translationText;
-              dirtyLanguages[targetLanguage] = true;
-            }
-          }}
-          rows="4"
-          disabled={applying || saving}></textarea>
-        <button
-          class="inline-action"
-          type="button"
-          onclick={() => {
-            translationText = "";
-            drafts[targetLanguage] = "";
-            dirtyLanguages[targetLanguage] = true;
-            dialogErrorMessage = "";
-          }}
-          disabled={applying || saving || !targetLanguage}
-          >Clear translation</button
-        >
-        {#if rowStyles.length > 0}
-          <div
-            class="style-chips"
-            role="group"
-            aria-label="Apply style to translation"
-          >
-            {#each translationRowStyles as style (style.id)}
-              <button
-                class="style-chip"
-                type="button"
-                style:--style-hue={styleColor(style.id).hue}
-                style:--style-color={styleColor(style.id).background}
-                title={styleTitle(style.id)}
-                aria-label={`Apply ${styleTitle(style.id)} to translation`}
-                onclick={() => wrapTranslationSelection(style.id)}
-                disabled={applying || saving}>{style.id}</button
-              >
-            {/each}
-          </div>
-        {/if}
-      {:else}
-        <p class="feedback">
-          Add a target language above to enter translations.
-        </p>
+      {#if dialogErrorMessage}
+        <p class="feedback error" role="alert">{dialogErrorMessage}</p>
       {/if}
-    {/if}
-    {#if dialogErrorMessage}
-      <p class="feedback error" role="alert">{dialogErrorMessage}</p>
-    {/if}
+    </div>
   {/if}
   {#snippet actions()}
     {#if selectedRow}
@@ -1623,7 +1649,7 @@
       >
         Cancel
       </button>
-      {#if editMode === "source"}
+      {#if isEditingSource}
         <button
           class="dialog-button primary"
           type="button"
@@ -1645,7 +1671,7 @@
             !targetLanguage ||
             !Object.keys(dirtyLanguages).some(
               (language) => dirtyLanguages[language],
-            )}>Save translations</button
+            )}>Save translation</button
         >
       {/if}
     {/if}
@@ -1666,7 +1692,7 @@
   {#if pendingRemoval}
     <p>
       Which language is the document written in? The source declaration does not
-      change Illustrator text, and saved translations will need review. Removing
+      change Illustrator text or update saved translations. Removing
       {pendingRemoval} permanently deletes all of its saved translations.
     </p>
     <label class="dialog-label" for="new-source-language"
@@ -1711,7 +1737,7 @@
       <p class="feedback error" role="alert">{languageError}</p>
     {/if}
   {:else}
-    <p class="feedback">
+    <p class="feedback language-guidance">
       Select one source language. Removing a target keeps its saved
       translations.
     </p>
@@ -1748,16 +1774,35 @@
         void addLanguage();
       }}
     >
-      <input
-        aria-label="Add document language"
-        placeholder="Language tag (e.g. fr-CA)"
-        bind:value={newLanguageTag}
-        disabled={translationDataInvalid || loading || applying || saving}
-      />
+      <div class="language-select">
+        <select
+          class="translation-select language-picker"
+          aria-label="Add document language"
+          bind:value={newLanguageTag}
+          disabled={translationDataInvalid || loading || applying || saving}
+        >
+          <option value="" disabled>Select a language</option>
+          {#each commonLanguages.filter(({ tag }) => !translationStore.languages.some((language) => language.toLowerCase() === tag.toLowerCase())) as language (language.tag)}
+            <option value={language.tag}>{language.name}</option>
+          {/each}
+          <option value={CUSTOM_LANGUAGE_TAG}>Other / regional language…</option
+          >
+        </select>
+      </div>
+      {#if newLanguageTag === CUSTOM_LANGUAGE_TAG}
+        <input
+          aria-label="Custom language tag"
+          placeholder="e.g. fr-CA"
+          bind:value={customLanguageTag}
+          disabled={translationDataInvalid || loading || applying || saving}
+        />
+      {/if}
       <button
         class="inline-action"
         type="submit"
-        disabled={!newLanguageTag.trim() ||
+        disabled={!newLanguageTag ||
+          (newLanguageTag === CUSTOM_LANGUAGE_TAG &&
+            !customLanguageTag.trim()) ||
           loading ||
           translationDataInvalid ||
           saving}>Add</button
@@ -1900,9 +1945,12 @@
 
   .language-add-row input,
   .translation-select {
+    box-sizing: border-box;
     flex: 1;
     min-width: 0;
-    padding: var(--space-xs);
+    width: 100%;
+    min-height: 2.5rem;
+    padding: 0 var(--space-m);
     border: 1px solid var(--color-field-border);
     border-radius: var(--space-2xs);
     background: var(--color-primary);
@@ -1920,8 +1968,43 @@
     cursor: pointer;
   }
 
+  .language-source-button {
+    color: var(--color-text);
+  }
+
+  .language-source-button,
+  .language-remove {
+    padding: 0;
+    line-height: 1.4;
+  }
+
   .language-remove {
     color: var(--color-text-secondary);
+  }
+
+  .language-select {
+    position: relative;
+    flex: 1;
+    min-width: 0;
+  }
+
+  .language-picker {
+    appearance: none;
+    padding-left: var(--space-s);
+    padding-right: calc(var(--space-m) + 1rem);
+  }
+
+  .language-select::after {
+    position: absolute;
+    top: 50%;
+    right: var(--space-m);
+    width: 0.45rem;
+    height: 0.45rem;
+    border-right: 2px solid var(--color-text-muted);
+    border-bottom: 2px solid var(--color-text-muted);
+    content: "";
+    pointer-events: none;
+    transform: translateY(-65%) rotate(45deg);
   }
 
   .inline-action {
@@ -1939,30 +2022,6 @@
     cursor: not-allowed;
   }
 
-  .mode-tabs {
-    display: flex;
-    gap: var(--space-xs);
-    margin-bottom: var(--space-m);
-    border-bottom: 1px solid var(--color-ruler);
-  }
-
-  .mode-tabs button {
-    padding: var(--space-xs) var(--space-s);
-    border: 0;
-    border-bottom: 2px solid transparent;
-    background: transparent;
-    color: var(--color-text-secondary);
-    font: inherit;
-    cursor: pointer;
-  }
-
-  .mode-tabs button.active {
-    border-bottom-color: var(--color-accent-primary);
-    color: var(--color-text);
-    font-weight: 600;
-  }
-
-  .review-warning,
   .orphan-reassign {
     display: flex;
     flex-direction: column;
@@ -1975,23 +2034,22 @@
     font-size: var(--font-size-sm);
   }
 
-  .translation-status {
-    display: block;
-    margin-top: var(--space-xs);
-    color: var(--color-text-muted);
-    font-size: var(--font-size-sm);
-  }
-
-  .all-text-control {
-    display: flex;
-    align-items: center;
-    gap: var(--space-xs);
+  .source-change-warning {
+    margin: 0;
     color: var(--color-text-secondary);
     font-size: var(--font-size-sm);
   }
 
-  .all-text-control input {
-    accent-color: var(--color-accent-primary);
+  .translation-status {
+    display: block;
+    margin-top: var(--space-xs);
+    color: var(--color-text-secondary);
+    font-size: var(--font-size-base);
+  }
+
+  .all-text-button {
+    display: block;
+    margin: var(--space-m) auto 0;
   }
 
   /* Fits the longest option, so the trigger and its menu keep one width. */
@@ -2067,6 +2125,11 @@
     font-size: var(--font-size-sm);
   }
 
+  .language-guidance {
+    color: var(--color-text-secondary);
+    font-size: var(--font-size-base);
+  }
+
   .loading {
     display: grid;
     flex: 1;
@@ -2079,14 +2142,17 @@
     color: #d82028;
   }
 
-  .text-list {
+  .text-results {
     flex: 1;
     min-height: 0;
+    overflow: auto;
+    overscroll-behavior: contain;
+  }
+
+  .text-list {
     margin: 0;
     padding: 0;
-    overflow: auto;
     list-style: none;
-    overscroll-behavior: contain;
   }
 
   .text-list li + li {
@@ -2189,16 +2255,62 @@
     font-family: "Inter", sans-serif;
   }
 
+  .edit-content {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-m);
+  }
+
+  .editor-group {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-s);
+  }
+
+  .edit-content .original-text {
+    margin: 0;
+  }
+
   .label-row {
     display: flex;
+    position: relative;
     align-items: center;
     justify-content: space-between;
     gap: var(--space-xs);
     min-height: 1.75rem;
   }
 
-  .replacement-label {
-    margin-top: var(--space-l);
+  .edit-content .label-row {
+    min-height: 0;
+    padding-right: 2rem;
+  }
+
+  .original-label .label-icon,
+  .editor-label .label-icon {
+    position: absolute;
+    top: 50%;
+    right: 0;
+    transform: translateY(-50%);
+  }
+
+  .editor-label {
+    margin-top: 0;
+  }
+
+  .edit-content #edit-text {
+    margin-top: 0;
+  }
+
+  .edit-content .style-chips {
+    margin-top: 0;
+  }
+
+  .clear-translation {
+    align-self: flex-end;
+  }
+
+  .edit-content > .orphan-reassign {
+    margin: 0;
   }
 
   .label-icon {
@@ -2289,7 +2401,12 @@
     cursor: default;
   }
 
-  .preview {
-    margin-bottom: 0;
+  .preview-section {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-xs);
+    margin-top: var(--space-xs);
+    padding-top: var(--space-m);
+    border-top: 1px solid var(--color-ruler);
   }
 </style>

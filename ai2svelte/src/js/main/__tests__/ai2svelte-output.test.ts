@@ -58,10 +58,10 @@ describe("ai2svelte generated output (visual-test)", () => {
         const disabled =
           "settings" in fixture &&
           fixture.settings.include_translations === false;
-        const stale =
+        const legacyReviewMarker =
           "translationFixture" in fixture &&
-          "stale" in fixture.translationFixture &&
-          fixture.translationFixture.stale === true;
+          "legacyReviewMarker" in fixture.translationFixture &&
+          fixture.translationFixture.legacyReviewMarker === true;
         it.skipIf(!existsSync(outputDir))(
           `${label} renders actual generated translations in SSR`,
           () => {
@@ -73,7 +73,7 @@ describe("ai2svelte generated output (visual-test)", () => {
             const filename = path.join(outputDir, svelteFile as string);
             const mode = disabled
               ? "disabled"
-              : stale
+              : legacyReviewMarker
                 ? "stale"
                 : fixture.translationFixture.sourceLanguage === "fr"
                   ? "source-language"

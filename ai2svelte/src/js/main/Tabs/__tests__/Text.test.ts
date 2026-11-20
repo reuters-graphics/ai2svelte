@@ -101,7 +101,7 @@ describe("Text tab", () => {
     expect(dialog).toHaveAttribute("open");
     expect(dialog).toHaveTextContent("Repeated label");
     const replacement = screen.getByRole("textbox", {
-      name: "Source text",
+      name: "New text",
     });
     expect(replacement).toHaveValue("Repeated label");
     await userEvent.clear(replacement);
@@ -123,6 +123,78 @@ describe("Text tab", () => {
     );
   });
 
+  it("warns when source text changes and keeps saved translations user-managed", async () => {
+    let currentText = "Label";
+    const store = {
+      schemaVersion: 1,
+      sourceLanguage: "en",
+      languages: ["en", "fr"],
+      nextMessageId: 2,
+      messages: [
+        {
+          id: "m1",
+          signature: "source",
+          sourceText: "Label",
+          reviewedSignature: "",
+          styleKeys: [],
+          translations: { fr: [{ text: "Etiquette", styleKey: null }] },
+        },
+      ],
+    };
+    evalTS.mockImplementation(
+      async (functionName: string, ...args: unknown[]) => {
+        if (functionName === "fetchDocSelectors") {
+          return {
+            groups: [
+              {
+                text: currentText,
+                count: 2,
+                signature: currentText === "Label" ? "source" : "updated",
+                styleKeys: [],
+              },
+            ],
+            styles: [],
+            identity: "/project/map.ai",
+          };
+        }
+        if (functionName === "fetchTextTranslationDocument") {
+          return { identity: "/project/map.ai", saved: true, data: store };
+        }
+        if (functionName === "getActiveDocumentIdentity") {
+          return "/project/map.ai";
+        }
+        if (functionName === "replaceDocText") {
+          currentText = args[1] as string;
+          return { updated: 2, failed: 0, firstError: "" };
+        }
+        return undefined;
+      },
+    );
+
+    render(Text);
+    expect(await screen.findByText("1 of 1 translations")).toBeInTheDocument();
+    await userEvent.click(
+      screen.getByRole("button", { name: "Edit text: Label" }),
+    );
+    const editor = screen.getByRole("textbox", { name: "New text" });
+    await userEvent.clear(editor);
+    await userEvent.type(editor, "Updated label");
+    expect(
+      screen.getByText("Saved translations may need updating."),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "Review source" }),
+    ).not.toBeInTheDocument();
+
+    await userEvent.click(
+      screen.getByRole("button", { name: "Apply to 2 frames" }),
+    );
+    expect(
+      await screen.findByText(/Saved translations may need updating\./),
+    ).toBeInTheDocument();
+    expect(await screen.findByText("0 of 1 translations")).toBeInTheDocument();
+  });
+
   it("shows singletons only when all-text scope is enabled", async () => {
     evalTS.mockImplementation(async (functionName: string) => {
       if (functionName === "fetchDocSelectors") {
@@ -142,7 +214,10 @@ describe("Text tab", () => {
 
     render(Text);
     await screen.findByText("Repeated label");
-    const showAll = screen.getByRole("checkbox", { name: "Show all text" });
+    const showAll = screen.getByRole("button", { name: "Show all text" });
+    expect(
+      screen.getByRole("list", { name: "Repeated text" }).nextElementSibling,
+    ).toBe(showAll);
     expect(screen.queryByText("One-off text")).not.toBeInTheDocument();
 
     await userEvent.click(showAll);
@@ -156,7 +231,7 @@ describe("Text tab", () => {
       }),
     );
     const replacement = screen.getByRole("textbox", {
-      name: "Source text",
+      name: "New text",
     });
     await userEvent.clear(replacement);
     await userEvent.type(replacement, "Updated one-off");
@@ -171,6 +246,36 @@ describe("Text tab", () => {
         true,
       ),
     );
+    await userEvent.click(
+      await screen.findByRole("button", { name: "Show repeated text only" }),
+    );
+    expect(
+      await screen.findByRole("list", { name: "Repeated text" }),
+    ).toBeInTheDocument();
+    expect(screen.queryByText("One-off text")).not.toBeInTheDocument();
+  });
+
+  it("can show all text when there are no repeated text cards", async () => {
+    evalTS.mockImplementation(async (functionName: string) => {
+      if (functionName === "fetchDocSelectors") {
+        return {
+          groups: [{ text: "One-off text", count: 1 }],
+          styles: [],
+        };
+      }
+      return undefined;
+    });
+
+    render(Text);
+    expect(
+      await screen.findByText(
+        "No matching text found across multiple artboards.",
+      ),
+    ).toBeInTheDocument();
+    await userEvent.click(
+      screen.getByRole("button", { name: "Show all text" }),
+    );
+    expect(await screen.findByText("One-off text")).toBeInTheDocument();
   });
 
   it("closes the dialog without changing text when cancelled", async () => {
@@ -320,7 +425,7 @@ describe("Text tab", () => {
       }),
     );
     const replacement = screen.getByRole("textbox", {
-      name: "Source text",
+      name: "New text",
     });
     await userEvent.type(replacement, " that is much longer");
     await userEvent.click(
@@ -419,7 +524,7 @@ describe("Text tab", () => {
       dialog.dispatchEvent(new Event("cancel", { cancelable: true })),
     ).toBe(true);
     await userEvent.type(
-      screen.getByRole("textbox", { name: "Source text" }),
+      screen.getByRole("textbox", { name: "New text" }),
       " updated",
     );
     await userEvent.click(
@@ -464,14 +569,14 @@ describe("Text tab", () => {
 
     await userEvent.click(trigger);
     const replacement = screen.getByRole("textbox", {
-      name: "Source text",
+      name: "New text",
     }) as HTMLTextAreaElement;
     expect(replacement).toHaveValue(styled);
     const styleHelp = screen.getByRole("button", { name: "How to use styles" });
-    expect(styleHelp.previousElementSibling).toHaveTextContent("Source text");
+    expect(styleHelp.previousElementSibling).toHaveTextContent("New text");
     expect(styleHelp.previousElementSibling).toHaveAttribute(
       "for",
-      "replacement-text",
+      "edit-text",
     );
     expect(screen.queryByRole("tooltip")).not.toBeInTheDocument();
     await userEvent.hover(styleHelp);
@@ -586,7 +691,7 @@ describe("Text tab", () => {
       }),
     );
     const replacement = screen.getByRole("textbox", {
-      name: "Source text",
+      name: "New text",
     }) as HTMLTextAreaElement;
     await userEvent.type(replacement, " due now", {
       initialSelectionStart: 5,
@@ -630,7 +735,7 @@ describe("Text tab", () => {
       }),
     );
     const replacement = screen.getByRole("textbox", {
-      name: "Source text",
+      name: "New text",
     });
     const apply = screen.getByRole("button", { name: "Apply to 2 frames" });
 
@@ -781,7 +886,7 @@ describe("Text tab", () => {
       screen.getByText(/^Total:/, { selector: ".original-text" }),
     );
     const replacement = screen.getByRole("textbox", {
-      name: "Source text",
+      name: "New text",
     });
     await userEvent.type(replacement, "!");
     const preview = dialog.querySelector(".preview .styled");
@@ -830,8 +935,13 @@ describe("Text tab", () => {
     render(Text);
     await screen.findByRole("button", { name: "Edit text: Label" });
     await userEvent.click(screen.getByRole("button", { name: "Manage" }));
+    const languagePicker = screen.getByRole("combobox", {
+      name: "Add document language",
+    });
+    expect(screen.getByRole("option", { name: "French" })).toBeInTheDocument();
+    await userEvent.selectOptions(languagePicker, "__custom__");
     await userEvent.type(
-      screen.getByRole("textbox", { name: "Add document language" }),
+      screen.getByRole("textbox", { name: "Custom language tag" }),
       "fr-ca",
     );
     await userEvent.click(screen.getByRole("button", { name: "Add" }));
@@ -854,6 +964,7 @@ describe("Text tab", () => {
   });
 
   it("retains target drafts and saves structured translations without changing source text", async () => {
+    const confirm = vi.spyOn(window, "confirm").mockReturnValue(true);
     const store = {
       schemaVersion: 1,
       sourceLanguage: "en",
@@ -890,24 +1001,44 @@ describe("Text tab", () => {
     await userEvent.click(
       await screen.findByRole("button", { name: "Edit text: Label" }),
     );
-    await userEvent.click(screen.getByRole("tab", { name: "Translations" }));
-
-    const target = screen.getByLabelText("Target language");
-    await userEvent.type(
-      screen.getByRole("textbox", { name: "Translation in fr" }),
+    const target = screen.getByLabelText("Language");
+    expect(target).toHaveValue("en");
+    expect(screen.queryByRole("tablist")).not.toBeInTheDocument();
+    expect(
+      screen.queryByText(/Translations use the original layout/),
+    ).not.toBeInTheDocument();
+    const sourceEditor = screen.getByRole("textbox", { name: "New text" });
+    expect(sourceEditor).toHaveValue("Label");
+    await userEvent.type(sourceEditor, " updated");
+    await userEvent.selectOptions(target, "fr");
+    const editor = screen.getByRole("textbox", { name: "New text" });
+    expect(editor).toHaveValue("");
+    await userEvent.type(editor, "Salut");
+    await userEvent.selectOptions(target, "en");
+    expect(screen.getByRole("textbox", { name: "New text" })).toHaveValue(
+      "Label updated",
+    );
+    expect(
+      screen.getByRole("button", { name: "Apply to 2 frames" }),
+    ).toBeEnabled();
+    await userEvent.selectOptions(target, "fr");
+    expect(screen.getByRole("textbox", { name: "New text" })).toHaveValue(
       "Salut",
     );
     await userEvent.selectOptions(target, "de");
     await userEvent.type(
-      screen.getByRole("textbox", { name: "Translation in de" }),
+      screen.getByRole("textbox", { name: "New text" }),
       "Hallo",
     );
     await userEvent.selectOptions(target, "fr");
-    expect(
-      screen.getByRole("textbox", { name: "Translation in fr" }),
-    ).toHaveValue("Salut");
+    expect(screen.getByRole("textbox", { name: "New text" })).toHaveValue(
+      "Salut",
+    );
     await userEvent.click(
-      screen.getByRole("button", { name: "Save translations" }),
+      screen.getByRole("button", { name: "Save translation" }),
+    );
+    expect(confirm).toHaveBeenCalledWith(
+      "Saving this translation will discard the unsaved source text change. Continue?",
     );
 
     await waitFor(() => {
@@ -980,11 +1111,11 @@ describe("Text tab", () => {
     await userEvent.click(
       await screen.findByRole("button", { name: "Edit text: Label" }),
     );
-    await userEvent.click(screen.getByRole("tab", { name: "Translations" }));
-    const editor = screen.getByRole("textbox", { name: "Translation in fr" });
+    await userEvent.selectOptions(screen.getByLabelText("Language"), "fr");
+    const editor = screen.getByRole("textbox", { name: "New text" });
     await userEvent.type(editor, "Bonjour");
     await userEvent.click(
-      screen.getByRole("button", { name: "Save translations" }),
+      screen.getByRole("button", { name: "Save translation" }),
     );
 
     expect(
@@ -1003,7 +1134,7 @@ describe("Text tab", () => {
       expect.anything(),
     );
     await userEvent.click(
-      screen.getByRole("button", { name: "Save translations" }),
+      screen.getByRole("button", { name: "Save translation" }),
     );
     await waitFor(() => {
       expect(saveCount).toBe(2);
@@ -1014,7 +1145,7 @@ describe("Text tab", () => {
     consoleError.mockRestore();
   });
 
-  it("round-trips literal style-like text and limits translation styles to the source", async () => {
+  it("round-trips literal style-like text and applies document styles to translations", async () => {
     const literal = "literal <1> and \\<1> and \\\\ path";
     const store = {
       schemaVersion: 1,
@@ -1026,7 +1157,7 @@ describe("Text tab", () => {
           id: "m1",
           signature: "source",
           sourceText: "Label",
-          reviewedSignature: "source",
+          reviewedSignature: "",
           styleKeys: ["bold"],
           translations: {
             fr: [{ text: literal, styleKey: null }],
@@ -1035,6 +1166,7 @@ describe("Text tab", () => {
       ],
     };
     let savedStore: unknown;
+    let saveCount = 0;
     evalTS.mockImplementation(
       async (functionName: string, ...args: unknown[]) => {
         if (functionName === "fetchDocSelectors") {
@@ -1061,6 +1193,7 @@ describe("Text tab", () => {
           return "/project/map.ai";
         }
         if (functionName === "saveTextTranslations") {
+          saveCount++;
           savedStore = args[1];
           return { ok: true, identity: "/project/map.ai" };
         }
@@ -1069,46 +1202,58 @@ describe("Text tab", () => {
     );
 
     render(Text);
+    expect(await screen.findByText("1 of 1 translations")).toBeInTheDocument();
     await userEvent.click(
       await screen.findByRole("button", { name: "Edit text: Label" }),
     );
-    await userEvent.click(screen.getByRole("tab", { name: "Translations" }));
+    await userEvent.selectOptions(screen.getByLabelText("Language"), "fr");
     const editor = screen.getByRole("textbox", {
-      name: "Translation in fr",
+      name: "New text",
     }) as HTMLTextAreaElement;
     expect(editor.value).toContain("\\<1>");
     expect(
-      screen.queryByRole("button", {
+      screen.getByRole("button", {
         name: /Apply Style 2.*to translation/,
       }),
-    ).not.toBeInTheDocument();
+    ).toBeInTheDocument();
 
     await userEvent.type(editor, "!");
     await userEvent.keyboard("{Backspace}");
     await userEvent.click(
-      screen.getByRole("button", { name: "Save translations" }),
+      screen.getByRole("button", { name: "Save translation" }),
     );
     await waitFor(() => expect(savedStore).toBeDefined());
-    expect((savedStore as typeof store).messages[0].translations.fr).toEqual([
+    const savedMessage = (savedStore as typeof store).messages[0];
+    expect(savedMessage.translations.fr).toEqual([
       { text: literal, styleKey: null },
     ]);
+    expect(savedMessage).not.toHaveProperty("reviewedSignature");
 
     await userEvent.click(
       await screen.findByRole("button", { name: "Edit text: Label" }),
     );
-    await userEvent.click(screen.getByRole("tab", { name: "Translations" }));
+    await userEvent.selectOptions(screen.getByLabelText("Language"), "fr");
     const invalidEditor = screen.getByRole("textbox", {
-      name: "Translation in fr",
-    });
+      name: "New text",
+    }) as HTMLTextAreaElement;
     await userEvent.clear(invalidEditor);
-    await userEvent.type(invalidEditor, "<2>not source-styled</2>");
+    await userEvent.type(invalidEditor, "not source-styled");
+    invalidEditor.setSelectionRange(0, invalidEditor.value.length);
     await userEvent.click(
-      screen.getByRole("button", { name: "Save translations" }),
+      screen.getByRole("button", {
+        name: /Apply Style 2.*to translation/,
+      }),
     );
-    expect(await screen.findByRole("alert")).toHaveTextContent(
-      "not used by this source text",
+    expect(invalidEditor).toHaveValue("<2>not source-styled</2>");
+    await userEvent.click(
+      screen.getByRole("button", { name: "Save translation" }),
     );
-    expect(invalidEditor).toHaveFocus();
+    await waitFor(() => expect(saveCount).toBe(2));
+    const savedMessageAfterStyling = (savedStore as typeof store).messages[0];
+    expect(savedMessageAfterStyling.translations.fr).toEqual([
+      { text: "not source-styled", styleKey: "other" },
+    ]);
+    expect(savedMessageAfterStyling.styleKeys).toContain("other");
   });
 
   it("does not call hidden singletons orphaned in repeated-only scope", async () => {
@@ -1122,7 +1267,6 @@ describe("Text tab", () => {
           id: "m1",
           signature: "singleton",
           sourceText: "Only here",
-          reviewedSignature: "singleton",
           styleKeys: [],
           translations: { fr: [{ text: "Ici", styleKey: null }] },
         },
@@ -1176,7 +1320,7 @@ describe("Text tab", () => {
       screen.queryByText(/saved translation group\(s\) no longer match/),
     ).not.toBeInTheDocument();
     await userEvent.click(
-      screen.getByRole("checkbox", { name: "Show all text" }),
+      screen.getByRole("button", { name: "Show all text" }),
     );
     await screen.findByText("Only here");
     expect(
@@ -1195,7 +1339,6 @@ describe("Text tab", () => {
           id: "m1",
           signature: "current",
           sourceText: "Label",
-          reviewedSignature: "current",
           styleKeys: [],
           translations: { fr: [{ text: "Current", styleKey: null }] },
         },
@@ -1203,7 +1346,6 @@ describe("Text tab", () => {
           id: "m2",
           signature: "orphan",
           sourceText: "Old label",
-          reviewedSignature: "orphan",
           styleKeys: [],
           translations: { fr: [{ text: "Old translation", styleKey: null }] },
         },
@@ -1235,19 +1377,17 @@ describe("Text tab", () => {
 
     render(Text);
     await userEvent.click(
-      await screen.findByRole("checkbox", { name: "Show all text" }),
+      await screen.findByRole("button", { name: "Show all text" }),
     );
     await userEvent.click(
       await screen.findByRole("button", { name: "Edit text: Label" }),
     );
-    await userEvent.click(screen.getByRole("tab", { name: "Translations" }));
+    await userEvent.selectOptions(screen.getByLabelText("Language"), "fr");
     await userEvent.selectOptions(
       screen.getByLabelText("Reassign saved translations"),
       "m2",
     );
-    await userEvent.click(
-      screen.getByRole("button", { name: "Reassign; review required" }),
-    );
+    await userEvent.click(screen.getByRole("button", { name: "Reassign" }));
     expect(await screen.findByRole("alert")).toHaveTextContent(
       "already has a different fr translation",
     );
@@ -1314,8 +1454,8 @@ describe("Text tab", () => {
     ).not.toBeInTheDocument();
 
     await userEvent.click(screen.getByRole("button", { name: "Manage" }));
-    await userEvent.type(
-      screen.getByRole("textbox", { name: "Add document language" }),
+    await userEvent.selectOptions(
+      screen.getByRole("combobox", { name: "Add document language" }),
       "fr",
     );
     await userEvent.click(screen.getByRole("button", { name: "Add" }));
@@ -1350,7 +1490,6 @@ describe("Text tab", () => {
           id: "m1",
           signature: "source",
           sourceText: "Label",
-          reviewedSignature: "source",
           styleKeys: [],
           translations: { fr: seg("Etiquette"), de: seg("Beschriftung") },
         },
@@ -1358,7 +1497,6 @@ describe("Text tab", () => {
           id: "m2",
           signature: "gone",
           sourceText: "Unmatched",
-          reviewedSignature: "",
           styleKeys: [],
           translations: { fr: seg("Orphelin"), de: seg("Waise") },
         },
@@ -1438,11 +1576,10 @@ describe("Text tab", () => {
         signature: "gone",
         sourceText: "Unmatched",
       });
-      expect(db.saved.messages[0].reviewedSignature).toBe("source");
       expect(db.saved.messages[0].translations.de).toEqual(seg("Beschriftung"));
 
-      await userEvent.type(
-        screen.getByRole("textbox", { name: "Add document language" }),
+      await userEvent.selectOptions(
+        screen.getByRole("combobox", { name: "Add document language" }),
         "fr",
       );
       await userEvent.click(screen.getByRole("button", { name: "Add" }));
@@ -1463,7 +1600,7 @@ describe("Text tab", () => {
       expect(db.saved.languages).toEqual(["en", "fr", "de"]);
     });
 
-    it("deletes the removed source language data atomically and invalidates review", async () => {
+    it("deletes the removed source language data atomically", async () => {
       const db = setup();
       db.saved.messages[0].translations.en = seg("Label");
       await openManage();
@@ -1479,7 +1616,6 @@ describe("Text tab", () => {
       expect(db.saved.languages).toEqual(["fr", "de"]);
       for (const message of db.saved.messages) {
         expect(message.translations.en).toBeUndefined();
-        expect(message.reviewedSignature).toBe("");
       }
       expect(db.saved.messages[0].translations.de).toEqual(seg("Beschriftung"));
     });

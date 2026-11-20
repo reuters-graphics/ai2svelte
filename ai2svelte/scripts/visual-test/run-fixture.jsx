@@ -101,12 +101,15 @@
             id: "m1",
             signature: source.signature,
             sourceText: source.text,
-            reviewedSignature: testCase.stale ? "stale-source" : source.signature,
             styleKeys: source.styleKeys,
             translations: translations,
           },
         ],
       };
+      if (testCase.legacyReviewMarker) {
+        settingsArg.textTranslations.messages[0].reviewedSignature =
+          "stale-source";
+      }
     }
     host[ns].runAi2Svelte(settingsArg);
   } finally {

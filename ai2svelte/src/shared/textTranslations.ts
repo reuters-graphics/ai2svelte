@@ -19,7 +19,6 @@ export interface TranslationMessage {
   id: string;
   signature: string;
   sourceText: string;
-  reviewedSignature: string;
   styleKeys: string[];
   translations: Record<string, TranslationSegment[]>;
 }
@@ -87,7 +86,6 @@ function isTranslationMessage(value: unknown): value is TranslationMessage {
     !/^m[1-9]\d*$/.test(value.id) ||
     typeof value.signature !== "string" ||
     typeof value.sourceText !== "string" ||
-    typeof value.reviewedSignature !== "string" ||
     !isStringArray(value.styleKeys)
   ) {
     return false;
@@ -223,6 +221,11 @@ export function canonicalizeTextTranslationStore(
   }
 
   for (let i = 0; i < result.messages.length; i++) {
+    delete (
+      result.messages[i] as TranslationMessage & {
+        reviewedSignature?: string;
+      }
+    ).reviewedSignature;
     const translations: Record<string, TranslationSegment[]> = {};
     for (const language in result.messages[i].translations) {
       if (
@@ -280,20 +283,12 @@ export function allocateTranslationMessage(
     id: `m${store.nextMessageId}`,
     signature,
     sourceText,
-    reviewedSignature: signature,
     styleKeys: styleKeys.slice(0),
     translations: {},
   };
   store.nextMessageId++;
   store.messages.push(message);
   return message;
-}
-
-export function isTranslationMessageReviewed(
-  message: TranslationMessage,
-  signature: string,
-): boolean {
-  return message.reviewedSignature === signature;
 }
 
 export function resolveTranslationLanguage(

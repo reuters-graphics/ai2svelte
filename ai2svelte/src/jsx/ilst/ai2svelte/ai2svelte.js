@@ -468,7 +468,6 @@ export function main(settingsArg) {
         !message.signature ||
         signatures["$" + message.signature] ||
         typeof message.sourceText != "string" ||
-        typeof message.reviewedSignature != "string" ||
         !message.styleKeys ||
         !message.translations ||
         Object.prototype.toString.call(message.translations) !=
@@ -588,17 +587,29 @@ export function main(settingsArg) {
   function warnSkippedArtboardTranslations(ab, masks, settings, reason) {
     if (!textTranslationsEnabled) return;
     var frames = getTextFramesByArtboard(ab, masks, settings);
+    var availableStyleKeys = getTranslationStyleKeysForFrames(frames);
     for (var i = 0; i < frames.length; i++) {
-      var message = translationMessageForFrame(frames[i]);
+      var message = translationMessageForFrame(frames[i], availableStyleKeys);
       if (message) {
         warnOnce(reason, "skipped-translation-" + message.id);
       }
     }
   }
 
-  function translationMessageForFrame(frame) {
+  function getTranslationStyleKeysForFrames(frames) {
+    var styleKeys = { $__base__: true };
+    for (var i = 0; i < frames.length; i++) {
+      var styleRuns = getTextFrameStyleRuns(frames[i]);
+      for (var styleIndex = 0; styleIndex < styleRuns.length; styleIndex++) {
+        styleKeys["$" + (styleRuns[styleIndex].styleKey || "__base__")] = true;
+      }
+    }
+    return styleKeys;
+  }
+
+  function translationMessageForFrame(frame, availableStyleKeys) {
     if (!textTranslationsEnabled) return null;
-    var frameSignature, groupSignature, messages, message, frameStyleKeys;
+    var frameSignature, groupSignature, messages, message;
     try {
       frameSignature = getTextFrameSemanticSignature(frame);
     } catch (e) {
@@ -607,18 +618,11 @@ export function main(settingsArg) {
 
     groupSignature = frameGroupSignatures[frameSignature];
     if (!groupSignature) return null;
-    frameStyleKeys = { __base__: true };
-    var styleRuns = getTextFrameStyleRuns(frame);
-    for (var styleIndex = 0; styleIndex < styleRuns.length; styleIndex++) {
-      frameStyleKeys["$" + (styleRuns[styleIndex].styleKey || "__base__")] =
-        true;
-    }
     messages = textTranslationStore.messages || [];
     for (var i = 0; i < messages.length; i++) {
       message = messages[i];
       if (
         message.signature === groupSignature &&
-        message.reviewedSignature === groupSignature &&
         hasSavedTranslations(message)
       ) {
         for (var targetLanguage in message.translations) {
@@ -640,7 +644,7 @@ export function main(settingsArg) {
             var translatedStyle = translatedSegments[segmentIndex].styleKey;
             if (
               translatedStyle !== null &&
-              !frameStyleKeys["$" + translatedStyle]
+              !availableStyleKeys["$" + translatedStyle]
             ) {
               warnOnce(
                 "A saved translation uses an inline style that is unavailable on one or more source frames; those frames keep the source text.",
@@ -2630,8 +2634,10 @@ export function main(settingsArg) {
       }
       return data;
     });
+    var availableStyleKeys = getTranslationStyleKeysForFrames(textFrames);
     var pgStyles = [];
     var charStyles = [];
+    var translationStyleMapsForArtboard = [];
     var baseStyle = deriveTextStyleCss(frameData);
     var idPrefix = nameSpace + "ai" + findArtboardIndex(ab) + "-";
     var abBox = convertAiBounds(ab.artboardRect);
@@ -2647,8 +2653,12 @@ export function main(settingsArg) {
       //   var isTagged = false;
 
       var html = "";
-      var translationMessage = translationMessageForFrame(frame);
+      var translationMessage = translationMessageForFrame(
+        frame,
+        availableStyleKeys,
+      );
       var translationStyleMap = {};
+      translationStyleMapsForArtboard.push(translationStyleMap);
       var sourceHtml = "";
 
       if (isTagged && objName && isTrue(settings.override_text)) {
@@ -2707,6 +2717,38 @@ export function main(settingsArg) {
         z: frame.layer.zOrderPosition,
       };
     });
+
+    for (
+      var translationMapIndex = 0;
+      translationMapIndex < translationStyleMapsForArtboard.length;
+      translationMapIndex++
+    ) {
+      var translationTargetMap =
+        translationStyleMapsForArtboard[translationMapIndex];
+      for (
+        var sourceMapIndex = 0;
+        sourceMapIndex < translationStyleMapsForArtboard.length;
+        sourceMapIndex++
+      ) {
+        var translationSourceMap =
+          translationStyleMapsForArtboard[sourceMapIndex];
+        for (var translationStyleKey in translationSourceMap) {
+          if (
+            Object.prototype.hasOwnProperty.call(
+              translationSourceMap,
+              translationStyleKey,
+            ) &&
+            !Object.prototype.hasOwnProperty.call(
+              translationTargetMap,
+              translationStyleKey,
+            )
+          ) {
+            translationTargetMap[translationStyleKey] =
+              translationSourceMap[translationStyleKey];
+          }
+        }
+      }
+    }
 
     var allStyles = pgStyles.concat(charStyles);
     var cssBlocks = map(allStyles, function (obj) {
@@ -6064,7 +6106,6 @@ export function main(settingsArg) {
 
   function warnSkippedTranslationSummary() {
     if (!textTranslationsEnabled) return;
-    var stale = 0;
     var unmatched = 0;
     var notEmitted = 0;
     var messages = textTranslationStore.messages || [];
@@ -6086,15 +6127,12 @@ export function main(settingsArg) {
       }
       if (!found) {
         unmatched++;
-      } else if (message.reviewedSignature !== message.signature) {
-        stale++;
       } else if (!usedTranslationMessages[message.id]) {
         notEmitted++;
       }
     }
-    if (stale || unmatched || notEmitted) {
+    if (unmatched || notEmitted) {
       var reasons = [];
-      if (stale) reasons.push(stale + " changed or unreviewed");
       if (unmatched) reasons.push(unmatched + " unmatched or rotated");
       if (notEmitted) {
         reasons.push(
@@ -6105,7 +6143,7 @@ export function main(settingsArg) {
       warnOnce(
         "Some saved translations were not included: " +
           reasons.join(", ") +
-          ". Review them in the Text tab and check the output-layer type.",
+          ". Check that source text still matches and inspect the output-layer type.",
         "translation-groups-skipped",
       );
     }

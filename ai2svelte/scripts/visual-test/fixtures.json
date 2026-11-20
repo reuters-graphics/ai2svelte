@@ -112,7 +112,7 @@
       "sourceText": "Layers fixture",
       "inlineStyleText": "fixture",
       "languages": ["fr", "ar", "de"],
-      "stale": true,
+      "legacyReviewMarker": true,
       "translations": {
         "fr": [
           { "text": "Carte ", "styleKey": null },

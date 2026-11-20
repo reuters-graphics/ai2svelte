@@ -7,10 +7,10 @@ for (const fixture of fixtures) {
     const outputDir = `scripts/visual-test/.output/${fixture.name}`;
     const disabled =
       "settings" in fixture && fixture.settings.include_translations === false;
-    const stale =
+    const legacyReviewMarker =
       "translationFixture" in fixture &&
-      "stale" in fixture.translationFixture &&
-      fixture.translationFixture.stale === true;
+      "legacyReviewMarker" in fixture.translationFixture &&
+      fixture.translationFixture.legacyReviewMarker === true;
     const sourceLanguage =
       "translationFixture" in fixture
         ? fixture.translationFixture.sourceLanguage
@@ -31,10 +31,9 @@ for (const fixture of fixtures) {
       const content = page.locator("#frameContent");
       await expect(content).toContainText("Layers fixture");
 
-      if (stale) {
+      if (legacyReviewMarker) {
         await page.getByRole("button", { name: "French", exact: true }).click();
-        await expect(content).toContainText("Layers fixture");
-        await expect(content.locator('p[lang="fr"]')).toHaveCount(0);
+        await expect(content).toContainText("Carte");
         return;
       }
 
@@ -69,9 +68,7 @@ for (const fixture of fixtures) {
       await expect(content.locator('p[lang="fr"]').first()).toContainText(
         "Carte </script> &",
       );
-      await page
-        .getByRole("button", { name: "Malformed French tag" })
-        .click();
+      await page.getByRole("button", { name: "Malformed French tag" }).click();
       await expect(content.locator('p[lang="fr"]')).toHaveCount(0);
       await expect(content).toContainText("Layers fixture");
       await page.getByRole("button", { name: "French", exact: true }).click();

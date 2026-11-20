@@ -376,7 +376,6 @@ try {
         id: "m1",
         signature: persistenceGroup.signature,
         sourceText: persistenceGroup.text,
-        reviewedSignature: persistenceGroup.signature,
         styleKeys: persistenceGroup.styleKeys,
         translations: { fr: [{ text: "Première", styleKey: null }] },
       }],
