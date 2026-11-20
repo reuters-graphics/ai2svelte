@@ -4,6 +4,12 @@ import userEvent from "@testing-library/user-event";
 import { tick } from "svelte";
 import { evalTS } from "../../../__mocks__/bolt";
 import Text from "../Text.svelte";
+import {
+  canonicalizeTextTranslationStore,
+  parseTextTranslationStore,
+  type TextTranslationStore,
+} from "../../../../shared/textTranslations";
+import { canonicalizeLanguageTag } from "../../utils/languages";
 
 const nativeDialogMethods = {
   showModal: Object.getOwnPropertyDescriptor(
@@ -1330,5 +1336,171 @@ describe("Text tab", () => {
       "Could not load Illustrator text: No active document",
     );
     consoleError.mockRestore();
+  });
+
+  describe("language removal deletes saved translations", () => {
+    const seg = (text: string) => [{ text, styleKey: null }];
+    const makeStore = (): TextTranslationStore => ({
+      schemaVersion: 1,
+      sourceLanguage: "en",
+      languages: ["en", "fr", "de"],
+      nextMessageId: 3,
+      messages: [
+        {
+          id: "m1",
+          signature: "source",
+          sourceText: "Label",
+          reviewedSignature: "source",
+          styleKeys: [],
+          translations: { fr: seg("Etiquette"), de: seg("Beschriftung") },
+        },
+        {
+          id: "m2",
+          signature: "gone",
+          sourceText: "Unmatched",
+          reviewedSignature: "",
+          styleKeys: [],
+          translations: { fr: seg("Orphelin"), de: seg("Waise") },
+        },
+      ],
+    });
+
+    function setup(failSaves = { count: 0 }) {
+      let saved: TextTranslationStore = makeStore();
+      const attempts: unknown[] = [];
+      evalTS.mockImplementation(
+        async (functionName: string, ...params: unknown[]) => {
+          if (functionName === "fetchDocSelectors") {
+            return {
+              groups: [
+                { text: "Label", count: 2, signature: "source", styleKeys: [] },
+              ],
+              styles: [],
+              identity: "/project/map.ai",
+            };
+          }
+          if (functionName === "fetchTextTranslationDocument") {
+            return { identity: "/project/map.ai", saved: true, data: saved };
+          }
+          if (functionName === "getActiveDocumentIdentity") {
+            return "/project/map.ai";
+          }
+          if (functionName === "saveTextTranslations") {
+            attempts.push(params[1]);
+            if (failSaves.count > 0) {
+              failSaves.count--;
+              return { ok: false, reason: "Disk full" };
+            }
+            try {
+              saved = canonicalizeTextTranslationStore(
+                parseTextTranslationStore(params[1]),
+                canonicalizeLanguageTag,
+              );
+              parseTextTranslationStore(saved);
+            } catch (error) {
+              return { ok: false, reason: (error as Error).message };
+            }
+            return { ok: true, identity: "/project/map.ai" };
+          }
+          return undefined;
+        },
+      );
+      return {
+        get saved() {
+          return saved;
+        },
+        attempts,
+      };
+    }
+
+    async function openManage() {
+      render(Text);
+      await screen.findByRole("button", { name: "Edit text: Label" });
+      await userEvent.click(screen.getByRole("button", { name: "Manage" }));
+    }
+
+    it("removes a target from every message, keeps others, and re-add starts empty", async () => {
+      vi.spyOn(window, "confirm").mockReturnValue(true);
+      const db = setup();
+      await openManage();
+      await userEvent.click(screen.getByRole("button", { name: "Remove fr" }));
+      await waitFor(() => {
+        expect(db.saved.languages).toEqual(["en", "de"]);
+      });
+      expect(window.confirm).toHaveBeenCalledWith(
+        expect.stringMatching(/permanently deleted/),
+      );
+      expect(db.saved.messages.map((m) => Object.keys(m.translations))).toEqual(
+        [["de"], ["de"]],
+      );
+      expect(db.saved.messages[1]).toMatchObject({
+        id: "m2",
+        signature: "gone",
+        sourceText: "Unmatched",
+      });
+      expect(db.saved.messages[0].reviewedSignature).toBe("source");
+      expect(db.saved.messages[0].translations.de).toEqual(seg("Beschriftung"));
+
+      await userEvent.type(
+        screen.getByRole("textbox", { name: "Add document language" }),
+        "fr",
+      );
+      await userEvent.click(screen.getByRole("button", { name: "Add" }));
+      await waitFor(() => {
+        expect(db.saved.languages).toEqual(["en", "de", "fr"]);
+      });
+      for (const message of db.saved.messages) {
+        expect(message.translations.fr).toBeUndefined();
+      }
+    });
+
+    it("does nothing when the removal confirmation is declined", async () => {
+      vi.spyOn(window, "confirm").mockReturnValue(false);
+      const db = setup();
+      await openManage();
+      await userEvent.click(screen.getByRole("button", { name: "Remove fr" }));
+      expect(db.attempts).toHaveLength(0);
+      expect(db.saved.languages).toEqual(["en", "fr", "de"]);
+    });
+
+    it("deletes the removed source language data atomically and invalidates review", async () => {
+      const db = setup();
+      db.saved.messages[0].translations.en = seg("Label");
+      await openManage();
+      await userEvent.click(screen.getByRole("button", { name: "Remove en" }));
+      await userEvent.selectOptions(
+        screen.getByLabelText("Document language"),
+        "fr",
+      );
+      await userEvent.click(screen.getByRole("button", { name: "Remove en" }));
+      await waitFor(() => {
+        expect(db.saved.sourceLanguage).toBe("fr");
+      });
+      expect(db.saved.languages).toEqual(["fr", "de"]);
+      for (const message of db.saved.messages) {
+        expect(message.translations.en).toBeUndefined();
+        expect(message.reviewedSignature).toBe("");
+      }
+      expect(db.saved.messages[0].translations.de).toEqual(seg("Beschriftung"));
+    });
+
+    it("keeps the store and offers retry after a failed removal save", async () => {
+      vi.spyOn(window, "confirm").mockReturnValue(true);
+      const db = setup({ count: 1 });
+      await openManage();
+      await userEvent.click(screen.getByRole("button", { name: "Remove fr" }));
+      expect(await screen.findAllByText(/Disk full/)).not.toHaveLength(0);
+      expect(db.saved.languages).toEqual(["en", "fr", "de"]);
+      expect(db.saved.messages[1].translations.fr).toEqual(seg("Orphelin"));
+      expect(
+        screen.getByRole("button", { name: "Remove fr" }),
+      ).toBeInTheDocument();
+
+      await userEvent.click(screen.getByRole("button", { name: "Remove fr" }));
+      await waitFor(() => {
+        expect(db.saved.languages).toEqual(["en", "de"]);
+      });
+      expect(db.saved.messages[1].translations.fr).toBeUndefined();
+    });
   });
 });

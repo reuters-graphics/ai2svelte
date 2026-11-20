@@ -625,6 +625,13 @@
   function beginRemoveLanguage(tag: string) {
     if (translationDataInvalid || saving) return;
     if (tag !== translationStore.sourceLanguage) {
+      if (
+        !window.confirm(
+          `Remove ${tag}? All saved ${tag} translations will be permanently deleted from this document. Illustrator text will not be changed.`,
+        )
+      ) {
+        return;
+      }
       void removeLanguage(tag);
       return;
     }
@@ -637,10 +644,29 @@
     if (!languageDialog?.open) languageDialog?.showModal();
   }
 
+  function deleteLanguageData(store: TextTranslationStore, tag: string) {
+    store.languages = store.languages.filter((language) => language !== tag);
+    for (let i = 0; i < store.messages.length; i++) {
+      delete store.messages[i].translations[tag];
+    }
+  }
+
+  function clearLanguageEditorState(tag: string) {
+    delete drafts[tag];
+    delete dirtyLanguages[tag];
+    if (targetLanguage !== tag && targetLanguages.includes(targetLanguage)) {
+      return;
+    }
+    targetLanguage = targetLanguages[0] || "";
+    translationText = targetLanguage
+      ? loadTranslationDraft(targetLanguage)
+      : "";
+  }
+
   async function removeLanguage(tag: string, nextSource?: string) {
     if (saving || translationDataInvalid) return;
     const next = cloneTextTranslationStore(translationStore);
-    next.languages = next.languages.filter((language) => language !== tag);
+    deleteLanguageData(next, tag);
     if (nextSource) {
       next.sourceLanguage = nextSource;
       for (let i = 0; i < next.messages.length; i++) {
@@ -648,7 +674,12 @@
       }
     }
     if (next.languages.length === 0) return;
-    if (!(await saveTranslationStore(next))) languageError = translationError;
+    if (!(await saveTranslationStore(next))) {
+      languageError = translationError;
+      return;
+    }
+    clearLanguageEditorState(tag);
+    translationStatus = `${languageDisplayName(tag)} and its saved translations removed.`;
   }
 
   async function useNewSourceLanguage() {
@@ -677,9 +708,7 @@
     const nextSource = promptedSourceLanguage;
     const next = cloneTextTranslationStore(translationStore);
     if (next.languages.indexOf(nextSource) < 0) next.languages.push(nextSource);
-    next.languages = next.languages.filter(
-      (language) => language !== pendingRemoval,
-    );
+    deleteLanguageData(next, pendingRemoval);
     next.sourceLanguage = nextSource;
     for (let i = 0; i < next.messages.length; i++) {
       next.messages[i].reviewedSignature = "";
@@ -688,8 +717,12 @@
       languageError = translationError;
       return;
     }
+    const removed = pendingRemoval;
     languageDialog?.close();
     pendingRemoval = "";
+    clearLanguageEditorState(removed);
+    clearLanguageEditorState(nextSource);
+    translationStatus = `${languageDisplayName(removed)} and its saved translations removed.`;
   }
 
   function loadTranslationDraft(language: string) {
@@ -1633,7 +1666,8 @@
   {#if pendingRemoval}
     <p>
       Which language is the document written in? The source declaration does not
-      change Illustrator text, and saved translations will need review.
+      change Illustrator text, and saved translations will need review. Removing
+      {pendingRemoval} permanently deletes all of its saved translations.
     </p>
     <label class="dialog-label" for="new-source-language"
       >Document language</label
