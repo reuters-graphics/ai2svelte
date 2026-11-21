@@ -1,6 +1,7 @@
 <script lang="ts">
   import type { Snippet } from "svelte";
   import { WaveController } from "../lib/distortion-waves/controller";
+  import { defaultStyle, type WaveType } from "../lib/distortion-waves/model";
   import { triggerWave } from "../stores";
   import { userData } from "../state.svelte";
 
@@ -9,6 +10,8 @@
   let root: HTMLElement;
   let content: HTMLElement;
   let controller = $state.raw<WaveController>();
+  let waveType = $state<WaveType>("vertical");
+  const homeStyle = defaultStyle("vertical");
 
   $effect(() => {
     const c = new WaveController(root, content);
@@ -17,12 +20,27 @@
   });
 
   $effect(() => {
-    controller?.update({ palette: userData.accentColor || "#dc4300" });
+    controller?.update({
+      type: waveType,
+      waveStyle: homeStyle,
+      palette: userData.accentColor || "#dc4300",
+    });
   });
 
   $effect(() => {
     if ($triggerWave && controller) {
-      controller.play({ source: $triggerWave });
+      const radial = $triggerWave.dataset.waveType === "center";
+      waveType = radial ? "center" : "vertical";
+      controller.update({
+        type: waveType,
+        waveStyle: homeStyle,
+        palette: userData.accentColor || "#dc4300",
+      });
+      controller.play(
+        radial
+          ? { source: $triggerWave, focus: null }
+          : { source: $triggerWave },
+      );
       $triggerWave = null;
     }
   });

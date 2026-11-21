@@ -271,6 +271,7 @@
 <button
   class="cta-button"
   class:minimal
+  data-wave-type={minimal ? "center" : undefined}
   class:running={$ai2svelteInProgress || starting}
   disabled={$updateInProgress ||
     $ai2svelteInProgress ||

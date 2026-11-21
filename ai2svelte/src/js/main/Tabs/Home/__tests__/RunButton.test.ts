@@ -78,6 +78,14 @@ describe("RunButton", () => {
       await userEvent.click(button);
       await waitFor(() => expect(get(triggerWave)).toBe(button));
     });
+
+    it("requests a radial burst when run from the tab bar", async () => {
+      render(RunButton, { minimal: true });
+      const button = screen.getByRole("button");
+      await userEvent.click(button);
+      await waitFor(() => expect(get(triggerWave)).toBe(button));
+      expect(button).toHaveAttribute("data-wave-type", "center");
+    });
   });
 
   describe("with CEP stub (simulates Illustrator environment)", () => {
