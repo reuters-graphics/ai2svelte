@@ -1,8 +1,24 @@
 import { describe, expect, it } from "vitest";
-import { defaultStyle, newFront, particleAt, type Particle } from "../model";
+import {
+  defaultStyle,
+  newFront,
+  particleAt,
+  waveFront,
+  type Particle,
+} from "../model";
 
 const source = { x: 0, y: 0, w: 200, h: 100 };
 const style = defaultStyle("vertical");
+
+it("does not protect a circular region from a radial wave's distortion", () => {
+  const radialStyle = { ...style, type: "center" as const };
+  for (const progress of [0, 0.1, 0.3, 0.6, 1]) {
+    const front = waveFront(progress, source, 300, 550, radialStyle);
+    expect(front.hold).toBe(0);
+    expect(front.ox).toBe(source.x + source.w / 2);
+    expect(front.oy).toBe(source.y + source.h / 2);
+  }
+});
 
 function particle(column: number): Particle {
   return {

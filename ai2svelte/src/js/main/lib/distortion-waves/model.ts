@@ -501,7 +501,7 @@ export function waveFront(
   f.hasCleared = radius > crossed;
   f.ring = ring;
   f.sideways = sideways;
-  f.hold = ring ? startRadius : 0;
+  f.hold = 0;
   return f;
 }
 
