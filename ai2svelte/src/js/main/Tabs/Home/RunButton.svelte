@@ -291,9 +291,10 @@
   .cta-button {
     cursor: pointer;
     padding: 1rem;
-    color: var(--color-text);
-    background-color: var(--color-primary);
+    color: var(--color-white);
+    background-color: var(--color-accent-primary);
     border: unset;
+    border-radius: var(--radius-sm);
     font-size: var(--font-size-s);
     font-weight: 500;
     text-transform: uppercase;
@@ -302,16 +303,15 @@
     @include animation-default;
   }
 
-  .cta-button:hover {
-    background-color: var(--color-accent-primary);
-    color: var(--color-white);
+  .cta-button:hover:not(:disabled) {
+    filter: brightness(1.1);
   }
 
   .cta-button:disabled {
     cursor: not-allowed;
     opacity: 0.5;
-    color: var(--color-text-secondary);
-    background: var(--color-primary);
+    color: var(--color-white);
+    background: var(--color-accent-primary);
   }
 
   .cta-button:disabled.running {

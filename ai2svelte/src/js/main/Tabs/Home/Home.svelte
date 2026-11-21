@@ -1,7 +1,9 @@
 <script lang="ts">
+  const DOCS_URL =
+    "https://reuters-graphics.github.io/ai2svelte/users/whats-new/";
   import { mount } from "svelte";
   import { settingsObject, styles } from "../../stores";
-  import { evalTS } from "../../../lib/utils/bolt";
+  import { evalTS, openLinkInBrowser } from "../../../lib/utils/bolt";
   import { saveSettings, tooltipSettings } from "../../utils/utils";
   import { checkForUpdate } from "../../utils/updateCheck";
   import Toast from "../../Components/Toast.svelte";
@@ -101,6 +103,9 @@
   <div id="credits">
     <Logo />
     <p id="about-line">{displayName} v{version} by {company}</p>
+    <button id="docs-link" onclick={() => openLinkInBrowser(DOCS_URL)}
+      >Read documentation</button
+    >
   </div>
 </div>
 
@@ -137,6 +142,7 @@
     color: var(--color-text);
     background-color: var(--color-primary);
     border: unset;
+    border-radius: var(--radius-sm);
     font-size: var(--font-size-s);
     font-weight: 500;
     text-transform: uppercase;
@@ -171,8 +177,23 @@
 
   #about-line {
     text-align: center;
-    color: var(--color-tertiary);
+    color: var(--color-text-muted);
     letter-spacing: -0.05rem;
+  }
+
+  #docs-link {
+    background: none;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    color: var(--color-text-secondary);
+    font-size: var(--font-size-s);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+
+    &:hover {
+      color: var(--color-accent-primary);
+    }
   }
 
   .file-info {
