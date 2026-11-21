@@ -20,8 +20,22 @@ export const vulcan = new Vulcan();
  * @return String Result.
  */
 
+// Outside Illustrator (e.g. the dev server in a plain browser) there is no CEP host.
+const noHost = () =>
+  import.meta.env.DEV &&
+  import.meta.env.MODE !== "test" &&
+  typeof (window as { __adobe_cep__?: unknown }).__adobe_cep__ === "undefined";
+
+if (noHost()) {
+  // Without a host, CSInterface event hooks would throw inside Svelte effects
+  // and stall the rest of the reactive graph (sliders, etc.).
+  csi.addEventListener = () => {};
+  csi.removeEventListener = () => {};
+}
+
 export const evalES = (script: string, isGlobal = false): Promise<string> => {
   return new Promise(function (resolve) {
+    if (noHost()) return resolve("undefined");
     const pre = isGlobal
       ? ""
       : `var host = typeof $ !== 'undefined' ? $ : window; host["${ns}"].`;
@@ -77,6 +91,10 @@ export const evalTS = <
   return new Promise(function (resolve, reject) {
     const id = ++evalTSCallId;
     const start = Date.now();
+    if (noHost()) {
+      console.warn(`[dev] no CEP host, skipping evalTS("${functionName}")`);
+      return resolve(undefined as ReturnType<Func>);
+    }
     logCall(id, functionName, args);
     const formattedArgs = args.map((arg) => `${JSON.stringify(arg)}`).join(",");
     csi.evalScript(

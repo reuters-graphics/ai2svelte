@@ -28,6 +28,7 @@
   import defaultAnimations from "./Tabs/data/animations.json?raw";
   import defaultShadows from "./Tabs/data/shadows.json?raw";
   import defaultSpecimens from "./Tabs/data/specimens.json?raw";
+  import defaultProfile from "./Tabs/data/default-profile.json";
 
   // OTHER IMPORTS
   import JSON5 from "json5";
@@ -237,6 +238,9 @@
       previousSettings = { ...$settingsObject };
       splashScreen = true;
     } else {
+      // No Illustrator host: seed defaults so the tabs render in a browser
+      if (import.meta.env.DEV)
+        $settingsObject = defaultProfile.default as SettingsObject;
       fetchStyleJSONs();
       setTimeout(() => {
         splashScreen = true;
