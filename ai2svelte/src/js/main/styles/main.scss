@@ -13,8 +13,9 @@
 
 hr {
   width: 100%;
-  border: 1px solid var(--color-ruler);
-  background-color: var(--color-ruler);
+  height: 1px;
+  border: 0;
+  background-color: var(--color-border);
 }
 
 .content {
@@ -46,7 +47,7 @@ hr {
   background-color: var(--color-primary);
   padding: 0.75rem;
   border: unset;
-  border-radius: 8px;
+  border-radius: var(--radius-lg);
   height: auto;
 }
 
@@ -71,7 +72,7 @@ hr {
     height: 24px;
 
     div.color {
-      outline: 1px solid var(--color-tertiary);
+      outline: 1px solid var(--color-text-muted);
     }
   }
 }
@@ -83,13 +84,13 @@ hr {
 }
 
 div[aria-label="color picker"] {
-  border-radius: 8px !important;
+  border-radius: var(--radius-lg) !important;
   padding: 0 !important;
   // display: flex !important;
   // flex-direction: column !important;
 
   div.picker {
-    border-radius: 8px 8px 0px 0px;
+    border-radius: var(--radius-lg) 8px 0px 0px;
 
     div.picker-indicator {
       background-color: var(--picker-color);

@@ -34,7 +34,23 @@
   $effect(() => {
     progress.target = value / length;
   });
+
+  // The focus ring (Input's :focus-within) should only show while the pointer
+  // is interacting; release focus afterwards. Keyboard use keeps focus.
+  let rangeEl: HTMLElement | undefined = $state();
+  let pointerActive = false;
+
+  function releaseFocus() {
+    if (!pointerActive) return;
+    pointerActive = false;
+    const active = document.activeElement;
+    if (active instanceof HTMLElement && rangeEl?.contains(active)) {
+      active.blur();
+    }
+  }
 </script>
+
+<svelte:window onpointerup={releaseFocus} onpointercancel={releaseFocus} />
 
 <!--
   Slider.Root manages:
@@ -61,7 +77,12 @@
   }}
 >
   {#snippet child({ props })}
-    <div {...props} class="range">
+    <div
+      {...props}
+      class="range"
+      bind:this={rangeEl}
+      onpointerdowncapture={() => (pointerActive = true)}
+    >
       <!-- Invisible spacer that defines the container's natural height -->
       <p class="pseudo">{value}</p>
 
@@ -104,7 +125,7 @@
     width: 100%;
     min-width: 120px;
     background-color: transparent;
-    border-radius: var(--space-s);
+    border-radius: var(--radius-xs);
     position: relative;
     cursor: pointer;
   }
@@ -121,7 +142,7 @@
     width: 100%;
     height: 100%;
     background-color: var(--color-accent-primary);
-    border-radius: var(--space-2xs);
+    border-radius: var(--radius-xs);
     pointer-events: none;
   }
 

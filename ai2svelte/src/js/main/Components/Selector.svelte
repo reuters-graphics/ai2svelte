@@ -71,7 +71,7 @@
   }
 
   .radio-button:hover {
-    color: var(--color-text-hover);
+    color: var(--color-text);
   }
 
   .radio-button[data-checked="true"] {

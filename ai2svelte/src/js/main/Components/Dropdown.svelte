@@ -56,6 +56,19 @@
   // Track open state so we can rotate the chevron and reset the chaser
   let menuOpen: boolean = $state(false);
 
+  // The focus ring (Input's :focus-within) should only show while the pointer
+  // is interacting. Bits-ui returns focus to the trigger on close, so release
+  // it afterwards. Keyboard use keeps focus.
+  let triggerEl: HTMLElement | undefined = $state();
+  let pointerOpened = false;
+
+  $effect(() => {
+    if (menuOpen || !pointerOpened) return;
+    pointerOpened = false;
+    const timer = setTimeout(() => triggerEl?.blur(), 0);
+    return () => clearTimeout(timer);
+  });
+
   // Move the chaser to follow the currently hovered item
   $effect(() => {
     if (
@@ -122,7 +135,13 @@
     -->
     <Select.Trigger {id} aria-label={ariaLabel}>
       {#snippet child({ props })}
-        <button {...props} class="selected-option">
+        <button
+          {...props}
+          class="selected-option"
+          bind:this={triggerEl}
+          onpointerdowncapture={() => (pointerOpened = true)}
+          onkeydowncapture={() => (pointerOpened = false)}
+        >
           <div class="value-display">
             <p class="dropdown-value hidden">{optionLabel(value)}</p>
             {#key value}
@@ -261,7 +280,7 @@
   .li-action {
     margin-top: var(--space-2xs);
     padding-top: var(--space-2xs);
-    border-top: 1px solid var(--color-field-border);
+    border-top: 1px solid var(--color-border);
 
     span {
       color: var(--color-text);
@@ -299,7 +318,7 @@
     background-color: transparent;
     color: var(--color-text);
     padding: 0px;
-    border-radius: var(--space-s);
+    border-radius: var(--radius-lg);
     cursor: pointer;
     @include animation-default;
 
@@ -312,7 +331,7 @@
   .selected-option:hover {
     .dropdown-value,
     .chevron {
-      color: var(--color-text-hover);
+      color: var(--color-text);
     }
   }
 
@@ -334,8 +353,8 @@
     background-color: var(--color-secondary);
     backdrop-filter: blur(4px);
     padding: var(--space-2xs);
-    border: 0.5px solid var(--color-tertiary);
-    border-radius: var(--space-xs);
+    border: 0.5px solid var(--color-text-muted);
+    border-radius: var(--radius-sm);
     z-index: 3;
     box-shadow:
       0 0 16px rgba(0, 0, 0, 0.2),
@@ -391,9 +410,9 @@
   .li-selector {
     position: absolute;
     width: 100%;
-    background-color: var(--color-tertiary);
+    background-color: var(--color-text-muted);
     opacity: 0.12;
-    border-radius: var(--space-2xs);
+    border-radius: var(--radius-sm);
     top: 0px;
     z-index: 3;
     color: transparent;

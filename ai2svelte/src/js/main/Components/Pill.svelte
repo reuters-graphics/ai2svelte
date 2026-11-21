@@ -65,7 +65,7 @@
     svg {
       width: var(--space-m);
       height: var(--space-m);
-      fill: var(--color-tertiary);
+      fill: var(--color-text-muted);
       @include animation-default;
     }
 

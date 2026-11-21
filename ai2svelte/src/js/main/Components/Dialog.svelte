@@ -55,8 +55,8 @@
     max-height: calc(100vh - 2rem);
     padding: 0;
     overflow: visible;
-    border: 1px solid var(--color-field-border);
-    border-radius: var(--space-s);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
     background: var(--color-secondary);
     color: var(--color-text);
     box-shadow: 0 var(--space-m) var(--space-2xl) #0006;
@@ -81,7 +81,7 @@
   }
 
   header {
-    border-bottom: 1px solid var(--color-ruler);
+    border-bottom: 1px solid var(--color-border);
   }
 
   h2 {
@@ -106,7 +106,7 @@
     flex-direction: column;
     align-items: stretch;
     gap: var(--space-xs);
-    border-top: 1px solid var(--color-ruler);
+    border-top: 1px solid var(--color-border);
   }
 
   .dialog-utility {
@@ -132,7 +132,7 @@
     width: 100%;
     min-height: 2.5rem;
     padding: var(--space-m);
-    border: 1px solid var(--color-field-border);
+    border: 1px solid var(--color-border);
     border-radius: 0;
     background: var(--color-primary);
     color: var(--color-text);
@@ -145,7 +145,7 @@
   }
 
   dialog :global(.dialog-link:hover) {
-    background: var(--color-tertiary);
+    background: var(--color-text-muted);
   }
 
   dialog :global(.dialog-button) {
@@ -177,7 +177,7 @@
   }
 
   dialog :global(.dialog-button:hover:not(:disabled)) {
-    background: var(--color-tertiary);
+    background: var(--color-text-muted);
   }
 
   dialog :global(.dialog-button.primary:hover:not(:disabled)) {

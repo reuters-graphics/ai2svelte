@@ -36,7 +36,7 @@
     width: 100%;
     color: var(--color-accent-primary);
     padding: 0.75rem 0.75rem 0.75rem 0.75rem;
-    border-radius: 0.25rem;
+    border-radius: var(--radius-sm);
     margin-bottom: 1rem;
 
     // Tinted background that follows the user's chosen accent colour.

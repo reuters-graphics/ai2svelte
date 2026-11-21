@@ -144,7 +144,7 @@
     padding: var(--space-l);
     color: var(--color-text);
     background-color: var(--color-primary);
-    border-radius: var(--space-s);
+    border-radius: var(--radius-lg);
 
     p {
       padding: 2px 4px;
@@ -153,7 +153,7 @@
     }
 
     .status-removed {
-      color: #d82028;
+      color: var(--color-warning);
       background-color: #ca003522;
     }
 

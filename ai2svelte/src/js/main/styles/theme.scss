@@ -5,45 +5,42 @@ $accent-primary: #dc4300;
 $accent-secondary: #241e1c;
 
 // backgrounds
+// One scale: background < primary (surface) < secondary (raised/hover).
+// One border color. Three text levels. One accent.
 $dark-theme: (
-  background: hsl(0, 0%, 8%),
-  primary: hsl(0, 0%, 14%),
-  secondary: hsl(0, 0%, 21%),
-  tertiary: hsl(0, 0%, 38%),
-  ruler: hsl(0, 0%, 16%),
+  background: #121212,
+  primary: #1c1c1c,
+  secondary: #292929,
+  border: #333333,
+  border-subtle: #2a2a2a,
   invert: #000000,
 
   accent-primary: #dc4300,
   accent-secondary: #241e1c,
   warning: #ff5c5c,
-  text: #ffffff,
-  text-muted: rgba(255, 255, 255, 0.3),
-  text-secondary: rgba(255, 255, 255, 0.5),
-  text-hover: rgba(255, 255, 255, 0.7),
-  field-border: transparent,
+  text: #f2f2f2,
+  text-secondary: #a3a3a3,
+  text-muted: #6b6b6b,
 
   black: #000000,
   white: #ffffff,
 );
 
 $light-theme: (
-  background: #f4f6f8,
+  background: #e8e8e8,
   primary: #ffffff,
-  secondary: #e5e9ef,
-  tertiary: #667085,
-  ruler: #cdd4de,
-
+  secondary: #dadada,
+  border: #bfbfbf,
+  border-subtle: #cfcfcf,
   invert: #ffffff,
 
   accent-primary: #dc4300,
   accent-secondary: #241e1c,
   warning: #d92d20,
 
-  text: #202936,
-  text-muted: #596579,
-  text-secondary: #3e4c60,
-  text-hover: #202936,
-  field-border: rgba(205, 212, 222, 0.6),
+  text: #1a1a1a,
+  text-secondary: #555555,
+  text-muted: #8a8a8a,
 
   black: #000000,
   white: #ffffff,
@@ -66,21 +63,26 @@ $color-white: #ffffff;
 // https://utopia.fyi/space/calculator/?c=320,8,1.125,1200,12,1.25,5,2,&s=0.75%7C0.5%7C0.25,1.5%7C2%7C3%7C4%7C6,s-l&g=s,l,xl,12
 
 :root {
-  --font-size-xs: clamp(0.642rem, 0.5926rem + 0.2469vw, 0.7407rem);
-  --font-size-sm: clamp(0.7222rem, 0.6667rem + 0.2778vw, 0.8333rem);
-  --font-size-base: clamp(0.8125rem, 0.75rem + 0.3125vw, 0.9375rem);
-  --font-size-lg: clamp(0.9141rem, 0.8438rem + 0.3516vw, 1.0547rem);
-  --font-size-xl: clamp(1.0283rem, 0.9492rem + 0.3955vw, 1.1865rem);
+  --font-size-xs: 0.6875rem;
+  --font-size-sm: 0.75rem;
+  --font-size-base: 0.8125rem;
+  --font-size-lg: 0.9375rem;
+  --font-size-xl: 1.0625rem;
 
-  --space-3xs: clamp(0.125rem, 0.0938rem + 0.1563vw, 0.1875rem);
-  --space-2xs: clamp(0.25rem, 0.1875rem + 0.3125vw, 0.375rem);
-  --space-xs: clamp(0.375rem, 0.2813rem + 0.4688vw, 0.5625rem);
-  --space-s: clamp(0.5rem, 0.375rem + 0.625vw, 0.75rem);
-  --space-m: clamp(0.75rem, 0.5625rem + 0.9375vw, 1.125rem);
-  --space-l: clamp(1rem, 0.75rem + 1.25vw, 1.5rem);
-  --space-xl: clamp(1.5rem, 1.125rem + 1.875vw, 2.25rem);
-  --space-2xl: clamp(2rem, 1.5rem + 2.5vw, 3rem);
-  --space-3xl: clamp(3rem, 2.25rem + 3.75vw, 4.5rem);
+  --space-3xs: 0.125rem;
+  --space-2xs: 0.25rem;
+  --space-xs: 0.375rem;
+  --space-s: 0.5rem;
+  --space-m: 0.75rem;
+  --space-l: 1rem;
+  --space-xl: 1.5rem;
+  --space-2xl: 2rem;
+  --space-3xl: 3rem;
+
+  --radius-xs: 2px;
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
 }
 
 :root {

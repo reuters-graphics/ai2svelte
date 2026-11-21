@@ -255,7 +255,7 @@
     position: relative;
     height: 20rem;
     background-color: var(--color-primary);
-    border-radius: var(--space-s);
+    border-radius: var(--radius-lg);
     overflow: hidden;
 
     :global(.cm-editor) {

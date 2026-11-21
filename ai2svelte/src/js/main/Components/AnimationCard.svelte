@@ -134,7 +134,7 @@
               y1="50%"
               x2="100%"
               y2="50%"
-              stroke="var(--color-tertiary)"
+              stroke="var(--color-text-muted)"
               stroke-width="3px"
               style={`${argumentsString} animation: ${animationRule};`}
             ></line>
@@ -150,7 +150,7 @@
 
   .card {
     border: unset;
-    border-radius: var(--space-s);
+    border-radius: var(--radius-lg);
     padding: var(--space-s);
     position: relative;
     width: 100%;

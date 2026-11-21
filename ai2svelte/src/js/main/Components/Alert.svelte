@@ -34,7 +34,7 @@
     background-color: hsl(349 70% 45% / 0.2);
     color: hsl(349 70% 45% / 1);
     padding: 0.25rem 0.25rem 0.35rem 0.25rem;
-    border-radius: 0.25rem;
+    border-radius: var(--radius-sm);
     margin-bottom: 1rem;
   }
 
@@ -47,7 +47,7 @@
     color: inherit;
     background: transparent;
     border: 1px solid currentColor;
-    border-radius: 0.25rem;
+    border-radius: var(--radius-sm);
   }
 
   button:disabled {

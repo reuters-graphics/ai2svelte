@@ -42,7 +42,7 @@
     transform: translate(-50%, -50%);
     z-index: 11;
     padding: var(--space-s);
-    border-radius: var(--space-2xs);
+    border-radius: var(--radius-sm);
     background-color: var(--color-primary);
   }
 </style>

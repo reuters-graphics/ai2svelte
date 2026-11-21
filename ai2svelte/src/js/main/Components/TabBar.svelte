@@ -141,7 +141,7 @@
                 --picker-indicator-size="40px"
                 --picker-z-index="10"
                 --input-size="24px"
-                --cp-border-color="var(--color-ruler)"
+                --cp-border-color="var(--color-border)"
                 --cp-bg-color="var(--color-primary)"
                 --cp-text-color="var(--color-text)"
                 --cp-input-color="var(--color-secondary)"
@@ -199,7 +199,7 @@
     margin: 0;
 
     &:hover {
-      color: var(--color-text-hover);
+      color: var(--color-text);
     }
 
     /* Active tab — bits-ui sets data-state="active" on the trigger element */
@@ -211,6 +211,9 @@
   }
 
   .container {
+    /* Home shows 24px theme/accent controls, other tabs a shorter run button;
+       reserve the taller height so the bar doesn't jump between tabs. */
+    min-height: 24px;
     display: flex;
     flex-direction: row;
     align-items: center;

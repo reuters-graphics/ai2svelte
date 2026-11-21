@@ -391,8 +391,8 @@
       min-width: 0;
       min-height: 2.5rem;
       padding: var(--space-s);
-      border: 1px solid var(--color-field-border);
-      border-radius: var(--space-s);
+      border: 1px solid var(--color-border-subtle);
+      border-radius: var(--radius-lg);
       background-color: var(--color-primary);
       color: var(--color-text);
       font: inherit;
@@ -405,7 +405,7 @@
     gap: var(--space-s);
     margin-top: var(--space-l);
     padding-top: var(--space-l);
-    border-top: 1px solid var(--color-ruler);
+    border-top: 1px solid var(--color-border);
   }
 
   .tab-content {
@@ -436,6 +436,7 @@
       flex: 1;
       padding: 1rem;
       background-color: var(--color-primary);
+      border-radius: var(--radius-sm);
       text-align: center;
       text-transform: uppercase;
       letter-spacing: 0.1rem;

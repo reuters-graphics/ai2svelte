@@ -96,12 +96,12 @@
     flex-direction: column;
     padding: var(--space-s);
     gap: var(--space-2xs);
-    border-radius: var(--space-s);
+    border-radius: var(--radius-sm);
     flex-grow: 1;
     transition: 0.2s ease;
     background-color: var(--color-primary);
     border: unset;
-    box-shadow: inset 0 0 0 1px var(--color-field-border);
+    box-shadow: inset 0 0 0 1px var(--color-border-subtle);
     width: 100%;
   }
 

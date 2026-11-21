@@ -19,13 +19,17 @@
     cursor: pointer;
     flex-grow: 1;
     background-color: var(--color-primary);
-    border: unset;
-    border-radius: 8px;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
     color: var(--color-text);
     font-size: var(--font-size-sm);
     font-weight: 500;
     text-transform: uppercase;
-    padding: var(--space-s) var(--space-l);
+    padding: var(--space-xs) var(--space-m);
     @include animation-default;
+  }
+
+  .chip:hover {
+    background-color: var(--color-secondary);
   }
 </style>

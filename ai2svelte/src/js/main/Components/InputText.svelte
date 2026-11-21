@@ -13,6 +13,10 @@
   type="text"
   bind:value
   required
+  onkeydown={(e) => {
+    // Enter/Escape end the interaction, so the field's focus ring clears.
+    if (e.key === "Enter" || e.key === "Escape") e.currentTarget.blur();
+  }}
 />
 
 <style lang="scss">
@@ -31,6 +35,6 @@
   .option-text:focus {
     border: unset;
     outline: unset;
-    color: var(--color-text-hover);
+    color: var(--color-text);
   }
 </style>
